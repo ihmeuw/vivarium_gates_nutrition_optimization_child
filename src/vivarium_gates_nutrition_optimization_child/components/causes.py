@@ -2,11 +2,7 @@
 Component to include birth prevalence in SIS model.
 """
 
-from vivarium_public_health.disease import (
-    DiseaseModel,
-    DiseaseState,
-    SusceptibleState,
-)
+from vivarium_public_health.disease import DiseaseModel, DiseaseState, SusceptibleState
 
 
 def SIS_with_birth_prevalence(cause: str) -> DiseaseModel:

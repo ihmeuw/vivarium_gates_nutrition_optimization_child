@@ -2,10 +2,10 @@
 Component for maternal supplementation and risk effects
 """
 
-import numpy as np
-import pandas as pd
 from typing import Callable
 
+import numpy as np
+import pandas as pd
 from vivarium.framework.engine import Builder
 from vivarium.framework.lookup import LookupTable
 from vivarium.framework.population import PopulationView, SimulantData
@@ -14,9 +14,10 @@ from vivarium.framework.values import Pipeline
 from vivarium_public_health.risks import RiskEffect
 from vivarium_public_health.risks.data_transformations import (
     pivot_categorical,
-    rebin_relative_risk_data
+    rebin_relative_risk_data,
 )
 
+from vivarium_gates_nutrition_optimization_child.constants import data_values
 from vivarium_gates_nutrition_optimization_child.constants.data_keys import (
     BEP_SUPPLEMENTATION,
     IFA_SUPPLEMENTATION,
@@ -24,7 +25,6 @@ from vivarium_gates_nutrition_optimization_child.constants.data_keys import (
     STUNTING,
     WASTING,
 )
-from vivarium_gates_nutrition_optimization_child.constants import data_values
 from vivarium_gates_nutrition_optimization_child.utilities import get_random_variable
 
 
@@ -63,10 +63,10 @@ class MaternalCharacteristics:
         self.iv_iron_exposure_column_name = "iv_iron_exposure"
         self.maternal_bmi_anemia_exposure_column_name = "maternal_bmi_anemia_exposure"
 
-        self.bep_exposure_pipeline_name = f'{BEP_SUPPLEMENTATION.name}.exposure'
-        self.ifa_exposure_pipeline_name = f'{IFA_SUPPLEMENTATION.name}.exposure'
-        self.mmn_exposure_pipeline_name = f'{MMN_SUPPLEMENTATION.name}.exposure'
-        self.iv_iron_exposure_pipeline_name = 'iv_iron.exposure'
+        self.bep_exposure_pipeline_name = f"{BEP_SUPPLEMENTATION.name}.exposure"
+        self.ifa_exposure_pipeline_name = f"{IFA_SUPPLEMENTATION.name}.exposure"
+        self.mmn_exposure_pipeline_name = f"{MMN_SUPPLEMENTATION.name}.exposure"
+        self.iv_iron_exposure_pipeline_name = "iv_iron.exposure"
         self.maternal_bmi_anemia_exposure_pipeline_name = "maternal_bmi_anemia.exposure"
 
     def __repr__(self):
@@ -74,7 +74,7 @@ class MaternalCharacteristics:
 
     @property
     def name(self) -> str:
-        return 'maternal_characteristics'
+        return "maternal_characteristics"
 
     #################
     # Setup methods #
@@ -139,17 +139,19 @@ class MaternalCharacteristics:
             new_births = pop_data.user_data["new_births"]
             new_births.index = pop_data.index
 
-            maternal_supplementation = new_births['maternal_supplementation_coverage'].copy()
-            maternal_supplementation[maternal_supplementation == 'invalid'] = 'uncovered'
-            new_simulants[self.supplementation_exposure_column_name] = maternal_supplementation
+            maternal_supplementation = new_births["maternal_supplementation_coverage"].copy()
+            maternal_supplementation[maternal_supplementation == "invalid"] = "uncovered"
+            new_simulants[
+                self.supplementation_exposure_column_name
+            ] = maternal_supplementation
 
-            iv_iron_exposure = new_births['maternal_antenatal_iv_iron_coverage'].copy()
+            iv_iron_exposure = new_births["maternal_antenatal_iv_iron_coverage"].copy()
             iv_iron_exposure[iv_iron_exposure == "invalid"] = "uncovered"
             new_simulants[self.iv_iron_exposure_column_name] = iv_iron_exposure
 
-            new_simulants[self.maternal_bmi_anemia_exposure_column_name] = (
-                new_births['joint_bmi_anemia_category']
-            )
+            new_simulants[self.maternal_bmi_anemia_exposure_column_name] = new_births[
+                "joint_bmi_anemia_category"
+            ]
 
         self.population_view.update(new_simulants)
 
@@ -196,16 +198,17 @@ class MaternalCharacteristics:
         return exposure
 
     def _get_maternal_bmi_anemia_exposure(self, index: pd.Index) -> pd.Series:
-        exposure = self.population_view.get(index)[self.maternal_bmi_anemia_exposure_column_name]
+        exposure = self.population_view.get(index)[
+            self.maternal_bmi_anemia_exposure_column_name
+        ]
         exposure.name = self.maternal_bmi_anemia_exposure_pipeline_name
         return exposure
 
 
 class AdditiveRiskEffect(RiskEffect):
-
     def __init__(self, risk: str, target: str):
         super().__init__(risk, target)
-        self.effect_pipeline_name = f'{self.risk.name}.effect'
+        self.effect_pipeline_name = f"{self.risk.name}.effect"
 
     # noinspection PyAttributeOutsideInit
     def setup(self, builder: Builder) -> None:
@@ -231,34 +234,33 @@ class AdditiveRiskEffect(RiskEffect):
 
     def _get_excess_shift_source(self, builder: Builder) -> LookupTable:
         excess_shift_data = builder.data.load(
-            f'{self.risk}.excess_shift',
+            f"{self.risk}.excess_shift",
             affected_entity=self.target.name,
-            affected_measure=self.target.measure
+            affected_measure=self.target.measure,
         )
         excess_shift_data = rebin_relative_risk_data(builder, self.risk, excess_shift_data)
         excess_shift_data = pivot_categorical(excess_shift_data)
         return builder.lookup.build_table(
-            excess_shift_data,
-            key_columns=['sex'],
-            parameter_columns=['age', 'year']
+            excess_shift_data, key_columns=["sex"], parameter_columns=["age", "year"]
         )
 
-    def _get_target_modifier(self, builder: Builder) -> Callable[[pd.Index, pd.Series], pd.Series]:
+    def _get_target_modifier(
+        self, builder: Builder
+    ) -> Callable[[pd.Index, pd.Series], pd.Series]:
         def adjust_target(index: pd.Index, target: pd.Series) -> pd.Series:
             affected_rates = target + self.effect(index)
             return affected_rates
+
         return adjust_target
 
     def _get_risk_specific_shift_source(self, builder: Builder) -> LookupTable:
         risk_specific_shift_data = builder.data.load(
-            f'{self.risk}.risk_specific_shift',
+            f"{self.risk}.risk_specific_shift",
             affected_entity=self.target.name,
-            affected_measure=self.target.measure
+            affected_measure=self.target.measure,
         )
         return builder.lookup.build_table(
-            risk_specific_shift_data,
-            key_columns=['sex'],
-            parameter_columns=['age', 'year']
+            risk_specific_shift_data, key_columns=["sex"], parameter_columns=["age", "year"]
         )
 
     def _register_paf_modifier(self, builder: Builder) -> None:
@@ -272,7 +274,7 @@ class AdditiveRiskEffect(RiskEffect):
         return target + self.risk_specific_shift_source(index)
 
     def get_effect(self, index: pd.Index) -> pd.Series:
-        index_columns = ['index', self.risk.name]
+        index_columns = ["index", self.risk.name]
 
         excess_shift = self.excess_shift_source(index)
         exposure = self.exposure(index).reset_index()
@@ -280,10 +282,10 @@ class AdditiveRiskEffect(RiskEffect):
         exposure = exposure.set_index(index_columns)
 
         relative_risk = excess_shift.stack().reset_index()
-        relative_risk.columns = index_columns + ['value']
+        relative_risk.columns = index_columns + ["value"]
         relative_risk = relative_risk.set_index(index_columns)
 
-        raw_effect = relative_risk.loc[exposure.index, 'value'].droplevel(self.risk.name)
+        raw_effect = relative_risk.loc[exposure.index, "value"].droplevel(self.risk.name)
 
         risk_specific_shift = self.risk_specific_shift_source(index)
         effect = raw_effect - risk_specific_shift
@@ -291,21 +293,18 @@ class AdditiveRiskEffect(RiskEffect):
 
 
 class BirthWeightShiftEffect:
-
     def __init__(self):
-        self.ifa_effect_pipeline_name = f'{IFA_SUPPLEMENTATION.name}.effect'
-        self.mmn_effect_pipeline_name = f'{MMN_SUPPLEMENTATION.name}.effect'
-        self.bep_effect_pipeline_name = f'{BEP_SUPPLEMENTATION.name}.effect'
-        self.iv_iron_effect_pipeline_name = 'iv_iron.effect'
+        self.ifa_effect_pipeline_name = f"{IFA_SUPPLEMENTATION.name}.effect"
+        self.mmn_effect_pipeline_name = f"{MMN_SUPPLEMENTATION.name}.effect"
+        self.bep_effect_pipeline_name = f"{BEP_SUPPLEMENTATION.name}.effect"
+        self.iv_iron_effect_pipeline_name = "iv_iron.effect"
 
         self.stunting_exposure_parameters_pipeline_name = (
-            f'risk_factor.{STUNTING.name}.exposure_parameters'
-
+            f"risk_factor.{STUNTING.name}.exposure_parameters"
         )
 
         self.wasting_exposure_parameters_pipeline_name = (
-            f'risk_factor.{WASTING.name}.exposure_parameters'
-
+            f"risk_factor.{WASTING.name}.exposure_parameters"
         )
 
     def __repr__(self):
@@ -317,7 +316,7 @@ class BirthWeightShiftEffect:
 
     @property
     def name(self) -> str:
-        return f'birth_weight_shift_effect'
+        return f"birth_weight_shift_effect"
 
     #################
     # Setup methods #
@@ -329,7 +328,8 @@ class BirthWeightShiftEffect:
         self.wasting_effect_per_gram = data_values.LBWSG.WASTING_EFFECT_PER_GRAM
 
         self.pipelines = {
-            pipeline_name: builder.value.get_value(pipeline_name) for pipeline_name in [
+            pipeline_name: builder.value.get_value(pipeline_name)
+            for pipeline_name in [
                 self.ifa_effect_pipeline_name,
                 self.mmn_effect_pipeline_name,
                 self.bep_effect_pipeline_name,
@@ -354,15 +354,19 @@ class BirthWeightShiftEffect:
     ##################################
 
     def _modify_stunting_exposure_parameters(
-            self, index: pd.Index, target: pd.DataFrame
+        self, index: pd.Index, target: pd.DataFrame
     ) -> pd.DataFrame:
-        cat3_increase = self._get_total_birth_weight_shift(index) * self.stunting_effect_per_gram
+        cat3_increase = (
+            self._get_total_birth_weight_shift(index) * self.stunting_effect_per_gram
+        )
         return self._apply_birth_weight_effect(target, cat3_increase)
 
     def _modify_wasting_exposure_parameters(
-            self, index: pd.Index, target: pd.DataFrame
+        self, index: pd.Index, target: pd.DataFrame
     ) -> pd.DataFrame:
-        cat3_increase = self._get_total_birth_weight_shift(index) * self.wasting_effect_per_gram
+        cat3_increase = (
+            self._get_total_birth_weight_shift(index) * self.wasting_effect_per_gram
+        )
         return self._apply_birth_weight_effect(target, cat3_increase)
 
     ##################
@@ -370,27 +374,27 @@ class BirthWeightShiftEffect:
     ##################
 
     def _get_total_birth_weight_shift(self, index: pd.Index) -> pd.Series:
-        return (
-            pd.concat([pipeline(index) for pipeline in self.pipelines.values()], axis=1)
-            .sum(axis=1)
-        )
+        return pd.concat(
+            [pipeline(index) for pipeline in self.pipelines.values()], axis=1
+        ).sum(axis=1)
 
     # noinspection PyMethodMayBeStatic
     def _get_stunting_effect_per_gram(self, builder: Builder) -> pd.Series:
         return get_random_variable(
             builder.configuration.input_data.input_draw_number,
-            *data_values.LBWSG.STUNTING_EFFECT_PER_GRAM
+            *data_values.LBWSG.STUNTING_EFFECT_PER_GRAM,
         )
 
     @staticmethod
-    def _apply_birth_weight_effect(target: pd.DataFrame, cat3_increase: pd.Series) -> pd.DataFrame:
+    def _apply_birth_weight_effect(
+        target: pd.DataFrame, cat3_increase: pd.Series
+    ) -> pd.DataFrame:
         sam_and_mam = target["cat1"] + target["cat2"]
         cat3 = target["cat3"]
 
         # can't remove more from a category than exists in it categories
         true_cat3_increase = np.maximum(
-            np.minimum(sam_and_mam, cat3_increase),
-            np.minimum(cat3, -cat3_increase)
+            np.minimum(sam_and_mam, cat3_increase), np.minimum(cat3, -cat3_increase)
         )
 
         target["cat3"] = target["cat3"] + true_cat3_increase

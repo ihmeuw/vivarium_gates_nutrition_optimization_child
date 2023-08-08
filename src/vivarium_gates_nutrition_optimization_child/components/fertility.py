@@ -6,9 +6,9 @@ Fertility Models
 Fertility module to create simulants from existing data
 
 """
-import pandas as pd
 from pathlib import Path
 
+import pandas as pd
 from vivarium.framework.engine import Builder
 from vivarium.framework.event import Event
 from vivarium_public_health import utilities
@@ -51,7 +51,7 @@ class FertilityLineList:
         draw = builder.configuration.input_data.input_draw_number
         seed = builder.configuration.randomness.random_seed
 
-        file_path = data_directory / f'scenario_{scenario}_draw_{draw}_seed_{seed}.hdf'
+        file_path = data_directory / f"scenario_{scenario}_draw_{draw}_seed_{seed}.hdf"
         birth_records = pd.read_hdf(file_path)
         return birth_records
 
@@ -63,8 +63,9 @@ class FertilityLineList:
             The event that triggered the function call.
         """
         birth_records = self.birth_records
-        born_previous_step_mask = (birth_records['birth_date'] < self.clock()) & (
-            birth_records['birth_date'] > self.clock() - event.step_size)
+        born_previous_step_mask = (birth_records["birth_date"] < self.clock()) & (
+            birth_records["birth_date"] > self.clock() - event.step_size
+        )
         born_previous_step = birth_records[born_previous_step_mask].copy()
         born_previous_step.loc[:, "maternal_id"] = born_previous_step.index
         simulants_to_add = len(born_previous_step)
@@ -76,6 +77,6 @@ class FertilityLineList:
                     "age_start": 0,
                     "age_end": 0,
                     "sim_state": "time_step",
-                    "new_births": born_previous_step
+                    "new_births": born_previous_step,
                 },
             )

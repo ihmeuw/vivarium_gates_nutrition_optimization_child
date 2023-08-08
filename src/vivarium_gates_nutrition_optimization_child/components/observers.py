@@ -1,17 +1,18 @@
 from collections import Counter
-import pandas as pd
 from typing import Dict
 
+import pandas as pd
 from vivarium import ConfigTree
 from vivarium.framework.engine import Builder
 from vivarium.framework.event import Event
 from vivarium.framework.population import PopulationView
-from vivarium_public_health.metrics.disability import DisabilityObserver as DisabilityObserver_
+from vivarium_public_health.metrics.disability import (
+    DisabilityObserver as DisabilityObserver_,
+)
 from vivarium_public_health.metrics.stratification import (
     ResultsStratifier as ResultsStratifier_,
-    Source,
-    SourceType,
 )
+from vivarium_public_health.metrics.stratification import Source, SourceType
 
 from vivarium_gates_nutrition_optimization_child.constants import data_keys
 
@@ -31,7 +32,7 @@ class ResultsStratifier(ResultsStratifier_):
         self.setup_stratification(
             builder,
             name="wasting_state",
-            sources=[Source(f'{data_keys.WASTING.name}.exposure', SourceType.PIPELINE)],
+            sources=[Source(f"{data_keys.WASTING.name}.exposure", SourceType.PIPELINE)],
             categories={category.value for category in data_keys.CGFCategories},
             mapper=self.child_growth_risk_factor_stratification_mapper,
         )
@@ -39,7 +40,7 @@ class ResultsStratifier(ResultsStratifier_):
         self.setup_stratification(
             builder,
             name="stunting_state",
-            sources=[Source(f'{data_keys.STUNTING.name}.exposure', SourceType.PIPELINE)],
+            sources=[Source(f"{data_keys.STUNTING.name}.exposure", SourceType.PIPELINE)],
             categories={category.value for category in data_keys.CGFCategories},
             mapper=self.child_growth_risk_factor_stratification_mapper,
         )
@@ -83,7 +84,10 @@ class ResultsStratifier(ResultsStratifier_):
 class DisabilityObserver(DisabilityObserver_):
     def on_post_setup(self, event: Event) -> None:
         for cause in self._cause_components:
-            if cause.has_disability or cause.name == 'disease_model.moderate_protein_energy_malnutrition':
+            if (
+                cause.has_disability
+                or cause.name == "disease_model.moderate_protein_energy_malnutrition"
+            ):
                 self.disability_pipelines[cause.state_id] = cause.disability_weight
 
 
@@ -102,9 +106,13 @@ class BirthObserver:
 
     birth_weight_column_name = "birth_weight_exposure"
     gestational_age_column_name = "gestational_age_exposure"
-    columns_required = ["entrance_time", birth_weight_column_name, gestational_age_column_name]
+    columns_required = [
+        "entrance_time",
+        birth_weight_column_name,
+        gestational_age_column_name,
+    ]
 
-    low_birth_weight_limit = 2500   # grams
+    low_birth_weight_limit = 2500  # grams
 
     def __repr__(self):
         return "BirthObserver()"
@@ -159,7 +167,7 @@ class BirthObserver:
 
     def on_collect_metrics(self, event: Event) -> None:
         pop = self.population_view.get(event.index)
-        pop_born = pop[pop['entrance_time'] == event.time - event.step_size]
+        pop_born = pop[pop["entrance_time"] == event.time - event.step_size]
 
         if pop_born.empty:
             return
@@ -168,13 +176,18 @@ class BirthObserver:
         )
         for label, group_mask in groups:
             pop_born_in_group = pop_born[group_mask]
-            low_birth_weight_mask = pop_born_in_group[self.birth_weight_column_name] < self.low_birth_weight_limit
+            low_birth_weight_mask = (
+                pop_born_in_group[self.birth_weight_column_name] < self.low_birth_weight_limit
+            )
             new_observations = {
                 f"live_births_{label}": pop_born_in_group.index.size,
-                f"birth_weight_sum_{label}": pop_born_in_group[self.birth_weight_column_name].sum(),
-                f"gestational_age_sum_{label}":
-                    pop_born_in_group[self.gestational_age_column_name].sum(),
-                f'low_weight_births_{label}': low_birth_weight_mask.sum()
+                f"birth_weight_sum_{label}": pop_born_in_group[
+                    self.birth_weight_column_name
+                ].sum(),
+                f"gestational_age_sum_{label}": pop_born_in_group[
+                    self.gestational_age_column_name
+                ].sum(),
+                f"low_weight_births_{label}": low_birth_weight_mask.sum(),
             }
             self.counts.update(new_observations)
 

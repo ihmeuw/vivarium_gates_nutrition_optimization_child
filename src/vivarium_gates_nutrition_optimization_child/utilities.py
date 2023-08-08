@@ -1,17 +1,15 @@
+from pathlib import Path
+from typing import List, Tuple, Union
+
 import click
 import numpy as np
 import pandas as pd
-from scipy import stats
-
-from typing import List, Tuple, Union
-from pathlib import Path
 from loguru import logger
-
+from scipy import stats
 from vivarium.framework.randomness import get_hash
 from vivarium_public_health.risks.data_transformations import pivot_categorical
 
 from vivarium_gates_nutrition_optimization_child.constants import metadata
-
 
 SeededDistribution = Tuple[str, stats.rv_continuous]
 
@@ -52,28 +50,30 @@ def delete_if_exists(*paths: Union[Path, List[Path]], confirm=False):
             # Assumes all paths have the same root dir
             root = existing_paths[0].parent
             names = [p.name for p in existing_paths]
-            click.confirm(f"Existing files {names} found in directory {root}. Do you want to delete and replace?",
-                          abort=True)
+            click.confirm(
+                f"Existing files {names} found in directory {root}. Do you want to delete and replace?",
+                abort=True,
+            )
         for p in existing_paths:
-            logger.info(f'Deleting artifact at {str(p)}.')
+            logger.info(f"Deleting artifact at {str(p)}.")
             p.unlink()
 
 
 def get_norm(
-        mean: float,
-        sd: float = None,
-        ninety_five_pct_confidence_interval: Tuple[float, float] = None
+    mean: float,
+    sd: float = None,
+    ninety_five_pct_confidence_interval: Tuple[float, float] = None,
 ) -> stats.norm:
     sd = _get_standard_deviation(mean, sd, ninety_five_pct_confidence_interval)
     return stats.norm(loc=mean, scale=sd)
 
 
 def get_truncnorm(
-        mean: float,
-        sd: float = None,
-        ninety_five_pct_confidence_interval: Tuple[float, float] = None,
-        lower_clip: float = 0.0,
-        upper_clip: float = 1.0
+    mean: float,
+    sd: float = None,
+    ninety_five_pct_confidence_interval: Tuple[float, float] = None,
+    lower_clip: float = 0.0,
+    upper_clip: float = 1.0,
 ) -> stats.norm:
     sd = _get_standard_deviation(mean, sd, ninety_five_pct_confidence_interval)
     a = (lower_clip - mean) / sd if sd else mean - 1e-03
@@ -82,12 +82,16 @@ def get_truncnorm(
 
 
 def _get_standard_deviation(
-        mean: float, sd: float, ninety_five_pct_confidence_interval: Tuple[float, float]
+    mean: float, sd: float, ninety_five_pct_confidence_interval: Tuple[float, float]
 ) -> float:
     if sd is None and ninety_five_pct_confidence_interval is None:
-        raise ValueError("Must provide either a standard deviation or a 95% confidence interval.")
+        raise ValueError(
+            "Must provide either a standard deviation or a 95% confidence interval."
+        )
     if sd is not None and ninety_five_pct_confidence_interval is not None:
-        raise ValueError("Cannot provide both a standard deviation and a 95% confidence interval.")
+        raise ValueError(
+            "Cannot provide both a standard deviation and a 95% confidence interval."
+        )
     if ninety_five_pct_confidence_interval is not None:
         lower = ninety_five_pct_confidence_interval[0]
         upper = ninety_five_pct_confidence_interval[1]
@@ -108,8 +112,9 @@ def get_truncnorm_from_sd(mean, sd, lower_clip: float = 0.0, upper_clip: float =
     return stats.truncnorm(loc=mean, scale=sd, a=a, b=b)
 
 
-def get_lognorm_from_quantiles(median: float, lower: float, upper: float,
-                               quantiles: Tuple[float, float] = (0.025, 0.975)) -> stats.lognorm:
+def get_lognorm_from_quantiles(
+    median: float, lower: float, upper: float, quantiles: Tuple[float, float] = (0.025, 0.975)
+) -> stats.lognorm:
     """Returns a frozen lognormal distribution with the specified median, such that
     (lower, upper) are approximately equal to the quantiles with ranks
     (quantile_ranks[0], quantile_ranks[1]).
@@ -131,24 +136,34 @@ def get_lognorm_from_quantiles(median: float, lower: float, upper: float,
     norm_quantiles = np.log([lower, upper])
     # standard deviation of Y = log(X) computed from the above quantiles for Y
     # and the corresponding standard normal quantiles
-    sigma = (norm_quantiles[1] - norm_quantiles[0]) / (stdnorm_quantiles[1] - stdnorm_quantiles[0])
+    sigma = (norm_quantiles[1] - norm_quantiles[0]) / (
+        stdnorm_quantiles[1] - stdnorm_quantiles[0]
+    )
     # Frozen lognormal distribution for X = exp(Y)
     # (s=sigma is the shape parameter; the scale parameter is exp(mu), which equals the median)
     return stats.lognorm(s=sigma, scale=median)
 
 
 def get_random_variable_draws(columns: pd.Index, seed: str, distribution) -> pd.Series:
-    return pd.Series([get_random_variable(x, seed, distribution) for x in range(0, columns.size)], index=columns)
+    return pd.Series(
+        [get_random_variable(x, seed, distribution) for x in range(0, columns.size)],
+        index=columns,
+    )
 
 
 def get_random_variable(draw: int, seed: str, distribution) -> pd.Series:
-    np.random.seed(get_hash(f'{seed}_draw_{draw}'))
+    np.random.seed(get_hash(f"{seed}_draw_{draw}"))
     return distribution.rvs()
 
 
-def get_truncnorm_from_quantiles(mean: float, lower: float, upper: float,
-                                 quantiles: Tuple[float, float] = (0.025, 0.975),
-                                 lower_clip: float = 0.0, upper_clip: float = 1.0) -> stats.truncnorm:
+def get_truncnorm_from_quantiles(
+    mean: float,
+    lower: float,
+    upper: float,
+    quantiles: Tuple[float, float] = (0.025, 0.975),
+    lower_clip: float = 0.0,
+    upper_clip: float = 1.0,
+) -> stats.truncnorm:
     stdnorm_quantiles = stats.norm.ppf(quantiles)
     sd = (upper - lower) / (stdnorm_quantiles[1] - stdnorm_quantiles[0])
     a = (lower_clip - mean) / sd if sd else 0.0
@@ -156,8 +171,9 @@ def get_truncnorm_from_quantiles(mean: float, lower: float, upper: float,
     return stats.truncnorm(loc=mean, scale=sd, a=a, b=b)
 
 
-def get_norm_from_quantiles(mean: float, lower: float, upper: float,
-                            quantiles: Tuple[float, float] = (0.025, 0.975)) -> stats.norm:
+def get_norm_from_quantiles(
+    mean: float, lower: float, upper: float, quantiles: Tuple[float, float] = (0.025, 0.975)
+) -> stats.norm:
     stdnorm_quantiles = stats.norm.ppf(quantiles)
     sd = (upper - lower) / (stdnorm_quantiles[1] - stdnorm_quantiles[0])
     return stats.norm(loc=mean, scale=sd)

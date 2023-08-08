@@ -11,5 +11,6 @@ RAW_DATA_DIR = BASE_DIR / "data/raw"
 
 MATERNAL_INTERVENTION_COVERAGE_CSV = RAW_DATA_DIR / "simulation_intervention_coverage.csv"
 
-TEMPORARY_PAF_DIR = Path("/share/costeffectiveness/auxiliary_data/GBD_2019/01_original_data/population_attributable_fraction/risk_factor/lbwsg/data/")
-
+TEMPORARY_PAF_DIR = Path(
+    "/share/costeffectiveness/auxiliary_data/GBD_2019/01_original_data/population_attributable_fraction/risk_factor/lbwsg/data/"
+)

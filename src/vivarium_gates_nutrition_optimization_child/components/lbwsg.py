@@ -10,19 +10,23 @@ simulants who are initialized from line list data.
 from typing import Dict
 
 import pandas as pd
-
 from vivarium.framework.engine import Builder
 from vivarium.framework.population import SimulantData
 from vivarium.framework.time import get_time_stamp
 from vivarium.framework.values import Pipeline
-from vivarium_public_health.risks.data_transformations import get_exposure_post_processor
-from vivarium_public_health.risks.implementations.low_birth_weight_and_short_gestation import LBWSGRisk
+from vivarium_public_health.risks.data_transformations import (
+    get_exposure_post_processor,
+)
+from vivarium_public_health.risks.implementations.low_birth_weight_and_short_gestation import (
+    LBWSGRisk,
+)
 
 
 class LBWSGLineList(LBWSGRisk):
     """
     Component to initialize low birthweight and short gestation data for simulants based on existing line list data.
     """
+
     @property
     def name(self) -> str:
         return "line_list_low_birth_weight_and_short_gestation"
