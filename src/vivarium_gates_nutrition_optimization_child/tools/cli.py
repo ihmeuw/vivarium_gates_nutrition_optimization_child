@@ -58,13 +58,6 @@ def make_artifacts(
 
 @click.command()
 @click.argument("output_file", type=click.Path(exists=True))
-@click.option(
-    "-d",
-    "--disaggregate-seeds",
-    default=False,
-    is_flag=True,
-    help="Do not aggregate by seeds and include them in count data.",
-)
 @click.option("-v", "verbose", count=True, help="Configure logging verbosity.")
 @click.option(
     "--pdb",
@@ -81,12 +74,8 @@ def make_artifacts(
     help="Results are from a single, non-parallel run.",
 )
 def make_results(
-    output_file: str,
-    verbose: int,
-    with_debugger: bool,
-    single_run: bool,
-    disaggregate_seeds: bool,
+    output_file: str, verbose: int, with_debugger: bool, single_run: bool
 ) -> None:
     configure_logging_to_terminal(verbose)
     main = handle_exceptions(build_results, logger, with_debugger=with_debugger)
-    main(output_file, single_run, disaggregate_seeds)
+    main(output_file, single_run)
