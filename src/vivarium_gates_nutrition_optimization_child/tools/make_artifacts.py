@@ -221,7 +221,7 @@ def build_single_location_artifact(
         add_logging_sink(log_file, verbose=2)
 
     # Local import to avoid data dependencies
-    from vivarium_gates_nutrition_optimization.data import builder
+    from vivarium_gates_nutrition_optimization_child.data import builder
 
     logger.info(f"Building artifact for {location} at {str(path)}.")
     artifact = builder.open_artifact(path, location)
