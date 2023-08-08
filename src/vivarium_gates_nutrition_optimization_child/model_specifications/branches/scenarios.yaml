@@ -1,7 +1,9 @@
-input_draw_count: 10
-random_seed_count: 5
+input_draw_count: 25
+random_seed_count: 60
 
 branches:
-# TODO change to name of intervention
-  - placeholder_branch_name:
-      scenario: ['baseline']
+  - intervention:
+      scenario: ['baseline',
+                 'oral_iron',
+                 'antenatal_iv_iron',
+                ]
