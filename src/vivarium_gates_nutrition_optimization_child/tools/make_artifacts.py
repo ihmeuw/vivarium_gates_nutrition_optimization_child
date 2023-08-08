@@ -15,9 +15,9 @@ from typing import Tuple, Union
 import click
 from loguru import logger
 
-from vivarium_nih_us_cvd.constants import data_keys, metadata
-from vivarium_nih_us_cvd.tools.app_logging import add_logging_sink, decode_status
-from vivarium_nih_us_cvd.utilities import sanitize_location
+from vivarium_gates_nutrition_optimization_child.constants import data_keys, metadata
+from vivarium_gates_nutrition_optimization_child.tools.app_logging import add_logging_sink, decode_status
+from vivarium_gates_nutrition_optimization_child.utilities import sanitize_location
 
 
 def running_from_cluster() -> bool:
