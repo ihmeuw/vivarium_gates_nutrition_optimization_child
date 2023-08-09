@@ -211,52 +211,6 @@ def load_standard_data(key: str, location: str) -> pd.DataFrame:
     return interface.get_measure(entity, key.measure, location).droplevel("location")
 
 
-def load_cgf_exposure(key: str, location: str) -> pd.DataFrame:
-    key = EntityKey(key)
-    entity = utilities.get_entity(key)
-    location_id = (
-        utility_data.get_location_id(location) if isinstance(location, str) else location
-    )
-    data = get_exposure_without_model_version_id(entity, location_id)
-    data = reshape_to_vivarium_format(data, location)
-    return data
-
-
-def get_exposure_without_model_version_id(
-    entity: Union[RiskFactor, AlternativeRiskFactor], location_id: int
-) -> pd.DataFrame:
-    data = extract.extract_data(entity, "exposure", location_id)
-    data = data.drop(["modelable_entity_id", "model_version_id"], "columns")
-
-    data = vi_utils.filter_data_by_restrictions(
-        data, entity, "outer", utility_data.get_age_group_ids()
-    )
-
-    tmrel_cat = utility_data.get_tmrel_category(entity)
-    exposed = data[data.parameter != tmrel_cat]
-    unexposed = data[data.parameter == tmrel_cat]
-
-    #  FIXME: We fill 1 as exposure of tmrel category, which is not correct.
-    data = pd.concat(
-        [
-            vi_utils.normalize(exposed, fill_value=0),
-            vi_utils.normalize(unexposed, fill_value=1),
-        ],
-        ignore_index=True,
-    )
-
-    # normalize so all categories sum to 1
-    cols = list(set(data.columns).difference(DRAW_COLUMNS + ["parameter"]))
-    sums = data.groupby(cols)[DRAW_COLUMNS].sum()
-    data = (
-        data.groupby("parameter")
-        .apply(lambda df: df.set_index(cols).loc[:, DRAW_COLUMNS].divide(sums))
-        .reset_index()
-    )
-    data = data.filter(DEMOGRAPHIC_COLUMNS + DRAW_COLUMNS + ["parameter"])
-    return data
-
-
 def load_metadata(key: str, location: str):
     key = EntityKey(key)
     entity = utilities.get_entity(key)
@@ -396,6 +350,52 @@ def load_emr_from_csmr_and_prevalence(key: str, location: str) -> pd.DataFrame:
 
     if key == data_keys.DIARRHEA.EMR:
         data.loc[data.index.get_level_values("age_start") < metadata.NEONATAL_END_AGE, :] = 0
+    return data
+
+
+def load_cgf_exposure(key: str, location: str) -> pd.DataFrame:
+    key = EntityKey(key)
+    entity = utilities.get_entity(key)
+    location_id = (
+        utility_data.get_location_id(location) if isinstance(location, str) else location
+    )
+    data = get_exposure_without_model_version_id(entity, location_id)
+    data = reshape_to_vivarium_format(data, location)
+    return data
+
+
+def get_exposure_without_model_version_id(
+    entity: Union[RiskFactor, AlternativeRiskFactor], location_id: int
+) -> pd.DataFrame:
+    data = extract.extract_data(entity, "exposure", location_id)
+    data = data.drop(["modelable_entity_id", "model_version_id"], "columns")
+
+    data = vi_utils.filter_data_by_restrictions(
+        data, entity, "outer", utility_data.get_age_group_ids()
+    )
+
+    tmrel_cat = utility_data.get_tmrel_category(entity)
+    exposed = data[data.parameter != tmrel_cat]
+    unexposed = data[data.parameter == tmrel_cat]
+
+    #  FIXME: We fill 1 as exposure of tmrel category, which is not correct.
+    data = pd.concat(
+        [
+            vi_utils.normalize(exposed, fill_value=0),
+            vi_utils.normalize(unexposed, fill_value=1),
+        ],
+        ignore_index=True,
+    )
+
+    # normalize so all categories sum to 1
+    cols = list(set(data.columns).difference(DRAW_COLUMNS + ["parameter"]))
+    sums = data.groupby(cols)[DRAW_COLUMNS].sum()
+    data = (
+        data.groupby("parameter")
+        .apply(lambda df: df.set_index(cols).loc[:, DRAW_COLUMNS].divide(sums))
+        .reset_index()
+    )
+    data = data.filter(DEMOGRAPHIC_COLUMNS + DRAW_COLUMNS + ["parameter"])
     return data
 
 
