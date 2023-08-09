@@ -27,9 +27,8 @@ from vivarium_inputs import globals as vi_globals
 from vivarium_inputs import interface
 from vivarium_inputs import utilities as vi_utils
 from vivarium_inputs import utility_data
-from vivarium_inputs.mapping_extension import AlternativeRiskFactor
 from vivarium_inputs.globals import DEMOGRAPHIC_COLUMNS, DRAW_COLUMNS
-
+from vivarium_inputs.mapping_extension import AlternativeRiskFactor
 
 from vivarium_gates_nutrition_optimization_child.constants import (
     data_keys,
@@ -222,6 +221,7 @@ def load_cgf_exposure(key: str, location: str) -> pd.DataFrame:
     data = reshape_to_vivarium_format(data, location)
     return data
 
+
 def get_exposure_without_model_version_id(
     entity: Union[RiskFactor, AlternativeRiskFactor], location_id: int
 ) -> pd.DataFrame:
@@ -255,6 +255,7 @@ def get_exposure_without_model_version_id(
     )
     data = data.filter(DEMOGRAPHIC_COLUMNS + DRAW_COLUMNS + ["parameter"])
     return data
+
 
 def load_metadata(key: str, location: str):
     key = EntityKey(key)
