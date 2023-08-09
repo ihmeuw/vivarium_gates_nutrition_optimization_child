@@ -1,0 +1,37 @@
+components:
+    vivarium_public_health:
+        population:
+            - BasePopulation()
+        risks:
+            - LBWSGRisk()
+
+configuration:
+    input_data:
+        input_draw_number: 0
+        location: 'South Asia'
+        artifact_path: '/ihme/costeffectiveness/artifacts/vivarium_gates_nutrition_optimization_child/south_asia.hdf'
+    interpolation:
+        order: 0
+        extrapolate: True
+    randomness:
+        map_size: 1_000_000
+        key_columns: ['entrance_time', 'age']
+        random_seed: 0
+    time:
+        start:
+            year: 2022
+            month: 1
+            day: 1
+        end:
+            year: 2026
+            month: 12
+            day: 31
+        step_size: 0.5 # Days
+    population:
+        population_size: 20_000
+        age_start: 0
+        age_end: 5
+        exit_age: 5
+
+    intervention:
+        scenario: 'baseline'
