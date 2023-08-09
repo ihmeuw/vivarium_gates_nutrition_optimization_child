@@ -17,19 +17,15 @@ from typing import Tuple, Union
 
 import numpy as np
 import pandas as pd
-from gbd_mapping import Cause, RiskFactor, sequelae
+from gbd_mapping import Cause, sequelae
 from scipy.interpolate import RectBivariateSpline, griddata
 from vivarium.framework.artifact import EntityKey
 from vivarium_gbd_access import constants as gbd_constants
 from vivarium_gbd_access import gbd
-from vivarium_inputs import extract
 from vivarium_inputs import globals as vi_globals
 from vivarium_inputs import interface
 from vivarium_inputs import utilities as vi_utils
 from vivarium_inputs import utility_data
-from vivarium_inputs.mapping_extension import AlternativeRiskFactor
-from vivarium_inputs.globals import DEMOGRAPHIC_COLUMNS, DRAW_COLUMNS
-
 
 from vivarium_gates_nutrition_optimization_child.constants import (
     data_keys,
@@ -96,13 +92,13 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.WASTING.DISTRIBUTION: load_metadata,
         data_keys.WASTING.ALT_DISTRIBUTION: load_metadata,
         data_keys.WASTING.CATEGORIES: load_metadata,
-        data_keys.WASTING.EXPOSURE: load_cgf_exposure,
+        data_keys.WASTING.EXPOSURE: load_standard_data,
         data_keys.WASTING.RELATIVE_RISK: load_standard_data,
         data_keys.WASTING.PAF: load_categorical_paf,
         data_keys.STUNTING.DISTRIBUTION: load_metadata,
         data_keys.STUNTING.ALT_DISTRIBUTION: load_metadata,
         data_keys.STUNTING.CATEGORIES: load_metadata,
-        data_keys.STUNTING.EXPOSURE: load_cgf_exposure,
+        data_keys.STUNTING.EXPOSURE: load_standard_data,
         data_keys.STUNTING.RELATIVE_RISK: load_standard_data,
         data_keys.STUNTING.PAF: load_categorical_paf,
         data_keys.MODERATE_PEM.DISABILITY_WEIGHT: load_pem_disability_weight,
@@ -211,50 +207,6 @@ def load_standard_data(key: str, location: str) -> pd.DataFrame:
     entity = utilities.get_entity(key)
     return interface.get_measure(entity, key.measure, location).droplevel("location")
 
-
-def load_cgf_exposure(key: str, location: str) -> pd.DataFrame:
-    key = EntityKey(key)
-    entity = utilities.get_entity(key)
-    location_id = (
-        utility_data.get_location_id(location) if isinstance(location, str) else location
-    )
-    data = get_exposure_without_model_version_id(entity, location_id)
-    data = reshape_to_vivarium_format(data, location)
-    return data
-
-def get_exposure_without_model_version_id(
-    entity: Union[RiskFactor, AlternativeRiskFactor], location_id: int
-) -> pd.DataFrame:
-    data = extract.extract_data(entity, "exposure", location_id)
-    data = data.drop(["modelable_entity_id", "model_version_id"], "columns")
-
-    data = vi_utils.filter_data_by_restrictions(
-        data, entity, "outer", utility_data.get_age_group_ids()
-    )
-
-    tmrel_cat = utility_data.get_tmrel_category(entity)
-    exposed = data[data.parameter != tmrel_cat]
-    unexposed = data[data.parameter == tmrel_cat]
-
-    #  FIXME: We fill 1 as exposure of tmrel category, which is not correct.
-    data = pd.concat(
-        [
-            vi_utils.normalize(exposed, fill_value=0),
-            vi_utils.normalize(unexposed, fill_value=1),
-        ],
-        ignore_index=True,
-    )
-
-    # normalize so all categories sum to 1
-    cols = list(set(data.columns).difference(DRAW_COLUMNS + ["parameter"]))
-    sums = data.groupby(cols)[DRAW_COLUMNS].sum()
-    data = (
-        data.groupby("parameter")
-        .apply(lambda df: df.set_index(cols).loc[:, DRAW_COLUMNS].divide(sums))
-        .reset_index()
-    )
-    data = data.filter(DEMOGRAPHIC_COLUMNS + DRAW_COLUMNS + ["parameter"])
-    return data
 
 def load_metadata(key: str, location: str):
     key = EntityKey(key)
@@ -918,7 +870,7 @@ def load_diarrhea_birth_prevalence(key: str, location: str) -> pd.DataFrame:
 
 
 def reshape_to_vivarium_format(df, location):
-    df = vi_utils.reshape(df, value_cols=DRAW_COLUMNS)
+    df = vi_utils.reshape(df, value_cols=vi_globals.DRAW_COLUMNS)
     df = vi_utils.scrub_gbd_conventions(df, location)
     df = vi_utils.split_interval(df, interval_column="age", split_column_prefix="age")
     df = vi_utils.split_interval(df, interval_column="year", split_column_prefix="year")
