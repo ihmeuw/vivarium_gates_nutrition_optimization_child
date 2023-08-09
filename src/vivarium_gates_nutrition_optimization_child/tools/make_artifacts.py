@@ -139,7 +139,7 @@ def build_all_artifacts(output_dir: Path, verbose: int) -> None:
         called by the :func:`build_artifacts` function located in the same
         module.
     """
-    from vivarium_cluster_tools.psimulate.utilities import get_drmaa
+    from vivarium_cluster_tools.utilities import get_drmaa
 
     drmaa = get_drmaa()
 
