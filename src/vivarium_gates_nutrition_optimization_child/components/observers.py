@@ -18,7 +18,6 @@ from vivarium_gates_nutrition_optimization_child.constants import data_keys
 # from vivarium_public_health.metrics.stratification import Source, SourceType
 
 
-
 # class ResultsStratifier(ResultsStratifier_):
 #     """Centralized component for handling results stratification.
 #     This should be used as a sub-component for observers.  The observers
