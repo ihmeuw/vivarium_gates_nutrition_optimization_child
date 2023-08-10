@@ -53,6 +53,7 @@ class FertilityLineList:
 
         file_path = data_directory / f"scenario_{scenario}_draw_{draw}_seed_{seed}.hdf"
         birth_records = pd.read_hdf(file_path)
+        birth_records["birth_date"] = pd.to_datetime(birth_records["birth_date"])
         return birth_records
 
     def on_time_step(self, event: Event) -> None:
@@ -63,7 +64,6 @@ class FertilityLineList:
             The event that triggered the function call.
         """
         birth_records = self.birth_records
-        birth_records["birth_date"] = pd.to_datetime(birth_records["birth_date"])
         born_previous_step_mask = (birth_records["birth_date"] < self.clock()) & (
             birth_records["birth_date"] > self.clock() - event.step_size
         )
