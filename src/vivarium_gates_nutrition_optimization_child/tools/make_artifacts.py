@@ -29,9 +29,6 @@ from vivarium_gates_nutrition_optimization_child.utilities import (
 
 
 def running_from_cluster() -> bool:
-
-    import vivarium_cluster_tools as vct
-
     on_cluster = True
 
     try:
@@ -44,7 +41,6 @@ def running_from_cluster() -> bool:
 def check_for_existing(
     output_dir: Path, location: str, append: bool, replace_keys: Tuple
 ) -> None:
-    # need to explicitly cast to Path from str
     existing_artifacts = set(
         [
             item.stem
@@ -107,9 +103,10 @@ def build_artifacts(
 
     import vivarium_cluster_tools as vct
 
+    output_dir = Path(output_dir)
     vct.mkdir(output_dir, parents=True, exists_ok=True)
 
-    check_for_existing(Path(output_dir), location, append, replace_keys)
+    check_for_existing(output_dir, location, append, replace_keys)
 
     if location in metadata.LOCATIONS:
         build_single(location, output_dir, replace_keys)
@@ -142,7 +139,7 @@ def build_all_artifacts(output_dir: Path, verbose: int) -> None:
         called by the :func:`build_artifacts` function located in the same
         module.
     """
-    from vivarium_cluster_tools.psimulate.utilities import get_drmaa
+    from vivarium_cluster_tools.utilities import get_drmaa
 
     drmaa = get_drmaa()
 
