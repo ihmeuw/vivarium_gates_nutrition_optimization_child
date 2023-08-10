@@ -63,10 +63,12 @@ class FertilityLineList:
             The event that triggered the function call.
         """
         birth_records = self.birth_records
+        birth_records['birth_date'] = pd.to_datetime(birth_records['birth_date'])
         born_previous_step_mask = (birth_records["birth_date"] < self.clock()) & (
             birth_records["birth_date"] > self.clock() - event.step_size
         )
-        born_previous_step = birth_records[born_previous_step_mask].copy()
+        # TODO: remove resetting index when using actual child data
+        born_previous_step = birth_records[born_previous_step_mask].reset_index().copy()
         born_previous_step.loc[:, "maternal_id"] = born_previous_step.index
         simulants_to_add = len(born_previous_step)
 
