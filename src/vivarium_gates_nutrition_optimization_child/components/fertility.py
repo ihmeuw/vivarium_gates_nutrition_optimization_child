@@ -53,6 +53,7 @@ class FertilityLineList:
 
         file_path = data_directory / f"scenario_{scenario}_draw_{draw}_seed_{seed}.hdf"
         birth_records = pd.read_hdf(file_path)
+        birth_records["birth_date"] = pd.to_datetime(birth_records["birth_date"])
         return birth_records
 
     def on_time_step(self, event: Event) -> None:
@@ -66,7 +67,8 @@ class FertilityLineList:
         born_previous_step_mask = (birth_records["birth_date"] < self.clock()) & (
             birth_records["birth_date"] > self.clock() - event.step_size
         )
-        born_previous_step = birth_records[born_previous_step_mask].copy()
+        # TODO: remove resetting index when using actual child data
+        born_previous_step = birth_records[born_previous_step_mask].reset_index().copy()
         born_previous_step.loc[:, "maternal_id"] = born_previous_step.index
         simulants_to_add = len(born_previous_step)
 
