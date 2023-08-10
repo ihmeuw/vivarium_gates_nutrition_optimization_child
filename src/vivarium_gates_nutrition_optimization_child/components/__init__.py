@@ -10,6 +10,7 @@ from vivarium_gates_nutrition_optimization_child.components.maternal_characteris
     BirthWeightShiftEffect,
     MaternalCharacteristics,
 )
+
 # from vivarium_gates_nutrition_optimization_child.components.observers import (
 #     BirthObserver,
 #     DisabilityObserver,

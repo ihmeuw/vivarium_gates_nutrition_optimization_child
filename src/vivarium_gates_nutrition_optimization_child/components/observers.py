@@ -12,9 +12,11 @@ from vivarium_public_health.metrics.disability import (
 from vivarium_public_health.metrics.stratification import (
     ResultsStratifier as ResultsStratifier_,
 )
-#from vivarium_public_health.metrics.stratification import Source, SourceType
 
 from vivarium_gates_nutrition_optimization_child.constants import data_keys
+
+# from vivarium_public_health.metrics.stratification import Source, SourceType
+
 
 
 # class ResultsStratifier(ResultsStratifier_):

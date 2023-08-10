@@ -63,7 +63,7 @@ class FertilityLineList:
             The event that triggered the function call.
         """
         birth_records = self.birth_records
-        birth_records['birth_date'] = pd.to_datetime(birth_records['birth_date'])
+        birth_records["birth_date"] = pd.to_datetime(birth_records["birth_date"])
         born_previous_step_mask = (birth_records["birth_date"] < self.clock()) & (
             birth_records["birth_date"] > self.clock() - event.step_size
         )
