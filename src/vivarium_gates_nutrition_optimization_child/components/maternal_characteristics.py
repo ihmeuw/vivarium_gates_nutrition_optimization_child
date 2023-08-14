@@ -389,10 +389,14 @@ class BirthWeightShiftEffect:
     def _apply_birth_weight_effect(
         target: pd.DataFrame, cat3_increase: pd.Series
     ) -> pd.DataFrame:
+        # no changes if all probability in cat4
+        if (target['cat4'] == 1).all():
+            return target
+
         sam_and_mam = target["cat1"] + target["cat2"]
         cat3 = target["cat3"]
 
-        # can't remove more from a category than exists in it categories
+        # can't remove more from a category than exists in its categories
         true_cat3_increase = np.maximum(
             np.minimum(sam_and_mam, cat3_increase), np.minimum(cat3, -cat3_increase)
         )
