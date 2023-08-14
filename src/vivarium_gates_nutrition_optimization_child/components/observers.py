@@ -77,7 +77,7 @@ class ResultsStratifier(ResultsStratifier_):
             "cat2": data_keys.CGFCategories.MODERATE.value,
             "cat1": data_keys.CGFCategories.SEVERE.value,
         }
-        return pop.squeeze(axis=1).replace(mapper)
+        return pop.squeeze(axis=1).map(mapper)
 
     def map_age_groups(self, pop: pd.DataFrame) -> pd.Series:
         """Map age with age group name strings
@@ -154,6 +154,7 @@ class BirthObserver:
 
         builder.results.register_observation(
             name=f"live_births",
+            pop_filter="alive=='alive'",
             aggregator=self.count_live_births,
             requires_columns=["entrance_time"],
             additional_stratifications=self.config.include,
@@ -162,6 +163,7 @@ class BirthObserver:
         )
         builder.results.register_observation(
             name=f"birth_weight_sum",
+            pop_filter="alive=='alive'",
             aggregator=self.sum_birth_weights,
             requires_columns=["entrance_time", self.birth_weight_column_name],
             additional_stratifications=self.config.include,
@@ -170,6 +172,7 @@ class BirthObserver:
         )
         builder.results.register_observation(
             name=f"gestational_age_sum",
+            pop_filter="alive=='alive'",
             aggregator=self.sum_gestational_ages,
             requires_columns=["entrance_time", self.gestational_age_column_name],
             additional_stratifications=self.config.include,
@@ -178,6 +181,7 @@ class BirthObserver:
         )
         builder.results.register_observation(
             name=f"low_weight_births",
+            pop_filter="alive=='alive'",
             aggregator=self.count_low_weight_births,
             requires_columns=["entrance_time", self.birth_weight_column_name],
             additional_stratifications=self.config.include,
