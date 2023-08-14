@@ -390,7 +390,7 @@ class BirthWeightShiftEffect:
         target: pd.DataFrame, cat3_increase: pd.Series
     ) -> pd.DataFrame:
         # no changes if all probability in cat4
-        if (target['cat4'] == 1).all():
+        if (target["cat4"] == 1).all():
             return target
 
         sam_and_mam = target["cat1"] + target["cat2"]
