@@ -2,7 +2,12 @@
 Component to include birth prevalence in SIS model.
 """
 
-from vivarium_public_health.disease import DiseaseModel, DiseaseState, SusceptibleState
+from vivarium.framework.state_machine import State
+from vivarium_public_health.disease import DiseaseModel, DiseaseState
+from vivarium_public_health.disease import (
+    RiskAttributableDisease as RiskAttributableDisease_,
+)
+from vivarium_public_health.disease import SusceptibleState
 
 
 def SIS_with_birth_prevalence(cause: str) -> DiseaseModel:
@@ -21,3 +26,11 @@ def SIS_with_birth_prevalence(cause: str) -> DiseaseModel:
     infected.add_transition(healthy, source_data_type="rate")
 
     return DiseaseModel(cause, states=[healthy, infected])
+
+
+class RiskAttributableDisease(RiskAttributableDisease_):
+    """This class has the states attribute so it works with the VPH disease observer"""
+
+    def __init__(self, cause, risk):
+        super().__init__(cause, risk)
+        self.states = [State(state_name) for state_name in self.state_names]

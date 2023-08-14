@@ -1,4 +1,3 @@
-
 components:
     vivarium_public_health:
         population:
@@ -6,8 +5,6 @@ components:
         disease:
             - SIS_fixed_duration('measles', '10.0')
             - SIS('lower_respiratory_infections')
-            - RiskAttributableDisease('cause.moderate_protein_energy_malnutrition', 'risk_factor.child_wasting')
-            - RiskAttributableDisease('cause.severe_protein_energy_malnutrition', 'risk_factor.child_wasting')
         risks:
             - Risk('risk_factor.child_wasting')
             - RiskEffect('risk_factor.child_wasting', 'cause.diarrheal_diseases.incidence_rate')
@@ -22,24 +19,22 @@ components:
             - LBWSGRiskEffect('cause.diarrheal_diseases.excess_mortality_rate')
             - LBWSGRiskEffect('cause.lower_respiratory_infections.excess_mortality_rate')
             - LBWSGRiskEffect('cause.affected_unmodeled.cause_specific_mortality_rate')
-#        metrics:
-#            - MortalityObserver()
-#            - DiseaseObserver('diarrheal_diseases')
-#            - DiseaseObserver('measles')
-#            - DiseaseObserver('lower_respiratory_infections')
-#            - DiseaseObserver('moderate_protein_energy_malnutrition')
-#            - DiseaseObserver('severe_protein_energy_malnutrition')
-#            - CategoricalRiskObserver('child_stunting')
-#            - CategoricalRiskObserver('child_wasting')
+        metrics:
+            - DiseaseObserver('diarrheal_diseases')
+            - DiseaseObserver('measles')
+            - DiseaseObserver('lower_respiratory_infections')
+            - DiseaseObserver('moderate_protein_energy_malnutrition')
+            - DiseaseObserver('severe_protein_energy_malnutrition')
+            - CategoricalRiskObserver('child_stunting')
+            - CategoricalRiskObserver('child_wasting')
 
     vivarium_gates_nutrition_optimization_child:
         components:
             - PopulationLineList()
             - FertilityLineList()
             - LBWSGLineList()
-#            - ResultsStratifier()
-#            - BirthObserver()
-#            - DisabilityObserver()
+            - BirthObserver()
+            - DisabilityObserver()
 
             - MaternalCharacteristics()
             - AdditiveRiskEffect('risk_factor.iron_folic_acid_supplementation', 'risk_factor.birth_weight.birth_exposure')
@@ -49,6 +44,10 @@ components:
             - AdditiveRiskEffect('risk_factor.maternal_bmi_anemia', 'risk_factor.birth_weight.birth_exposure')
             - BirthWeightShiftEffect()
             - SIS_with_birth_prevalence('diarrheal_diseases')
+            - RiskAttributableDisease('cause.moderate_protein_energy_malnutrition', 'risk_factor.child_wasting')
+            - RiskAttributableDisease('cause.severe_protein_energy_malnutrition', 'risk_factor.child_wasting')
+            - MortalityObserver()
+            - ResultsStratifier()
 
 configuration:
     input_data:
@@ -106,11 +105,11 @@ configuration:
         mortality: True
         recoverable: True
 
-    observers:
+    stratification:
         default:
-            - "year"
+            - "current_year"
             - "sex"
-            - "age"
+            - "age_group"
         child_stunting:
             include:
                 - "maternal_supplementation"
@@ -121,7 +120,7 @@ configuration:
                 - "iv_iron"
         birth:
             exclude:
-                - "age"
+                - "age_group"
             include:
                 - "maternal_supplementation"
                 - "iv_iron"
