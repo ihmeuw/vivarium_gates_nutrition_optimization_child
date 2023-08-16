@@ -107,7 +107,7 @@ class PopulationLineList(BasePopulation):
             new_simulants["alive"] = new_births["alive"]
             new_simulants["location"] = self.location
             new_simulants["entrance_time"] = pop_data.creation_time
-            new_simulants["exit_time"] = new_births['exit_time']
+            new_simulants["exit_time"] = new_births["exit_time"]
             new_simulants["maternal_id"] = new_births["maternal_id"]
 
         self.register_simulants(new_simulants[self.key_columns])

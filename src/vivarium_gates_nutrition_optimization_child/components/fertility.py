@@ -78,11 +78,11 @@ class FertilityLineList:
             return
         born_previous_step.loc[:, "maternal_id"] = born_previous_step.index
         # stillbirths should be initialized as dead and with exit time
-        born_previous_step.loc[:, "alive"] = 'alive'
-        born_previous_step.loc[:, "exit_time"] = np.datetime64('NaT')
+        born_previous_step.loc[:, "alive"] = "alive"
+        born_previous_step.loc[:, "exit_time"] = np.datetime64("NaT")
 
-        is_stillbirth = born_previous_step['pregnancy_outcome'] == 'stillbirth'
-        born_previous_step.loc[is_stillbirth, "alive"] = 'dead'
+        is_stillbirth = born_previous_step["pregnancy_outcome"] == "stillbirth"
+        born_previous_step.loc[is_stillbirth, "alive"] = "dead"
         born_previous_step.loc[is_stillbirth, "exit_time"] = self.clock()
 
         simulants_to_add = len(born_previous_step)
@@ -101,6 +101,6 @@ class FertilityLineList:
     def on_time_step_cleanup(self, event: Event) -> None:
         # update cause_of_death on cleanup because mortality handles that column on initialization
         pop = self.population_view.get(event.index)
-        is_stillborn = (pop['alive'] == 'dead') & (pop['cause_of_death'] == 'not_dead')
-        pop.loc[is_stillborn,'cause_of_death'] = 'stillborn'
+        is_stillborn = (pop["alive"] == "dead") & (pop["cause_of_death"] == "not_dead")
+        pop.loc[is_stillborn, "cause_of_death"] = "stillborn"
         self.population_view.update(pop)
