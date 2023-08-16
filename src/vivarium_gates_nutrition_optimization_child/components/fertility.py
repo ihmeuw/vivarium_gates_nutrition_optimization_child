@@ -8,6 +8,7 @@ Fertility module to create simulants from existing data
 """
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 from vivarium.framework.engine import Builder
 from vivarium.framework.event import Event
@@ -39,7 +40,10 @@ class FertilityLineList:
         # Requirements for input data
         self.birth_records = self._get_birth_records(builder)
 
+        self.population_view = builder.population.get_view(["alive", "cause_of_death"])
+
         builder.event.register_listener("time_step", self.on_time_step)
+        builder.event.register_listener("time_step__cleanup", self.on_time_step_cleanup)
 
     @staticmethod
     def _get_birth_records(builder: Builder) -> pd.DataFrame:
@@ -69,7 +73,18 @@ class FertilityLineList:
         )
         # TODO: remove resetting index when using actual child data
         born_previous_step = birth_records[born_previous_step_mask].reset_index().copy()
+        # everyone is currently born on the first time step so this is always empty after the first time step
+        if born_previous_step.empty:
+            return
         born_previous_step.loc[:, "maternal_id"] = born_previous_step.index
+        # stillbirths should be initialized as dead and with exit time
+        born_previous_step.loc[:, "alive"] = "alive"
+        born_previous_step.loc[:, "exit_time"] = np.datetime64("NaT")
+
+        is_stillbirth = born_previous_step["pregnancy_outcome"] == "stillbirth"
+        born_previous_step.loc[is_stillbirth, "alive"] = "dead"
+        born_previous_step.loc[is_stillbirth, "exit_time"] = self.clock()
+
         simulants_to_add = len(born_previous_step)
 
         if simulants_to_add > 0:
@@ -82,3 +97,10 @@ class FertilityLineList:
                     "new_births": born_previous_step,
                 },
             )
+
+    def on_time_step_cleanup(self, event: Event) -> None:
+        # update cause_of_death on cleanup because mortality handles that column on initialization
+        pop = self.population_view.get(event.index)
+        is_stillborn = (pop["alive"] == "dead") & (pop["cause_of_death"] == "not_dead")
+        pop.loc[is_stillborn, "cause_of_death"] = "stillborn"
+        self.population_view.update(pop)
