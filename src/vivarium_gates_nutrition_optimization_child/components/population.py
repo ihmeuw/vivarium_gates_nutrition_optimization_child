@@ -104,10 +104,10 @@ class PopulationLineList(BasePopulation):
             # Create columns for state table
             new_simulants["age"] = 0.0
             new_simulants["sex"] = new_births["sex"]
-            new_simulants["alive"] = "alive"
+            new_simulants["alive"] = new_births["alive"]
             new_simulants["location"] = self.location
             new_simulants["entrance_time"] = pop_data.creation_time
-            new_simulants["exit_time"] = pd.NaT
+            new_simulants["exit_time"] = new_births['exit_time']
             new_simulants["maternal_id"] = new_births["maternal_id"]
 
         self.register_simulants(new_simulants[self.key_columns])
