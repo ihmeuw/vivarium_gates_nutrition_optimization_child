@@ -60,13 +60,11 @@ class MaternalCharacteristics:
 
     def __init__(self):
         self.supplementation_exposure_column_name = "maternal_supplementation_exposure"
-        self.iv_iron_exposure_column_name = "iv_iron_exposure"
         self.maternal_bmi_anemia_exposure_column_name = "maternal_bmi_anemia_exposure"
 
         self.bep_exposure_pipeline_name = f"{BEP_SUPPLEMENTATION.name}.exposure"
         self.ifa_exposure_pipeline_name = f"{IFA_SUPPLEMENTATION.name}.exposure"
         self.mmn_exposure_pipeline_name = f"{MMN_SUPPLEMENTATION.name}.exposure"
-        self.iv_iron_exposure_pipeline_name = "iv_iron.exposure"
         self.maternal_bmi_anemia_exposure_pipeline_name = "maternal_bmi_anemia.exposure"
 
     def __repr__(self):
@@ -98,11 +96,6 @@ class MaternalCharacteristics:
             source=self._get_mmn_exposure,
             requires_columns=[self.supplementation_exposure_column_name],
         )
-        self.iv_iron_exposure_pipeline = builder.value.register_value_producer(
-            self.iv_iron_exposure_pipeline_name,
-            source=self._get_iv_iron_exposure,
-            requires_columns=[self.iv_iron_exposure_column_name],
-        )
         self.maternal_bmi_anemia_exposure_pipeline = builder.value.register_value_producer(
             self.maternal_bmi_anemia_exposure_pipeline_name,
             source=self._get_maternal_bmi_anemia_exposure,
@@ -118,7 +111,6 @@ class MaternalCharacteristics:
             self.on_initialize_simulants,
             creates_columns=[
                 self.supplementation_exposure_column_name,
-                self.iv_iron_exposure_column_name,
                 self.maternal_bmi_anemia_exposure_column_name,
             ],
         )
@@ -130,7 +122,6 @@ class MaternalCharacteristics:
         """
         columns = [
             self.supplementation_exposure_column_name,
-            self.iv_iron_exposure_column_name,
             self.maternal_bmi_anemia_exposure_column_name,
         ]
         new_simulants = pd.DataFrame(columns=columns, index=pop_data.index)
@@ -139,15 +130,11 @@ class MaternalCharacteristics:
             new_births = pop_data.user_data["new_births"]
             new_births.index = pop_data.index
 
-            maternal_supplementation = new_births["maternal_supplementation_coverage"].copy()
+            maternal_supplementation = new_births["maternal_intervention"].copy()
             maternal_supplementation[maternal_supplementation == "invalid"] = "uncovered"
             new_simulants[
                 self.supplementation_exposure_column_name
             ] = maternal_supplementation
-
-            iv_iron_exposure = new_births["maternal_antenatal_iv_iron_coverage"].copy()
-            iv_iron_exposure[iv_iron_exposure == "invalid"] = "uncovered"
-            new_simulants[self.iv_iron_exposure_column_name] = iv_iron_exposure
 
             new_simulants[self.maternal_bmi_anemia_exposure_column_name] = new_births[
                 "joint_bmi_anemia_category"
@@ -159,7 +146,6 @@ class MaternalCharacteristics:
         return builder.population.get_view(
             [
                 self.supplementation_exposure_column_name,
-                self.iv_iron_exposure_column_name,
                 self.maternal_bmi_anemia_exposure_column_name,
             ]
         )
@@ -189,12 +175,6 @@ class MaternalCharacteristics:
 
         exposure = pd.Series(MMN_SUPPLEMENTATION.CAT1, index=index)
         exposure[has_mmn] = MMN_SUPPLEMENTATION.CAT2
-        return exposure
-
-    def _get_iv_iron_exposure(self, index: pd.Index) -> pd.Series:
-        pop = self.population_view.get(index)
-        exposure = pd.Series("cat1", index=index, name=self.iv_iron_exposure_pipeline_name)
-        exposure[pop[self.iv_iron_exposure_column_name] == "covered"] = "cat2"
         return exposure
 
     def _get_maternal_bmi_anemia_exposure(self, index: pd.Index) -> pd.Series:
@@ -297,7 +277,6 @@ class BirthWeightShiftEffect:
         self.ifa_effect_pipeline_name = f"{IFA_SUPPLEMENTATION.name}.effect"
         self.mmn_effect_pipeline_name = f"{MMN_SUPPLEMENTATION.name}.effect"
         self.bep_effect_pipeline_name = f"{BEP_SUPPLEMENTATION.name}.effect"
-        self.iv_iron_effect_pipeline_name = "iv_iron.effect"
 
         self.stunting_exposure_parameters_pipeline_name = (
             f"risk_factor.{STUNTING.name}.exposure_parameters"
@@ -333,7 +312,6 @@ class BirthWeightShiftEffect:
                 self.ifa_effect_pipeline_name,
                 self.mmn_effect_pipeline_name,
                 self.bep_effect_pipeline_name,
-                self.iv_iron_effect_pipeline_name,
             ]
         }
 

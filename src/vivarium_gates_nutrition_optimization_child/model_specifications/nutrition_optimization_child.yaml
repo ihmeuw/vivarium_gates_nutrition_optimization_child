@@ -40,7 +40,6 @@ components:
             - AdditiveRiskEffect('risk_factor.iron_folic_acid_supplementation', 'risk_factor.birth_weight.birth_exposure')
             - AdditiveRiskEffect('risk_factor.multiple_micronutrient_supplementation', 'risk_factor.birth_weight.birth_exposure')
             - AdditiveRiskEffect('risk_factor.balanced_energy_protein_supplementation', 'risk_factor.birth_weight.birth_exposure')
-            - AdditiveRiskEffect('risk_factor.iv_iron', 'risk_factor.birth_weight.birth_exposure')
             - AdditiveRiskEffect('risk_factor.maternal_bmi_anemia', 'risk_factor.birth_weight.birth_exposure')
             - BirthWeightShiftEffect()
             - SIS_with_birth_prevalence('diarrheal_diseases')
@@ -113,15 +112,12 @@ configuration:
         child_stunting:
             include:
                 - "maternal_supplementation"
-                - "iv_iron"
         child_wasting:
             include:
                 - "maternal_supplementation"
-                - "iv_iron"
         birth:
             exclude:
                 - "age_group"
             include:
                 - "maternal_supplementation"
-                - "iv_iron"
                 - "bmi_anemia"
