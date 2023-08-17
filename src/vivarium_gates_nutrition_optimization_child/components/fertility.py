@@ -56,7 +56,7 @@ class FertilityLineList:
         # Hard coding for now because input data has the wrong birth date
         # TODO: remove hardcoding and keep type casting once fertility_input_data_path
         # TODO: contains this birth date
-        birth_records["birth_date"] = pd.to_datetime('2024-12-30')
+        birth_records["birth_date"] = pd.to_datetime("2024-12-30")
         return birth_records
 
     def on_time_step(self, event: Event) -> None:
