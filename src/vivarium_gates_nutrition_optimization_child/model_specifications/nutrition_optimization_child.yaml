@@ -106,7 +106,6 @@ configuration:
 
     stratification:
         default:
-            - "current_year"
             - "sex"
             - "age_group"
         child_stunting:
