@@ -70,8 +70,7 @@ class FertilityLineList:
         born_previous_step_mask = (birth_records["birth_date"] < self.clock()) & (
             birth_records["birth_date"] > self.clock() - event.step_size
         )
-        # TODO: remove resetting index when using actual child data
-        born_previous_step = birth_records[born_previous_step_mask].reset_index().copy()
+        born_previous_step = birth_records[born_previous_step_mask].copy()
         born_previous_step.loc[:, "maternal_id"] = born_previous_step.index
         simulants_to_add = len(born_previous_step)
 
