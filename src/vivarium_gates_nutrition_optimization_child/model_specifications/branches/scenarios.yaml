@@ -1,5 +1,9 @@
-input_draw_count: 10
-random_seed_count: 10
+input_draw_count: 25
+random_seed_count: 60
 
-input_draws: [602, 357, 946, 829, 650, 232, 394, 680, 629, 29]
-random_seeds: [4344, 5616, 6810, 2787, 2284, 4369, 3254, 7359, 3541, 5020]
+branches:
+  - intervention:
+      scenario: ['baseline',
+                 'oral_iron',
+                 'antenatal_iv_iron'
+                ]
