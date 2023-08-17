@@ -54,8 +54,7 @@ configuration:
         # Artifact can also be defined at runtime using -i flag
         artifact_path: '/mnt/team/simulation_science/costeffectiveness/artifacts/vivarium_gates_nutrition_optimization_child/ethiopia.hdf'
         # FIXME: Won't work commented out so replace with child_data folder created by IV iron maternal model
-        #fertility_input_data_path: '/mnt/team/simulation_science/priv/engineering/vivarium_gates_nutrition_optimization_child/data/test_data/child_data'
-        fertility_input_data_path: '/home/hussain-jafari/artifacts/nutrition/child_data'
+        fertility_input_data_path: '/mnt/team/simulation_science/costeffectiveness/results/vivarium_gates_nutrition_optimization/model7.0/ethiopia/2023_08_15_13_05_58/child_data'
     interpolation:
         order: 0
         extrapolate: True
@@ -113,15 +112,12 @@ configuration:
         child_stunting:
             include:
                 - "maternal_supplementation"
-                - "iv_iron"
         child_wasting:
             include:
                 - "maternal_supplementation"
-                - "iv_iron"
         birth:
             exclude:
                 - "age_group"
             include:
                 - "maternal_supplementation"
-                - "iv_iron"
                 - "bmi_anemia"

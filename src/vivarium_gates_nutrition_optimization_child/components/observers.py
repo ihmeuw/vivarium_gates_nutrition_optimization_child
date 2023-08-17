@@ -52,12 +52,6 @@ class ResultsStratifier(ResultsStratifier_):
             requires_columns=["maternal_supplementation_exposure"],
         )
         builder.results.register_stratification(
-            "iv_iron",
-            results.DICHOTOMOUS_COVERAGE_STATES,
-            is_vectorized=True,
-            requires_columns=["iv_iron_exposure"],
-        )
-        builder.results.register_stratification(
             "bmi_anemia",
             ["cat4", "cat3", "cat2", "cat1"],
             is_vectorized=True,
