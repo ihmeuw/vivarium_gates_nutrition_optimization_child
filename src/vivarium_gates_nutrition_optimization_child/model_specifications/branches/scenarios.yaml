@@ -5,5 +5,5 @@ branches:
   - intervention:
       scenario: ['baseline',
                  'oral_iron',
-                 'antenatal_iv_iron'
+                 'antenatal_iv_iron',
                 ]
