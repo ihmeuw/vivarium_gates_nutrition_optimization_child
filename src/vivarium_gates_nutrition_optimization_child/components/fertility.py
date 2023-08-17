@@ -53,7 +53,7 @@ class FertilityLineList:
 
         file_path = data_directory / f"scenario_{scenario}_draw_{draw}_seed_{seed}.hdf"
         birth_records = pd.read_hdf(file_path)
-        birth_records["birth_date"] = pd.to_datetime(birth_records["birth_date"])
+        birth_records["birth_date"] = pd.to_datetime('2024-12-30')
         return birth_records
 
     def on_time_step(self, event: Event) -> None:
