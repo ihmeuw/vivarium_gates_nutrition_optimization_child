@@ -73,9 +73,16 @@ def make_artifacts(
     is_flag=True,
     help="Results are from a single, non-parallel run.",
 )
+@click.option(
+    "--disaggregate-seeds",
+    "disaggregate_seeds",
+    default=False,
+    is_flag=True,
+    help="Don't aggregate across seeds.",
+)
 def make_results(
-    output_file: str, verbose: int, with_debugger: bool, single_run: bool
+    output_file: str, verbose: int, with_debugger: bool, single_run: bool, disaggregate_seeds: bool
 ) -> None:
     configure_logging_to_terminal(verbose)
     main = handle_exceptions(build_results, logger, with_debugger=with_debugger)
-    main(output_file, single_run)
+    main(output_file, single_run, disaggregate_seeds)
