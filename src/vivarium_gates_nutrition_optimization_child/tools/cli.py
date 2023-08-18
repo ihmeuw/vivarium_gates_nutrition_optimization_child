@@ -81,7 +81,11 @@ def make_artifacts(
     help="Don't aggregate across seeds.",
 )
 def make_results(
-    output_file: str, verbose: int, with_debugger: bool, single_run: bool, disaggregate_seeds: bool
+    output_file: str,
+    verbose: int,
+    with_debugger: bool,
+    single_run: bool,
+    disaggregate_seeds: bool,
 ) -> None:
     configure_logging_to_terminal(verbose)
     main = handle_exceptions(build_results, logger, with_debugger=with_debugger)
