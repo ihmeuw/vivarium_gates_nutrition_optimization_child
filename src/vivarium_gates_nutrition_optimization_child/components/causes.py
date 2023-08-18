@@ -37,7 +37,9 @@ class RiskAttributableDisease(RiskAttributableDisease_):
     def __init__(self, cause, risk):
         super().__init__(cause, risk)
         self.states = [State(state_name) for state_name in self.state_names]
-        self._transition_names.append(TransitionString(f"{self.cause.name}_TO_susceptible_to_{self.cause.name}"))
+        self._transition_names.append(
+            TransitionString(f"{self.cause.name}_TO_susceptible_to_{self.cause.name}")
+        )
 
     def adjust_state_and_transitions(self):
         # we would normally add the transition here which is no longer required
