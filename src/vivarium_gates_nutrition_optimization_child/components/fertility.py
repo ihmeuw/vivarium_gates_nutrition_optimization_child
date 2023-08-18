@@ -57,7 +57,10 @@ class FertilityLineList:
 
         file_path = data_directory / f"scenario_{scenario}_draw_{draw}_seed_{seed}.hdf"
         birth_records = pd.read_hdf(file_path)
-        birth_records["birth_date"] = pd.to_datetime(birth_records["birth_date"])
+        # Hard coding for now because input data has the wrong birth date
+        # TODO: remove hardcoding and keep type casting once fertility_input_data_path
+        # TODO: contains this birth date
+        birth_records["birth_date"] = pd.to_datetime("2024-12-30")
         return birth_records
 
     def on_time_step(self, event: Event) -> None:
@@ -71,8 +74,7 @@ class FertilityLineList:
         born_previous_step_mask = (birth_records["birth_date"] < self.clock()) & (
             birth_records["birth_date"] > self.clock() - event.step_size
         )
-        # TODO: remove resetting index when using actual child data
-        born_previous_step = birth_records[born_previous_step_mask].reset_index().copy()
+        born_previous_step = birth_records[born_previous_step_mask].copy()
         # everyone is currently born on the first time step so this is always empty after the first time step
         if born_previous_step.empty:
             return
