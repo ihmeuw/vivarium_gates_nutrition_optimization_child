@@ -8,6 +8,7 @@ from vivarium_public_health.disease import (
     RiskAttributableDisease as RiskAttributableDisease_,
 )
 from vivarium_public_health.disease import SusceptibleState
+from vivarium_public_health.disease.transition import TransitionString
 
 
 def SIS_with_birth_prevalence(cause: str) -> DiseaseModel:
@@ -29,8 +30,15 @@ def SIS_with_birth_prevalence(cause: str) -> DiseaseModel:
 
 
 class RiskAttributableDisease(RiskAttributableDisease_):
-    """This class has the states attribute so it works with the VPH disease observer"""
+    """This class has the states attribute so it works with the VPH disease observer
+    and adds the infected to susceptible transition in the __init__ so the disease observer
+    registers this transition during its setup."""
 
     def __init__(self, cause, risk):
         super().__init__(cause, risk)
         self.states = [State(state_name) for state_name in self.state_names]
+        self._transition_names.append(TransitionString(f"{self.cause.name}_TO_susceptible_to_{self.cause.name}"))
+
+    def adjust_state_and_transitions(self):
+        # we would normally add the transition here which is no longer required
+        pass
