@@ -266,6 +266,46 @@ class __Stunting(NamedTuple):
 
 STUNTING = __Stunting()
 
+class __WastingTreatment(NamedTuple):
+
+    # Keys that will be loaded into the artifact. must have a colon type declaration
+    EXPOSURE: TargetString
+    DISTRIBUTION: TargetString
+    CATEGORIES: TargetString
+    RELATIVE_RISK: TargetString
+    PAF: TargetString
+
+    # Useful keys not for the artifact - distinguished by not using the colon type declaration
+    UNCOVERED = 'cat1'
+    BASELINE_COVERAGE = 'cat2'
+    ALTERNATIVE_COVERAGE = 'cat3'
+
+    TMREL_CATEGORY = BASELINE_COVERAGE
+    COVERED_CATEGORIES = [BASELINE_COVERAGE, ALTERNATIVE_COVERAGE]
+    UNCOVERED_CATEGORIES = [UNCOVERED]
+
+    @property
+    def name(self):
+        return self.EXPOSURE.name
+
+    @property
+    def log_name(self):
+        return self.name.replace('_', ' ')
+
+
+def _get_wasting_treatment_keys(treatment_type: str) -> __WastingTreatment:
+    return __WastingTreatment(
+        EXPOSURE=TargetString(f'risk_factor.{treatment_type}.exposure'),
+        DISTRIBUTION=TargetString(f'risk_factor.{treatment_type}.distribution'),
+        CATEGORIES=TargetString(f'risk_factor.{treatment_type}.categories'),
+        RELATIVE_RISK=TargetString(f'risk_factor.{treatment_type}.relative_risk'),
+        PAF=TargetString(f'risk_factor.{treatment_type}.population_attributable_fraction'),
+    )
+
+
+SAM_TREATMENT = _get_wasting_treatment_keys('severe_acute_malnutrition_treatment')
+MAM_TREATMENT = _get_wasting_treatment_keys('moderate_acute_malnutrition_treatment')
+
 
 class __LowBirthWeightShortGestation(NamedTuple):
     # Keys that will be loaded into the artifact. must have a colon type declaration
@@ -409,6 +449,8 @@ MAKE_ARTIFACT_KEY_GROUPS = [
     WASTING,
     MODERATE_PEM,
     SEVERE_PEM,
+    SAM_TREATMENT,
+    MAM_TREATMENT,
     LBWSG,
     AFFECTED_UNMODELED_CAUSES,
     IFA_SUPPLEMENTATION,

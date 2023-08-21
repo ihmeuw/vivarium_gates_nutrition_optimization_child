@@ -112,6 +112,16 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.SEVERE_PEM.EMR: load_pem_emr,
         data_keys.SEVERE_PEM.CSMR: load_pem_csmr,
         data_keys.SEVERE_PEM.RESTRICTIONS: load_pem_restrictions,
+        data_keys.SAM_TREATMENT.EXPOSURE: load_wasting_treatment_exposure,
+        data_keys.SAM_TREATMENT.DISTRIBUTION: load_wasting_treatment_distribution,
+        data_keys.SAM_TREATMENT.CATEGORIES: load_wasting_treatment_categories,
+        data_keys.SAM_TREATMENT.RELATIVE_RISK: load_sam_treatment_rr,
+        data_keys.SAM_TREATMENT.PAF: load_categorical_paf,
+        data_keys.MAM_TREATMENT.EXPOSURE: load_wasting_treatment_exposure,
+        data_keys.MAM_TREATMENT.DISTRIBUTION: load_wasting_treatment_distribution,
+        data_keys.MAM_TREATMENT.CATEGORIES: load_wasting_treatment_categories,
+        data_keys.MAM_TREATMENT.RELATIVE_RISK: load_mam_treatment_rr,
+        data_keys.MAM_TREATMENT.PAF: load_categorical_paf,
         data_keys.LBWSG.DISTRIBUTION: load_metadata,
         data_keys.LBWSG.CATEGORIES: load_metadata,
         data_keys.LBWSG.EXPOSURE: load_lbwsg_exposure,
@@ -225,6 +235,8 @@ def load_categorical_paf(key: str, location: str) -> pd.DataFrame:
         risk = {
             data_keys.WASTING.PAF: data_keys.WASTING,
             data_keys.STUNTING.PAF: data_keys.STUNTING,
+            data_keys.SAM_TREATMENT.PAF: data_keys.SAM_TREATMENT,
+            data_keys.MAM_TREATMENT.PAF: data_keys.MAM_TREATMENT,
         }[key]
     except KeyError:
         raise ValueError(f"Unrecognized key {key}")
@@ -445,7 +457,117 @@ def load_pem_restrictions(key: str, location: str) -> pd.DataFrame:
     metadata = load_metadata(data_keys.PEM.RESTRICTIONS, location)
     return metadata
 
+#####################
+# MAM/SAM Treatment #
+#####################
 
+# noinspection PyUnusedLocal
+def load_wasting_treatment_distribution(key: str, location: str) -> str:
+    if key in [data_keys.SAM_TREATMENT.DISTRIBUTION, data_keys.MAM_TREATMENT.DISTRIBUTION]:
+        return data_values.WASTING.DISTRIBUTION
+    else:
+        raise ValueError(f'Unrecognized key {key}')
+
+
+# noinspection PyUnusedLocal
+def load_wasting_treatment_categories(key: str, location: str) -> str:
+    if key in [data_keys.SAM_TREATMENT.CATEGORIES, data_keys.MAM_TREATMENT.CATEGORIES]:
+        return data_values.WASTING.CATEGORIES
+    else:
+        raise ValueError(f'Unrecognized key {key}')
+
+
+def load_wasting_treatment_exposure(key: str, location: str) -> pd.DataFrame:
+    if key == data_keys.SAM_TREATMENT.EXPOSURE:
+        coverage_distribution = data_values.WASTING.BASELINE_SAM_TX_COVERAGE
+    elif key == data_keys.MAM_TREATMENT.EXPOSURE:
+        coverage_distribution = data_values.WASTING.BASELINE_MAM_TX_COVERAGE
+    else:
+        raise ValueError(f'Unrecognized key {key}')
+
+    treatment_coverage = get_random_variable_draws(
+        metadata.ARTIFACT_COLUMNS, *coverage_distribution
+    )
+
+    idx = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index
+    cat3 = pd.DataFrame({f'draw_{i}': 0.0 for i in range(0, 1000)}, index=idx)
+    cat2 = pd.DataFrame({f'draw_{i}': 1.0 for i in range(0, 1000)}, index=idx) * treatment_coverage
+    cat1 = 1 - cat2
+
+    cat1['parameter'] = 'cat1'
+    cat2['parameter'] = 'cat2'
+    cat3['parameter'] = 'cat3'
+
+    exposure = pd.concat([cat1, cat2, cat3]).set_index('parameter', append=True).sort_index()
+    return exposure
+
+
+def load_sam_treatment_rr(key: str, location: str) -> pd.DataFrame:
+    # tmrel is defined as baseline treatment (cat_2)
+    if key != data_keys.SAM_TREATMENT.RELATIVE_RISK:
+        raise ValueError(f'Unrecognized key {key}')
+
+    demography = get_data(data_keys.POPULATION.DEMOGRAPHY, location).reset_index()
+    sam_tx_efficacy, sam_tx_efficacy_tmrel = utilities.get_treatment_efficacy(demography, data_keys.WASTING.CAT1)
+
+    # rr_t1 = t1 / t1_tmrel
+    #       = (sam_tx_efficacy / sam_tx_duration) / (sam_tx_efficacy_tmrel / sam_tx_duration)
+    #       = sam_tx_efficacy / sam_tx_efficacy_tmrel
+    rr_sam_treated_remission = sam_tx_efficacy / sam_tx_efficacy_tmrel
+    rr_sam_treated_remission['affected_entity'] = 'severe_acute_malnutrition_to_mild_child_wasting'
+
+    # rr_r2 = r2 / r2_tmrel
+    #       = (1 - sam_tx_efficacy) * (r2_ux) / (1 - sam_tx_efficacy_tmrel) * (r2_ux)
+    #       = (1 - sam_tx_efficacy) / (1 - sam_tx_efficacy_tmrel)
+    rr_sam_untreated_remission = (1 - sam_tx_efficacy) / (1 - sam_tx_efficacy_tmrel)
+    rr_sam_untreated_remission['affected_entity'] = 'severe_acute_malnutrition_to_moderate_acute_malnutrition'
+
+    rr = pd.concat(
+        [rr_sam_treated_remission, rr_sam_untreated_remission]
+    )
+    rr['affected_measure'] = 'transition_rate'
+    rr = rr.set_index(['affected_entity', 'affected_measure'], append=True)
+    rr.index = rr.index.reorder_levels([col for col in rr.index.names if col != 'parameter'] + ['parameter'])
+    rr.sort_index()
+    return rr
+
+
+def load_mam_treatment_rr(key: str, location: str) -> pd.DataFrame:
+    # tmrel is defined as baseline treatment (cat_2)
+    if key != data_keys.MAM_TREATMENT.RELATIVE_RISK:
+        raise ValueError(f'Unrecognized key {key}')
+
+    demography = get_data(data_keys.POPULATION.DEMOGRAPHY, location).reset_index()
+    mam_tx_efficacy, mam_tx_efficacy_tmrel = utilities.get_treatment_efficacy(demography, data_keys.WASTING.CAT2)
+    index = mam_tx_efficacy.index
+
+    mam_ux_duration = data_values.WASTING.MAM_UX_RECOVERY_TIME_OVER_6MO
+    mam_tx_duration = pd.Series(index=index)
+    mam_tx_duration[index.get_level_values('age_start') < 0.5] = data_values.WASTING.MAM_TX_RECOVERY_TIME_UNDER_6MO
+    mam_tx_duration[0.5 <= index.get_level_values('age_start')] = (
+        get_random_variable_draws(
+            mam_tx_duration[0.5 <= index.get_level_values('age_start')].index,
+            *data_values.WASTING.MAM_TX_RECOVERY_TIME_OVER_6MO)
+    )
+    mam_tx_duration = (
+        pd.DataFrame({f'draw_{i}': 1 for i in range(0, 1000)}, index=index)
+        .multiply(mam_tx_duration, axis='index')
+    )
+
+    # rr_r3 = r3 / r3_tmrel
+    #       = (mam_tx_efficacy / mam_tx_duration) + (1 - mam_tx_efficacy / mam_ux_duration)
+    #           / (mam_tx_efficacy_tmrel / mam_tx_duration) + (1 - mam_tx_efficacy_tmrel / mam_ux_duration)
+    #       = (mam_tx_efficacy * mam_ux_duration + (1 - mam_tx_efficacy) * mam_tx_duration)
+    #           / (mam_tx_efficacy_tmrel * mam_ux_duration + (1 - mam_tx_efficacy_tmrel) * mam_tx_duration)
+    rr = ((mam_tx_efficacy * mam_ux_duration + (1 - mam_tx_efficacy) * mam_tx_duration)
+          / (mam_tx_efficacy_tmrel * mam_ux_duration + (1 - mam_tx_efficacy_tmrel) * mam_tx_duration))
+
+    rr['affected_entity'] = 'moderate_acute_malnutrition_to_mild_child_wasting'
+    rr['affected_measure'] = 'transition_rate'
+    rr = rr.set_index(['affected_entity', 'affected_measure'], append=True)
+    rr.index = rr.index.reorder_levels([col for col in rr.index.names if col != 'parameter'] + ['parameter'])
+    rr.sort_index()
+    return rr
 def load_lbwsg_exposure(key: str, location: str) -> pd.DataFrame:
     if key != data_keys.LBWSG.EXPOSURE:
         raise ValueError(f"Unrecognized key {key}")
