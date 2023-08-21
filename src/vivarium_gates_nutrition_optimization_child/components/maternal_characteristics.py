@@ -2,7 +2,7 @@
 Component for maternal supplementation and risk effects
 """
 
-from typing import Callable
+from typing import Callable, Dict
 
 import numpy as np
 import pandas as pd
@@ -17,7 +17,7 @@ from vivarium_public_health.risks.data_transformations import (
     rebin_relative_risk_data,
 )
 
-from vivarium_gates_nutrition_optimization_child.constants import data_values
+from vivarium_gates_nutrition_optimization_child.constants import data_values, paths
 from vivarium_gates_nutrition_optimization_child.constants.data_keys import (
     BEP_SUPPLEMENTATION,
     IFA_SUPPLEMENTATION,
@@ -250,9 +250,6 @@ class AdditiveRiskEffect(RiskEffect):
     # Pipeline sources and modifiers #
     ##################################
 
-    def risk_specific_shift_modifier(self, index: pd.Index, target: pd.Series) -> pd.Series:
-        return target + self.risk_specific_shift_source(index)
-
     def get_effect(self, index: pd.Index) -> pd.Series:
         index_columns = ["index", self.risk.name]
 
@@ -270,6 +267,41 @@ class AdditiveRiskEffect(RiskEffect):
         risk_specific_shift = self.risk_specific_shift_source(index)
         effect = raw_effect - risk_specific_shift
         return effect
+
+
+class RiskEffectOnGestationalAge(AdditiveRiskEffect):
+    def __init__(self, risk: str):
+        super().__init__(risk, 'risk_factor.gestational_age.birth_exposure')
+        self.effect_pipeline_name = f"{self.risk.name}_on_gestational_age.effect"
+        self.gestational_age_exposure_column_name = f"{self.target.name}.{self.target.measure}"
+        self.excess_shift_pipeline_name = f'{self.risk.name}_on_{self.target.name}.excess_shift'
+
+    #################
+    # Setup methods #
+    #################
+
+    # noinspection PyAttributeOutsideInit
+    def setup(self, builder: Builder) -> None:
+        super().setup(builder)
+        self.population_view = self._get_population_view(builder)
+
+    def _get_population_view(self, builder: Builder) -> PopulationView:
+        return builder.population.get_view([self.gestational_age_exposure_column_name])
+
+    def _get_excess_shift_source(self, builder: Builder) -> Pipeline:
+        return builder.value.register_value_producer(
+            self.excess_shift_pipeline_name,
+            source=self.get_excess_shift,
+            requires_values=[self.gestational_age_exposure_column_name],
+        )
+
+    ##################################
+    # Pipeline sources and modifiers #
+    ##################################
+
+    def get_excess_shift(self, index: pd.Index) -> pd.Series:
+        if 'iron_folic_acid_supplementation' in self.risk.name:
+            return pd.Series(self.shift_values['ifa'], index=index)
 
 
 class BirthWeightShiftEffect:
