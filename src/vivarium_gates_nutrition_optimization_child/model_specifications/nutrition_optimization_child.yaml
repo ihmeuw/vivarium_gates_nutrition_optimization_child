@@ -35,7 +35,9 @@ components:
             - LBWSGLineList()
             - BirthObserver()
             - DisabilityObserver()
-
+            - ChildWasting()
+            - WastingTreatment('risk_factor.severe_acute_malnutrition_treatment')
+            - WastingTreatment('risk_factor.moderate_acute_malnutrition_treatment')
             - MaternalCharacteristics()
             - AdditiveRiskEffect('risk_factor.iron_folic_acid_supplementation', 'risk_factor.birth_weight.birth_exposure')
             - AdditiveRiskEffect('risk_factor.multiple_micronutrient_supplementation', 'risk_factor.birth_weight.birth_exposure')
