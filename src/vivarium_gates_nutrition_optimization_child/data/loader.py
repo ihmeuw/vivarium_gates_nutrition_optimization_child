@@ -729,9 +729,9 @@ def transform_shift_data(shift: pd.Series, index: pd.Index, target: TargetString
     '''Read in draw-level shift values and return a DataFrame where the data are the shift values,
     and the index is the passed index appended with affected entity/measure and parameter data.'''
     exposed = pd.DataFrame([shift], index=index)
-    exposed["parameter"] = "cat1"
+    exposed["parameter"] = "cat2"
     unexposed = pd.DataFrame([pd.Series(0.0, index=metadata.ARTIFACT_COLUMNS)], index=index)
-    unexposed["parameter"] = "cat2"
+    unexposed["parameter"] = "cat1"
 
     excess_shift = pd.concat([exposed, unexposed])
     excess_shift["affected_entity"] = target.name
