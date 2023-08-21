@@ -29,6 +29,7 @@ from vivarium_inputs import utilities as vi_utils
 from vivarium_inputs import utility_data
 from vivarium_inputs.globals import DEMOGRAPHIC_COLUMNS, DRAW_COLUMNS
 from vivarium_inputs.mapping_extension import AlternativeRiskFactor
+from vivarium_public_health.utilities import TargetString
 
 from vivarium_gates_nutrition_optimization_child.constants import (
     data_keys,
@@ -139,7 +140,11 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.MMN_SUPPLEMENTATION.CATEGORIES: load_intervention_categories,
         data_keys.MMN_SUPPLEMENTATION.EXPOSURE: load_dichotomous_treatment_exposure,
         data_keys.MMN_SUPPLEMENTATION.EXCESS_SHIFT: load_treatment_excess_shift,
+        data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_1: load_excess_gestational_age_shift,
+        data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_2: load_excess_gestational_age_shift,
         data_keys.MMN_SUPPLEMENTATION.RISK_SPECIFIC_SHIFT: load_risk_specific_shift,
+        data_keys.MMN_SUPPLEMENTATION.RISK_SPECIFIC_GA_SHIFT_1: load_risk_specific_gestational_age_shift_from_mms,
+        data_keys.MMN_SUPPLEMENTATION.RISK_SPECIFIC_GA_SHIFT_2: load_risk_specific_gestational_age_shift_from_mms,
         data_keys.BEP_SUPPLEMENTATION.DISTRIBUTION: load_intervention_distribution,
         data_keys.BEP_SUPPLEMENTATION.CATEGORIES: load_intervention_categories,
         data_keys.BEP_SUPPLEMENTATION.EXPOSURE: load_dichotomous_treatment_exposure,
@@ -692,22 +697,10 @@ def load_dichotomous_exposure(
 def load_dichotomous_excess_shift(
     location: str, distribution_data: Tuple, is_risk: bool
 ) -> pd.DataFrame:
-    '''Load excess birth exposure shifts using distribution data.'''
+    '''Load excess birth weight exposure shifts using distribution data.'''
     index = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index
     shift = get_random_variable_draws(metadata.ARTIFACT_COLUMNS, *distribution_data)
-
-    exposed = pd.DataFrame([shift], index=index)
-    exposed["parameter"] = "cat1" if is_risk else "cat2"
-    unexposed = pd.DataFrame([pd.Series(0.0, index=metadata.ARTIFACT_COLUMNS)], index=index)
-    unexposed["parameter"] = "cat2" if is_risk else "cat1"
-
-    excess_shift = pd.concat([exposed, unexposed])
-    excess_shift["affected_entity"] = data_keys.LBWSG.BIRTH_WEIGHT_EXPOSURE.name
-    excess_shift["affected_measure"] = data_keys.LBWSG.BIRTH_WEIGHT_EXPOSURE.measure
-
-    excess_shift = excess_shift.set_index(
-        ["affected_entity", "affected_measure", "parameter"], append=True
-    ).sort_index()
+    excess_shift = transform_shift_data(shift, index, data_keys.LBWSG.BIRTH_WEIGHT_EXPOSURE)
     return excess_shift
 
 
@@ -718,8 +711,8 @@ def load_excess_gestational_age_shift(
     try:
         data_dir = {
             data_keys.IFA_SUPPLEMENTATION.EXCESS_SHIFT: paths.IFA_GA_SHIFT_DATA_DIR,
-            data_keys.MMN_SUPPLEMENTATION.EXCESS_SHIFT_1: paths.MMS_GA_SHIFT_1_DATA_DIR,
-            data_keys.MMN_SUPPLEMENTATION.EXCESS_SHIFT_2: paths.MMS_GA_SHIFT_2_DATA_DIR,
+            data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_1: paths.MMS_GA_SHIFT_1_DATA_DIR,
+            data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_2: paths.MMS_GA_SHIFT_2_DATA_DIR,
         }[key]
     except KeyError:
         raise ValueError(f"Unrecognized key {key}")
@@ -728,14 +721,21 @@ def load_excess_gestational_age_shift(
     shift = pd.read_csv(data_dir / f"{location.lower()}.csv")
     shift = pd.Series(shift['value'].values, index=shift['draw'])
 
-    exposed = pd.DataFrame([shift] * len(index), index=index)
+    excess_shift = transform_shift_data(shift, index, data_keys.LBWSG.GESTATIONAL_AGE_EXPOSURE)
+    return excess_shift
+
+
+def transform_shift_data(shift: pd.Series, index: pd.Index, target: TargetString) -> pd.DataFrame:
+    '''Read in draw-level shift values and return a DataFrame where the data are the shift values,
+    and the index is the passed index appended with affected entity/measure and parameter data.'''
+    exposed = pd.DataFrame([shift], index=index)
     exposed["parameter"] = "cat1"
     unexposed = pd.DataFrame([pd.Series(0.0, index=metadata.ARTIFACT_COLUMNS)], index=index)
     unexposed["parameter"] = "cat2"
 
     excess_shift = pd.concat([exposed, unexposed])
-    excess_shift["affected_entity"] = data_keys.LBWSG.GESTATIONAL_AGE_EXPOSURE.name
-    excess_shift["affected_measure"] = data_keys.LBWSG.GESTATIONAL_AGE_EXPOSURE.measure
+    excess_shift["affected_entity"] = target.name
+    excess_shift["affected_measure"] = target.measure
 
     excess_shift = excess_shift.set_index(
         ["affected_entity", "affected_measure", "parameter"], append=True
@@ -758,6 +758,27 @@ def load_risk_specific_shift(key: str, location: str) -> pd.DataFrame:
     # p_exposed * exposed_shift
     exposure = get_data(key_group.EXPOSURE, location)
     excess_shift = get_data(key_group.EXCESS_SHIFT, location)
+
+    risk_specific_shift = (
+        (exposure * excess_shift)
+        .groupby(metadata.ARTIFACT_INDEX_COLUMNS + ["affected_entity", "affected_measure"])
+        .sum()
+    )
+    return risk_specific_shift
+
+
+def load_risk_specific_gestational_age_shift_from_mms(key: str, location: str) -> pd.DataFrame:
+    try:
+        excess_shift: data_keys.__AdditiveRisk = {
+            data_keys.MMN_SUPPLEMENTATION.RISK_SPECIFIC_GA_SHIFT_1: data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_1,
+            data_keys.MMN_SUPPLEMENTATION.RISK_SPECIFIC_GA_SHIFT_2: data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_2,
+        }[key]
+    except KeyError:
+        raise ValueError(f"Unrecognized key {key}")
+
+    # p_exposed * exposed_shift
+    exposure = get_data(data_keys.MMN_SUPPLEMENTATION.EXPOSURE, location)
+    excess_shift = get_data(excess_shift, location)
 
     risk_specific_shift = (
         (exposure * excess_shift)
