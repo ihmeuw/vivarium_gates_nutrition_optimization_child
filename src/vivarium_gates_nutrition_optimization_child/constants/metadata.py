@@ -37,6 +37,7 @@ ARTIFACT_INDEX_COLUMNS = [
 DRAW_COUNT = 1000
 ARTIFACT_COLUMNS = pd.Index([f"draw_{i}" for i in range(DRAW_COUNT)])
 GBD_2019_ROUND_ID = 6
+GBD_2021_ROUND_ID = 7
 
 
 class __Scenarios(NamedTuple):
