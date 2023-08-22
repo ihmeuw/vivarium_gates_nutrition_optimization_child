@@ -95,8 +95,8 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.WASTING.DISTRIBUTION: load_metadata,
         data_keys.WASTING.ALT_DISTRIBUTION: load_metadata,
         data_keys.WASTING.CATEGORIES: load_metadata,
-        data_keys.WASTING.EXPOSURE: load_cgf_exposure,
-        data_keys.WASTING.RELATIVE_RISK: load_standard_data,
+        data_keys.WASTING.EXPOSURE: load_gbd_2021_exposure,
+        data_keys.WASTING.RELATIVE_RISK: load_gbd_2021_rr,
         data_keys.WASTING.PAF: load_categorical_paf,
         data_keys.STUNTING.DISTRIBUTION: load_metadata,
         data_keys.STUNTING.ALT_DISTRIBUTION: load_metadata,
@@ -199,10 +199,8 @@ def filter_population(unfiltered: pd.DataFrame) -> pd.DataFrame:
 
 
 def load_age_bins(key: str, location: str) -> pd.DataFrame:
-    all_age_bins = interface.get_age_bins().reset_index()
-    return all_age_bins[all_age_bins.age_start < 5].set_index(
-        ["age_start", "age_end", "age_group_name"]
-    )
+    all_age_bins = utilities.get_gbd_age_bins(metadata.AGE_GROUP.GBD_2021).set_index(['age_start', 'age_end', 'age_group_name']).sort_index()
+    return all_age_bins[all_age_bins.age_start < 5]
 
 
 def load_demographic_dimensions(key: str, location: str) -> pd.DataFrame:
@@ -375,6 +373,75 @@ def load_cgf_exposure(key: str, location: str) -> pd.DataFrame:
     data = reshape_to_vivarium_format(data, location)
     return data
 
+def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
+    entity_key = EntityKey(key)
+    entity = utilities.get_gbd_2020_entity(entity_key)
+
+    data = utilities.get_data(entity_key, entity, location, gbd_constants.SOURCES.EXPOSURE, 'rei_id',
+                              metadata.AGE_GROUP.GBD_2021, metadata.GBD_2020_ROUND_ID)
+    data = utilities.process_exposure(data, entity_key, entity, location, metadata.GBD_2020_ROUND_ID,
+                                      metadata.AGE_GROUP.GBD_2021)
+
+    if entity_key == data_keys.STUNTING.EXPOSURE:
+        # Remove neonatal exposure
+        neonatal_age_ends = data.index.get_level_values('age_end').unique()[:2]
+        data.loc[data.index.get_level_values('age_end').isin(neonatal_age_ends)] = 0.0
+        data.loc[data.index.get_level_values('age_end').isin(neonatal_age_ends)
+                 & (data.index.get_level_values('parameter') == data_keys.STUNTING.CAT4)] = 1.0
+    return data
+
+
+def load_gbd_2021_rr(key: str, location: str) -> pd.DataFrame:
+    entity_key = EntityKey(key)
+    entity = utilities.get_gbd_2020_entity(entity_key)
+
+    data = utilities.get_data(
+        entity_key,
+        entity,
+        location,
+        gbd_constants.SOURCES.RR,
+        'rei_id',
+        metadata.AGE_GROUP.GBD_2020,
+        metadata.GBD_2020_ROUND_ID
+    )
+    data = utilities.process_relative_risk(data, entity_key, entity, location, metadata.GBD_2020_ROUND_ID,
+                                           metadata.AGE_GROUP.GBD_2020)
+
+    if key == data_keys.STUNTING.RELATIVE_RISK:
+        # Remove neonatal relative risks
+        neonatal_age_ends = data.index.get_level_values('age_end').unique()[:2]
+        data.loc[data.index.get_level_values('age_end').isin(neonatal_age_ends)] = 1.0
+    elif key == data_keys.WASTING.RELATIVE_RISK:
+        # Remove relative risks for simulants under 6 months
+        data.loc[data.index.get_level_values('age_end') <= data_values.WASTING.START_AGE] = 1.0
+
+        # Set risk to affect diarrheal emr
+        diarrhea_rr = data.query(f"affected_entity == '{data_keys.DIARRHEA.name}'")
+        data = pd.concat([
+            diarrhea_rr.rename(
+                index={'incidence_rate': 'excess_mortality_rate'}, level='affected_measure'
+            ), data.drop(diarrhea_rr.index)
+        ]).sort_index()
+    elif key == data_keys.DISCONTINUED_BREASTFEEDING.RELATIVE_RISK:
+        # Remove RR outside of [6 months, 2 years)
+        discontinued_tmrel_index = data.query(
+            f'age_start < {data_values.DISCONTINUED_BREASTFEEDING_START_AGE}'
+            f' or age_end > {data_values.DISCONTINUED_BREASTFEEDING_END_AGE}'
+        ).index
+        discontinued_tmrel_rr = pd.DataFrame(
+            1.0, columns=metadata.ARTIFACT_COLUMNS, index=discontinued_tmrel_index
+        )
+        data.update(discontinued_tmrel_rr)
+    elif key == data_keys.NON_EXCLUSIVE_BREASTFEEDING.RELATIVE_RISK:
+        # Remove month [6, months, 1 year) exposure
+        non_exclusive_tmrel_index = data.query(
+            f'age_start == {data_values.NON_EXCLUSIVE_BREASTFEEDING_END_AGE}'
+        ).index
+        non_exclusive_tmrel_rr = pd.DataFrame(
+            1.0, columns=metadata.ARTIFACT_COLUMNS, index=non_exclusive_tmrel_index
+        )
+        data.update(non_exclusive_tmrel_rr)
+    return data
 
 def get_exposure_without_model_version_id(
     entity: Union[RiskFactor, AlternativeRiskFactor], location_id: int

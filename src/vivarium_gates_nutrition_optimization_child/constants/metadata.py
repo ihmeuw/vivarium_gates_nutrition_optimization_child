@@ -53,6 +53,10 @@ class __AgeGroup(NamedTuple):
     LATE_NEONATAL_ID = 3
     POST_NEONATAL = 4
     YEARS_1_TO_4 = 5
+    MONTHS_1_TO_5 = 388
+    MONTHS_6_TO_11 = 389
+    MONTHS_12_TO_23 = 238
+    YEARS_2_TO_4 = 34
 
     GBD_2019_LBWSG_EXPOSURE = {BIRTH_ID, EARLY_NEONATAL_ID, LATE_NEONATAL_ID}
     GBD_2019_LBWSG_RELATIVE_RISK = {EARLY_NEONATAL_ID, LATE_NEONATAL_ID}
@@ -63,6 +67,15 @@ class __AgeGroup(NamedTuple):
         LATE_NEONATAL_ID,
         POST_NEONATAL,
         YEARS_1_TO_4,
+    }
+
+    GBD_2021 = {
+        EARLY_NEONATAL_ID,
+        LATE_NEONATAL_ID,
+        MONTHS_1_TO_5,
+        MONTHS_6_TO_11,
+        MONTHS_12_TO_23,
+        YEARS_2_TO_4,
     }
 
 

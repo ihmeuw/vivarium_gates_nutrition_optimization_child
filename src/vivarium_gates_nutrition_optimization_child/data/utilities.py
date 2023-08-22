@@ -480,3 +480,20 @@ def load_lbwsg_exposure(location: str):
     # This data set is big, so let's reduce it by a factor of ~40
     data = data[data["year_id"] == 2019]
     return data
+
+def get_gbd_2020_entity(key: str) -> ModelableEntity:
+    # from load_standard_data
+    entity = get_entity(key)
+
+    if isinstance(entity, RiskFactor) or isinstance(entity, Cause):
+        # Set risk factor age restrictions for GBD 2020
+        if 'yll_age_group_id_start' in entity.restrictions:
+            entity.restrictions.yll_age_group_id_start = min(AGE_GROUP.GBD_2021)
+        if 'yld_age_group_id_start' in entity.restrictions:
+            entity.restrictions.yld_age_group_id_start = min(AGE_GROUP.GBD_2021)
+        if 'yll_age_group_id_end' in entity.restrictions:
+            entity.restrictions.yll_age_group_id_end = max(AGE_GROUP.GBD_2021)
+        if 'yld_age_group_id_end' in entity.restrictions:
+            entity.restrictions.yld_age_group_id_end = max(AGE_GROUP.GBD_2021)
+
+    return entity
