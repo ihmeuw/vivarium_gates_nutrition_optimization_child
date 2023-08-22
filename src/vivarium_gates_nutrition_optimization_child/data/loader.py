@@ -140,11 +140,11 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.MMN_SUPPLEMENTATION.CATEGORIES: load_intervention_categories,
         data_keys.MMN_SUPPLEMENTATION.EXPOSURE: load_dichotomous_treatment_exposure,
         data_keys.MMN_SUPPLEMENTATION.EXCESS_SHIFT: load_treatment_excess_shift,
-        data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_1: load_excess_gestational_age_shift,
-        data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_2: load_excess_gestational_age_shift,
+        data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_1: load_excess_gestational_age_shift,
+        data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_2: load_excess_gestational_age_shift,
         data_keys.MMN_SUPPLEMENTATION.RISK_SPECIFIC_SHIFT: load_risk_specific_shift,
-        data_keys.MMN_SUPPLEMENTATION.RISK_SPECIFIC_GA_SHIFT_1: load_risk_specific_gestational_age_shift_from_mms,
-        data_keys.MMN_SUPPLEMENTATION.RISK_SPECIFIC_GA_SHIFT_2: load_risk_specific_gestational_age_shift_from_mms,
+        data_keys.MMN_SUPPLEMENTATION.RISK_SPECIFIC_GA_SHIFT_SUBPOP_1: load_risk_specific_gestational_age_shift_from_mms,
+        data_keys.MMN_SUPPLEMENTATION.RISK_SPECIFIC_GA_SHIFT_SUBPOP_2: load_risk_specific_gestational_age_shift_from_mms,
         data_keys.BEP_SUPPLEMENTATION.DISTRIBUTION: load_intervention_distribution,
         data_keys.BEP_SUPPLEMENTATION.CATEGORIES: load_intervention_categories,
         data_keys.BEP_SUPPLEMENTATION.EXPOSURE: load_dichotomous_treatment_exposure,
@@ -711,8 +711,7 @@ def load_excess_gestational_age_shift(
     try:
         data_dir = {
             data_keys.IFA_SUPPLEMENTATION.EXCESS_SHIFT: paths.IFA_GA_SHIFT_DATA_DIR,
-            data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_1: paths.MMS_GA_SHIFT_1_DATA_DIR,
-            data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_2: paths.MMS_GA_SHIFT_2_DATA_DIR,
+            data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_1: paths.MMS_GA_SHIFT_1_DATA_DIR,
         }[key]
     except KeyError:
         raise ValueError(f"Unrecognized key {key}")
@@ -770,8 +769,8 @@ def load_risk_specific_shift(key: str, location: str) -> pd.DataFrame:
 def load_risk_specific_gestational_age_shift_from_mms(key: str, location: str) -> pd.DataFrame:
     try:
         excess_shift: data_keys.__AdditiveRisk = {
-            data_keys.MMN_SUPPLEMENTATION.RISK_SPECIFIC_GA_SHIFT_1: data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_1,
-            data_keys.MMN_SUPPLEMENTATION.RISK_SPECIFIC_GA_SHIFT_2: data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_2,
+            data_keys.MMN_SUPPLEMENTATION.RISK_SPECIFIC_GA_SHIFT_SUBPOP_1: data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_1,
+            data_keys.MMN_SUPPLEMENTATION.RISK_SPECIFIC_GA_SHIFT_SUBPOP_2: data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_2,
         }[key]
     except KeyError:
         raise ValueError(f"Unrecognized key {key}")
