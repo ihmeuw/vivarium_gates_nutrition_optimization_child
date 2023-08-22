@@ -32,7 +32,7 @@ from vivarium_gates_nutrition_optimization_child.constants.metadata import (
     ARTIFACT_COLUMNS,
     ARTIFACT_INDEX_COLUMNS,
     GBD_2019_ROUND_ID,
-    GBD_2020_ROUND_ID,
+    GBD_2021_ROUND_ID,
     NEONATAL_END_AGE,
 )
 from vivarium_gates_nutrition_optimization_child.utilities import get_random_variable_draws
@@ -513,7 +513,7 @@ def reshape_gbd_2019_data_as_gbd_2021_data(gbd_2019_data: pd.DataFrame) -> pd.Da
         .reorder_levels(['year_start', 'year_end', 'sex', 'age_start'])
     )
 
-    # Reindex data with GBD 2020 age bins across GBD 2019 estimation years and fill forward NAs
+    # Reindex data with GBD 2021 age bins across GBD 2019 estimation years and fill forward NAs
     gbd_2019_years_gbd_2021_age_bins_data = (
         gbd_2019_data
         .droplevel('age_end')
@@ -530,7 +530,7 @@ def reshape_gbd_2019_data_as_gbd_2021_data(gbd_2019_data: pd.DataFrame) -> pd.Da
         .reorder_levels(['sex', 'age_start', 'year_start'])
     )
 
-    # Reindex data with GBD 2020 estimation years and fill forward NAs
+    # Reindex data with GBD 2021 estimation years and fill forward NAs
     full_data_without_end_columns = (
         gbd_2019_years_gbd_2021_age_bins_data
         .droplevel('year_end')
@@ -546,7 +546,7 @@ def reshape_gbd_2019_data_as_gbd_2021_data(gbd_2019_data: pd.DataFrame) -> pd.Da
     return full_data
 
 def get_gbd_2021_demographic_dimensions() -> pd.DataFrame:
-    estimation_years = get_gbd_estimation_years(GBD_2020_ROUND_ID)
+    estimation_years = get_gbd_estimation_years(GBD_2021_ROUND_ID)
     year_starts = range(estimation_years[0], estimation_years[-1] + 1)
     age_bins = get_gbd_age_bins(AGE_GROUP.GBD_2021)
 
