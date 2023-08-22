@@ -11,7 +11,6 @@ from vivarium_public_health.risks.data_transformations import (
 from vivarium_public_health.disease import DiseaseModel, DiseaseState, SusceptibleState
 from vivarium_public_health.utilities import EntityString
 
-from vivarium_gates_nutrition_optimization_child.components.risk import RiskEffect
 from vivarium_gates_nutrition_optimization_child.constants import data_keys, data_values, metadata, models, scenarios
 from vivarium_gates_nutrition_optimization_child.constants.data_keys import WASTING
 from vivarium_gates_nutrition_optimization_child.utilities import get_random_variable
