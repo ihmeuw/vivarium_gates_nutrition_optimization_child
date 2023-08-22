@@ -301,13 +301,13 @@ class MMSEffectOnGestationalAge(AdditiveRiskEffect):
     # write this and risk specific shift data functions as partials
     def _get_mms_excess_shift_data(self, builder: Builder) -> Dict[str, LookupTable]:
         mms_shift1_data = builder.data.load(
-            "risk_factor.multiple_micronutrient_supplementation.excess_gestational_age_shift_1",
+            "risk_factor.multiple_micronutrient_supplementation.excess_gestational_age_shift_subpop_1",
             affected_entity=self.target.name,
             affected_measure=self.target.measure,
         )
         mms_shift1_data = self.build_excess_shift_lookup_table(builder, mms_shift1_data)
         mms_shift2_data = builder.data.load(
-            "risk_factor.multiple_micronutrient_supplementation.excess_gestational_age_shift_2",
+            "risk_factor.multiple_micronutrient_supplementation.excess_gestational_age_shift_subpop_2",
             affected_entity=self.target.name,
             affected_measure=self.target.measure,
         )
@@ -325,7 +325,7 @@ class MMSEffectOnGestationalAge(AdditiveRiskEffect):
 
     def _get_mms_risk_specific_shift_data(self, builder: Builder) -> Dict[str, LookupTable]:
         mms_shift1_data = builder.data.load(
-            "risk_factor.multiple_micronutrient_supplementation.risk_specific_gestational_age_shift_1",
+            "risk_factor.multiple_micronutrient_supplementation.risk_specific_gestational_age_shift_subpop_1",
             affected_entity=self.target.name,
             affected_measure=self.target.measure,
         )
@@ -333,7 +333,7 @@ class MMSEffectOnGestationalAge(AdditiveRiskEffect):
             mms_shift1_data, key_columns=["sex"], parameter_columns=["age", "year"]
         )
         mms_shift2_data = builder.data.load(
-            "risk_factor.multiple_micronutrient_supplementation.risk_specific_gestational_age_shift_2",
+            "risk_factor.multiple_micronutrient_supplementation.risk_specific_gestational_age_shift_subpop_2",
             affected_entity=self.target.name,
             affected_measure=self.target.measure,
         )
