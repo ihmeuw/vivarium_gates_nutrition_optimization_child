@@ -390,6 +390,24 @@ class MMSEffectOnGestationalAge(AdditiveRiskEffect):
 
         return risk_specific_shift
 
+    def get_effect(self, index: pd.Index) -> pd.Series:
+        index_columns = ["index", self.risk.name]
+
+        excess_shift = self.excess_shift_source(index)
+        exposure = self.exposure(index).reset_index()
+        exposure.columns = index_columns
+        exposure = exposure.set_index(index_columns)
+
+        relative_risk = excess_shift.stack().reset_index()
+        relative_risk.columns = index_columns + ["value"]
+        relative_risk = relative_risk.set_index(index_columns)
+
+        raw_effect = relative_risk.loc[exposure.index, "value"].droplevel(self.risk.name)
+
+        risk_specific_shift = self.risk_specific_shift_source(index)
+        effect = raw_effect - risk_specific_shift
+        return effect
+
 
 class BirthWeightShiftEffect:
     def __init__(self):
@@ -471,6 +489,8 @@ class BirthWeightShiftEffect:
     ##################
 
     def _get_total_birth_weight_shift(self, index: pd.Index) -> pd.Series:
+        if len(index) > 0:
+            breakpoint()
         return pd.concat(
             [pipeline(index) for pipeline in self.pipelines.values()], axis=1
         ).sum(axis=1)
