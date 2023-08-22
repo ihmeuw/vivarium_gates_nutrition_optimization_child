@@ -709,18 +709,19 @@ def load_excess_gestational_age_shift(
 ) -> pd.DataFrame:
     '''Load excess gestational age shift data from IFA and MMS from file.'''
     try:
-        data_dir = {
-            data_keys.IFA_SUPPLEMENTATION.EXCESS_SHIFT: paths.IFA_GA_SHIFT_DATA_DIR,
-            data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_1: paths.MMS_GA_SHIFT_1_DATA_DIR,
+        data_dirs = {
+            data_keys.IFA_SUPPLEMENTATION.EXCESS_SHIFT: [paths.IFA_GA_SHIFT_DATA_DIR],
+            data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_1: [paths.MMS_GA_SHIFT_1_DATA_DIR],
+            data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_2: [paths.MMS_GA_SHIFT_1_DATA_DIR, paths.MMS_GA_SHIFT_2_DATA_DIR],
         }[key]
     except KeyError:
         raise ValueError(f"Unrecognized key {key}")
 
     index = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index
-    shift = pd.read_csv(data_dir / f"{location.lower()}.csv")
-    shift = pd.Series(shift['value'].values, index=shift['draw'])
+    shifts = [pd.read_csv(data_dir / f"{location.lower()}.csv") for data_dir in data_dirs]
+    shift_data = sum([pd.Series(shift['value'].values, index=shift['draw']) for shift in shifts])
 
-    excess_shift = transform_shift_data(shift, index, data_keys.LBWSG.GESTATIONAL_AGE_EXPOSURE)
+    excess_shift = transform_shift_data(shift_data, index, data_keys.LBWSG.GESTATIONAL_AGE_EXPOSURE)
     return excess_shift
 
 
