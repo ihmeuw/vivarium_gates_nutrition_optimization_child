@@ -67,28 +67,28 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.POPULATION.AGE_BINS: load_age_bins,
         data_keys.POPULATION.DEMOGRAPHY: load_demographic_dimensions,
         data_keys.POPULATION.TMRLE: load_theoretical_minimum_risk_life_expectancy,
-        data_keys.POPULATION.ACMR: load_standard_data,
+        data_keys.POPULATION.ACMR: load_standard_gbd_2019_data_as_gbd_2021_data,
         data_keys.POPULATION.CRUDE_BIRTH_RATE: load_standard_data,
         data_keys.DIARRHEA.DURATION: load_duration,
         data_keys.DIARRHEA.PREVALENCE: load_prevalence_from_incidence_and_duration,
-        data_keys.DIARRHEA.INCIDENCE_RATE: load_standard_data,
+        data_keys.DIARRHEA.INCIDENCE_RATE: load_standard_gbd_2019_data_as_gbd_2021_data,
         data_keys.DIARRHEA.REMISSION_RATE: load_remission_rate_from_duration,
-        data_keys.DIARRHEA.DISABILITY_WEIGHT: load_standard_data,
+        data_keys.DIARRHEA.DISABILITY_WEIGHT: load_standard_gbd_2019_data_as_gbd_2021_data,
         data_keys.DIARRHEA.EMR: load_emr_from_csmr_and_prevalence,
         data_keys.DIARRHEA.CSMR: load_diarrhea_csmr,
         data_keys.DIARRHEA.RESTRICTIONS: load_metadata,
         data_keys.DIARRHEA.BIRTH_PREVALENCE: load_diarrhea_birth_prevalence,
-        data_keys.MEASLES.PREVALENCE: load_standard_data,
-        data_keys.MEASLES.INCIDENCE_RATE: load_standard_data,
-        data_keys.MEASLES.DISABILITY_WEIGHT: load_standard_data,
-        data_keys.MEASLES.EMR: load_standard_data,
-        data_keys.MEASLES.CSMR: load_standard_data,
+        data_keys.MEASLES.PREVALENCE: load_standard_gbd_2019_data_as_gbd_2021_data,
+        data_keys.MEASLES.INCIDENCE_RATE: load_standard_gbd_2019_data_as_gbd_2021_data,
+        data_keys.MEASLES.DISABILITY_WEIGHT: load_standard_gbd_2019_data_as_gbd_2021_data,
+        data_keys.MEASLES.EMR: load_standard_gbd_2019_data_as_gbd_2021_data,
+        data_keys.MEASLES.CSMR: load_standard_gbd_2019_data_as_gbd_2021_data,
         data_keys.MEASLES.RESTRICTIONS: load_metadata,
         data_keys.LRI.DURATION: load_duration,
         data_keys.LRI.PREVALENCE: load_prevalence_from_incidence_and_duration,
-        data_keys.LRI.INCIDENCE_RATE: load_standard_data,
+        data_keys.LRI.INCIDENCE_RATE: load_standard_gbd_2019_data_as_gbd_2021_data,
         data_keys.LRI.REMISSION_RATE: load_remission_rate_from_duration,
-        data_keys.LRI.DISABILITY_WEIGHT: load_standard_data,
+        data_keys.LRI.DISABILITY_WEIGHT: load_standard_gbd_2019_data_as_gbd_2021_data,
         data_keys.LRI.EMR: load_emr_from_csmr_and_prevalence,
         data_keys.LRI.CSMR: load_lri_csmr,
         data_keys.LRI.RESTRICTIONS: load_metadata,
@@ -102,7 +102,7 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.STUNTING.ALT_DISTRIBUTION: load_metadata,
         data_keys.STUNTING.CATEGORIES: load_metadata,
         data_keys.STUNTING.EXPOSURE: load_cgf_exposure,
-        data_keys.STUNTING.RELATIVE_RISK: load_standard_data,
+        data_keys.STUNTING.RELATIVE_RISK: load_standard_gbd_2019_data_as_gbd_2021_data,
         data_keys.STUNTING.PAF: load_categorical_paf,
         data_keys.MODERATE_PEM.DISABILITY_WEIGHT: load_pem_disability_weight,
         data_keys.MODERATE_PEM.EMR: load_pem_emr,
@@ -218,6 +218,9 @@ def load_standard_data(key: str, location: str) -> pd.DataFrame:
     entity = utilities.get_entity(key)
     return interface.get_measure(entity, key.measure, location).droplevel("location")
 
+def load_standard_gbd_2019_data_as_gbd_2021_data(key: str, location: str) -> pd.DataFrame:
+    gbd_2019_data = load_standard_data(key, location)
+    return utilities.reshape_gbd_2019_data_as_gbd_2021_data(gbd_2019_data)
 
 def load_metadata(key: str, location: str):
     key = EntityKey(key)

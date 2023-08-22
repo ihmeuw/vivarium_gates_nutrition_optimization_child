@@ -29,7 +29,9 @@ from vivarium_inputs.validation.raw import check_metadata
 from vivarium_gates_nutrition_optimization_child.constants import data_keys
 from vivarium_gates_nutrition_optimization_child.constants.metadata import (
     AGE_GROUP,
+    ARTIFACT_INDEX_COLUMNS,
     GBD_2019_ROUND_ID,
+    GBD_2020_ROUND_ID,
     NEONATAL_END_AGE,
 )
 
@@ -481,12 +483,12 @@ def load_lbwsg_exposure(location: str):
     data = data[data["year_id"] == 2019]
     return data
 
-def get_gbd_2020_entity(key: str) -> ModelableEntity:
+def get_gbd_2021_entity(key: str) -> ModelableEntity:
     # from load_standard_data
     entity = get_entity(key)
 
     if isinstance(entity, RiskFactor) or isinstance(entity, Cause):
-        # Set risk factor age restrictions for GBD 2020
+        # Set risk factor age restrictions for GBD 2021
         if 'yll_age_group_id_start' in entity.restrictions:
             entity.restrictions.yll_age_group_id_start = min(AGE_GROUP.GBD_2021)
         if 'yld_age_group_id_start' in entity.restrictions:
@@ -497,3 +499,70 @@ def get_gbd_2020_entity(key: str) -> ModelableEntity:
             entity.restrictions.yld_age_group_id_end = max(AGE_GROUP.GBD_2021)
 
     return entity
+
+def reshape_gbd_2019_data_as_gbd_2021_data(gbd_2019_data: pd.DataFrame) -> pd.DataFrame:
+    # Get target output index
+    full_gbd_2021_idx = get_gbd_2021_demographic_dimensions().index
+
+    # Get target index subset to GBD 2019 estimation years
+    subset_gbd_2019_years_idx = (
+        full_gbd_2021_idx[full_gbd_2021_idx.get_level_values('year_start') < 2020]
+        .droplevel('age_end')
+        .reorder_levels(['year_start', 'year_end', 'sex', 'age_start'])
+    )
+
+    # Reindex data with GBD 2020 age bins across GBD 2019 estimation years and fill forward NAs
+    gbd_2019_years_gbd_2021_age_bins_data = (
+        gbd_2019_data
+        .droplevel('age_end')
+        .reorder_levels(['year_start', 'year_end', 'sex', 'age_start'])
+        .reindex(index=subset_gbd_2019_years_idx)
+        .sort_index()
+        .ffill()
+    )
+
+    # Get full target index excluding year end and age end columns
+    full_gbd_2021_idx_without_end_columns = (
+        full_gbd_2021_idx
+        .droplevel(['year_end', 'age_end'])
+        .reorder_levels(['sex', 'age_start', 'year_start'])
+    )
+
+    # Reindex data with GBD 2020 estimation years and fill forward NAs
+    full_data_without_end_columns = (
+        gbd_2019_years_gbd_2021_age_bins_data
+        .droplevel('year_end')
+        .reorder_levels(['sex', 'age_start', 'year_start'])
+        .reindex(index=full_gbd_2021_idx_without_end_columns)
+        .sort_index()
+        .ffill()
+        .reset_index()
+    )
+
+    # Repopulate year_end and age_end columns and set index
+    full_data = apply_artifact_index(full_data_without_end_columns)
+    return full_data
+
+def get_gbd_2021_demographic_dimensions() -> pd.DataFrame:
+    estimation_years = get_gbd_estimation_years(GBD_2020_ROUND_ID)
+    year_starts = range(estimation_years[0], estimation_years[-1] + 1)
+    age_bins = get_gbd_age_bins(AGE_GROUP.GBD_2021)
+
+    unique_index_data = (pd.DataFrame(product(['Female', 'Male'], age_bins.age_start, year_starts))
+                         .rename(columns={0: 'sex', 1: 'age_start', 2: 'year_start'}))
+
+    index_data = apply_artifact_index(unique_index_data)
+    return index_data.sort_index()
+
+def apply_artifact_index(data: pd.DataFrame) -> pd.DataFrame:
+    """Sets data frame index to match artifact format.
+     Populates year_end and age_end columns if they are missing"""
+
+    if 'year_end' not in data.columns:
+        data['year_end'] = data['year_start'] + 1
+    if 'age_end' not in data.columns:
+        age_bins = get_gbd_age_bins(AGE_GROUP.GBD_2021)
+        data['age_end'] = data['age_start'].apply(lambda x: {start: end for start, end
+                                                             in zip(age_bins.age_start, age_bins.age_end)}[x])
+    data = data.set_index(ARTIFACT_INDEX_COLUMNS)
+    return data
