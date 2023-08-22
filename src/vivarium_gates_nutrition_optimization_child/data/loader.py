@@ -199,8 +199,8 @@ def filter_population(unfiltered: pd.DataFrame) -> pd.DataFrame:
 
 
 def load_age_bins(key: str, location: str) -> pd.DataFrame:
-    all_age_bins = utilities.get_gbd_age_bins(metadata.AGE_GROUP.GBD_2021).set_index(['age_start', 'age_end', 'age_group_name']).sort_index()
-    return all_age_bins[all_age_bins.age_start < 5]
+    all_age_bins = utilities.get_gbd_age_bins(metadata.AGE_GROUP.GBD_2021)
+    return all_age_bins[all_age_bins.age_start < 5].set_index(['age_start', 'age_end', 'age_group_name']).sort_index()
 
 
 def load_demographic_dimensions(key: str, location: str) -> pd.DataFrame:
