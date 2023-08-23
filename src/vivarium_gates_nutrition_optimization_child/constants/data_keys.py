@@ -410,8 +410,6 @@ class __MMN_Supplementation(NamedTuple):
     EXCESS_GA_SHIFT_SUBPOP_1: TargetString = TargetString("risk_factor.multiple_micronutrient_supplementation.excess_gestational_age_shift_subpop_1")
     EXCESS_GA_SHIFT_SUBPOP_2: TargetString = TargetString("risk_factor.multiple_micronutrient_supplementation.excess_gestational_age_shift_subpop_2")
     RISK_SPECIFIC_SHIFT: TargetString = TargetString("risk_factor.multiple_micronutrient_supplementation.risk_specific_shift")
-    RISK_SPECIFIC_GA_SHIFT_SUBPOP_1: TargetString = TargetString("risk_factor.multiple_micronutrient_supplementation.risk_specific_gestational_age_shift_subpop_1")
-    RISK_SPECIFIC_GA_SHIFT_SUBPOP_2: TargetString = TargetString("risk_factor.multiple_micronutrient_supplementation.risk_specific_gestational_age_shift_subpop_2")
 
     # Useful keys not for the artifact - distinguished by not using the colon type declaration
     CAT1 = "cat1"

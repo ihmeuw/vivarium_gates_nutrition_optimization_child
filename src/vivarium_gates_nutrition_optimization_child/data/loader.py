@@ -143,8 +143,6 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_1: load_excess_gestational_age_shift,
         data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_2: load_excess_gestational_age_shift,
         data_keys.MMN_SUPPLEMENTATION.RISK_SPECIFIC_SHIFT: load_risk_specific_shift,
-        data_keys.MMN_SUPPLEMENTATION.RISK_SPECIFIC_GA_SHIFT_SUBPOP_1: load_risk_specific_gestational_age_shift_from_mms,
-        data_keys.MMN_SUPPLEMENTATION.RISK_SPECIFIC_GA_SHIFT_SUBPOP_2: load_risk_specific_gestational_age_shift_from_mms,
         data_keys.BEP_SUPPLEMENTATION.DISTRIBUTION: load_intervention_distribution,
         data_keys.BEP_SUPPLEMENTATION.CATEGORIES: load_intervention_categories,
         data_keys.BEP_SUPPLEMENTATION.EXPOSURE: load_dichotomous_treatment_exposure,
@@ -758,27 +756,6 @@ def load_risk_specific_shift(key: str, location: str) -> pd.DataFrame:
     # p_exposed * exposed_shift
     exposure = get_data(key_group.EXPOSURE, location)
     excess_shift = get_data(key_group.EXCESS_SHIFT, location)
-
-    risk_specific_shift = (
-        (exposure * excess_shift)
-        .groupby(metadata.ARTIFACT_INDEX_COLUMNS + ["affected_entity", "affected_measure"])
-        .sum()
-    )
-    return risk_specific_shift
-
-
-def load_risk_specific_gestational_age_shift_from_mms(key: str, location: str) -> pd.DataFrame:
-    try:
-        excess_shift: data_keys.__AdditiveRisk = {
-            data_keys.MMN_SUPPLEMENTATION.RISK_SPECIFIC_GA_SHIFT_SUBPOP_1: data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_1,
-            data_keys.MMN_SUPPLEMENTATION.RISK_SPECIFIC_GA_SHIFT_SUBPOP_2: data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_2,
-        }[key]
-    except KeyError:
-        raise ValueError(f"Unrecognized key {key}")
-
-    # p_exposed * exposed_shift
-    exposure = get_data(data_keys.MMN_SUPPLEMENTATION.EXPOSURE, location)
-    excess_shift = get_data(excess_shift, location)
 
     risk_specific_shift = (
         (exposure * excess_shift)
