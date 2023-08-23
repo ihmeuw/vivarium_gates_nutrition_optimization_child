@@ -16,15 +16,6 @@ from vivarium_gates_nutrition_optimization_child.constants.data_keys import WAST
 from vivarium_gates_nutrition_optimization_child.utilities import get_random_variable
 
 
-class RiskState(DiseaseState):
-
-    def load_excess_mortality_rate_data(self, builder):
-        if 'excess_mortality_rate' in self._get_data_functions:
-            return self._get_data_functions['excess_mortality_rate'](self.cause, builder)
-        else:
-            return builder.data.load(f'{self.cause_type}.{self.cause}.excess_mortality_rate')
-
-
 class RiskModel(DiseaseModel):
 
     configuration_defaults = {
@@ -41,7 +32,6 @@ class RiskModel(DiseaseModel):
     def __init__(self, risk, **kwargs):
         super().__init__(risk, **kwargs)
         self.configuration_defaults = self._get_configuration_defaults()
-        self.birth_weight_effect_pipeline_name = 'birth_weight_shift_on_mild_wasting.effect_size'
 
     def _get_configuration_defaults(self) -> Dict[str, Dict]:
         return {
@@ -64,40 +54,7 @@ class RiskModel(DiseaseModel):
 
     # noinspection PyAttributeOutsideInit
     def setup(self, builder: Builder):
-        self.configuration_age_start = builder.configuration.population.age_start
-        self.configuration_age_end = builder.configuration.population.age_end
-
-        cause_specific_mortality_rate = self.load_cause_specific_mortality_rate_data(builder)
-        self.cause_specific_mortality_rate = builder.lookup.build_table(
-            cause_specific_mortality_rate,
-            key_columns=['sex'],
-            parameter_columns=['age', 'year'],
-        )
-
-        self.birth_weight_effect = builder.value.get_value(self.birth_weight_effect_pipeline_name)
-
-        builder.value.register_value_modifier(
-            'cause_specific_mortality_rate',
-            self.adjust_cause_specific_mortality_rate,
-            requires_columns=['age', 'sex']
-        )
-
-        self.population_view = builder.population.get_view(
-            ['age', 'sex', self.state_column, f'initial_{self.state_column}_propensity']
-        )
-
-        builder.population.initializes_simulants(
-            self.on_initialize_simulants,
-            creates_columns=[self.state_column, f'initial_{self.state_column}_propensity'],
-            requires_columns=['age', 'sex'],
-            requires_values=[self.birth_weight_effect_pipeline_name],
-            requires_streams=[f'{self.state_column}_initial_states'],
-        )
-
-        self.randomness = builder.randomness.get_stream(f'{self.state_column}_initial_states')
-
-        builder.event.register_listener('time_step', self.on_time_step)
-        builder.event.register_listener('time_step__cleanup', self.on_time_step_cleanup)
+        super().setup(builder)
 
         self.exposure = builder.value.register_value_producer(
             f'{self.state_column}.exposure',
@@ -131,40 +88,11 @@ class RiskModel(DiseaseModel):
         )
         return wasting_state.apply(models.get_risk_category)
 
-    ##################
-    # Helper methods #
-    ##################
-
-    def get_state_weights(self, pop_index, prevalence_type):
-        states = [
-            s for s in self.states
-            if hasattr(s, f'{prevalence_type}') and getattr(s, f'{prevalence_type}') is not None
-        ]
-
-        if not states:
-            return states, None
-
-        state_names = [s.state_id for s in states] + [self.initial_state]
-
-        weights = (
-            pd.concat([getattr(s, f'{prevalence_type}')(pop_index) for s in states], axis=1)
-            .reset_index(drop=True)
-        )
-
-        cat3_increase = self.birth_weight_effect(pop_index).reset_index(drop=True)
-        weights = apply_birth_weight_effect(weights, cat3_increase)
-        weights[data_keys.WASTING.CAT4] = 1 - weights.sum(axis=1)
-
-        weights = np.array(weights)
-        weights_bins = np.cumsum(weights, axis=1)
-
-        return state_names, weights_bins
-
 
 # noinspection PyPep8Naming
 def ChildWasting() -> RiskModel:
     tmrel = SusceptibleState(models.WASTING.MODEL_NAME)
-    mild = RiskState(
+    mild = DiseaseState(
         models.WASTING.MILD_STATE_NAME,
         cause_type='sequela',
         get_data_functions={
@@ -174,7 +102,7 @@ def ChildWasting() -> RiskModel:
             'birth_prevalence': load_mild_wasting_birth_prevalence,
         }
     )
-    moderate = RiskState(
+    moderate = DiseaseState(
         models.WASTING.MODERATE_STATE_NAME,
         cause_type='sequela',
         get_data_functions={
@@ -183,7 +111,7 @@ def ChildWasting() -> RiskModel:
             'birth_prevalence': load_mam_birth_prevalence,
         }
     )
-    severe = RiskState(
+    severe = DiseaseState(
         models.WASTING.SEVERE_STATE_NAME,
         cause_type='sequela',
         get_data_functions={
@@ -782,17 +710,3 @@ def _reset_underage_transitions(transition_rates: pd.Series) -> None:
     transition_rates[
         transition_rates.index.get_level_values('age_end') <= data_values.WASTING.START_AGE
     ] = 0.0
-
-def apply_birth_weight_effect(target: pd.DataFrame, cat3_increase: pd.Series) -> pd.DataFrame:
-    sam_and_mam = target[data_keys.STUNTING.CAT1] + target[data_keys.STUNTING.CAT2]
-    apply_effect = cat3_increase < sam_and_mam
-    target.loc[apply_effect, data_keys.STUNTING.CAT3] = (
-            target[data_keys.STUNTING.CAT3] + cat3_increase
-    )
-    target.loc[apply_effect, data_keys.STUNTING.CAT2] = (
-            target[data_keys.STUNTING.CAT2] * (1 - cat3_increase / sam_and_mam)
-    )
-    target.loc[apply_effect, data_keys.STUNTING.CAT1] = (
-            target[data_keys.STUNTING.CAT1] * (1 - cat3_increase / sam_and_mam)
-    )
-    return target
