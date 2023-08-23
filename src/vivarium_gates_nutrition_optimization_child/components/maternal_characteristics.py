@@ -303,7 +303,7 @@ class MMSEffectOnGestationalAge(AdditiveRiskEffect):
         return excess_shift_data
 
     def build_excess_shift_lookup_table(self, builder: Builder, excess_shift_data: pd.DataFrame) -> LookupTable:
-        '''Reads excess shift data from artifact and returns LookupTable with that data.'''
+        '''Reads excess shift data that was read from artifact and returns LookupTable with that data.'''
         excess_shift_data = rebin_relative_risk_data(builder, self.risk, excess_shift_data)
         excess_shift_data = pivot_categorical(excess_shift_data)
         return builder.lookup.build_table(
