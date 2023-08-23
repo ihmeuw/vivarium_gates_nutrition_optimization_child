@@ -720,9 +720,14 @@ def load_excess_gestational_age_shift(key: str, location: str) -> pd.DataFrame:
         raise ValueError(f"Unrecognized key {key}")
 
     index = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index
-    all_shift_data = [pd.read_csv(data_dir / f"{location.lower()}.csv") for data_dir in data_dirs]
-    shifts = [pd.Series(shift_data["value"].values, index=shift_data["draw"]) for shift_data in all_shift_data]
-    summed_shifts = sum(shifts) # only sum more than one Series for subpop 2
+    all_shift_data = [
+        pd.read_csv(data_dir / f"{location.lower()}.csv") for data_dir in data_dirs
+    ]
+    shifts = [
+        pd.Series(shift_data["value"].values, index=shift_data["draw"])
+        for shift_data in all_shift_data
+    ]
+    summed_shifts = sum(shifts)  # only sum more than one Series for subpop 2
 
     excess_shift = reshape_shift_data(
         summed_shifts, index, data_keys.LBWSG.GESTATIONAL_AGE_EXPOSURE
