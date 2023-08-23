@@ -695,37 +695,46 @@ def load_dichotomous_exposure(
 def load_dichotomous_excess_shift(
     location: str, distribution_data: Tuple, is_risk: bool
 ) -> pd.DataFrame:
-    '''Load excess birth weight exposure shifts using distribution data.'''
+    """Load excess birth weight exposure shifts using distribution data."""
     index = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index
     shift = get_random_variable_draws(metadata.ARTIFACT_COLUMNS, *distribution_data)
     excess_shift = transform_shift_data(shift, index, data_keys.LBWSG.BIRTH_WEIGHT_EXPOSURE)
     return excess_shift
 
 
-def load_excess_gestational_age_shift(
-    key: str, location: str
-) -> pd.DataFrame:
-    '''Load excess gestational age shift data from IFA and MMS from file.'''
+def load_excess_gestational_age_shift(key: str, location: str) -> pd.DataFrame:
+    """Load excess gestational age shift data from IFA and MMS from file."""
     try:
         data_dirs = {
             data_keys.IFA_SUPPLEMENTATION.EXCESS_SHIFT: [paths.IFA_GA_SHIFT_DATA_DIR],
-            data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_1: [paths.MMS_GA_SHIFT_1_DATA_DIR],
-            data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_2: [paths.MMS_GA_SHIFT_1_DATA_DIR, paths.MMS_GA_SHIFT_2_DATA_DIR],
+            data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_1: [
+                paths.MMS_GA_SHIFT_1_DATA_DIR
+            ],
+            data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_2: [
+                paths.MMS_GA_SHIFT_1_DATA_DIR,
+                paths.MMS_GA_SHIFT_2_DATA_DIR,
+            ],
         }[key]
     except KeyError:
         raise ValueError(f"Unrecognized key {key}")
 
     index = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index
     shifts = [pd.read_csv(data_dir / f"{location.lower()}.csv") for data_dir in data_dirs]
-    shift_data = sum([pd.Series(shift['value'].values, index=shift['draw']) for shift in shifts])
+    shift_data = sum(
+        [pd.Series(shift["value"].values, index=shift["draw"]) for shift in shifts]
+    )
 
-    excess_shift = transform_shift_data(shift_data, index, data_keys.LBWSG.GESTATIONAL_AGE_EXPOSURE)
+    excess_shift = transform_shift_data(
+        shift_data, index, data_keys.LBWSG.GESTATIONAL_AGE_EXPOSURE
+    )
     return excess_shift
 
 
-def transform_shift_data(shift: pd.Series, index: pd.Index, target: TargetString) -> pd.DataFrame:
-    '''Read in draw-level shift values and return a DataFrame where the data are the shift values,
-    and the index is the passed index appended with affected entity/measure and parameter data.'''
+def transform_shift_data(
+    shift: pd.Series, index: pd.Index, target: TargetString
+) -> pd.DataFrame:
+    """Read in draw-level shift values and return a DataFrame where the data are the shift values,
+    and the index is the passed index appended with affected entity/measure and parameter data."""
     exposed = pd.DataFrame([shift], index=index)
     exposed["parameter"] = "cat2"
     unexposed = pd.DataFrame([pd.Series(0.0, index=metadata.ARTIFACT_COLUMNS)], index=index)
