@@ -17,7 +17,7 @@ from vivarium_public_health.risks.data_transformations import (
     rebin_relative_risk_data,
 )
 
-from vivarium_gates_nutrition_optimization_child.constants import data_values, paths
+from vivarium_gates_nutrition_optimization_child.constants import data_keys, data_values, paths
 from vivarium_gates_nutrition_optimization_child.constants.data_keys import (
     BEP_SUPPLEMENTATION,
     IFA_SUPPLEMENTATION,
@@ -291,29 +291,17 @@ class MMSEffectOnGestationalAge(AdditiveRiskEffect):
     def setup(self, builder: Builder) -> None:
         super().setup(builder)
         self.population_view = self._get_population_view(builder)
-        self.ifa_on_gestational_age = builder.components.get_component('risk_effect.risk_factor.iron_folic_acid_supplementation.risk_factor.gestational_age.birth_exposure')
-        self.mms_excess_shift = self._get_mms_excess_shift_data(builder)
-        self.mms_risk_specific_shift = self._get_mms_risk_specific_shift_data(builder)
+        self.ifa_on_gestational_age = builder.components.get_component(f'risk_effect.risk_factor.iron_folic_acid_supplementation.{self.target}')
+        self.mms_subpop_1_excess_shift = self._get_mms_excess_shift_data(builder, data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_1)
+        self.mms_subpop_2_excess_shift = self._get_mms_excess_shift_data(builder, data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_2)
 
     def _get_population_view(self, builder: Builder) -> PopulationView:
         return builder.population.get_view([self.raw_gestational_age_exposure_column_name])
 
-    # write this and risk specific shift data functions as partials
-    def _get_mms_excess_shift_data(self, builder: Builder) -> Dict[str, LookupTable]:
-        mms_shift1_data = builder.data.load(
-            "risk_factor.multiple_micronutrient_supplementation.excess_gestational_age_shift_subpop_1",
-            affected_entity=self.target.name,
-            affected_measure=self.target.measure,
-        )
-        mms_shift1_data = self.build_excess_shift_lookup_table(builder, mms_shift1_data)
-        mms_shift2_data = builder.data.load(
-            "risk_factor.multiple_micronutrient_supplementation.excess_gestational_age_shift_subpop_2",
-            affected_entity=self.target.name,
-            affected_measure=self.target.measure,
-        )
-        mms_shift2_data = self.build_excess_shift_lookup_table(builder, mms_shift2_data)
-        return {'shift1': mms_shift1_data,
-                'shift2': mms_shift2_data}
+    def _get_mms_excess_shift_data(self, builder: Builder, key: str) -> Dict[str, LookupTable]:
+        excess_shift_data = builder.data.load(key, affected_entity=self.target.name, affected_measure=self.target.measure)
+        excess_shift_data = self.build_excess_shift_lookup_table(builder, excess_shift_data)
+        return excess_shift_data
 
     def build_excess_shift_lookup_table(self, builder: Builder, excess_shift_data: pd.DataFrame) -> LookupTable:
         '''Reads excess shift data from artifact and returns LookupTable with that data.'''
@@ -322,27 +310,6 @@ class MMSEffectOnGestationalAge(AdditiveRiskEffect):
         return builder.lookup.build_table(
             excess_shift_data, key_columns=["sex"], parameter_columns=["age", "year"]
         )
-
-    def _get_mms_risk_specific_shift_data(self, builder: Builder) -> Dict[str, LookupTable]:
-        mms_shift1_data = builder.data.load(
-            "risk_factor.multiple_micronutrient_supplementation.risk_specific_gestational_age_shift_subpop_1",
-            affected_entity=self.target.name,
-            affected_measure=self.target.measure,
-        )
-        mms_shift1_data = builder.lookup.build_table(
-            mms_shift1_data, key_columns=["sex"], parameter_columns=["age", "year"]
-        )
-        mms_shift2_data = builder.data.load(
-            "risk_factor.multiple_micronutrient_supplementation.risk_specific_gestational_age_shift_subpop_2",
-            affected_entity=self.target.name,
-            affected_measure=self.target.measure,
-        )
-        mms_shift2_data = builder.lookup.build_table(
-            mms_shift2_data, key_columns=["sex"], parameter_columns=["age", "year"]
-        )
-        return {'shift1': mms_shift1_data,
-                'shift2': mms_shift2_data}
-
 
     ##################################
     # Pipeline sources and modifiers #
@@ -358,7 +325,6 @@ class MMSEffectOnGestationalAge(AdditiveRiskEffect):
         return builder.value.register_value_producer(
             self.risk_specific_shift_pipeline_name,
             source=self.get_risk_specific_shift,
-            requires_columns=[self.raw_gestational_age_exposure_column_name],
         )
 
     # write as partial functions
@@ -366,19 +332,20 @@ class MMSEffectOnGestationalAge(AdditiveRiskEffect):
         pop = self.population_view.get(index)
         raw_gestational_age = pop[self.raw_gestational_age_exposure_column_name]
         ifa_shifted_gestational_age = raw_gestational_age + self.ifa_on_gestational_age.effect(index)
-        is_subpop_1 = ifa_shifted_gestational_age < (32 - self.mms_excess_shift['shift2'](index)['cat2'])
-        is_subpop_2 = ifa_shifted_gestational_age >= (32 - self.mms_excess_shift['shift2'](index)['cat2'])
+        # excess shift is (mms_shift_1 + mms_shift_2) for subpop_2 and mms_shift_1 for subpop_1
+        mms_shift_2 = self.mms_subpop_2_excess_shift(index)['cat2'] - self.mms_subpop_1_excess_shift(index)['cat2']
+        is_subpop_1 = ifa_shifted_gestational_age < (32 - mms_shift_2)
+        is_subpop_2 = ifa_shifted_gestational_age >= (32 - mms_shift_2)
 
         subpop_1_index = pop[is_subpop_1].index
         subpop_2_index = pop[is_subpop_2].index
 
-        excess_shift = pd.concat([self.mms_excess_shift['shift1'](subpop_1_index), self.mms_excess_shift['shift2'](subpop_2_index)])
+        excess_shift = pd.concat([self.mms_subpop_1_excess_shift(subpop_1_index), self.mms_subpop_2_excess_shift(subpop_2_index)])
 
         return excess_shift
 
     def get_risk_specific_shift(self, index: pd.Index) -> pd.Series:
-        # MMS has no baseline coverage
-        # TODO: fill out comment
+        # MMS doesn't exist in baseline so we don't need to adjust gestational age to get an "MMS-less" population
         return pd.Series(0, index=index)
 
 
