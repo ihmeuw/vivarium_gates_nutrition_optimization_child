@@ -278,7 +278,7 @@ class MMSEffectOnGestationalAge(AdditiveRiskEffect):
     Unique component because the excess shift value depends on IFA-shifted gestational age.'''
     def __init__(self):
         super().__init__('risk_factor.multiple_micronutrient_supplementation', 'risk_factor.gestational_age.birth_exposure')
-        self.effect_pipeline_name = f"{self.risk.name}_on_gestational_age.effect"
+        self.excess_shift_pipeline_name = f'{self.risk.name}_on_{self.target.name}.excess_shift'
         self.risk_specific_shift_pipeline_name = f'{self.risk.name}_on_{self.target.name}.risk_specific_shift'
         self.raw_gestational_age_exposure_column_name = 'raw_gestational_age_exposure'
 
