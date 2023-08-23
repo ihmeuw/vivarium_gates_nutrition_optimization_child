@@ -326,7 +326,6 @@ class MMSEffectOnGestationalAge(AdditiveRiskEffect):
             source=self.get_risk_specific_shift,
         )
 
-    # write as partial functions
     def get_excess_shift(self, index: pd.Index) -> pd.Series:
         pop = self.population_view.get(index)
         raw_gestational_age = pop[self.raw_gestational_age_exposure_column_name]
