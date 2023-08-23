@@ -619,6 +619,7 @@ def load_mam_treatment_rr(key: str, location: str) -> pd.DataFrame:
     rr.index = rr.index.reorder_levels([col for col in rr.index.names if col != 'parameter'] + ['parameter'])
     rr.sort_index()
     return rr
+
 def load_lbwsg_exposure(key: str, location: str) -> pd.DataFrame:
     if key != data_keys.LBWSG.EXPOSURE:
         raise ValueError(f"Unrecognized key {key}")
