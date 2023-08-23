@@ -20,3 +20,4 @@ from vivarium_gates_nutrition_optimization_child.components.observers import (
 from vivarium_gates_nutrition_optimization_child.components.population import (
     PopulationLineList,
 )
+from vivarium_gates_nutrition_optimization_child.components.wasting import DynamicChildWasting, WastingTreatment

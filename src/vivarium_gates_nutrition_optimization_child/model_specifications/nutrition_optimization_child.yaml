@@ -6,7 +6,6 @@ components:
             - SIS_fixed_duration('measles', '10.0')
             - SIS('lower_respiratory_infections')
         risks:
-            - Risk('risk_factor.child_wasting')
             - RiskEffect('risk_factor.child_wasting', 'cause.diarrheal_diseases.incidence_rate')
             - RiskEffect('risk_factor.child_wasting', 'cause.measles.incidence_rate')
             - RiskEffect('risk_factor.child_wasting', 'cause.lower_respiratory_infections.incidence_rate')
@@ -35,7 +34,7 @@ components:
             - LBWSGLineList()
             - BirthObserver()
             - DisabilityObserver()
-            - ChildWasting()
+            - DynamicChildWasting()
             - WastingTreatment('risk_factor.severe_acute_malnutrition_treatment')
             - WastingTreatment('risk_factor.moderate_acute_malnutrition_treatment')
             - MaternalCharacteristics()
@@ -54,7 +53,7 @@ configuration:
     input_data:
         input_draw_number: 0
         # Artifact can also be defined at runtime using -i flag
-        artifact_path: '/mnt/team/simulation_science/costeffectiveness/artifacts/vivarium_gates_nutrition_optimization_child/ethiopia.hdf'
+        artifact_path: '/mnt/team/simulation_science/costeffectiveness/artifacts/vivarium_gates_nutrition_optimization_child/model2.0/ethiopia.hdf'
         # TODO: Update FertilityLineList once this data contains the correct birth date
         fertility_input_data_path: '/mnt/team/simulation_science/costeffectiveness/results/vivarium_gates_nutrition_optimization/model7.0/ethiopia/2023_08_15_13_05_58/child_data'
     interpolation:

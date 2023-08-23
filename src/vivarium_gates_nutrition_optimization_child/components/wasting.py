@@ -4,6 +4,8 @@ import numpy as np
 import pandas as pd
 from vivarium.framework.engine import Builder
 from vivarium.framework.lookup import LookupTable
+from vivarium.framework.population import PopulationView
+from vivarium.framework.event import Event
 from vivarium_public_health.risks import Risk
 from vivarium_public_health.risks.data_transformations import (
     get_exposure_post_processor
@@ -100,6 +102,50 @@ class RiskModel(DiseaseModel):
         )
         return wasting_state.apply(models.get_risk_category)
 
+class WastingTreatment(Risk):
+
+    def __init__(self, treatment_type: str):
+        super().__init__(treatment_type)
+
+        self.previous_wasting_column = f'previous_{data_keys.WASTING.name}'
+        self.wasting_column = data_keys.WASTING.name
+
+        self.treated_state = self._get_treated_state()
+
+    ##########################
+    # Initialization methods #
+    ##########################
+
+    def _get_treated_state(self) -> str:
+        return self.risk.name.split('_treatment')[0]
+
+    #################
+    # Setup methods #
+    #################
+
+    def setup(self, builder: Builder):
+        super().setup(builder)
+        self._register_on_time_step_prepare_listener(builder)
+
+    def _get_population_view(self, builder: Builder) -> PopulationView:
+        return builder.population.get_view([self.propensity_column_name,
+                                            self.previous_wasting_column,
+                                            self.wasting_column])
+
+    def _register_on_time_step_prepare_listener(self, builder: Builder) -> None:
+        builder.event.register_listener('time_step__cleanup', self.on_time_step_cleanup)
+
+    ########################
+    # Event-driven methods #
+    ########################
+
+    def on_time_step_cleanup(self, event: Event):
+        pop = self.population_view.get(event.index)
+        propensity = pop[self.propensity_column_name]
+        remitted_mask = ((pop[self.previous_wasting_column] == self.treated_state)
+                         & pop[self.wasting_column] != self.treated_state)
+        propensity.loc[remitted_mask] = self.randomness.get_draw(remitted_mask.index)
+        self.population_view.update(propensity)
 
 # noinspection PyPep8Naming
 def DynamicChildWasting() -> RiskModel:
