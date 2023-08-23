@@ -17,7 +17,11 @@ from vivarium_public_health.risks.data_transformations import (
     rebin_relative_risk_data,
 )
 
-from vivarium_gates_nutrition_optimization_child.constants import data_keys, data_values, paths
+from vivarium_gates_nutrition_optimization_child.constants import (
+    data_keys,
+    data_values,
+    paths,
+)
 from vivarium_gates_nutrition_optimization_child.constants.data_keys import (
     BEP_SUPPLEMENTATION,
     IFA_SUPPLEMENTATION,
@@ -274,13 +278,21 @@ class AdditiveRiskEffect(RiskEffect):
 
 
 class MMSEffectOnGestationalAge(AdditiveRiskEffect):
-    '''Model effect of multiple micronutrient supplementation on gestational age.
-    Unique component because the excess shift value depends on IFA-shifted gestational age.'''
+    """Model effect of multiple micronutrient supplementation on gestational age.
+    Unique component because the excess shift value depends on IFA-shifted gestational age."""
+
     def __init__(self):
-        super().__init__('risk_factor.multiple_micronutrient_supplementation', 'risk_factor.gestational_age.birth_exposure')
-        self.excess_shift_pipeline_name = f'{self.risk.name}_on_{self.target.name}.excess_shift'
-        self.risk_specific_shift_pipeline_name = f'{self.risk.name}_on_{self.target.name}.risk_specific_shift'
-        self.raw_gestational_age_exposure_column_name = 'raw_gestational_age_exposure'
+        super().__init__(
+            "risk_factor.multiple_micronutrient_supplementation",
+            "risk_factor.gestational_age.birth_exposure",
+        )
+        self.excess_shift_pipeline_name = (
+            f"{self.risk.name}_on_{self.target.name}.excess_shift"
+        )
+        self.risk_specific_shift_pipeline_name = (
+            f"{self.risk.name}_on_{self.target.name}.risk_specific_shift"
+        )
+        self.raw_gestational_age_exposure_column_name = "raw_gestational_age_exposure"
 
     #################
     # Setup methods #
@@ -290,20 +302,32 @@ class MMSEffectOnGestationalAge(AdditiveRiskEffect):
     def setup(self, builder: Builder) -> None:
         super().setup(builder)
         self.population_view = self._get_population_view(builder)
-        self.ifa_on_gestational_age = builder.components.get_component(f'risk_effect.risk_factor.iron_folic_acid_supplementation.{self.target}')
-        self.mms_subpop_1_excess_shift = self._get_mms_excess_shift_data(builder, data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_1)
-        self.mms_subpop_2_excess_shift = self._get_mms_excess_shift_data(builder, data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_2)
+        self.ifa_on_gestational_age = builder.components.get_component(
+            f"risk_effect.risk_factor.iron_folic_acid_supplementation.{self.target}"
+        )
+        self.mms_subpop_1_excess_shift = self._get_mms_excess_shift_data(
+            builder, data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_1
+        )
+        self.mms_subpop_2_excess_shift = self._get_mms_excess_shift_data(
+            builder, data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_2
+        )
 
     def _get_population_view(self, builder: Builder) -> PopulationView:
         return builder.population.get_view([self.raw_gestational_age_exposure_column_name])
 
-    def _get_mms_excess_shift_data(self, builder: Builder, key: str) -> Dict[str, LookupTable]:
-        excess_shift_data = builder.data.load(key, affected_entity=self.target.name, affected_measure=self.target.measure)
+    def _get_mms_excess_shift_data(
+        self, builder: Builder, key: str
+    ) -> Dict[str, LookupTable]:
+        excess_shift_data = builder.data.load(
+            key, affected_entity=self.target.name, affected_measure=self.target.measure
+        )
         excess_shift_data = self.build_excess_shift_lookup_table(builder, excess_shift_data)
         return excess_shift_data
 
-    def build_excess_shift_lookup_table(self, builder: Builder, excess_shift_data: pd.DataFrame) -> LookupTable:
-        '''Reads excess shift data that was read from artifact and returns LookupTable with that data.'''
+    def build_excess_shift_lookup_table(
+        self, builder: Builder, excess_shift_data: pd.DataFrame
+    ) -> LookupTable:
+        """Reads excess shift data that was read from artifact and returns LookupTable with that data."""
         excess_shift_data = rebin_relative_risk_data(builder, self.risk, excess_shift_data)
         excess_shift_data = pivot_categorical(excess_shift_data)
         return builder.lookup.build_table(
@@ -329,16 +353,26 @@ class MMSEffectOnGestationalAge(AdditiveRiskEffect):
     def get_excess_shift(self, index: pd.Index) -> pd.Series:
         pop = self.population_view.get(index)
         raw_gestational_age = pop[self.raw_gestational_age_exposure_column_name]
-        ifa_shifted_gestational_age = raw_gestational_age + self.ifa_on_gestational_age.effect(index)
+        ifa_shifted_gestational_age = (
+            raw_gestational_age + self.ifa_on_gestational_age.effect(index)
+        )
         # excess shift is (mms_shift_1 + mms_shift_2) for subpop_2 and mms_shift_1 for subpop_1
-        mms_shift_2 = self.mms_subpop_2_excess_shift(index)['cat2'] - self.mms_subpop_1_excess_shift(index)['cat2']
+        mms_shift_2 = (
+            self.mms_subpop_2_excess_shift(index)["cat2"]
+            - self.mms_subpop_1_excess_shift(index)["cat2"]
+        )
         is_subpop_1 = ifa_shifted_gestational_age < (32 - mms_shift_2)
         is_subpop_2 = ifa_shifted_gestational_age >= (32 - mms_shift_2)
 
         subpop_1_index = pop[is_subpop_1].index
         subpop_2_index = pop[is_subpop_2].index
 
-        excess_shift = pd.concat([self.mms_subpop_1_excess_shift(subpop_1_index), self.mms_subpop_2_excess_shift(subpop_2_index)])
+        excess_shift = pd.concat(
+            [
+                self.mms_subpop_1_excess_shift(subpop_1_index),
+                self.mms_subpop_2_excess_shift(subpop_2_index),
+            ]
+        )
 
         return excess_shift
 
