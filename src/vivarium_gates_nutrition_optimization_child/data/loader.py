@@ -414,9 +414,9 @@ def load_gbd_2021_rr(key: str, location: str) -> pd.DataFrame:
         # Remove neonatal relative risks
         neonatal_age_ends = data.index.get_level_values('age_end').unique()[:2]
         data.loc[data.index.get_level_values('age_end').isin(neonatal_age_ends)] = 1.0
-    elif key == data_keys.WASTING.RELATIVE_RISK:
-        # Remove relative risks for simulants under 6 months
-        data.loc[data.index.get_level_values('age_end') <= data_values.WASTING.START_AGE] = 1.0
+    # elif key == data_keys.WASTING.RELATIVE_RISK:
+    #     # Remove relative risks for simulants under 6 months
+    #     data.loc[data.index.get_level_values('age_end') <= data_values.WASTING.START_AGE] = 1.0
     return data
 
 def get_exposure_without_model_version_id(
