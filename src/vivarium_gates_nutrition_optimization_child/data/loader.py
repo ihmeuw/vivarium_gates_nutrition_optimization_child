@@ -698,12 +698,13 @@ def load_dichotomous_excess_shift(
     """Load excess birth weight exposure shifts using distribution data."""
     index = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index
     shift = get_random_variable_draws(metadata.ARTIFACT_COLUMNS, *distribution_data)
-    excess_shift = transform_shift_data(shift, index, data_keys.LBWSG.BIRTH_WEIGHT_EXPOSURE)
+    excess_shift = reshape_shift_data(shift, index, data_keys.LBWSG.BIRTH_WEIGHT_EXPOSURE)
     return excess_shift
 
 
 def load_excess_gestational_age_shift(key: str, location: str) -> pd.DataFrame:
-    """Load excess gestational age shift data from IFA and MMS from file."""
+    """Load excess gestational age shift data from IFA and MMS from file.
+    Returns the sum of the shift data in the directories defined in data_dirs."""
     try:
         data_dirs = {
             data_keys.IFA_SUPPLEMENTATION.EXCESS_SHIFT: [paths.IFA_GA_SHIFT_DATA_DIR],
@@ -719,18 +720,17 @@ def load_excess_gestational_age_shift(key: str, location: str) -> pd.DataFrame:
         raise ValueError(f"Unrecognized key {key}")
 
     index = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index
-    shifts = [pd.read_csv(data_dir / f"{location.lower()}.csv") for data_dir in data_dirs]
-    shift_data = sum(
-        [pd.Series(shift["value"].values, index=shift["draw"]) for shift in shifts]
-    )
+    all_shift_data = [pd.read_csv(data_dir / f"{location.lower()}.csv") for data_dir in data_dirs]
+    shifts = [pd.Series(shift_data["value"].values, index=shift_data["draw"]) for shift_data in all_shift_data]
+    summed_shifts = sum(shifts) # only sum more than one Series for subpop 2
 
-    excess_shift = transform_shift_data(
-        shift_data, index, data_keys.LBWSG.GESTATIONAL_AGE_EXPOSURE
+    excess_shift = reshape_shift_data(
+        summed_shifts, index, data_keys.LBWSG.GESTATIONAL_AGE_EXPOSURE
     )
     return excess_shift
 
 
-def transform_shift_data(
+def reshape_shift_data(
     shift: pd.Series, index: pd.Index, target: TargetString
 ) -> pd.DataFrame:
     """Read in draw-level shift values and return a DataFrame where the data are the shift values,
