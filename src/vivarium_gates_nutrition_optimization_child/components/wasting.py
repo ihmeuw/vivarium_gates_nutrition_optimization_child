@@ -15,6 +15,18 @@ from vivarium_gates_nutrition_optimization_child.constants import data_keys, dat
 from vivarium_gates_nutrition_optimization_child.constants.data_keys import WASTING
 from vivarium_gates_nutrition_optimization_child.utilities import get_random_variable
 
+class ChildWasting:
+
+    def __init__(self):
+        self.dynamic_model = DynamicChildWasting()
+        self.static_model = Risk('risk_factor.child_wasting')
+
+    @property
+    def sub_components(self):
+        return [
+            self.dynamic_model,
+            self.static_model,
+        ]
 
 class RiskModel(DiseaseModel):
 
@@ -90,7 +102,7 @@ class RiskModel(DiseaseModel):
 
 
 # noinspection PyPep8Naming
-def ChildWasting() -> RiskModel:
+def DynamicChildWasting() -> RiskModel:
     tmrel = SusceptibleState(models.WASTING.MODEL_NAME)
     mild = DiseaseState(
         models.WASTING.MILD_STATE_NAME,
