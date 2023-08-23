@@ -377,36 +377,9 @@ class MMSEffectOnGestationalAge(AdditiveRiskEffect):
         return excess_shift
 
     def get_risk_specific_shift(self, index: pd.Index) -> pd.Series:
-        pop = self.population_view.get(index)
-        raw_gestational_age = pop[self.raw_gestational_age_exposure_column_name]
-        ifa_shifted_gestational_age = raw_gestational_age + self.ifa_on_gestational_age.effect(index)
-        is_subpop_1 = ifa_shifted_gestational_age < (32 - self.mms_excess_shift['shift2'](index)['cat2'])
-        is_subpop_2 = ifa_shifted_gestational_age >= (32 - self.mms_excess_shift['shift2'](index)['cat2'])
-
-        subpop_1_index = pop[is_subpop_1].index
-        subpop_2_index = pop[is_subpop_2].index
-
-        risk_specific_shift = pd.concat([self.mms_risk_specific_shift['shift1'](subpop_1_index), self.mms_risk_specific_shift['shift2'](subpop_2_index)])
-
-        return risk_specific_shift
-
-    def get_effect(self, index: pd.Index) -> pd.Series:
-        index_columns = ["index", self.risk.name]
-
-        excess_shift = self.excess_shift_source(index)
-        exposure = self.exposure(index).reset_index()
-        exposure.columns = index_columns
-        exposure = exposure.set_index(index_columns)
-
-        relative_risk = excess_shift.stack().reset_index()
-        relative_risk.columns = index_columns + ["value"]
-        relative_risk = relative_risk.set_index(index_columns)
-
-        raw_effect = relative_risk.loc[exposure.index, "value"].droplevel(self.risk.name)
-
-        risk_specific_shift = self.risk_specific_shift_source(index)
-        effect = raw_effect - risk_specific_shift
-        return effect
+        # MMS has no baseline coverage
+        # TODO: fill out comment
+        return pd.Series(0, index=index)
 
 
 class BirthWeightShiftEffect:
@@ -489,8 +462,6 @@ class BirthWeightShiftEffect:
     ##################
 
     def _get_total_birth_weight_shift(self, index: pd.Index) -> pd.Series:
-        if len(index) > 0:
-            breakpoint()
         return pd.concat(
             [pipeline(index) for pipeline in self.pipelines.values()], axis=1
         ).sum(axis=1)
