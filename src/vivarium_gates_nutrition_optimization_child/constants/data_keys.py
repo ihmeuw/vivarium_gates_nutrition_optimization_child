@@ -287,6 +287,7 @@ class __LowBirthWeightShortGestation(NamedTuple):
 
     # Useful keys not for the artifact - distinguished by not using the colon type declaration
     BIRTH_WEIGHT_EXPOSURE = TargetString("risk_factor.birth_weight.birth_exposure")
+    GESTATIONAL_AGE_EXPOSURE = TargetString("risk_factor.gestational_age.birth_exposure")
 
     @property
     def name(self):
