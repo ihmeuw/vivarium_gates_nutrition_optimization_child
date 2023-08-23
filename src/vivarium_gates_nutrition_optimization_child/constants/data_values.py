@@ -66,6 +66,7 @@ class __Wasting(NamedTuple):
         'cat1': 'Untreated',
         'cat2': 'Baseline treatment',
         'cat3': 'Alternative scenario treatment',
+        'cat4': "Unexposed"
     }
 
     # Wasting treatment coverage
@@ -108,16 +109,6 @@ class __Wasting(NamedTuple):
         )
     )
     MAM_TX_RECOVERY_TIME_UNDER_6MO: float = 13.3
-
-    DIARRHEA_PREVALENCE_RATIO: pd.Series = pd.Series(
-        [1.060416, 1.061946, 1.044849],
-        index=pd.Index(['cat1', 'cat2', 'cat3'], name='wasting'),
-        name='value'
-    )
-
-    DIARRHEA_DURATION_VICIOUS_CYCLE: Tuple = (
-        'diarrheal_diseases_duration', get_norm_from_quantiles(mean=4.576, lower=4.515, upper=4.646)
-    )
 
     R4_UNDER_12MO: Tuple = (
         'r4_under_12mo', get_truncnorm_from_sd(
