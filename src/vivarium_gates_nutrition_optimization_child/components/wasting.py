@@ -426,12 +426,12 @@ def get_daily_mam_remission_probability(
 
 
 # noinspection PyUnusedLocal
-def load_sam_birth_prevalence(cause: str, builder: Builder) -> pd.DataFrame:
+def load_sam_birth_prevalence(builder: Builder, cause: str) -> pd.DataFrame:
     return load_child_wasting_birth_prevalence(builder, WASTING.CAT1)
 
 
 # noinspection PyUnusedLocal
-def load_sam_exposure(cause: str, builder: Builder) -> pd.DataFrame:
+def load_sam_exposure(builder: Builder, cause: str) -> pd.DataFrame:
     return load_child_wasting_exposures(builder)[WASTING.CAT1].reset_index()
 
 
