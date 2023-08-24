@@ -51,7 +51,7 @@ class FertilityLineList:
         Method to load existing fertility data to use as birth records.
         """
         data_directory = Path(builder.configuration.input_data.fertility_input_data_path)
-        scenario = builder.configuration.intervention.parent_scenario
+        scenario = builder.configuration.intervention.maternal_scenario
         draw = builder.configuration.input_data.input_draw_number
         seed = builder.configuration.randomness.random_seed
 
