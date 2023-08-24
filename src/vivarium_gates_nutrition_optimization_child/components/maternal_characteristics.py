@@ -337,7 +337,7 @@ class MMSEffectOnGestationalAge(AdditiveRiskEffect):
             requires_columns=[self.raw_gestational_age_exposure_column_name],
         )
 
-    def _get_risk_specific_shift_source(self, builder: Builder) -> Pipeline:
+    def _get_risk_specific_shift_source(self, builder: Builder) -> LookupTable:
         return builder.lookup.build_table(0)
 
     def get_excess_shift(self, index: pd.Index) -> pd.Series:

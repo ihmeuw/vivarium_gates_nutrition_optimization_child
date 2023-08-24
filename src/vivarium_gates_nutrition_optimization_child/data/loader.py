@@ -665,7 +665,7 @@ def load_treatment_excess_shift(key: str, location: str) -> pd.DataFrame:
         }[key]
     except KeyError:
         raise ValueError(f"Unrecognized key {key}")
-    return load_dichotomous_excess_shift(location, distribution_data, is_risk=False)
+    return load_dichotomous_excess_shift(location, distribution_data)
 
 
 def load_dichotomous_exposure(
@@ -693,7 +693,8 @@ def load_dichotomous_exposure(
 
 
 def load_dichotomous_excess_shift(
-    location: str, distribution_data: Tuple, is_risk: bool
+    location: str,
+    distribution_data: Tuple,
 ) -> pd.DataFrame:
     """Load excess birth weight exposure shifts using distribution data."""
     index = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index
