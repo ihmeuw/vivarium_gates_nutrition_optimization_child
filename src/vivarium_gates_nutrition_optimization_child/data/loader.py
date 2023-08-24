@@ -29,6 +29,7 @@ from vivarium_inputs import utilities as vi_utils
 from vivarium_inputs import utility_data
 from vivarium_inputs.globals import DEMOGRAPHIC_COLUMNS, DRAW_COLUMNS
 from vivarium_inputs.mapping_extension import AlternativeRiskFactor
+from vivarium_public_health.utilities import TargetString
 
 from vivarium_gates_nutrition_optimization_child.constants import (
     data_keys,
@@ -133,12 +134,14 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.IFA_SUPPLEMENTATION.DISTRIBUTION: load_intervention_distribution,
         data_keys.IFA_SUPPLEMENTATION.CATEGORIES: load_intervention_categories,
         data_keys.IFA_SUPPLEMENTATION.EXPOSURE: load_dichotomous_treatment_exposure,
-        data_keys.IFA_SUPPLEMENTATION.EXCESS_SHIFT: load_treatment_excess_shift,
+        data_keys.IFA_SUPPLEMENTATION.EXCESS_SHIFT: load_ifa_excess_shift,
         data_keys.IFA_SUPPLEMENTATION.RISK_SPECIFIC_SHIFT: load_risk_specific_shift,
         data_keys.MMN_SUPPLEMENTATION.DISTRIBUTION: load_intervention_distribution,
         data_keys.MMN_SUPPLEMENTATION.CATEGORIES: load_intervention_categories,
         data_keys.MMN_SUPPLEMENTATION.EXPOSURE: load_dichotomous_treatment_exposure,
         data_keys.MMN_SUPPLEMENTATION.EXCESS_SHIFT: load_treatment_excess_shift,
+        data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_1: load_excess_gestational_age_shift,
+        data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_2: load_excess_gestational_age_shift,
         data_keys.MMN_SUPPLEMENTATION.RISK_SPECIFIC_SHIFT: load_risk_specific_shift,
         data_keys.BEP_SUPPLEMENTATION.DISTRIBUTION: load_intervention_distribution,
         data_keys.BEP_SUPPLEMENTATION.CATEGORIES: load_intervention_categories,
@@ -646,6 +649,12 @@ def load_dichotomous_treatment_exposure(key: str, location: str, **kwargs) -> pd
     return load_dichotomous_exposure(location, distribution_data, is_risk=False, **kwargs)
 
 
+def load_ifa_excess_shift(key: str, location: str) -> pd.DataFrame:
+    birth_weight_shift = load_treatment_excess_shift(key, location)
+    gestational_age_shift = load_excess_gestational_age_shift(key, location)
+    return pd.concat([birth_weight_shift, gestational_age_shift])
+
+
 def load_treatment_excess_shift(key: str, location: str) -> pd.DataFrame:
     try:
         distribution_data = {
@@ -686,17 +695,59 @@ def load_dichotomous_exposure(
 def load_dichotomous_excess_shift(
     location: str, distribution_data: Tuple, is_risk: bool
 ) -> pd.DataFrame:
+    """Load excess birth weight exposure shifts using distribution data."""
     index = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index
     shift = get_random_variable_draws(metadata.ARTIFACT_COLUMNS, *distribution_data)
+    excess_shift = reshape_shift_data(shift, index, data_keys.LBWSG.BIRTH_WEIGHT_EXPOSURE)
+    return excess_shift
 
+
+def load_excess_gestational_age_shift(key: str, location: str) -> pd.DataFrame:
+    """Load excess gestational age shift data from IFA and MMS from file.
+    Returns the sum of the shift data in the directories defined in data_dirs."""
+    try:
+        data_dirs = {
+            data_keys.IFA_SUPPLEMENTATION.EXCESS_SHIFT: [paths.IFA_GA_SHIFT_DATA_DIR],
+            data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_1: [
+                paths.MMS_GA_SHIFT_1_DATA_DIR
+            ],
+            data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_2: [
+                paths.MMS_GA_SHIFT_1_DATA_DIR,
+                paths.MMS_GA_SHIFT_2_DATA_DIR,
+            ],
+        }[key]
+    except KeyError:
+        raise ValueError(f"Unrecognized key {key}")
+
+    index = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index
+    all_shift_data = [
+        pd.read_csv(data_dir / f"{location.lower()}.csv") for data_dir in data_dirs
+    ]
+    shifts = [
+        pd.Series(shift_data["value"].values, index=shift_data["draw"])
+        for shift_data in all_shift_data
+    ]
+    summed_shifts = sum(shifts)  # only sum more than one Series for subpop 2
+
+    excess_shift = reshape_shift_data(
+        summed_shifts, index, data_keys.LBWSG.GESTATIONAL_AGE_EXPOSURE
+    )
+    return excess_shift
+
+
+def reshape_shift_data(
+    shift: pd.Series, index: pd.Index, target: TargetString
+) -> pd.DataFrame:
+    """Read in draw-level shift values and return a DataFrame where the data are the shift values,
+    and the index is the passed index appended with affected entity/measure and parameter data."""
     exposed = pd.DataFrame([shift], index=index)
-    exposed["parameter"] = "cat1" if is_risk else "cat2"
+    exposed["parameter"] = "cat2"
     unexposed = pd.DataFrame([pd.Series(0.0, index=metadata.ARTIFACT_COLUMNS)], index=index)
-    unexposed["parameter"] = "cat2" if is_risk else "cat1"
+    unexposed["parameter"] = "cat1"
 
     excess_shift = pd.concat([exposed, unexposed])
-    excess_shift["affected_entity"] = data_keys.LBWSG.BIRTH_WEIGHT_EXPOSURE.name
-    excess_shift["affected_measure"] = data_keys.LBWSG.BIRTH_WEIGHT_EXPOSURE.measure
+    excess_shift["affected_entity"] = target.name
+    excess_shift["affected_measure"] = target.measure
 
     excess_shift = excess_shift.set_index(
         ["affected_entity", "affected_measure", "parameter"], append=True
