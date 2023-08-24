@@ -67,28 +67,28 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.POPULATION.AGE_BINS: load_age_bins,
         data_keys.POPULATION.DEMOGRAPHY: load_demographic_dimensions,
         data_keys.POPULATION.TMRLE: load_theoretical_minimum_risk_life_expectancy,
-        data_keys.POPULATION.ACMR: load_standard_data,
+        data_keys.POPULATION.ACMR: load_standard_gbd_2019_data_as_gbd_2021_data,
         data_keys.POPULATION.CRUDE_BIRTH_RATE: load_standard_data,
         data_keys.DIARRHEA.DURATION: load_duration,
         data_keys.DIARRHEA.PREVALENCE: load_prevalence_from_incidence_and_duration,
-        data_keys.DIARRHEA.INCIDENCE_RATE: load_standard_data,
+        data_keys.DIARRHEA.INCIDENCE_RATE: load_standard_gbd_2019_data_as_gbd_2021_data,
         data_keys.DIARRHEA.REMISSION_RATE: load_remission_rate_from_duration,
-        data_keys.DIARRHEA.DISABILITY_WEIGHT: load_standard_data,
+        data_keys.DIARRHEA.DISABILITY_WEIGHT: load_standard_gbd_2019_data_as_gbd_2021_data,
         data_keys.DIARRHEA.EMR: load_emr_from_csmr_and_prevalence,
         data_keys.DIARRHEA.CSMR: load_diarrhea_csmr,
         data_keys.DIARRHEA.RESTRICTIONS: load_metadata,
         data_keys.DIARRHEA.BIRTH_PREVALENCE: load_diarrhea_birth_prevalence,
-        data_keys.MEASLES.PREVALENCE: load_standard_data,
-        data_keys.MEASLES.INCIDENCE_RATE: load_standard_data,
-        data_keys.MEASLES.DISABILITY_WEIGHT: load_standard_data,
-        data_keys.MEASLES.EMR: load_standard_data,
-        data_keys.MEASLES.CSMR: load_standard_data,
+        data_keys.MEASLES.PREVALENCE: load_standard_gbd_2019_data_as_gbd_2021_data,
+        data_keys.MEASLES.INCIDENCE_RATE: load_standard_gbd_2019_data_as_gbd_2021_data,
+        data_keys.MEASLES.DISABILITY_WEIGHT: load_standard_gbd_2019_data_as_gbd_2021_data,
+        data_keys.MEASLES.EMR: load_standard_gbd_2019_data_as_gbd_2021_data,
+        data_keys.MEASLES.CSMR: load_standard_gbd_2019_data_as_gbd_2021_data,
         data_keys.MEASLES.RESTRICTIONS: load_metadata,
         data_keys.LRI.DURATION: load_duration,
         data_keys.LRI.PREVALENCE: load_prevalence_from_incidence_and_duration,
-        data_keys.LRI.INCIDENCE_RATE: load_standard_data,
+        data_keys.LRI.INCIDENCE_RATE: load_standard_gbd_2019_data_as_gbd_2021_data,
         data_keys.LRI.REMISSION_RATE: load_remission_rate_from_duration,
-        data_keys.LRI.DISABILITY_WEIGHT: load_standard_data,
+        data_keys.LRI.DISABILITY_WEIGHT: load_standard_gbd_2019_data_as_gbd_2021_data,
         data_keys.LRI.EMR: load_emr_from_csmr_and_prevalence,
         data_keys.LRI.CSMR: load_lri_csmr,
         data_keys.LRI.RESTRICTIONS: load_metadata,
@@ -207,7 +207,7 @@ def load_age_bins(key: str, location: str) -> pd.DataFrame:
 
 
 def load_demographic_dimensions(key: str, location: str) -> pd.DataFrame:
-    demographic_dimensions = interface.get_demographic_dimensions(location)
+    demographic_dimensions = utilities.get_gbd_2021_demographic_dimensions()
     is_under_five = demographic_dimensions.index.get_level_values("age_end") <= 5
     return demographic_dimensions[is_under_five]
 
@@ -301,7 +301,7 @@ def load_duration(key: str, location: str) -> pd.DataFrame:
         [duration_draws], columns=metadata.ARTIFACT_COLUMNS, index=demography.index
     )
 
-    return duration.droplevel("location")
+    return duration
 
 
 def load_prevalence_from_incidence_and_duration(key: str, location: str) -> pd.DataFrame:
@@ -317,17 +317,17 @@ def load_prevalence_from_incidence_and_duration(key: str, location: str) -> pd.D
     duration = get_data(cause.DURATION, location)
     prevalence = incidence_rate * duration
 
-    # get enn prevalence
-    birth_prevalence = data_values.BIRTH_PREVALENCE_OF_ZERO
-    enn_prevalence = prevalence.query("age_start == 0")
-    enn_prevalence = (birth_prevalence + enn_prevalence) / 2
-    all_other_prevalence = prevalence.query("age_start != 0.0")
+    # # get enn prevalence
+    # birth_prevalence = data_values.BIRTH_PREVALENCE_OF_ZERO
+    # enn_prevalence = prevalence.query("age_start == 0")
+    # enn_prevalence = (birth_prevalence + enn_prevalence) / 2
+    # all_other_prevalence = prevalence.query("age_start != 0.0")
 
-    prevalence = pd.concat([enn_prevalence, all_other_prevalence]).sort_index()
+    # prevalence = pd.concat([enn_prevalence, all_other_prevalence]).sort_index()
 
-    # If cause is diarrhea, set early and late neonatal groups prevalence to that of post-neonatal age group
-    if key == data_keys.DIARRHEA.PREVALENCE:
-        prevalence = utilities.scrub_neonatal_age_groups(prevalence)
+    # # If cause is diarrhea, set early and late neonatal groups prevalence to that of post-neonatal age group
+    # if key == data_keys.DIARRHEA.PREVALENCE:
+    #     prevalence = utilities.scrub_neonatal_age_groups(prevalence)
     return prevalence
 
 
@@ -859,9 +859,7 @@ def load_dichotomous_exposure(
     index = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index
     if type(distribution_data) == float:
         base_exposure = pd.Series(distribution_data, index=index)
-        exposed = pd.DataFrame({f"draw_{i}": base_exposure for i in range(1000)}).droplevel(
-            "location"
-        )
+        exposed = pd.DataFrame({f"draw_{i}": base_exposure for i in range(1000)})
     else:
         exposed = distribution_data
 
@@ -949,7 +947,7 @@ def load_baseline_ifa_supplementation_coverage(location: str) -> pd.DataFrame:
 
     exposure = pd.DataFrame(
         data=np.repeat(df.values, len(index), axis=0), columns=df.columns, index=index
-    ).droplevel("location")
+    )
     return exposure
 
 
@@ -979,7 +977,7 @@ def load_maternal_bmi_anemia_exposure(key: str, location: str) -> pd.DataFrame:
         raise ValueError(f"Unrecognized key {key}")
 
     location_id = utility_data.get_location_id(location)
-    index = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index.droplevel("location")
+    index = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index
 
     def _read_hgb_data(filename: str) -> pd.Series:
         raw_data = pd.read_csv(paths.RAW_DATA_DIR / filename)
@@ -1024,7 +1022,7 @@ def load_maternal_bmi_anemia_excess_shift(key: str, location: str) -> pd.DataFra
     if key != data_keys.MATERNAL_BMI_ANEMIA.EXCESS_SHIFT:
         raise ValueError(f"Unrecognized key {key}")
 
-    index = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index.droplevel("location")
+    index = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index
     cat3_draws = get_random_variable_draws(
         metadata.ARTIFACT_COLUMNS,
         *data_values.MATERNAL_CHARACTERISTICS.BMI_ANEMIA_CAT3_BIRTH_WEIGHT_SHIFT,
