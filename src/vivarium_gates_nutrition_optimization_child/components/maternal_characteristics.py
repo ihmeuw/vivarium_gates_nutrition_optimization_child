@@ -2,7 +2,7 @@
 Component for maternal supplementation and risk effects
 """
 
-from typing import Callable
+from typing import Callable, Dict
 
 import numpy as np
 import pandas as pd
@@ -17,7 +17,11 @@ from vivarium_public_health.risks.data_transformations import (
     rebin_relative_risk_data,
 )
 
-from vivarium_gates_nutrition_optimization_child.constants import data_values
+from vivarium_gates_nutrition_optimization_child.constants import (
+    data_keys,
+    data_values,
+    paths,
+)
 from vivarium_gates_nutrition_optimization_child.constants.data_keys import (
     BEP_SUPPLEMENTATION,
     IFA_SUPPLEMENTATION,
@@ -188,7 +192,11 @@ class MaternalCharacteristics:
 class AdditiveRiskEffect(RiskEffect):
     def __init__(self, risk: str, target: str):
         super().__init__(risk, target)
-        self.effect_pipeline_name = f"{self.risk.name}.effect"
+        self.effect_pipeline_name = f"{self.risk.name}_on_{self.target.name}.effect"
+
+    #################
+    # Setup methods #
+    #################
 
     # noinspection PyAttributeOutsideInit
     def setup(self, builder: Builder) -> None:
@@ -250,9 +258,6 @@ class AdditiveRiskEffect(RiskEffect):
     # Pipeline sources and modifiers #
     ##################################
 
-    def risk_specific_shift_modifier(self, index: pd.Index, target: pd.Series) -> pd.Series:
-        return target + self.risk_specific_shift_source(index)
-
     def get_effect(self, index: pd.Index) -> pd.Series:
         index_columns = ["index", self.risk.name]
 
@@ -272,11 +277,101 @@ class AdditiveRiskEffect(RiskEffect):
         return effect
 
 
+class MMSEffectOnGestationalAge(AdditiveRiskEffect):
+    """Model effect of multiple micronutrient supplementation on gestational age.
+    Unique component because the excess shift value depends on IFA-shifted gestational age."""
+
+    def __init__(self):
+        super().__init__(
+            "risk_factor.multiple_micronutrient_supplementation",
+            "risk_factor.gestational_age.birth_exposure",
+        )
+        self.excess_shift_pipeline_name = (
+            f"{self.risk.name}_on_{self.target.name}.excess_shift"
+        )
+        self.risk_specific_shift_pipeline_name = (
+            f"{self.risk.name}_on_{self.target.name}.risk_specific_shift"
+        )
+        self.raw_gestational_age_exposure_column_name = "raw_gestational_age_exposure"
+
+    #################
+    # Setup methods #
+    #################
+
+    # noinspection PyAttributeOutsideInit
+    def setup(self, builder: Builder) -> None:
+        super().setup(builder)
+        self.population_view = self._get_population_view(builder)
+        self.ifa_on_gestational_age = builder.components.get_component(
+            f"risk_effect.risk_factor.iron_folic_acid_supplementation.{self.target}"
+        )
+        self.mms_subpop_1_excess_shift = self._get_mms_excess_shift_data(
+            builder, data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_1
+        )
+        self.mms_subpop_2_excess_shift = self._get_mms_excess_shift_data(
+            builder, data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_2
+        )
+
+    def _get_population_view(self, builder: Builder) -> PopulationView:
+        return builder.population.get_view([self.raw_gestational_age_exposure_column_name])
+
+    def _get_mms_excess_shift_data(
+        self, builder: Builder, key: str
+    ) -> Dict[str, LookupTable]:
+        excess_shift_data = builder.data.load(
+            key, affected_entity=self.target.name, affected_measure=self.target.measure
+        )
+        excess_shift_data = rebin_relative_risk_data(builder, self.risk, excess_shift_data)
+        excess_shift_data = pivot_categorical(excess_shift_data)
+        return builder.lookup.build_table(
+            excess_shift_data, key_columns=["sex"], parameter_columns=["age", "year"]
+        )
+
+    ##################################
+    # Pipeline sources and modifiers #
+    ##################################
+    def _get_excess_shift_source(self, builder: Builder) -> Pipeline:
+        return builder.value.register_value_producer(
+            self.excess_shift_pipeline_name,
+            source=self.get_excess_shift,
+            requires_columns=[self.raw_gestational_age_exposure_column_name],
+        )
+
+    def _get_risk_specific_shift_source(self, builder: Builder) -> Pipeline:
+        return builder.lookup.build_table(0)
+
+    def get_excess_shift(self, index: pd.Index) -> pd.Series:
+        pop = self.population_view.get(index)
+        raw_gestational_age = pop[self.raw_gestational_age_exposure_column_name]
+        ifa_shifted_gestational_age = (
+            raw_gestational_age + self.ifa_on_gestational_age.effect(index)
+        )
+        # excess shift is (mms_shift_1 + mms_shift_2) for subpop_2 and mms_shift_1 for subpop_1
+        mms_shift_2 = (
+            self.mms_subpop_2_excess_shift(index)["cat2"]
+            - self.mms_subpop_1_excess_shift(index)["cat2"]
+        )
+        is_subpop_1 = ifa_shifted_gestational_age < (32 - mms_shift_2)
+        is_subpop_2 = ifa_shifted_gestational_age >= (32 - mms_shift_2)
+
+        subpop_1_index = pop[is_subpop_1].index
+        subpop_2_index = pop[is_subpop_2].index
+
+        excess_shift = pd.concat(
+            [
+                self.mms_subpop_1_excess_shift(subpop_1_index),
+                self.mms_subpop_2_excess_shift(subpop_2_index),
+            ]
+        )
+
+        return excess_shift
+
+
 class BirthWeightShiftEffect:
     def __init__(self):
-        self.ifa_effect_pipeline_name = f"{IFA_SUPPLEMENTATION.name}.effect"
-        self.mmn_effect_pipeline_name = f"{MMN_SUPPLEMENTATION.name}.effect"
-        self.bep_effect_pipeline_name = f"{BEP_SUPPLEMENTATION.name}.effect"
+        self.ifa_effect_pipeline_name = f"{IFA_SUPPLEMENTATION.name}_on_birth_weight.effect"
+        self.mmn_effect_pipeline_name = f"{MMN_SUPPLEMENTATION.name}_on_birth_weight.effect"
+        self.bep_effect_pipeline_name = f"{BEP_SUPPLEMENTATION.name}_on_birth_weight.effect"
 
         self.stunting_exposure_parameters_pipeline_name = (
             f"risk_factor.{STUNTING.name}.exposure_parameters"
