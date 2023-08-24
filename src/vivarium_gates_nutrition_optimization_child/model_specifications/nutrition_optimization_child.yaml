@@ -6,9 +6,10 @@ components:
             - SIS_fixed_duration('measles', '10.0')
             - SIS('lower_respiratory_infections')
         risks:
-            # - RiskEffect('risk_factor.child_wasting', 'cause.diarrheal_diseases.incidence_rate')
-            # - RiskEffect('risk_factor.child_wasting', 'cause.measles.incidence_rate')
-            # - RiskEffect('risk_factor.child_wasting', 'cause.lower_respiratory_infections.incidence_rate')
+            # - Risk('risk_factor.child_wasting')
+            - RiskEffect('risk_factor.child_wasting', 'cause.diarrheal_diseases.incidence_rate')
+            - RiskEffect('risk_factor.child_wasting', 'cause.measles.incidence_rate')
+            - RiskEffect('risk_factor.child_wasting', 'cause.lower_respiratory_infections.incidence_rate')
 
             - Risk('risk_factor.child_stunting')
             - RiskEffect('risk_factor.child_stunting', 'cause.diarrheal_diseases.incidence_rate')
@@ -82,6 +83,8 @@ configuration:
     intervention:
         scenario: 'baseline'
 
+    sam_k: 'baseline'
+    
     unmodeled_causes:
         - "upper_respiratory_infections"
         - "otitis_media"

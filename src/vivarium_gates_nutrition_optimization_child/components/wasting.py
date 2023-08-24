@@ -165,7 +165,8 @@ def DynamicChildWasting() -> RiskModel:
         cause_type='sequela',
         get_data_functions={
             'prevalence': load_mam_exposure,
-            'excess_mortality_rate': load_pem_excess_mortality_rate,
+            'disability_weight': lambda *_: 0,
+            'excess_mortality_rate': lambda *_: 0,
             'birth_prevalence': load_mam_birth_prevalence,
         }
     )
@@ -174,7 +175,8 @@ def DynamicChildWasting() -> RiskModel:
         cause_type='sequela',
         get_data_functions={
             'prevalence': load_sam_exposure,
-            'excess_mortality_rate': load_pem_excess_mortality_rate,
+            'disability_weight': lambda *_: 0,
+            'excess_mortality_rate': lambda *_: 0,
             'birth_prevalence': load_sam_birth_prevalence,
         }
     )
