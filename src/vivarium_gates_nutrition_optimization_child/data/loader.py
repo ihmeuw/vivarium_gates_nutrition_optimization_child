@@ -377,22 +377,45 @@ def load_cgf_exposure(key: str, location: str) -> pd.DataFrame:
     return data
 
 def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
-    entity_key = EntityKey(key)
-    entity = utilities.get_gbd_2021_entity(entity_key)
-
-    data = utilities.get_data(entity_key, entity, location, gbd_constants.SOURCES.EXPOSURE, 'rei_id',
+    key = EntityKey(key)
+    entity = utilities.get_gbd_2021_entity(key)
+    location_id = (
+        utility_data.get_location_id(location) if isinstance(location, str) else location
+    )
+    data = utilities.get_data(key, entity, location, gbd_constants.SOURCES.EXPOSURE, 'rei_id',
                               metadata.AGE_GROUP.GBD_2021, metadata.GBD_2021_ROUND_ID)
-    data = utilities.process_exposure(data, entity_key, entity, location, metadata.GBD_2021_ROUND_ID,
-                                      metadata.AGE_GROUP.GBD_2021)
+    data = data.drop(["modelable_entity_id", "model_version_id"], "columns")
 
-    if entity_key == data_keys.STUNTING.EXPOSURE:
-        # Remove neonatal exposure
-        neonatal_age_ends = data.index.get_level_values('age_end').unique()[:2]
-        data.loc[data.index.get_level_values('age_end').isin(neonatal_age_ends)] = 0.0
-        data.loc[data.index.get_level_values('age_end').isin(neonatal_age_ends)
-                 & (data.index.get_level_values('parameter') == data_keys.STUNTING.CAT4)] = 1.0
+    data = vi_utils.filter_data_by_restrictions(
+        data, entity, "outer", list(metadata.AGE_GROUP.GBD_2021)
+    )
+
+    tmrel_cat = utility_data.get_tmrel_category(entity)
+    exposed = data[data.parameter != tmrel_cat]
+    unexposed = data[data.parameter == tmrel_cat]
+
+    #  FIXME: We fill 1 as exposure of tmrel category, which is not correct.
+    data = pd.concat(
+        [
+            vi_utils.normalize(exposed, fill_value=0),
+            vi_utils.normalize(unexposed, fill_value=1),
+        ],
+        ignore_index=True,
+    )
+
+    # normalize so all categories sum to 1
+    cols = list(set(data.columns).difference(DRAW_COLUMNS + ["parameter"]))
+    sums = data.groupby(cols)[DRAW_COLUMNS].sum()
+    data = (
+        data.groupby("parameter")
+        .apply(lambda df: df.set_index(cols).loc[:, DRAW_COLUMNS].divide(sums))
+        .reset_index()
+    )
+    data = data.filter(DEMOGRAPHIC_COLUMNS + DRAW_COLUMNS + ["parameter"])
+    data = utilities.validate_and_reshape_gbd_data(
+        data, entity, key, location, gbd_round_id=metadata.GBD_2021_ROUND_ID, age_group_ids=metadata.AGE_GROUP.GBD_2021,
+    )
     return data
-
 
 def load_gbd_2021_rr(key: str, location: str) -> pd.DataFrame:
     entity_key = EntityKey(key)
