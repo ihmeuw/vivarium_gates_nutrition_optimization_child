@@ -80,7 +80,7 @@ configuration:
         exit_age: 5
 
     intervention:
-        scenario: 'baseline'
+        child_scenario: 'baseline'
 
     unmodeled_causes:
         - "upper_respiratory_infections"

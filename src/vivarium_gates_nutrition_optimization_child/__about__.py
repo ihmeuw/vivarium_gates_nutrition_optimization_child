@@ -15,7 +15,7 @@ __summary__ = (
 )
 __uri__ = "https://github.com/ihmeuw/vivarium_gates_nutrition_optimization_child"
 
-__version__ = "0.0.0"
+__version__ = "0.1.1"
 
 __author__ = "The vivarium developers"
 __email__ = "vivarium.dev@gmail.com"
