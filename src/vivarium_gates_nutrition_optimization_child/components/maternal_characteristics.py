@@ -322,17 +322,12 @@ class MMSEffectOnGestationalAge(AdditiveRiskEffect):
             key, affected_entity=self.target.name, affected_measure=self.target.measure
         )
         excess_shift_data = self.build_excess_shift_lookup_table(builder, excess_shift_data)
-        return excess_shift_data
-
-    def build_excess_shift_lookup_table(
-        self, builder: Builder, excess_shift_data: pd.DataFrame
-    ) -> LookupTable:
-        """Reads excess shift data that was read from artifact and returns LookupTable with that data."""
         excess_shift_data = rebin_relative_risk_data(builder, self.risk, excess_shift_data)
         excess_shift_data = pivot_categorical(excess_shift_data)
         return builder.lookup.build_table(
             excess_shift_data, key_columns=["sex"], parameter_columns=["age", "year"]
         )
+
 
     ##################################
     # Pipeline sources and modifiers #
@@ -345,10 +340,7 @@ class MMSEffectOnGestationalAge(AdditiveRiskEffect):
         )
 
     def _get_risk_specific_shift_source(self, builder: Builder) -> Pipeline:
-        return builder.value.register_value_producer(
-            self.risk_specific_shift_pipeline_name,
-            source=self.get_risk_specific_shift,
-        )
+        return builder.lookup.build_table(0)
 
     def get_excess_shift(self, index: pd.Index) -> pd.Series:
         pop = self.population_view.get(index)
@@ -375,10 +367,6 @@ class MMSEffectOnGestationalAge(AdditiveRiskEffect):
         )
 
         return excess_shift
-
-    def get_risk_specific_shift(self, index: pd.Index) -> pd.Series:
-        # MMS doesn't exist in baseline so we don't need to adjust gestational age to get an "MMS-less" population
-        return pd.Series(0, index=index)
 
 
 class BirthWeightShiftEffect:
