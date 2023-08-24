@@ -328,7 +328,6 @@ class MMSEffectOnGestationalAge(AdditiveRiskEffect):
             excess_shift_data, key_columns=["sex"], parameter_columns=["age", "year"]
         )
 
-
     ##################################
     # Pipeline sources and modifiers #
     ##################################
