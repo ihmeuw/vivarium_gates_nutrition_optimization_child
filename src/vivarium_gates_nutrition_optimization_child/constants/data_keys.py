@@ -142,6 +142,14 @@ class __ProteinEnergyMalnutrition(NamedTuple):
         "cause.protein_energy_malnutrition.restrictions"
     )
 
+    @property
+    def name(self):
+        return "protein_energy_malnutrition"
+
+    @property
+    def log_name(self):
+        return "protein energy malnutrition"
+
 
 PEM = __ProteinEnergyMalnutrition()
 
