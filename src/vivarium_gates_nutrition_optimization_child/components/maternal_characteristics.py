@@ -321,7 +321,6 @@ class MMSEffectOnGestationalAge(AdditiveRiskEffect):
         excess_shift_data = builder.data.load(
             key, affected_entity=self.target.name, affected_measure=self.target.measure
         )
-        excess_shift_data = self.build_excess_shift_lookup_table(builder, excess_shift_data)
         excess_shift_data = rebin_relative_risk_data(builder, self.risk, excess_shift_data)
         excess_shift_data = pivot_categorical(excess_shift_data)
         return builder.lookup.build_table(
