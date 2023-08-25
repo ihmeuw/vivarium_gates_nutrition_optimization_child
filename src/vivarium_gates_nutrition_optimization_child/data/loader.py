@@ -323,7 +323,7 @@ def load_prevalence_from_incidence_and_duration(key: str, location: str) -> pd.D
     duration = get_data(cause.DURATION, location)
     prevalence = incidence_rate * duration
 
-    # # get enn prevalence
+    # get enn prevalence
     birth_prevalence = data_values.BIRTH_PREVALENCE_OF_ZERO
     enn_prevalence = prevalence.query("age_start == 0")
     enn_prevalence = (birth_prevalence + enn_prevalence) / 2
