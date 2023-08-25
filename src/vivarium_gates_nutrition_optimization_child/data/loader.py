@@ -513,12 +513,12 @@ def load_pem_disability_weight(key: str, location: str) -> pd.DataFrame:
 
 
 def load_pem_emr(key: str, location: str) -> pd.DataFrame:
-    emr = load_standard_data(data_keys.PEM.EMR, location)
+    emr = load_standard_gbd_2019_data_as_gbd_2021_data(data_keys.PEM.EMR, location)
     return emr
 
 
 def load_pem_csmr(key: str, location: str) -> pd.DataFrame:
-    csmr = load_standard_data(data_keys.PEM.CSMR, location)
+    csmr = load_standard_gbd_2019_data_as_gbd_2021_data(data_keys.PEM.CSMR, location)
     return csmr
 
 
@@ -1062,7 +1062,7 @@ def load_neonatal_lri_csmr(key: str, location: str) -> pd.DataFrame:
     if key != data_keys.AFFECTED_UNMODELED_CAUSES.NEONATAL_LRI_CSMR:
         raise ValueError(f"Unrecognized key {key}")
 
-    data = load_standard_data(data_keys.LRI.CSMR, location)
+    data = load_standard_gbd_2019_data_as_gbd_2021_data(data_keys.LRI.CSMR, location)
     data.loc[data.index.get_level_values("age_start") >= metadata.NEONATAL_END_AGE, :] = 0
     return data
 
@@ -1071,7 +1071,7 @@ def load_lri_csmr(key: str, location: str) -> pd.DataFrame:
     if key != data_keys.LRI.CSMR:
         raise ValueError(f"Unrecognized key {key}")
 
-    data = load_standard_data(data_keys.LRI.CSMR, location)
+    data = load_standard_gbd_2019_data_as_gbd_2021_data(data_keys.LRI.CSMR, location)
     data.loc[data.index.get_level_values("age_start") < metadata.NEONATAL_END_AGE, :] = 0
     return data
 
@@ -1080,7 +1080,7 @@ def load_diarrhea_csmr(key: str, location: str) -> pd.DataFrame:
     if key != data_keys.DIARRHEA.CSMR:
         raise ValueError(f"Unrecognized key {key}")
 
-    data = load_standard_data(data_keys.DIARRHEA.CSMR, location)
+    data = load_standard_gbd_2019_data_as_gbd_2021_data(data_keys.DIARRHEA.CSMR, location)
     data.loc[data.index.get_level_values("age_start") < metadata.NEONATAL_END_AGE, :] = 0
     return data
 
@@ -1089,7 +1089,7 @@ def load_neonatal_diarrhea_csmr(key: str, location: str) -> pd.DataFrame:
     if key != data_keys.AFFECTED_UNMODELED_CAUSES.NEONATAL_DIARRHEAL_DISEASES_CSMR:
         raise ValueError(f"Unrecognized key {key}")
 
-    data = load_standard_data(data_keys.DIARRHEA.CSMR, location)
+    data = load_standard_gbd_2019_data_as_gbd_2021_data(data_keys.DIARRHEA.CSMR, location)
     data.loc[data.index.get_level_values("age_start") >= metadata.NEONATAL_END_AGE, :] = 0
     return data
 
