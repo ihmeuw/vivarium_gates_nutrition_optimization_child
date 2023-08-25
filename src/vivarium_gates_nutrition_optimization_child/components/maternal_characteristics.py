@@ -29,7 +29,6 @@ from vivarium_gates_nutrition_optimization_child.utilities import get_random_var
 
 
 class MaternalCharacteristics:
-
     configuration_defaults = {
         IFA_SUPPLEMENTATION.name: {
             "exposure": "data",

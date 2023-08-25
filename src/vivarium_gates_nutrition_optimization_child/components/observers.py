@@ -106,7 +106,6 @@ class DisabilityObserver(DisabilityObserver_):
 
 
 class BirthObserver:
-
     configuration_defaults = {
         "stratification": {
             "birth": {

@@ -203,7 +203,11 @@ def filter_population(unfiltered: pd.DataFrame) -> pd.DataFrame:
 
 def load_age_bins(key: str, location: str) -> pd.DataFrame:
     all_age_bins = utilities.get_gbd_age_bins(metadata.AGE_GROUP.GBD_2021)
-    return all_age_bins[all_age_bins.age_start < 5].set_index(['age_start', 'age_end', 'age_group_name']).sort_index()
+    return (
+        all_age_bins[all_age_bins.age_start < 5]
+        .set_index(["age_start", "age_end", "age_group_name"])
+        .sort_index()
+    )
 
 
 def load_demographic_dimensions(key: str, location: str) -> pd.DataFrame:
@@ -221,9 +225,11 @@ def load_standard_data(key: str, location: str) -> pd.DataFrame:
     entity = utilities.get_entity(key)
     return interface.get_measure(entity, key.measure, location).droplevel("location")
 
+
 def load_standard_gbd_2019_data_as_gbd_2021_data(key: str, location: str) -> pd.DataFrame:
     gbd_2019_data = load_standard_data(key, location)
     return utilities.reshape_gbd_2019_data_as_gbd_2021_data(gbd_2019_data)
+
 
 def load_metadata(key: str, location: str):
     key = EntityKey(key)
@@ -379,14 +385,22 @@ def load_cgf_exposure(key: str, location: str) -> pd.DataFrame:
     data = reshape_to_vivarium_format(data, location)
     return data
 
+
 def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
     key = EntityKey(key)
     entity = utilities.get_gbd_2021_entity(key)
     location_id = (
         utility_data.get_location_id(location) if isinstance(location, str) else location
     )
-    data = utilities.get_data(key, entity, location, gbd_constants.SOURCES.EXPOSURE, 'rei_id',
-                              metadata.AGE_GROUP.GBD_2021, metadata.GBD_2021_ROUND_ID)
+    data = utilities.get_data(
+        key,
+        entity,
+        location,
+        gbd_constants.SOURCES.EXPOSURE,
+        "rei_id",
+        metadata.AGE_GROUP.GBD_2021,
+        metadata.GBD_2021_ROUND_ID,
+    )
     data = data.drop(["modelable_entity_id", "model_version_id"], "columns")
 
     data = vi_utils.filter_data_by_restrictions(
@@ -416,9 +430,15 @@ def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
     )
     data = data.filter(DEMOGRAPHIC_COLUMNS + DRAW_COLUMNS + ["parameter"])
     data = utilities.validate_and_reshape_gbd_data(
-        data, entity, key, location, gbd_round_id=metadata.GBD_2021_ROUND_ID, age_group_ids=metadata.AGE_GROUP.GBD_2021,
+        data,
+        entity,
+        key,
+        location,
+        gbd_round_id=metadata.GBD_2021_ROUND_ID,
+        age_group_ids=metadata.AGE_GROUP.GBD_2021,
     )
     return data
+
 
 def load_gbd_2021_rr(key: str, location: str) -> pd.DataFrame:
     entity_key = EntityKey(key)
@@ -429,21 +449,30 @@ def load_gbd_2021_rr(key: str, location: str) -> pd.DataFrame:
         entity,
         location,
         gbd_constants.SOURCES.RR,
-        'rei_id',
+        "rei_id",
         metadata.AGE_GROUP.GBD_2021,
-        metadata.GBD_2021_ROUND_ID
+        metadata.GBD_2021_ROUND_ID,
     )
-    data = utilities.process_relative_risk(data, entity_key, entity, location, metadata.GBD_2021_ROUND_ID,
-                                           metadata.AGE_GROUP.GBD_2021)
+    data = utilities.process_relative_risk(
+        data,
+        entity_key,
+        entity,
+        location,
+        metadata.GBD_2021_ROUND_ID,
+        metadata.AGE_GROUP.GBD_2021,
+    )
 
     if key == data_keys.STUNTING.RELATIVE_RISK:
         # Remove neonatal relative risks
-        neonatal_age_ends = data.index.get_level_values('age_end').unique()[:2]
-        data.loc[data.index.get_level_values('age_end').isin(neonatal_age_ends)] = 1.0
+        neonatal_age_ends = data.index.get_level_values("age_end").unique()[:2]
+        data.loc[data.index.get_level_values("age_end").isin(neonatal_age_ends)] = 1.0
     elif key == data_keys.WASTING.RELATIVE_RISK:
         # Remove relative risks for simulants under 6 months
-        data.loc[data.index.get_level_values('age_end') <= data_values.WASTING.START_AGE] = 1.0
+        data.loc[
+            data.index.get_level_values("age_end") <= data_values.WASTING.START_AGE
+        ] = 1.0
     return data
+
 
 def get_exposure_without_model_version_id(
     entity: Union[RiskFactor, AlternativeRiskFactor], location_id: int
@@ -526,16 +555,18 @@ def load_pem_restrictions(key: str, location: str) -> pd.DataFrame:
     metadata = load_metadata(data_keys.PEM.RESTRICTIONS, location)
     return metadata
 
+
 #####################
 # MAM/SAM Treatment #
 #####################
+
 
 # noinspection PyUnusedLocal
 def load_wasting_treatment_distribution(key: str, location: str) -> str:
     if key in [data_keys.SAM_TREATMENT.DISTRIBUTION, data_keys.MAM_TREATMENT.DISTRIBUTION]:
         return data_values.WASTING.DISTRIBUTION
     else:
-        raise ValueError(f'Unrecognized key {key}')
+        raise ValueError(f"Unrecognized key {key}")
 
 
 # noinspection PyUnusedLocal
@@ -543,7 +574,7 @@ def load_wasting_treatment_categories(key: str, location: str) -> str:
     if key in [data_keys.SAM_TREATMENT.CATEGORIES, data_keys.MAM_TREATMENT.CATEGORIES]:
         return data_values.WASTING.CATEGORIES
     else:
-        raise ValueError(f'Unrecognized key {key}')
+        raise ValueError(f"Unrecognized key {key}")
 
 
 def load_wasting_treatment_exposure(key: str, location: str) -> pd.DataFrame:
@@ -552,51 +583,60 @@ def load_wasting_treatment_exposure(key: str, location: str) -> pd.DataFrame:
     elif key == data_keys.MAM_TREATMENT.EXPOSURE:
         coverage_distribution = data_values.WASTING.BASELINE_MAM_TX_COVERAGE
     else:
-        raise ValueError(f'Unrecognized key {key}')
+        raise ValueError(f"Unrecognized key {key}")
 
     treatment_coverage = get_random_variable_draws(
         metadata.ARTIFACT_COLUMNS, *coverage_distribution
     )
 
     idx = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index
-    cat3 = pd.DataFrame({f'draw_{i}': 0.0 for i in range(0, 1000)}, index=idx)
-    cat2 = pd.DataFrame({f'draw_{i}': 1.0 for i in range(0, 1000)}, index=idx) * treatment_coverage
+    cat3 = pd.DataFrame({f"draw_{i}": 0.0 for i in range(0, 1000)}, index=idx)
+    cat2 = (
+        pd.DataFrame({f"draw_{i}": 1.0 for i in range(0, 1000)}, index=idx)
+        * treatment_coverage
+    )
     cat1 = 1 - cat2
 
-    cat1['parameter'] = 'cat1'
-    cat2['parameter'] = 'cat2'
-    cat3['parameter'] = 'cat3'
+    cat1["parameter"] = "cat1"
+    cat2["parameter"] = "cat2"
+    cat3["parameter"] = "cat3"
 
-    exposure = pd.concat([cat1, cat2, cat3]).set_index('parameter', append=True).sort_index()
+    exposure = pd.concat([cat1, cat2, cat3]).set_index("parameter", append=True).sort_index()
     return exposure
 
 
 def load_sam_treatment_rr(key: str, location: str) -> pd.DataFrame:
     # tmrel is defined as baseline treatment (cat_2)
     if key != data_keys.SAM_TREATMENT.RELATIVE_RISK:
-        raise ValueError(f'Unrecognized key {key}')
+        raise ValueError(f"Unrecognized key {key}")
 
     demography = get_data(data_keys.POPULATION.DEMOGRAPHY, location).reset_index()
-    sam_tx_efficacy, sam_tx_efficacy_tmrel = utilities.get_treatment_efficacy(demography, data_keys.WASTING.CAT1)
+    sam_tx_efficacy, sam_tx_efficacy_tmrel = utilities.get_treatment_efficacy(
+        demography, data_keys.WASTING.CAT1
+    )
 
     # rr_t1 = t1 / t1_tmrel
     #       = (sam_tx_efficacy / sam_tx_duration) / (sam_tx_efficacy_tmrel / sam_tx_duration)
     #       = sam_tx_efficacy / sam_tx_efficacy_tmrel
     rr_sam_treated_remission = sam_tx_efficacy / sam_tx_efficacy_tmrel
-    rr_sam_treated_remission['affected_entity'] = 'severe_acute_malnutrition_to_mild_child_wasting'
+    rr_sam_treated_remission[
+        "affected_entity"
+    ] = "severe_acute_malnutrition_to_mild_child_wasting"
 
     # rr_r2 = r2 / r2_tmrel
     #       = (1 - sam_tx_efficacy) * (r2_ux) / (1 - sam_tx_efficacy_tmrel) * (r2_ux)
     #       = (1 - sam_tx_efficacy) / (1 - sam_tx_efficacy_tmrel)
     rr_sam_untreated_remission = (1 - sam_tx_efficacy) / (1 - sam_tx_efficacy_tmrel)
-    rr_sam_untreated_remission['affected_entity'] = 'severe_acute_malnutrition_to_moderate_acute_malnutrition'
+    rr_sam_untreated_remission[
+        "affected_entity"
+    ] = "severe_acute_malnutrition_to_moderate_acute_malnutrition"
 
-    rr = pd.concat(
-        [rr_sam_treated_remission, rr_sam_untreated_remission]
+    rr = pd.concat([rr_sam_treated_remission, rr_sam_untreated_remission])
+    rr["affected_measure"] = "transition_rate"
+    rr = rr.set_index(["affected_entity", "affected_measure"], append=True)
+    rr.index = rr.index.reorder_levels(
+        [col for col in rr.index.names if col != "parameter"] + ["parameter"]
     )
-    rr['affected_measure'] = 'transition_rate'
-    rr = rr.set_index(['affected_entity', 'affected_measure'], append=True)
-    rr.index = rr.index.reorder_levels([col for col in rr.index.names if col != 'parameter'] + ['parameter'])
     rr.sort_index()
     return rr
 
@@ -604,39 +644,46 @@ def load_sam_treatment_rr(key: str, location: str) -> pd.DataFrame:
 def load_mam_treatment_rr(key: str, location: str) -> pd.DataFrame:
     # tmrel is defined as baseline treatment (cat_2)
     if key != data_keys.MAM_TREATMENT.RELATIVE_RISK:
-        raise ValueError(f'Unrecognized key {key}')
+        raise ValueError(f"Unrecognized key {key}")
 
     demography = get_data(data_keys.POPULATION.DEMOGRAPHY, location).reset_index()
-    mam_tx_efficacy, mam_tx_efficacy_tmrel = utilities.get_treatment_efficacy(demography, data_keys.WASTING.CAT2)
+    mam_tx_efficacy, mam_tx_efficacy_tmrel = utilities.get_treatment_efficacy(
+        demography, data_keys.WASTING.CAT2
+    )
     index = mam_tx_efficacy.index
 
     mam_ux_duration = data_values.WASTING.MAM_UX_RECOVERY_TIME_OVER_6MO
     mam_tx_duration = pd.Series(index=index)
-    mam_tx_duration[index.get_level_values('age_start') < 0.5] = data_values.WASTING.MAM_TX_RECOVERY_TIME_UNDER_6MO
-    mam_tx_duration[0.5 <= index.get_level_values('age_start')] = (
-        get_random_variable_draws(
-            mam_tx_duration[0.5 <= index.get_level_values('age_start')].index,
-            *data_values.WASTING.MAM_TX_RECOVERY_TIME_OVER_6MO)
+    mam_tx_duration[
+        index.get_level_values("age_start") < 0.5
+    ] = data_values.WASTING.MAM_TX_RECOVERY_TIME_UNDER_6MO
+    mam_tx_duration[0.5 <= index.get_level_values("age_start")] = get_random_variable_draws(
+        mam_tx_duration[0.5 <= index.get_level_values("age_start")].index,
+        *data_values.WASTING.MAM_TX_RECOVERY_TIME_OVER_6MO,
     )
-    mam_tx_duration = (
-        pd.DataFrame({f'draw_{i}': 1 for i in range(0, 1000)}, index=index)
-        .multiply(mam_tx_duration, axis='index')
-    )
+    mam_tx_duration = pd.DataFrame(
+        {f"draw_{i}": 1 for i in range(0, 1000)}, index=index
+    ).multiply(mam_tx_duration, axis="index")
 
     # rr_r3 = r3 / r3_tmrel
     #       = (mam_tx_efficacy / mam_tx_duration) + (1 - mam_tx_efficacy / mam_ux_duration)
     #           / (mam_tx_efficacy_tmrel / mam_tx_duration) + (1 - mam_tx_efficacy_tmrel / mam_ux_duration)
     #       = (mam_tx_efficacy * mam_ux_duration + (1 - mam_tx_efficacy) * mam_tx_duration)
     #           / (mam_tx_efficacy_tmrel * mam_ux_duration + (1 - mam_tx_efficacy_tmrel) * mam_tx_duration)
-    rr = ((mam_tx_efficacy * mam_ux_duration + (1 - mam_tx_efficacy) * mam_tx_duration)
-          / (mam_tx_efficacy_tmrel * mam_ux_duration + (1 - mam_tx_efficacy_tmrel) * mam_tx_duration))
+    rr = (mam_tx_efficacy * mam_ux_duration + (1 - mam_tx_efficacy) * mam_tx_duration) / (
+        mam_tx_efficacy_tmrel * mam_ux_duration
+        + (1 - mam_tx_efficacy_tmrel) * mam_tx_duration
+    )
 
-    rr['affected_entity'] = 'moderate_acute_malnutrition_to_mild_child_wasting'
-    rr['affected_measure'] = 'transition_rate'
-    rr = rr.set_index(['affected_entity', 'affected_measure'], append=True)
-    rr.index = rr.index.reorder_levels([col for col in rr.index.names if col != 'parameter'] + ['parameter'])
+    rr["affected_entity"] = "moderate_acute_malnutrition_to_mild_child_wasting"
+    rr["affected_measure"] = "transition_rate"
+    rr = rr.set_index(["affected_entity", "affected_measure"], append=True)
+    rr.index = rr.index.reorder_levels(
+        [col for col in rr.index.names if col != "parameter"] + ["parameter"]
+    )
     rr.sort_index()
     return rr
+
 
 def load_lbwsg_exposure(key: str, location: str) -> pd.DataFrame:
     if key != data_keys.LBWSG.EXPOSURE:
@@ -919,7 +966,6 @@ def load_risk_specific_shift(key: str, location: str) -> pd.DataFrame:
 
 
 def load_baseline_ifa_supplementation_coverage(location: str) -> pd.DataFrame:
-
     index = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index
     location_id = utility_data.get_location_id(location)
     intervention_scenarios = pd.read_csv(paths.MATERNAL_INTERVENTION_COVERAGE_CSV)
