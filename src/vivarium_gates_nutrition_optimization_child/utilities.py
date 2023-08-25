@@ -179,9 +179,7 @@ def get_norm_from_quantiles(
     return stats.norm(loc=mean, scale=sd)
 
 
-def get_uniform_distribution_from_limits(
-    lower_limit, upper_limit
-) -> stats.uniform:
+def get_uniform_distribution_from_limits(lower_limit, upper_limit) -> stats.uniform:
     # stats.uniform is over [loc, loc+scal]
     loc = lower_limit
     scale = upper_limit - lower_limit

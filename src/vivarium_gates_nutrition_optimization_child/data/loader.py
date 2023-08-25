@@ -277,9 +277,9 @@ def _load_em_from_meid(location, meid, measure):
 
 
 def load_duration(key: str, location: str) -> pd.DataFrame:
-    '''Get duration by sampling 1000 draws from the provided distributions
+    """Get duration by sampling 1000 draws from the provided distributions
     and convert from days to years. The duration will be the same for each
-    demographic group.'''
+    demographic group."""
     try:
         distribution = {
             data_keys.DIARRHEA.DURATION: data_values.DIARRHEA_DURATION,
@@ -330,10 +330,10 @@ def load_prevalence_from_incidence_and_duration(key: str, location: str) -> pd.D
 
 
 def load_malaria_prevalence(key: str, location: str) -> pd.DataFrame:
-    '''Get standard prevalence but update early neonatal data to be
+    """Get standard prevalence but update early neonatal data to be
     (birth_prevalence + prevalence_cause) / 2
     where birth_prevalence is 0 and prevalence_cause is cause prevalence from GBD.
-    '''
+    """
     prevalence = load_standard_data(key, location)
     birth_prevalence = data_values.BIRTH_PREVALENCE_OF_ZERO
     enn_prevalence = prevalence.query("age_start == 0")
@@ -365,7 +365,7 @@ def load_remission_rate_from_duration(key: str, location: str) -> pd.DataFrame:
 
 
 def load_malaria_remission_rate_from_duration(key: str, location: str) -> pd.DataFrame:
-    '''Return 1 / duration.'''
+    """Return 1 / duration."""
     try:
         cause = {
             data_keys.MALARIA.REMISSION_RATE: data_keys.MALARIA,

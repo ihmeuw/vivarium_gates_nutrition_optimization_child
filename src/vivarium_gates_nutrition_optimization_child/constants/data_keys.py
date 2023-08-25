@@ -134,24 +134,12 @@ class __Malaria(NamedTuple):
     # Keys that will be loaded into the artifact. must have a colon type declaration
     DURATION: TargetString = TargetString("cause.malaria.duration")
     PREVALENCE: TargetString = TargetString("cause.malaria.prevalence")
-    INCIDENCE_RATE: TargetString = TargetString(
-        "cause.malaria.incidence_rate"
-    )
-    REMISSION_RATE: TargetString = TargetString(
-       "cause.malaria.remission_rate"
-    )
-    DISABILITY_WEIGHT: TargetString = TargetString(
-        "cause.malaria.disability_weight"
-    )
-    EMR: TargetString = TargetString(
-        "cause.malaria.excess_mortality_rate"
-    )
-    CSMR: TargetString = TargetString(
-        "cause.malaria.cause_specific_mortality_rate"
-    )
-    RESTRICTIONS: TargetString = TargetString(
-        "cause.malaria.restrictions"
-    )
+    INCIDENCE_RATE: TargetString = TargetString("cause.malaria.incidence_rate")
+    REMISSION_RATE: TargetString = TargetString("cause.malaria.remission_rate")
+    DISABILITY_WEIGHT: TargetString = TargetString("cause.malaria.disability_weight")
+    EMR: TargetString = TargetString("cause.malaria.excess_mortality_rate")
+    CSMR: TargetString = TargetString("cause.malaria.cause_specific_mortality_rate")
+    RESTRICTIONS: TargetString = TargetString("cause.malaria.restrictions")
 
     @property
     def name(self):
