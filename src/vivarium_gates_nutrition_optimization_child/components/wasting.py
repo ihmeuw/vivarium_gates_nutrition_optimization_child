@@ -249,22 +249,22 @@ def DynamicChildWasting() -> RiskModel:
     )
 
 # noinspection PyUnusedLocal
-def load_pem_excess_mortality_rate(cause: str, builder: Builder) -> pd.DataFrame:
+def load_pem_excess_mortality_rate(builder: Builder, cause: str) -> pd.DataFrame:
     return builder.data.load(data_keys.PEM.EMR)
 
 
 # noinspection PyUnusedLocal
-def load_mild_wasting_birth_prevalence(cause: str, builder: Builder) -> pd.DataFrame:
+def load_mild_wasting_birth_prevalence(builder: Builder, cause: str) -> pd.DataFrame:
     return load_child_wasting_birth_prevalence(builder, WASTING.CAT3)
 
 
 # noinspection PyUnusedLocal
-def load_mild_wasting_exposure(cause: str, builder: Builder) -> pd.DataFrame:
+def load_mild_wasting_exposure(builder: Builder, cause: str) -> pd.DataFrame:
     return load_child_wasting_exposures(builder)[WASTING.CAT3].reset_index()
 
 
 # noinspection PyUnusedLocal, DuplicatedCode
-def load_mild_wasting_incidence_rate(cause: str, builder: Builder) -> pd.DataFrame:
+def load_mild_wasting_incidence_rate(builder: Builder, cause: str) -> pd.DataFrame:
     exposures = load_child_wasting_exposures(builder)
     adjustment = load_acmr_adjustment(builder)
     mortality_probs = load_daily_mortality_probabilities(builder)
@@ -299,7 +299,7 @@ def get_daily_mild_incidence_probability(
 
 
 # noinspection PyUnusedLocal
-def load_mild_wasting_remission_rate(cause: str, builder: Builder) -> pd.DataFrame:
+def load_mild_wasting_remission_rate(builder: Builder, cause: str) -> pd.DataFrame:
     index = _get_index(builder)
     daily_probability = get_mild_wasting_remission_probability(builder, index)
     incidence_rate = _convert_daily_probability_to_annual_rate(daily_probability)
@@ -320,12 +320,12 @@ def get_mild_wasting_remission_probability(builder: Builder, index: pd.Index) ->
 
 
 # noinspection PyUnusedLocal
-def load_mam_birth_prevalence(cause: str, builder: Builder) -> pd.DataFrame:
+def load_mam_birth_prevalence(builder: Builder, cause: str) -> pd.DataFrame:
     return load_child_wasting_birth_prevalence(builder, WASTING.CAT2)
 
 
 # noinspection PyUnusedLocal
-def load_mam_exposure(cause: str, builder: Builder) -> pd.DataFrame:
+def load_mam_exposure(builder: Builder, cause: str) -> pd.DataFrame:
     return load_child_wasting_exposures(builder)[WASTING.CAT2].reset_index()
 
 
