@@ -39,6 +39,7 @@ class ChildWasting:
         return "ChildWasting()"
     
     def setup(self, builder: Builder):
+        self.population_view = builder.population.get_view(["age", self.dynamic_model.state_column])
         self.exposure = builder.value.register_value_producer(
             f'{self.name}.exposure',
             source=self.get_current_exposure,
@@ -54,13 +55,11 @@ class ChildWasting:
     ##################################
 
     def get_current_exposure(self, index: pd.Index) -> pd.Series:
-
-        return self.static_model.exposure(index)
-    # def get_current_exposure(self, index: pd.Index) -> pd.Series:
-    #     wasting_state = (
-    #         self.population_view.subview([self.state_column]).get(index).squeeze(axis=1)
-    #     )
-    #     return wasting_state.apply(models.get_risk_category)
+        exposure = self.static_model.exposure(index)
+        pop = self.population_view.get(index)
+        over_six_months = pop['age'] >= 0.5
+        exposure[over_six_months] = pop[over_six_months, self.dynamic_model.state_column].apply(models.get_risk_category)
+        return exposure
 
 class StaticChildWasting(Risk):
 
