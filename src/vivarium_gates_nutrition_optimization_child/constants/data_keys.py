@@ -132,6 +132,7 @@ LRI = __LowerRespiratoryInfections()
 class __Malaria(NamedTuple):
 
     # Keys that will be loaded into the artifact. must have a colon type declaration
+    DURATION: TargetString = TargetString("cause.malaria.duration")
     PREVALENCE: TargetString = TargetString("cause.malaria.prevalence")
     INCIDENCE_RATE: TargetString = TargetString(
         "cause.malaria.incidence_rate"

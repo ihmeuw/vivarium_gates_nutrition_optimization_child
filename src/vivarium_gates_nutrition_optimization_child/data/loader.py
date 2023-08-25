@@ -93,7 +93,8 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.LRI.EMR: load_emr_from_csmr_and_prevalence,
         data_keys.LRI.CSMR: load_lri_csmr,
         data_keys.LRI.RESTRICTIONS: load_metadata,
-        data_keys.MALARIA.PREVALENCE: load_prevalence_malaria,
+        data_keys.MALARIA.DURATION: load_duration,
+        data_keys.MALARIA.PREVALENCE: load_malaria_prevalence,
         data_keys.MALARIA.INCIDENCE_RATE: load_standard_data,
         data_keys.MALARIA.REMISSION_RATE: load_malaria_remission_rate_from_duration,
         data_keys.MALARIA.DISABILITY_WEIGHT: load_standard_data,
@@ -328,7 +329,7 @@ def load_prevalence_from_incidence_and_duration(key: str, location: str) -> pd.D
     return prevalence
 
 
-def load_prevalence_malaria(key: str, location: str) -> pd.DataFrame:
+def load_malaria_prevalence(key: str, location: str) -> pd.DataFrame:
     '''Get standard prevalence but update early neonatal data to be
     (birth_prevalence + prevalence_cause) / 2
     where birth_prevalence is 0 and prevalence_cause is cause prevalence from GBD.
