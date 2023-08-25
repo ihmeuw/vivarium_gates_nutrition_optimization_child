@@ -68,7 +68,37 @@ class RiskModel(DiseaseModel):
 
     # noinspection PyAttributeOutsideInit
     def setup(self, builder: Builder):
-        super().setup(builder)
+        self.configuration_age_start = builder.configuration.population.age_start
+        self.configuration_age_end = builder.configuration.population.age_end
+
+        cause_specific_mortality_rate = self.load_cause_specific_mortality_rate_data(builder)
+        self.cause_specific_mortality_rate = builder.lookup.build_table(
+            cause_specific_mortality_rate,
+            key_columns=['sex'],
+            parameter_columns=['age', 'year'],
+        )
+
+        builder.value.register_value_modifier(
+            'cause_specific_mortality_rate',
+            self.adjust_cause_specific_mortality_rate,
+            requires_columns=['age', 'sex']
+        )
+
+        self.population_view = builder.population.get_view(
+            ['age', 'sex', self.state_column, f'initial_{self.state_column}_propensity']
+        )
+
+        builder.population.initializes_simulants(
+            self.on_initialize_simulants,
+            creates_columns=[self.state_column, f'initial_{self.state_column}_propensity'],
+            requires_columns=['age', 'sex'],
+            requires_streams=[f'{self.state_column}_initial_states'],
+        )
+
+        self.randomness = builder.randomness.get_stream(f'{self.state_column}_initial_states')
+
+        builder.event.register_listener('time_step', self.on_time_step)
+        builder.event.register_listener('time_step__cleanup', self.on_time_step_cleanup)
 
         self.exposure = builder.value.register_value_producer(
             f'{self.state_column}.exposure',

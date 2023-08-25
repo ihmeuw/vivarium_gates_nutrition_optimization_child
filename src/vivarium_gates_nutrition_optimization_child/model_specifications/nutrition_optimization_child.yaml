@@ -22,11 +22,12 @@ components:
         metrics:
             - DiseaseObserver('diarrheal_diseases')
             - DiseaseObserver('measles')
+            - DiseaseObserver('child_wasting')
             - DiseaseObserver('lower_respiratory_infections')
             - DiseaseObserver('moderate_protein_energy_malnutrition')
             - DiseaseObserver('severe_protein_energy_malnutrition')
             - CategoricalRiskObserver('child_stunting')
-            - CategoricalRiskObserver('child_wasting')
+            # - CategoricalRiskObserver('child_wasting')
 
     vivarium_gates_nutrition_optimization_child:
         components:
