@@ -1,12 +1,12 @@
 from typing import Dict, NamedTuple, Tuple
 
-from scipy import stats
 import pandas as pd
+from scipy import stats
 
 from vivarium_gates_nutrition_optimization_child.constants.metadata import YEAR_DURATION
 from vivarium_gates_nutrition_optimization_child.utilities import (
-    get_norm_from_quantiles,
     get_lognorm_from_quantiles,
+    get_norm_from_quantiles,
     get_truncnorm_from_quantiles,
     get_truncnorm_from_sd,
 )

@@ -35,7 +35,9 @@ from vivarium_gates_nutrition_optimization_child.constants.metadata import (
     GBD_2021_ROUND_ID,
     NEONATAL_END_AGE,
 )
-from vivarium_gates_nutrition_optimization_child.utilities import get_random_variable_draws
+from vivarium_gates_nutrition_optimization_child.utilities import (
+    get_random_variable_draws,
+)
 
 
 def get_data(

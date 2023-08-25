@@ -3,12 +3,14 @@ from typing import Callable, Dict, Tuple, Union
 import numpy as np
 import pandas as pd
 from vivarium.framework.engine import Builder
+from vivarium.framework.event import Event
 from vivarium.framework.lookup import LookupTable
 from vivarium.framework.population import PopulationView, SimulantData
-from vivarium.framework.event import Event
-from vivarium_public_health.risks import Risk
-from vivarium_public_health.risks.data_transformations import get_exposure_post_processor
 from vivarium_public_health.disease import DiseaseModel, DiseaseState, SusceptibleState
+from vivarium_public_health.risks import Risk
+from vivarium_public_health.risks.data_transformations import (
+    get_exposure_post_processor,
+)
 from vivarium_public_health.utilities import EntityString
 
 from vivarium_gates_nutrition_optimization_child.constants import (
@@ -44,7 +46,12 @@ class ChildWasting:
 
     def setup(self, builder: Builder):
         self.population_view = builder.population.get_view(
-            ["age", "sex", self.dynamic_model.state_column, self.static_model.propensity_column_name]
+            [
+                "age",
+                "sex",
+                self.dynamic_model.state_column,
+                self.static_model.propensity_column_name,
+            ]
         )
         self.exposure = builder.value.register_value_producer(
             f"{self.name}.exposure",
@@ -131,8 +138,8 @@ class WastingTreatment(Risk):
         propensity.loc[remitted_mask] = self.randomness.get_draw(remitted_mask.index)
         self.population_view.update(propensity)
 
-class DynamicChildWastingModel(DiseaseModel):
 
+class DynamicChildWastingModel(DiseaseModel):
     def setup(self, builder):
         """Perform this component's setup."""
         super(DiseaseModel, self).setup(builder)
@@ -152,7 +159,9 @@ class DynamicChildWastingModel(DiseaseModel):
             requires_columns=["age", "sex"],
         )
 
-        self.population_view = builder.population.get_view(["age", "sex", self.state_column, "static_child_wasting_propensity"])
+        self.population_view = builder.population.get_view(
+            ["age", "sex", self.state_column, "static_child_wasting_propensity"]
+        )
         builder.population.initializes_simulants(
             self.on_initialize_simulants,
             creates_columns=[self.state_column],
@@ -163,9 +172,11 @@ class DynamicChildWastingModel(DiseaseModel):
 
         builder.event.register_listener("time_step", self.on_time_step)
         builder.event.register_listener("time_step__cleanup", self.on_time_step_cleanup)
-     
+
     def on_initialize_simulants(self, pop_data):
-        population = self.population_view.subview(["age", "sex", "static_child_wasting_propensity"]).get(pop_data.index)
+        population = self.population_view.subview(
+            ["age", "sex", "static_child_wasting_propensity"]
+        ).get(pop_data.index)
 
         assert self.initial_state in {s.state_id for s in self.states}
 
@@ -195,7 +206,7 @@ class DynamicChildWastingModel(DiseaseModel):
     def assign_initial_status_to_simulants(
         simulants_df, state_names, weights_bins, propensities
     ):
-        simulants = simulants_df[["age", "sex","static_child_wasting_propensity"]].copy()
+        simulants = simulants_df[["age", "sex", "static_child_wasting_propensity"]].copy()
 
         choice_index = (propensities.values[np.newaxis].T > weights_bins).sum(axis=1)
         initial_states = pd.Series(np.array(state_names)[choice_index], index=simulants.index)
