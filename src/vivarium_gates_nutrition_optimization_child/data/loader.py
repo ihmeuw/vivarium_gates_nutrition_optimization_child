@@ -94,7 +94,7 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.LRI.CSMR: load_lri_csmr,
         data_keys.LRI.RESTRICTIONS: load_metadata,
         #data_keys.MALARIA.DURATION: load_duration,
-        #data_keys.MALARIA.PREVALENCE: load_prevalence_from_incidence_and_duration,
+        data_keys.MALARIA.PREVALENCE: load_prevalence_malaria,
         data_keys.MALARIA.INCIDENCE_RATE: load_standard_data,
         #data_keys.MALARIA.REMISSION_RATE: load_remission_rate_from_duration,
         data_keys.MALARIA.DISABILITY_WEIGHT: load_standard_data,
@@ -325,6 +325,21 @@ def load_prevalence_from_incidence_and_duration(key: str, location: str) -> pd.D
         prevalence = utilities.scrub_neonatal_age_groups(prevalence)
     return prevalence
 
+
+def load_prevalence_malaria(key: str, location: str) -> pd.DataFrame:
+    '''Get standard prevalence but update early neonatal data to be
+    (birth_prevalence + prevalence_cause) / 2
+    where birth_prevalence is 0 and prevalence_cause is cause prevalence from GBD.
+    '''
+    prevalence = load_standard_data(key, location)
+    birth_prevalence = data_values.BIRTH_PREVALENCE_OF_ZERO
+    enn_prevalence = prevalence.query("age_start == 0")
+    enn_prevalence = (birth_prevalence + enn_prevalence) / 2
+    all_other_prevalence = prevalence.query("age_start != 0.0")
+
+    prevalence = pd.concat([enn_prevalence, all_other_prevalence]).sort_index()
+
+    return prevalence
 
 def load_remission_rate_from_duration(key: str, location: str) -> pd.DataFrame:
     try:
