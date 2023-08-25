@@ -66,7 +66,7 @@ class ChildWasting:
     def get_current_exposure(self, index: pd.Index) -> pd.Series:
         exposure = self.static_model.exposure(index)
         pop = self.population_view.get(index)
-        over_six_months = pop["age"] >= 0.5
+        over_six_months = pop["age"] >= data_values.WASTING.START_AGE
         exposure[over_six_months] = pop.loc[
             over_six_months, self.dynamic_model.state_column
         ].apply(models.get_risk_category)
