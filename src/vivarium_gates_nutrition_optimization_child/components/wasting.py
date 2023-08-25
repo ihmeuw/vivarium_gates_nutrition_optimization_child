@@ -56,36 +56,6 @@ class ChildWasting:
             ),
         )
 
-        builder.population.initializes_simulants(
-            self.on_initialize_simulants,
-            requires_columns=[
-                self.dynamic_model.state_column,
-                self.static_model.propensity_column_name,
-            ],
-        )
-
-    ##################################
-    # Pipeline sources and modifiers #
-    ##################################
-
-    def on_initialize_simulants(self, pop_data: SimulantData) -> None:
-        population = self.population_view.get(pop_data.index)
-        state_names, weights_bins = self.dynamic_model.get_state_weights(
-            pop_data.index, "prevalence"
-            )
-        population['age'] = 0.49
-        condition_column = self.dynamic_model.assign_initial_status_to_simulants(
-                population,
-                state_names,
-                weights_bins,
-                population[self.static_model.propensity_column_name],
-            )
-
-        condition_column = condition_column.rename(
-                columns={"condition_state": self.dynamic_model.state_column}
-            )
-        self.population_view.update(condition_column)
-
     def get_current_exposure(self, index: pd.Index) -> pd.Series:
         exposure = self.static_model.exposure(index)
         pop = self.population_view.get(index)
@@ -161,9 +131,81 @@ class WastingTreatment(Risk):
         propensity.loc[remitted_mask] = self.randomness.get_draw(remitted_mask.index)
         self.population_view.update(propensity)
 
+class DynamicChildWastingModel(DiseaseModel):
+
+    def setup(self, builder):
+        """Perform this component's setup."""
+        super(DiseaseModel, self).setup(builder)
+
+        self.configuration_age_start = builder.configuration.population.age_start
+        self.configuration_age_end = builder.configuration.population.age_end
+
+        cause_specific_mortality_rate = self.load_cause_specific_mortality_rate_data(builder)
+        self.cause_specific_mortality_rate = builder.lookup.build_table(
+            cause_specific_mortality_rate,
+            key_columns=["sex"],
+            parameter_columns=["age", "year"],
+        )
+        builder.value.register_value_modifier(
+            "cause_specific_mortality_rate",
+            self.adjust_cause_specific_mortality_rate,
+            requires_columns=["age", "sex"],
+        )
+
+        self.population_view = builder.population.get_view(["age", "sex", self.state_column, "static_child_wasting_propensity"])
+        builder.population.initializes_simulants(
+            self.on_initialize_simulants,
+            creates_columns=[self.state_column],
+            requires_columns=["age", "sex", "static_child_wasting_propensity"],
+            requires_streams=[f"{self.state_column}_initial_states"],
+        )
+        self.randomness = builder.randomness.get_stream(f"{self.state_column}_initial_states")
+
+        builder.event.register_listener("time_step", self.on_time_step)
+        builder.event.register_listener("time_step__cleanup", self.on_time_step_cleanup)
+     
+    def on_initialize_simulants(self, pop_data):
+        population = self.population_view.subview(["age", "sex", "static_child_wasting_propensity"]).get(pop_data.index)
+
+        assert self.initial_state in {s.state_id for s in self.states}
+
+        state_names, weights_bins = self.get_state_weights(pop_data.index, "birth_prevalence")
+
+        if state_names and not population.empty:
+            # only do this if there are states in the model that supply prevalence data
+            population["sex_id"] = population.sex.apply({"Male": 1, "Female": 2}.get)
+
+            condition_column = self.assign_initial_status_to_simulants(
+                population,
+                state_names,
+                weights_bins,
+                population["static_child_wasting_propensity"],
+            )
+
+            condition_column = condition_column.rename(
+                columns={"condition_state": self.state_column}
+            )
+        else:
+            condition_column = pd.Series(
+                self.initial_state, index=population.index, name=self.state_column
+            )
+        self.population_view.update(condition_column)
+
+    @staticmethod
+    def assign_initial_status_to_simulants(
+        simulants_df, state_names, weights_bins, propensities
+    ):
+        simulants = simulants_df[["age", "sex","static_child_wasting_propensity"]].copy()
+
+        choice_index = (propensities.values[np.newaxis].T > weights_bins).sum(axis=1)
+        initial_states = pd.Series(np.array(state_names)[choice_index], index=simulants.index)
+
+        simulants.loc[:, "condition_state"] = initial_states
+        return simulants
+
 
 # noinspection PyPep8Naming
-def DynamicChildWasting() -> DiseaseModel:
+def DynamicChildWasting() -> DynamicChildWastingModel:
     tmrel = SusceptibleState(models.WASTING.MODEL_NAME)
     mild = DiseaseState(
         models.WASTING.MILD_STATE_NAME,
@@ -257,7 +299,7 @@ def DynamicChildWasting() -> DiseaseModel:
         },
     )
 
-    return DiseaseModel(
+    return DynamicChildWastingModel(
         models.WASTING.MODEL_NAME,
         get_data_functions={"cause_specific_mortality_rate": lambda *_: 0},
         states=[severe, moderate, mild, tmrel],
