@@ -7,9 +7,9 @@ components:
             - SIS('lower_respiratory_infections')
         risks:
             # - Risk('risk_factor.child_wasting')
-            - RiskEffect('risk_factor.child_wasting', 'cause.diarrheal_diseases.incidence_rate')
-            - RiskEffect('risk_factor.child_wasting', 'cause.measles.incidence_rate')
-            - RiskEffect('risk_factor.child_wasting', 'cause.lower_respiratory_infections.incidence_rate')
+            # - RiskEffect('risk_factor.child_wasting', 'cause.diarrheal_diseases.incidence_rate')
+            # - RiskEffect('risk_factor.child_wasting', 'cause.measles.incidence_rate')
+            # - RiskEffect('risk_factor.child_wasting', 'cause.lower_respiratory_infections.incidence_rate')
 
             - Risk('risk_factor.child_stunting')
             - RiskEffect('risk_factor.child_stunting', 'cause.diarrheal_diseases.incidence_rate')
@@ -22,12 +22,12 @@ components:
         metrics:
             - DiseaseObserver('diarrheal_diseases')
             - DiseaseObserver('measles')
-            - DiseaseObserver('child_wasting')
             - DiseaseObserver('lower_respiratory_infections')
             - DiseaseObserver('moderate_protein_energy_malnutrition')
             - DiseaseObserver('severe_protein_energy_malnutrition')
             - CategoricalRiskObserver('child_stunting')
             # - CategoricalRiskObserver('child_wasting')
+            - DiseaseObserver('dynamic_child_wasting')
 
     vivarium_gates_nutrition_optimization_child:
         components:
@@ -46,8 +46,8 @@ components:
             - AdditiveRiskEffect('risk_factor.maternal_bmi_anemia', 'risk_factor.birth_weight.birth_exposure')
             - BirthWeightShiftEffect()
             - SIS_with_birth_prevalence('diarrheal_diseases')
-            - RiskAttributableDisease('cause.moderate_protein_energy_malnutrition', 'risk_factor.child_wasting')
-            - RiskAttributableDisease('cause.severe_protein_energy_malnutrition', 'risk_factor.child_wasting')
+            # - RiskAttributableDisease('cause.moderate_protein_energy_malnutrition', 'risk_factor.child_wasting')
+            # - RiskAttributableDisease('cause.severe_protein_energy_malnutrition', 'risk_factor.child_wasting')
             - MortalityObserver()
             - ResultsStratifier()
 
@@ -100,14 +100,14 @@ configuration:
         - "neonatal_lower_respiratory_infections"
         - "neonatal_diarrheal_diseases"
 
-    moderate_protein_energy_malnutrition:
-        threshold: ['cat2']
-        mortality: True
-        recoverable: True
-    severe_protein_energy_malnutrition:
-        threshold: ['cat1']
-        mortality: True
-        recoverable: True
+    # moderate_protein_energy_malnutrition:
+    #     threshold: ['cat2']
+    #     mortality: True
+    #     recoverable: True
+    # severe_protein_energy_malnutrition:
+    #     threshold: ['cat1']
+    #     mortality: True
+    #     recoverable: True
 
     stratification:
         default:
@@ -116,9 +116,9 @@ configuration:
         child_stunting:
             include:
                 - "maternal_supplementation"
-        child_wasting:
-            include:
-                - "maternal_supplementation"
+        # dynamic_child_wasting:
+        #     include:
+        #         - "maternal_supplementation"
         birth:
             exclude:
                 - "age_group"
