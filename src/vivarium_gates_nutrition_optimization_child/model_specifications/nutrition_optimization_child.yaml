@@ -27,7 +27,7 @@ components:
             - DiseaseObserver('severe_protein_energy_malnutrition')
             - CategoricalRiskObserver('child_stunting')
             # - CategoricalRiskObserver('child_wasting')
-            - DiseaseObserver('dynamic_child_wasting')
+            - DiseaseObserver('child_wasting')
 
     vivarium_gates_nutrition_optimization_child:
         components:
@@ -36,7 +36,7 @@ components:
             - LBWSGLineList()
             - BirthObserver()
             - DisabilityObserver()
-            - DynamicChildWasting()
+            - ChildWasting()
             - WastingTreatment('risk_factor.severe_acute_malnutrition_treatment')
             - WastingTreatment('risk_factor.moderate_acute_malnutrition_treatment')
             - MaternalCharacteristics()
@@ -46,8 +46,8 @@ components:
             - AdditiveRiskEffect('risk_factor.maternal_bmi_anemia', 'risk_factor.birth_weight.birth_exposure')
             - BirthWeightShiftEffect()
             - SIS_with_birth_prevalence('diarrheal_diseases')
-            # - RiskAttributableDisease('cause.moderate_protein_energy_malnutrition', 'risk_factor.child_wasting')
-            # - RiskAttributableDisease('cause.severe_protein_energy_malnutrition', 'risk_factor.child_wasting')
+            - RiskAttributableDisease('cause.moderate_protein_energy_malnutrition', 'risk_factor.child_wasting')
+            - RiskAttributableDisease('cause.severe_protein_energy_malnutrition', 'risk_factor.child_wasting')
             - MortalityObserver()
             - ResultsStratifier()
 
@@ -100,14 +100,14 @@ configuration:
         - "neonatal_lower_respiratory_infections"
         - "neonatal_diarrheal_diseases"
 
-    # moderate_protein_energy_malnutrition:
-    #     threshold: ['cat2']
-    #     mortality: True
-    #     recoverable: True
-    # severe_protein_energy_malnutrition:
-    #     threshold: ['cat1']
-    #     mortality: True
-    #     recoverable: True
+    moderate_protein_energy_malnutrition:
+        threshold: ['cat2']
+        mortality: True
+        recoverable: True
+    severe_protein_energy_malnutrition:
+        threshold: ['cat1']
+        mortality: True
+        recoverable: True
 
     stratification:
         default:

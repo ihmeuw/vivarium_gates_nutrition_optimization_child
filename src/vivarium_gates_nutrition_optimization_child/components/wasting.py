@@ -21,7 +21,7 @@ class ChildWasting:
 
     def __init__(self):
         self.dynamic_model = DynamicChildWasting()
-        self.static_model = Risk('risk_factor.child_wasting')
+        self.static_model = StaticChildWasting()
 
     @property
     def sub_components(self):
@@ -29,108 +29,58 @@ class ChildWasting:
             self.dynamic_model,
             self.static_model,
         ]
+        # noinspection PyAttributeOutsideInit
 
-class RiskModel(DiseaseModel):
-
-    configuration_defaults = {
-        "risk": {
-            "mild_child_wasting_untreated_recovery_time":
-                data_values.WASTING.DEFAULT_MILD_WASTING_UX_RECOVERY_TIME,
-        }
-    }
-
-    ##########################
-    # Initialization methods #
-    ##########################
-
-    def __init__(self, risk, **kwargs):
-        super().__init__(risk, **kwargs)
-        self.configuration_defaults = self._get_configuration_defaults()
-
-    def _get_configuration_defaults(self) -> Dict[str, Dict]:
-        return {
-            self.state_column: {
-                **Risk.configuration_defaults['risk'], **RiskModel.configuration_defaults['risk']
-            }
-        }
-
-    # This would be a preferable name, but the generic DiseaseObserver works with no modifications
-    # if we use the standard naming from DiseaseModel. Extending to DiseaseObserver to RiskObserver
-    # would provide no functional gain and involve copy-pasting a bunch of code
-
-    # @property
-    # def name(self):
-    #     return f"risk_model.{self.state_column}"
-
-    #################
-    # Setup methods #
-    #################
-
-    # noinspection PyAttributeOutsideInit
+    @property
+    def name(self):
+        return f"child_wasting"
+    
+    def __repr__(self):
+        return "ChildWasting()"
+    
     def setup(self, builder: Builder):
-        self.configuration_age_start = builder.configuration.population.age_start
-        self.configuration_age_end = builder.configuration.population.age_end
-
-        cause_specific_mortality_rate = self.load_cause_specific_mortality_rate_data(builder)
-        self.cause_specific_mortality_rate = builder.lookup.build_table(
-            cause_specific_mortality_rate,
-            key_columns=['sex'],
-            parameter_columns=['age', 'year'],
-        )
-
-        builder.value.register_value_modifier(
-            'cause_specific_mortality_rate',
-            self.adjust_cause_specific_mortality_rate,
-            requires_columns=['age', 'sex']
-        )
-
-        self.population_view = builder.population.get_view(
-            ['age', 'sex', self.state_column, f'initial_{self.state_column}_propensity']
-        )
-
-        builder.population.initializes_simulants(
-            self.on_initialize_simulants,
-            creates_columns=[self.state_column, f'initial_{self.state_column}_propensity'],
-            requires_columns=['age', 'sex'],
-            requires_streams=[f'{self.state_column}_initial_states'],
-        )
-
-        self.randomness = builder.randomness.get_stream(f'{self.state_column}_initial_states')
-
-        builder.event.register_listener('time_step', self.on_time_step)
-        builder.event.register_listener('time_step__cleanup', self.on_time_step_cleanup)
-
         self.exposure = builder.value.register_value_producer(
-            f'{self.state_column}.exposure',
+            f'{self.name}.exposure',
             source=self.get_current_exposure,
-            requires_columns=['age', 'sex', self.state_column],
+            requires_columns=[self.static_model.propensity_column_name],
+            requires_values=[self.static_model.exposure_pipeline_name],
             preferred_post_processor=get_exposure_post_processor(
-                builder, EntityString(f'risk_factor.{self.state_column}')
+                builder, EntityString(f'risk_factor.{self.name}')
             )
         )
-
-    ########################
-    # Event-driven methods #
-    ########################
-
-    def on_initialize_simulants(self, pop_data):
-        super().on_initialize_simulants(pop_data)
-        initial_propensity = (
-            self.randomness
-            .get_draw(pop_data.index)
-            .rename(f'initial_{self.state_column}_propensity')
-        )
-        self.population_view.update(initial_propensity)
 
     ##################################
     # Pipeline sources and modifiers #
     ##################################
 
     def get_current_exposure(self, index: pd.Index) -> pd.Series:
-        wasting_state = (
-            self.population_view.subview([self.state_column]).get(index).squeeze(axis=1)
-        )
-        return wasting_state.apply(models.get_risk_category)
+
+        return self.static_model.exposure(index)
+    # def get_current_exposure(self, index: pd.Index) -> pd.Series:
+    #     wasting_state = (
+    #         self.population_view.subview([self.state_column]).get(index).squeeze(axis=1)
+    #     )
+    #     return wasting_state.apply(models.get_risk_category)
+
+class StaticChildWasting(Risk):
+
+    def __init__(self):
+        """
+        Parameters
+        ----------
+        risk :
+            the type and name of a risk, specified as "type.name". Type is singular.
+        """
+        self.risk = EntityString("risk_factor.child_wasting")
+        name = "static_child_wasting"
+        self.configuration_defaults = self._get_configuration_defaults()
+        self.exposure_distribution = self._get_exposure_distribution()
+        self._sub_components = [self.exposure_distribution]
+
+        self._randomness_stream_name = f"initial_{name}_propensity"
+        self.propensity_column_name = f"{name}_propensity"
+        self.propensity_pipeline_name = f"{name}.propensity"
+        self.exposure_pipeline_name = f"{name}.exposure"
 
 class WastingTreatment(Risk):
 
@@ -178,7 +128,7 @@ class WastingTreatment(Risk):
         self.population_view.update(propensity)
 
 # noinspection PyPep8Naming
-def DynamicChildWasting() -> RiskModel:
+def DynamicChildWasting() -> DiseaseModel:
     tmrel = SusceptibleState(models.WASTING.MODEL_NAME)
     mild = DiseaseState(
         models.WASTING.MILD_STATE_NAME,
@@ -272,7 +222,7 @@ def DynamicChildWasting() -> RiskModel:
         }
     )
 
-    return RiskModel(
+    return DiseaseModel(
         models.WASTING.MODEL_NAME,
         get_data_functions={'cause_specific_mortality_rate': lambda *_: 0},
         states=[severe, moderate, mild, tmrel]
