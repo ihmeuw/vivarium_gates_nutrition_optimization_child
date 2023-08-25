@@ -453,7 +453,7 @@ def scrub_neonatal_age_groups(data: pd.DataFrame) -> pd.DataFrame:
     non_neonatal = data.query("age_start >= 1")
     post_neonatal = data.loc[
         (data.index.get_level_values("age_start") >= NEONATAL_END_AGE)
-        & (data.index.get_level_values("age_start") < 1)
+        & (data.index.get_level_values("age_start") < 0.5)
     ]
     early_neonatal = data.loc[data.index.get_level_values("age_start") == 0]
     late_neonatal = data.loc[

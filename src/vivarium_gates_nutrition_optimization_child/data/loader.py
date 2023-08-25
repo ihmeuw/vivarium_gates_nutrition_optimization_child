@@ -324,16 +324,16 @@ def load_prevalence_from_incidence_and_duration(key: str, location: str) -> pd.D
     prevalence = incidence_rate * duration
 
     # # get enn prevalence
-    # birth_prevalence = data_values.BIRTH_PREVALENCE_OF_ZERO
-    # enn_prevalence = prevalence.query("age_start == 0")
-    # enn_prevalence = (birth_prevalence + enn_prevalence) / 2
-    # all_other_prevalence = prevalence.query("age_start != 0.0")
+    birth_prevalence = data_values.BIRTH_PREVALENCE_OF_ZERO
+    enn_prevalence = prevalence.query("age_start == 0")
+    enn_prevalence = (birth_prevalence + enn_prevalence) / 2
+    all_other_prevalence = prevalence.query("age_start != 0.0")
 
-    # prevalence = pd.concat([enn_prevalence, all_other_prevalence]).sort_index()
+    prevalence = pd.concat([enn_prevalence, all_other_prevalence]).sort_index()
 
-    # # If cause is diarrhea, set early and late neonatal groups prevalence to that of post-neonatal age group
-    # if key == data_keys.DIARRHEA.PREVALENCE:
-    #     prevalence = utilities.scrub_neonatal_age_groups(prevalence)
+    # If cause is diarrhea, set early and late neonatal groups prevalence to that of post-neonatal age group
+    if key == data_keys.DIARRHEA.PREVALENCE:
+        prevalence = utilities.scrub_neonatal_age_groups(prevalence)
     return prevalence
 
 
