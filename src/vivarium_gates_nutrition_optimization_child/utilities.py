@@ -177,3 +177,12 @@ def get_norm_from_quantiles(
     stdnorm_quantiles = stats.norm.ppf(quantiles)
     sd = (upper - lower) / (stdnorm_quantiles[1] - stdnorm_quantiles[0])
     return stats.norm(loc=mean, scale=sd)
+
+
+def get_uniform_distribution_from_limits(
+    lower_limit, upper_limit
+) -> stats.uniform:
+    # stats.uniform is over [loc, loc+scal]
+    loc = lower_limit
+    scale = upper_limit - lower_limit
+    return stats.uniform(loc=loc, scale=scale)

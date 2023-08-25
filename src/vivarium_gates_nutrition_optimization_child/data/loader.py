@@ -93,7 +93,7 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.LRI.EMR: load_emr_from_csmr_and_prevalence,
         data_keys.LRI.CSMR: load_lri_csmr,
         data_keys.LRI.RESTRICTIONS: load_metadata,
-        #data_keys.MALARIA.DURATION: load_duration,
+        data_keys.MALARIA.DURATION: load_duration,
         data_keys.MALARIA.PREVALENCE: load_prevalence_malaria,
         data_keys.MALARIA.INCIDENCE_RATE: load_standard_data,
         #data_keys.MALARIA.REMISSION_RATE: load_remission_rate_from_duration,
@@ -276,12 +276,15 @@ def _load_em_from_meid(location, meid, measure):
     return vi_utils.sort_hierarchical_data(data)
 
 
-# TODO - add project-specific data functions here
 def load_duration(key: str, location: str) -> pd.DataFrame:
+    '''Get duration by sampling 1000 draws from the provided distributions
+    and convert from days to years. The duration will be the same for each
+    demographic group.'''
     try:
         distribution = {
             data_keys.DIARRHEA.DURATION: data_values.DIARRHEA_DURATION,
             data_keys.LRI.DURATION: data_values.LRI_DURATION,
+            data_keys.MALARIA.DURATION: data_values.MALARIA_DURATION,
         }[key]
     except KeyError:
         raise ValueError(f"Unrecognized key {key}")
