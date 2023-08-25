@@ -1101,7 +1101,8 @@ def load_diarrhea_birth_prevalence(key: str, location: str) -> pd.DataFrame:
     prevalence = get_data(data_keys.DIARRHEA.PREVALENCE, location)
     post_neonatal = prevalence.loc[
         (prevalence.index.get_level_values("age_start") >= metadata.NEONATAL_END_AGE)
-        & (prevalence.index.get_level_values("age_start") < 1)
+        ### I think this is just supposed to pull late neonatal, and the bin sizes have changed.
+        & (prevalence.index.get_level_values("age_start") < 0.5)
     ]
     data = post_neonatal.droplevel(["age_start", "age_end"])
 
