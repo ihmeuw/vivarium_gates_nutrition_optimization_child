@@ -93,10 +93,9 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.LRI.EMR: load_emr_from_csmr_and_prevalence,
         data_keys.LRI.CSMR: load_lri_csmr,
         data_keys.LRI.RESTRICTIONS: load_metadata,
-        data_keys.MALARIA.DURATION: load_duration,
         data_keys.MALARIA.PREVALENCE: load_prevalence_malaria,
         data_keys.MALARIA.INCIDENCE_RATE: load_standard_data,
-        #data_keys.MALARIA.REMISSION_RATE: load_remission_rate_from_duration,
+        data_keys.MALARIA.REMISSION_RATE: load_malaria_remission_from_duration,
         data_keys.MALARIA.DISABILITY_WEIGHT: load_standard_data,
         data_keys.MALARIA.EMR: load_standard_data,
         data_keys.MALARIA.CSMR: load_standard_data,
@@ -344,6 +343,7 @@ def load_prevalence_malaria(key: str, location: str) -> pd.DataFrame:
 
     return prevalence
 
+
 def load_remission_rate_from_duration(key: str, location: str) -> pd.DataFrame:
     try:
         cause = {
@@ -361,6 +361,18 @@ def load_remission_rate_from_duration(key: str, location: str) -> pd.DataFrame:
             remission_rate.index.get_level_values("age_start") < metadata.NEONATAL_END_AGE, :
         ] = 0
     return remission_rate
+
+
+def load_malaria_remission_rate_from_duration(key: str, location: str) -> pd.DataFrame:
+    '''Return 1 / duration.'''
+    try:
+        cause = {
+            data_keys.MALARIA.REMISSION_RATE: data_keys.MALARIA,
+        }[key]
+    except KeyError:
+        raise ValueError(f"Unrecognized key {key}")
+    duration = get_data(cause.DURATION, location)
+    return 1 / duration
 
 
 def load_emr_from_csmr_and_prevalence(key: str, location: str) -> pd.DataFrame:
