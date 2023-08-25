@@ -136,9 +136,9 @@ class __Malaria(NamedTuple):
     INCIDENCE_RATE: TargetString = TargetString(
         "cause.malaria.incidence_rate"
     )
-    #REMISSION_RATE: TargetString = TargetString(
-    #    "cause.malaria.remission_rate"
-    #)
+    REMISSION_RATE: TargetString = TargetString(
+       "cause.malaria.remission_rate"
+    )
     DISABILITY_WEIGHT: TargetString = TargetString(
         "cause.malaria.disability_weight"
     )
