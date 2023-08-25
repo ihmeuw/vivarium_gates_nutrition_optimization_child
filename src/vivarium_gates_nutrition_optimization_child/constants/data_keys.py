@@ -126,6 +126,30 @@ class __LowerRespiratoryInfections(NamedTuple):
 LRI = __LowerRespiratoryInfections()
 
 
+class __Malaria(NamedTuple):
+
+    # Keys that will be loaded into the artifact. must have a colon type declaration
+    DURATION: TargetString = TargetString("cause.malaria.duration")
+    PREVALENCE: TargetString = TargetString("cause.malaria.prevalence")
+    INCIDENCE_RATE: TargetString = TargetString("cause.malaria.incidence_rate")
+    REMISSION_RATE: TargetString = TargetString("cause.malaria.remission_rate")
+    DISABILITY_WEIGHT: TargetString = TargetString("cause.malaria.disability_weight")
+    EMR: TargetString = TargetString("cause.malaria.excess_mortality_rate")
+    CSMR: TargetString = TargetString("cause.malaria.cause_specific_mortality_rate")
+    RESTRICTIONS: TargetString = TargetString("cause.malaria.restrictions")
+
+    @property
+    def name(self):
+        return "malaria"
+
+    @property
+    def log_name(self):
+        return "malaria"
+
+
+MALARIA = __Malaria()
+
+
 class __ProteinEnergyMalnutrition(NamedTuple):
     # Keys that will be loaded into the artifact. must have a colon type declaration
     EMR: TargetString = TargetString(
@@ -327,6 +351,7 @@ class __LowBirthWeightShortGestation(NamedTuple):
 
     # Useful keys not for the artifact - distinguished by not using the colon type declaration
     BIRTH_WEIGHT_EXPOSURE = TargetString("risk_factor.birth_weight.birth_exposure")
+    GESTATIONAL_AGE_EXPOSURE = TargetString("risk_factor.gestational_age.birth_exposure")
 
     @property
     def name(self):
@@ -434,16 +459,57 @@ def _get_additive_risk_keys(treatment_type: str) -> __AdditiveRisk:
 
 
 IFA_SUPPLEMENTATION = _get_additive_risk_keys("iron_folic_acid_supplementation")
-MMN_SUPPLEMENTATION = _get_additive_risk_keys("multiple_micronutrient_supplementation")
 BEP_SUPPLEMENTATION = _get_additive_risk_keys("balanced_energy_protein_supplementation")
 IV_IRON = _get_additive_risk_keys("iv_iron")
 MATERNAL_BMI_ANEMIA = _get_additive_risk_keys("maternal_bmi_anemia")
+
+
+class __MMN_Supplementation(NamedTuple):
+    # Keys that will be loaded into the artifact. must have a colon type declaration
+    EXPOSURE: TargetString = TargetString(
+        "risk_factor.multiple_micronutrient_supplementation.exposure"
+    )
+    DISTRIBUTION: TargetString = TargetString(
+        "risk_factor.multiple_micronutrient_supplementation.distribution"
+    )
+    CATEGORIES: TargetString = TargetString(
+        "risk_factor.multiple_micronutrient_supplementation.categories"
+    )
+    EXCESS_SHIFT: TargetString = TargetString(
+        "risk_factor.multiple_micronutrient_supplementation.excess_shift"
+    )
+    EXCESS_GA_SHIFT_SUBPOP_1: TargetString = TargetString(
+        "risk_factor.multiple_micronutrient_supplementation.excess_gestational_age_shift_subpop_1"
+    )
+    EXCESS_GA_SHIFT_SUBPOP_2: TargetString = TargetString(
+        "risk_factor.multiple_micronutrient_supplementation.excess_gestational_age_shift_subpop_2"
+    )
+    RISK_SPECIFIC_SHIFT: TargetString = TargetString(
+        "risk_factor.multiple_micronutrient_supplementation.risk_specific_shift"
+    )
+
+    # Useful keys not for the artifact - distinguished by not using the colon type declaration
+    CAT1 = "cat1"
+    CAT2 = "cat2"
+
+    @property
+    def name(self):
+        return self.EXPOSURE.name
+
+    @property
+    def log_name(self):
+        return self.name.replace("_", " ")
+
+
+MMN_SUPPLEMENTATION = __MMN_Supplementation()
+
 
 MAKE_ARTIFACT_KEY_GROUPS = [
     POPULATION,
     DIARRHEA,
     MEASLES,
     LRI,
+    MALARIA,
     STUNTING,
     WASTING,
     PEM,

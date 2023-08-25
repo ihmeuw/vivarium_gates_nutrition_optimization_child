@@ -51,16 +51,13 @@ class FertilityLineList:
         Method to load existing fertility data to use as birth records.
         """
         data_directory = Path(builder.configuration.input_data.fertility_input_data_path)
-        scenario = builder.configuration.intervention.scenario
+        scenario = builder.configuration.intervention.maternal_scenario
         draw = builder.configuration.input_data.input_draw_number
         seed = builder.configuration.randomness.random_seed
 
         file_path = data_directory / f"scenario_{scenario}_draw_{draw}_seed_{seed}.hdf"
         birth_records = pd.read_hdf(file_path)
-        # Hard coding for now because input data has the wrong birth date
-        # TODO: remove hardcoding and keep type casting once fertility_input_data_path
-        # TODO: contains this birth date
-        birth_records["birth_date"] = pd.to_datetime("2024-12-30")
+        birth_records["birth_date"] = pd.to_datetime(birth_records["birth_date"])
         return birth_records
 
     def on_time_step(self, event: Event) -> None:

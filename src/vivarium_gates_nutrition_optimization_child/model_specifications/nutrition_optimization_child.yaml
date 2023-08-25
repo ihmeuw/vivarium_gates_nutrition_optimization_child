@@ -5,6 +5,7 @@ components:
         disease:
             - SIS_fixed_duration('measles', '10.0')
             - SIS('lower_respiratory_infections')
+            - SIS('malaria')
         risks:
             - Risk('risk_factor.child_wasting')
             - RiskEffect('risk_factor.child_wasting', 'cause.diarrheal_diseases.incidence_rate')
@@ -23,6 +24,7 @@ components:
             - DiseaseObserver('diarrheal_diseases')
             - DiseaseObserver('measles')
             - DiseaseObserver('lower_respiratory_infections')
+            - DiseaseObserver('malaria')
             - DiseaseObserver('moderate_protein_energy_malnutrition')
             - DiseaseObserver('severe_protein_energy_malnutrition')
             - CategoricalRiskObserver('child_stunting')
@@ -41,6 +43,8 @@ components:
             - AdditiveRiskEffect('risk_factor.multiple_micronutrient_supplementation', 'risk_factor.birth_weight.birth_exposure')
             - AdditiveRiskEffect('risk_factor.balanced_energy_protein_supplementation', 'risk_factor.birth_weight.birth_exposure')
             - AdditiveRiskEffect('risk_factor.maternal_bmi_anemia', 'risk_factor.birth_weight.birth_exposure')
+            - AdditiveRiskEffect('risk_factor.iron_folic_acid_supplementation', 'risk_factor.gestational_age.birth_exposure')
+            - MMSEffectOnGestationalAge()
             - BirthWeightShiftEffect()
             - SIS_with_birth_prevalence('diarrheal_diseases')
             - RiskAttributableDisease('cause.moderate_protein_energy_malnutrition', 'risk_factor.child_wasting')
@@ -52,9 +56,8 @@ configuration:
     input_data:
         input_draw_number: 0
         # Artifact can also be defined at runtime using -i flag
-        artifact_path: '/mnt/team/simulation_science/costeffectiveness/artifacts/vivarium_gates_nutrition_optimization_child/ethiopia.hdf'
-        # TODO: Update FertilityLineList once this data contains the correct birth date
-        fertility_input_data_path: '/mnt/team/simulation_science/costeffectiveness/results/vivarium_gates_nutrition_optimization/model7.0/ethiopia/2023_08_15_13_05_58/child_data'
+        artifact_path: '/mnt/team/simulation_science/costeffectiveness/artifacts/vivarium_gates_nutrition_optimization_child/model3.0/ethiopia.hdf'
+        fertility_input_data_path: '/mnt/team/simulation_science/costeffectiveness/results/vivarium_gates_nutrition_optimization/model8.0-and-model-6.0-bugfix/ethiopia/2023_08_18_13_38_11/child_data'
     interpolation:
         order: 0
         extrapolate: True
@@ -79,7 +82,8 @@ configuration:
         exit_age: 5
 
     intervention:
-        scenario: 'baseline'
+        child_scenario: 'baseline'
+        maternal_scenario: 'baseline'
 
     unmodeled_causes:
         - "upper_respiratory_infections"
