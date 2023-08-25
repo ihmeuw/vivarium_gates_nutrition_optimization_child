@@ -93,6 +93,14 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.LRI.EMR: load_emr_from_csmr_and_prevalence,
         data_keys.LRI.CSMR: load_lri_csmr,
         data_keys.LRI.RESTRICTIONS: load_metadata,
+        data_keys.MALARIA.DURATION: load_duration,
+        data_keys.MALARIA.PREVALENCE: load_malaria_prevalence,
+        data_keys.MALARIA.INCIDENCE_RATE: load_standard_data,
+        data_keys.MALARIA.REMISSION_RATE: load_malaria_remission_rate_from_duration,
+        data_keys.MALARIA.DISABILITY_WEIGHT: load_standard_data,
+        data_keys.MALARIA.EMR: load_standard_data,
+        data_keys.MALARIA.CSMR: load_standard_data,
+        data_keys.MALARIA.RESTRICTIONS: load_metadata,
         data_keys.WASTING.DISTRIBUTION: load_metadata,
         data_keys.WASTING.ALT_DISTRIBUTION: load_metadata,
         data_keys.WASTING.CATEGORIES: load_metadata,
@@ -268,12 +276,15 @@ def _load_em_from_meid(location, meid, measure):
     return vi_utils.sort_hierarchical_data(data)
 
 
-# TODO - add project-specific data functions here
 def load_duration(key: str, location: str) -> pd.DataFrame:
+    """Get duration by sampling 1000 draws from the provided distributions
+    and convert from days to years. The duration will be the same for each
+    demographic group."""
     try:
         distribution = {
             data_keys.DIARRHEA.DURATION: data_values.DIARRHEA_DURATION,
             data_keys.LRI.DURATION: data_values.LRI_DURATION,
+            data_keys.MALARIA.DURATION: data_values.MALARIA_DURATION,
         }[key]
     except KeyError:
         raise ValueError(f"Unrecognized key {key}")
@@ -318,6 +329,22 @@ def load_prevalence_from_incidence_and_duration(key: str, location: str) -> pd.D
     return prevalence
 
 
+def load_malaria_prevalence(key: str, location: str) -> pd.DataFrame:
+    """Get standard prevalence but update early neonatal data to be
+    (birth_prevalence + prevalence_cause) / 2
+    where birth_prevalence is 0 and prevalence_cause is cause prevalence from GBD.
+    """
+    prevalence = load_standard_data(key, location)
+    birth_prevalence = data_values.BIRTH_PREVALENCE_OF_ZERO
+    enn_prevalence = prevalence.query("age_start == 0")
+    enn_prevalence = (birth_prevalence + enn_prevalence) / 2
+    all_other_prevalence = prevalence.query("age_start != 0.0")
+
+    prevalence = pd.concat([enn_prevalence, all_other_prevalence]).sort_index()
+
+    return prevalence
+
+
 def load_remission_rate_from_duration(key: str, location: str) -> pd.DataFrame:
     try:
         cause = {
@@ -335,6 +362,18 @@ def load_remission_rate_from_duration(key: str, location: str) -> pd.DataFrame:
             remission_rate.index.get_level_values("age_start") < metadata.NEONATAL_END_AGE, :
         ] = 0
     return remission_rate
+
+
+def load_malaria_remission_rate_from_duration(key: str, location: str) -> pd.DataFrame:
+    """Return 1 / duration."""
+    try:
+        cause = {
+            data_keys.MALARIA.REMISSION_RATE: data_keys.MALARIA,
+        }[key]
+    except KeyError:
+        raise ValueError(f"Unrecognized key {key}")
+    duration = get_data(cause.DURATION, location)
+    return 1 / duration
 
 
 def load_emr_from_csmr_and_prevalence(key: str, location: str) -> pd.DataFrame:
