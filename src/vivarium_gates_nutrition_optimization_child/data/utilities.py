@@ -141,16 +141,9 @@ def process_exposure(
 
         # normalize so all categories sum to 1
         cols = list(set(data.columns).difference(vi_globals.DRAW_COLUMNS + ["parameter"]))
-        sums = data.groupby(cols)[vi_globals.DRAW_COLUMNS].sum()
-        data = (
-            data.groupby("parameter")
-            .apply(lambda df: df.set_index(cols).loc[:, vi_globals.DRAW_COLUMNS].divide(sums))
-            .reset_index()
-        )
-        # cols = list(set(data.columns).difference(vi_globals.DRAW_COLUMNS + ["parameter"]))
-        # data = data.set_index(cols + ["parameter"])
-        # sums = data.groupby(cols)[vi_globals.DRAW_COLUMNS].sum().reindex(index=data.index)
-        # data = data.divide(sums).reset_index()
+        data = data.set_index(cols + ["parameter"])
+        sums = data.groupby(cols)[vi_globals.DRAW_COLUMNS].sum().reindex(index=data.index)
+        data = data.divide(sums).reset_index()
     else:
         data = vi_utils.normalize(data, fill_value=0)
 
@@ -460,7 +453,7 @@ def scrub_neonatal_age_groups(data: pd.DataFrame) -> pd.DataFrame:
     non_neonatal = data.query("age_start >= 1")
     post_neonatal = data.loc[
         (data.index.get_level_values("age_start") >= NEONATAL_END_AGE)
-        & (data.index.get_level_values("age_start") < 1)
+        & (data.index.get_level_values("age_start") < 0.5)
     ]
     early_neonatal = data.loc[data.index.get_level_values("age_start") == 0]
     late_neonatal = data.loc[
