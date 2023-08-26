@@ -9,6 +9,7 @@ from vivarium_gates_nutrition_optimization_child.utilities import (
     get_norm_from_quantiles,
     get_truncnorm_from_quantiles,
     get_truncnorm_from_sd,
+    get_uniform_distribution_from_limits,
 )
 
 ##########################
@@ -33,6 +34,11 @@ LRI_DURATION: Tuple = (
     get_norm_from_quantiles(mean=7.79, lower=6.2, upper=9.64),
 )
 
+# malaria duration in days
+MALARIA_DURATION: Tuple = (
+    "malaria_duration",
+    get_uniform_distribution_from_limits(lower_limit=14.0, upper_limit=28.0),
+)
 
 # duration > bin_duration, so there is effectively no remission,
 # and duration within the bin is bin_duration / 2

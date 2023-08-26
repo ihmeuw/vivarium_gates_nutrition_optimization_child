@@ -29,6 +29,7 @@ from vivarium_inputs import utilities as vi_utils
 from vivarium_inputs import utility_data
 from vivarium_inputs.globals import DEMOGRAPHIC_COLUMNS, DRAW_COLUMNS
 from vivarium_inputs.mapping_extension import AlternativeRiskFactor
+from vivarium_public_health.utilities import TargetString
 
 from vivarium_gates_nutrition_optimization_child.constants import (
     data_keys,
@@ -92,6 +93,14 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.LRI.EMR: load_emr_from_csmr_and_prevalence,
         data_keys.LRI.CSMR: load_lri_csmr,
         data_keys.LRI.RESTRICTIONS: load_metadata,
+        data_keys.MALARIA.DURATION: load_duration,
+        data_keys.MALARIA.PREVALENCE: load_malaria_prevalence,
+        data_keys.MALARIA.INCIDENCE_RATE: load_standard_data,
+        data_keys.MALARIA.REMISSION_RATE: load_malaria_remission_rate_from_duration,
+        data_keys.MALARIA.DISABILITY_WEIGHT: load_standard_data,
+        data_keys.MALARIA.EMR: load_standard_data,
+        data_keys.MALARIA.CSMR: load_standard_data,
+        data_keys.MALARIA.RESTRICTIONS: load_metadata,
         data_keys.WASTING.DISTRIBUTION: load_metadata,
         data_keys.WASTING.ALT_DISTRIBUTION: load_metadata,
         data_keys.WASTING.CATEGORIES: load_metadata,
@@ -146,12 +155,14 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.IFA_SUPPLEMENTATION.DISTRIBUTION: load_intervention_distribution,
         data_keys.IFA_SUPPLEMENTATION.CATEGORIES: load_intervention_categories,
         data_keys.IFA_SUPPLEMENTATION.EXPOSURE: load_dichotomous_treatment_exposure,
-        data_keys.IFA_SUPPLEMENTATION.EXCESS_SHIFT: load_treatment_excess_shift,
+        data_keys.IFA_SUPPLEMENTATION.EXCESS_SHIFT: load_ifa_excess_shift,
         data_keys.IFA_SUPPLEMENTATION.RISK_SPECIFIC_SHIFT: load_risk_specific_shift,
         data_keys.MMN_SUPPLEMENTATION.DISTRIBUTION: load_intervention_distribution,
         data_keys.MMN_SUPPLEMENTATION.CATEGORIES: load_intervention_categories,
         data_keys.MMN_SUPPLEMENTATION.EXPOSURE: load_dichotomous_treatment_exposure,
         data_keys.MMN_SUPPLEMENTATION.EXCESS_SHIFT: load_treatment_excess_shift,
+        data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_1: load_excess_gestational_age_shift,
+        data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_2: load_excess_gestational_age_shift,
         data_keys.MMN_SUPPLEMENTATION.RISK_SPECIFIC_SHIFT: load_risk_specific_shift,
         data_keys.BEP_SUPPLEMENTATION.DISTRIBUTION: load_intervention_distribution,
         data_keys.BEP_SUPPLEMENTATION.CATEGORIES: load_intervention_categories,
@@ -287,12 +298,15 @@ def _load_em_from_meid(location, meid, measure):
     return vi_utils.sort_hierarchical_data(data)
 
 
-# TODO - add project-specific data functions here
 def load_duration(key: str, location: str) -> pd.DataFrame:
+    """Get duration by sampling 1000 draws from the provided distributions
+    and convert from days to years. The duration will be the same for each
+    demographic group."""
     try:
         distribution = {
             data_keys.DIARRHEA.DURATION: data_values.DIARRHEA_DURATION,
             data_keys.LRI.DURATION: data_values.LRI_DURATION,
+            data_keys.MALARIA.DURATION: data_values.MALARIA_DURATION,
         }[key]
     except KeyError:
         raise ValueError(f"Unrecognized key {key}")
@@ -337,6 +351,22 @@ def load_prevalence_from_incidence_and_duration(key: str, location: str) -> pd.D
     return prevalence
 
 
+def load_malaria_prevalence(key: str, location: str) -> pd.DataFrame:
+    """Get standard prevalence but update early neonatal data to be
+    (birth_prevalence + prevalence_cause) / 2
+    where birth_prevalence is 0 and prevalence_cause is cause prevalence from GBD.
+    """
+    prevalence = load_standard_data(key, location)
+    birth_prevalence = data_values.BIRTH_PREVALENCE_OF_ZERO
+    enn_prevalence = prevalence.query("age_start == 0")
+    enn_prevalence = (birth_prevalence + enn_prevalence) / 2
+    all_other_prevalence = prevalence.query("age_start != 0.0")
+
+    prevalence = pd.concat([enn_prevalence, all_other_prevalence]).sort_index()
+
+    return prevalence
+
+
 def load_remission_rate_from_duration(key: str, location: str) -> pd.DataFrame:
     try:
         cause = {
@@ -354,6 +384,18 @@ def load_remission_rate_from_duration(key: str, location: str) -> pd.DataFrame:
             remission_rate.index.get_level_values("age_start") < metadata.NEONATAL_END_AGE, :
         ] = 0
     return remission_rate
+
+
+def load_malaria_remission_rate_from_duration(key: str, location: str) -> pd.DataFrame:
+    """Return 1 / duration."""
+    try:
+        cause = {
+            data_keys.MALARIA.REMISSION_RATE: data_keys.MALARIA,
+        }[key]
+    except KeyError:
+        raise ValueError(f"Unrecognized key {key}")
+    duration = get_data(cause.DURATION, location)
+    return 1 / duration
 
 
 def load_emr_from_csmr_and_prevalence(key: str, location: str) -> pd.DataFrame:
@@ -885,6 +927,12 @@ def load_dichotomous_treatment_exposure(key: str, location: str, **kwargs) -> pd
     return load_dichotomous_exposure(location, distribution_data, is_risk=False, **kwargs)
 
 
+def load_ifa_excess_shift(key: str, location: str) -> pd.DataFrame:
+    birth_weight_shift = load_treatment_excess_shift(key, location)
+    gestational_age_shift = load_excess_gestational_age_shift(key, location)
+    return pd.concat([birth_weight_shift, gestational_age_shift])
+
+
 def load_treatment_excess_shift(key: str, location: str) -> pd.DataFrame:
     try:
         distribution_data = {
@@ -895,7 +943,7 @@ def load_treatment_excess_shift(key: str, location: str) -> pd.DataFrame:
         }[key]
     except KeyError:
         raise ValueError(f"Unrecognized key {key}")
-    return load_dichotomous_excess_shift(location, distribution_data, is_risk=False)
+    return load_dichotomous_excess_shift(location, distribution_data)
 
 
 def load_dichotomous_exposure(
@@ -921,19 +969,62 @@ def load_dichotomous_exposure(
 
 
 def load_dichotomous_excess_shift(
-    location: str, distribution_data: Tuple, is_risk: bool
+    location: str,
+    distribution_data: Tuple,
 ) -> pd.DataFrame:
+    """Load excess birth weight exposure shifts using distribution data."""
     index = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index
     shift = get_random_variable_draws(metadata.ARTIFACT_COLUMNS, *distribution_data)
+    excess_shift = reshape_shift_data(shift, index, data_keys.LBWSG.BIRTH_WEIGHT_EXPOSURE)
+    return excess_shift
 
+
+def load_excess_gestational_age_shift(key: str, location: str) -> pd.DataFrame:
+    """Load excess gestational age shift data from IFA and MMS from file.
+    Returns the sum of the shift data in the directories defined in data_dirs."""
+    try:
+        data_dirs = {
+            data_keys.IFA_SUPPLEMENTATION.EXCESS_SHIFT: [paths.IFA_GA_SHIFT_DATA_DIR],
+            data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_1: [
+                paths.MMS_GA_SHIFT_1_DATA_DIR
+            ],
+            data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_2: [
+                paths.MMS_GA_SHIFT_1_DATA_DIR,
+                paths.MMS_GA_SHIFT_2_DATA_DIR,
+            ],
+        }[key]
+    except KeyError:
+        raise ValueError(f"Unrecognized key {key}")
+
+    index = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index
+    all_shift_data = [
+        pd.read_csv(data_dir / f"{location.lower()}.csv") for data_dir in data_dirs
+    ]
+    shifts = [
+        pd.Series(shift_data["value"].values, index=shift_data["draw"])
+        for shift_data in all_shift_data
+    ]
+    summed_shifts = sum(shifts)  # only sum more than one Series for subpop 2
+
+    excess_shift = reshape_shift_data(
+        summed_shifts, index, data_keys.LBWSG.GESTATIONAL_AGE_EXPOSURE
+    )
+    return excess_shift
+
+
+def reshape_shift_data(
+    shift: pd.Series, index: pd.Index, target: TargetString
+) -> pd.DataFrame:
+    """Read in draw-level shift values and return a DataFrame where the data are the shift values,
+    and the index is the passed index appended with affected entity/measure and parameter data."""
     exposed = pd.DataFrame([shift], index=index)
-    exposed["parameter"] = "cat1" if is_risk else "cat2"
+    exposed["parameter"] = "cat2"
     unexposed = pd.DataFrame([pd.Series(0.0, index=metadata.ARTIFACT_COLUMNS)], index=index)
-    unexposed["parameter"] = "cat2" if is_risk else "cat1"
+    unexposed["parameter"] = "cat1"
 
     excess_shift = pd.concat([exposed, unexposed])
-    excess_shift["affected_entity"] = data_keys.LBWSG.BIRTH_WEIGHT_EXPOSURE.name
-    excess_shift["affected_measure"] = data_keys.LBWSG.BIRTH_WEIGHT_EXPOSURE.measure
+    excess_shift["affected_entity"] = target.name
+    excess_shift["affected_measure"] = target.measure
 
     excess_shift = excess_shift.set_index(
         ["affected_entity", "affected_measure", "parameter"], append=True
