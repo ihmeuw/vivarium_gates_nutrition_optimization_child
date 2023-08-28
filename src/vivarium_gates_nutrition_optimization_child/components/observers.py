@@ -61,14 +61,16 @@ class ResultsStratifier(ResultsStratifier_):
         )
         builder.results.register_stratification(
             'sam_treatment',
-            {'covered': data_keys.SAM_TREATMENT.COVERED_CATEGORIES,
-             'uncovered': data_keys.SAM_TREATMENT.UNCOVERED_CATEGORIES},
+            ['covered', 'uncovered'],
+            self.map_wasting_treatment,
+            is_vectorized=True,
             requires_values=[f'{data_keys.SAM_TREATMENT.name}.exposure']
         )
         builder.results.register_stratification(
             'mam_treatment',
-            {'covered': data_keys.MAM_TREATMENT.COVERED_CATEGORIES,
-             'uncovered': data_keys.MAM_TREATMENT.UNCOVERED_CATEGORIES},
+            ['covered', 'uncovered'],
+            self.map_wasting_treatment,
+            is_vectorized=True,
             requires_values=[f'{data_keys.MAM_TREATMENT.name}.exposure']
         )
                                
@@ -87,6 +89,16 @@ class ResultsStratifier(ResultsStratifier_):
             "cat1": data_keys.CGFCategories.SEVERE.value,
         }
         return pop.squeeze(axis=1).map(mapper)
+    
+    def map_wasting_treatment(self, pop: pd.DataFrame) -> pd.Series:
+        # Both SAM and MAM treatments
+        mapper = {
+            "cat3": "covered",
+            "cat2": "covered",
+            "cat1": "uncovered",
+        }
+        return pop.squeeze(axis=1).map(mapper)
+
 
     def map_age_groups(self, pop: pd.DataFrame) -> pd.Series:
         """Map age with age group name strings
