@@ -42,7 +42,7 @@ class ChildWasting:
 
     def __repr__(self):
         return "ChildWasting()"
-    
+
     # noinspection PyAttributeOutsideInit
     def setup(self, builder: Builder):
         self.population_view = builder.population.get_view(
@@ -683,7 +683,10 @@ def load_child_wasting_birth_prevalence(
 ) -> pd.DataFrame:
     exposure = load_child_wasting_exposures(builder)[wasting_category]
     birth_prevalence = (
-        exposure[exposure.index.get_level_values("age_end") == data_values.WASTING.DYNAMIC_START_AGE]
+        exposure[
+            exposure.index.get_level_values("age_end")
+            == data_values.WASTING.DYNAMIC_START_AGE
+        ]
         .droplevel(["age_start", "age_end"])
         .reset_index()
     )
@@ -851,5 +854,6 @@ def _convert_daily_probability_to_annual_rate(
 
 def _reset_underage_transitions(transition_rates: pd.Series) -> None:
     transition_rates[
-        transition_rates.index.get_level_values("age_end") <= data_values.WASTING.DYNAMIC_START_AGE
+        transition_rates.index.get_level_values("age_end")
+        <= data_values.WASTING.DYNAMIC_START_AGE
     ] = 0.0
