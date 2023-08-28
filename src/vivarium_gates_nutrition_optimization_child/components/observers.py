@@ -16,6 +16,8 @@ from vivarium_public_health.metrics.stratification import (
     ResultsStratifier as ResultsStratifier_,
 )
 
+from vivarium_public_health.metrics.disease import DiseaseObserver
+
 from vivarium_gates_nutrition_optimization_child.constants import data_keys, results
 
 
@@ -57,6 +59,19 @@ class ResultsStratifier(ResultsStratifier_):
             is_vectorized=True,
             requires_columns=["maternal_bmi_anemia_exposure"],
         )
+        builder.results.register_stratification(
+            'sam_treatment',
+            {'covered': data_keys.SAM_TREATMENT.COVERED_CATEGORIES,
+             'uncovered': data_keys.SAM_TREATMENT.UNCOVERED_CATEGORIES},
+            requires_values=[f'{data_keys.SAM_TREATMENT.name}.exposure']
+        )
+        builder.results.register_stratification(
+            'mam_treatment',
+            {'covered': data_keys.MAM_TREATMENT.COVERED_CATEGORIES,
+             'uncovered': data_keys.MAM_TREATMENT.UNCOVERED_CATEGORIES},
+            requires_values=[f'{data_keys.MAM_TREATMENT.name}.exposure']
+        )
+                               
 
     ###########################
     # Stratifications Details #
@@ -207,3 +222,73 @@ class BirthObserver:
 
 class MortalityObserver(MortalityObserver_):
     """This is a class to make component ordering work in the model spec."""
+
+class ChildWastingObserver(DiseaseObserver):
+ 
+    def __init__(self):
+        self.disease = self.risk = "child_wasting"
+        self.configuration_defaults = self.get_configuration_defaults()
+        self.current_state_column_name = self.disease
+        self.previous_state_column_name = f"previous_{self.disease}"
+        self.exposure_pipeline_name = f"{self.risk}.exposure"
+
+    def __repr__(self):
+        return "ChildWastingObserver()"
+
+    ##############
+    # Properties #
+    ##############
+
+    @property
+    def name(self):
+        return "child_wasting_observer"
+
+    #################
+    # Setup methods #
+    #################
+
+    # noinspection PyAttributeOutsideInit
+    def setup(self, builder: Builder) -> None:
+        self.step_size = builder.time.step_size()
+        self.config = builder.configuration.stratification[self.disease]
+        self.categories = builder.data.load(f"risk_factor.{self.risk}.categories")
+
+        disease_model = builder.components.get_component(f"disease_model.{self.disease}")
+
+        builder.population.initializes_simulants(
+            self.on_initialize_simulants, creates_columns=[self.previous_state_column_name]
+        )
+
+        columns_required = [self.disease, self.previous_state_column_name]
+        self.population_view = builder.population.get_view(columns_required)
+
+        builder.event.register_listener("time_step__prepare", self.on_time_step_prepare)
+
+        for category in self.categories:
+            builder.results.register_observation(
+                name=f"{self.risk}_{category}_person_time",
+                pop_filter=f'alive == "alive" and `{self.exposure_pipeline_name}`=="{category}" and tracked==True',
+                aggregator=self.aggregate_state_person_time,
+                requires_columns=["alive"],
+                requires_values=[self.exposure_pipeline_name],
+                additional_stratifications=self.config.include,
+                excluded_stratifications=self.config.exclude,
+                when="time_step__prepare",
+            )
+
+        for transition in disease_model.transition_names:
+            filter_string = (
+                f'{self.previous_state_column_name} == "{transition.from_state}" '
+                f'and {self.disease} == "{transition.to_state}" '
+                f"and tracked==True"
+            )
+            builder.results.register_observation(
+                name=f"{transition}_event_count",
+                pop_filter=filter_string,
+                requires_columns=[self.previous_state_column_name, self.disease],
+                additional_stratifications=self.config.include,
+                excluded_stratifications=self.config.exclude,
+                when="collect_metrics",
+            )
+    
+

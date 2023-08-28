@@ -27,8 +27,6 @@ components:
             - DiseaseObserver('moderate_protein_energy_malnutrition')
             - DiseaseObserver('severe_protein_energy_malnutrition')
             - CategoricalRiskObserver('child_stunting')
-            # - CategoricalRiskObserver('child_wasting')
-            - DiseaseObserver('child_wasting')
 
     vivarium_gates_nutrition_optimization_child:
         components:
@@ -38,6 +36,7 @@ components:
             - BirthObserver()
             - DisabilityObserver()
             - ChildWasting()
+            - ChildWastingObserver()
             - WastingTreatment('risk_factor.severe_acute_malnutrition_treatment')
             - WastingTreatment('risk_factor.moderate_acute_malnutrition_treatment')
             - MaternalCharacteristics()
@@ -122,6 +121,8 @@ configuration:
         child_wasting:
             include:
                 - "maternal_supplementation"
+                - "sam_treatment"
+                - "man_treatment"
         birth:
             exclude:
                 - "age_group"
