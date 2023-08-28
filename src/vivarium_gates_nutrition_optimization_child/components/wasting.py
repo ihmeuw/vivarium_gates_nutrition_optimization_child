@@ -46,7 +46,8 @@ class ChildWasting:
 
     def setup(self, builder: Builder):
         self.population_view = builder.population.get_view(
-            [
+            [   
+                "alive",
                 "age",
                 "sex",
                 self.dynamic_model.state_column,
@@ -64,12 +65,13 @@ class ChildWasting:
         )
 
     def get_current_exposure(self, index: pd.Index) -> pd.Series:
-        exposure = self.static_model.exposure(index)
         pop = self.population_view.get(index)
-        over_six_months = pop["age"] >= data_values.WASTING.START_AGE
-        exposure[over_six_months] = pop.loc[
-            over_six_months, self.dynamic_model.state_column
-        ].apply(models.get_risk_category)
+        exposure = pop[self.dynamic_model.state_column].apply(models.get_risk_category)
+        under_six_months = (pop["age"] < data_values.WASTING.START_AGE) & (pop['alive'] == "alive")
+        if under_six_months.any():
+            exposure[under_six_months] = self.static_model.exposure(
+                pop[under_six_months].index
+            )
         return exposure
 
 

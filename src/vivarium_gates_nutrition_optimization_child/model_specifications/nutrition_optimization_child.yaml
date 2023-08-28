@@ -87,7 +87,7 @@ configuration:
         child_scenario: 'baseline'
         maternal_scenario: 'baseline'
 
-    sam_k: 'baseline'
+    sam_k: 'alternative'
     
     unmodeled_causes:
         - "upper_respiratory_infections"
@@ -119,9 +119,9 @@ configuration:
         child_stunting:
             include:
                 - "maternal_supplementation"
-        # dynamic_child_wasting:
-        #     include:
-        #         - "maternal_supplementation"
+        child_wasting:
+            include:
+                - "maternal_supplementation"
         birth:
             exclude:
                 - "age_group"
