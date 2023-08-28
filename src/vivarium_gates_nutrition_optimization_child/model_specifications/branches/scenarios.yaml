@@ -7,4 +7,4 @@ random_seeds: [4344, 5616, 6810, 2787, 2284, 4369, 3254, 7359, 3541, 5020]
 branches:
   - intervention:
       child_scenario: ['baseline']
-      maternal_scenario: ['baseline', 'mms', 'universal_bep', 'targeted_bep_no_mms', 'targeted_bep_mms']
+      maternal_scenario: ['baseline']
