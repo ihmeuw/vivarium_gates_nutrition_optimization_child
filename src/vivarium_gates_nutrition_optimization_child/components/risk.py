@@ -17,14 +17,6 @@ class Underweight(Risk):
         super().__init__('risk_factor.underweight')
         self._sub_components = []
 
-    ##############
-    # Properties #
-    ##############
-
-    @property
-    def name(self) -> str:
-        return f"risk.{self.risk}"
-
     #################
     # Setup methods #
     #################
@@ -68,16 +60,16 @@ class Underweight(Risk):
 
     def _get_current_exposure(self, index: pd.Index) -> pd.Series:
         if len(index) == 0:
-            pass # only happens on first time step when there's no simulants
-        propensity = self.propensity(index)
-        wasting = self.wasting(index)
-        stunting = self.stunting(index)
+            return pd.Series(index=index) # only happens on first time step when there's no simulants
+        propensity = self.propensity(index).rename('propensity')
+        wasting = self.wasting(index).rename('wasting')
+        stunting = self.stunting(index).rename('stunting')
         pop = pd.concat([stunting, wasting, propensity], axis=1)
-        pop.columns = ['stunting', 'wasting', 'propensity']
+
         exposures = []
         for group, group_df in pop.groupby(['stunting', 'wasting']):
             stunting, wasting = group
             distribution = self.distributions[f"stunting_{stunting}_wasting_{wasting}"]
             exposure = distribution.ppf(group_df['propensity'])
             exposures.append(exposure)
-        return pd.Series(0, index=index)
+        return pd.concat(exposures).sort_index()
