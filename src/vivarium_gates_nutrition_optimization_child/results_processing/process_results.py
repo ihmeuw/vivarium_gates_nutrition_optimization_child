@@ -39,6 +39,9 @@ def make_measure_data(data: pd.DataFrame, disaggregate_seeds: bool):
         measles_state_person_time=get_state_person_time_measure_data(
             data, "measles_state_person_time", disaggregate_seeds
         ),
+        malaria_state_person_time=get_state_person_time_measure_data(
+            data, "malaria_state_person_time", disaggregate_seeds
+        ),
         moderate_pem_state_person_time=get_state_person_time_measure_data(
             data, "moderate_pem_state_person_time", disaggregate_seeds
         ),
@@ -53,6 +56,9 @@ def make_measure_data(data: pd.DataFrame, disaggregate_seeds: bool):
         ),
         measles_transition_count=get_transition_count_measure_data(
             data, "measles_transition_count", disaggregate_seeds
+        ),
+        malaria_transition_count=get_transition_count_measure_data(
+            data, "malaria_transition_count", disaggregate_seeds
         ),
         moderate_pem_transition_count=get_transition_count_measure_data(
             data, "moderate_pem_transition_count", disaggregate_seeds
@@ -84,11 +90,13 @@ class MeasureData(NamedTuple):
     diarrhea_state_person_time: pd.DataFrame
     lri_state_person_time: pd.DataFrame
     measles_state_person_time: pd.DataFrame
+    malaria_state_person_time: pd.DataFrame
     moderate_pem_state_person_time: pd.DataFrame
     severe_pem_state_person_time: pd.DataFrame
     diarrhea_transition_count: pd.DataFrame
     lri_transition_count: pd.DataFrame
     measles_transition_count: pd.DataFrame
+    malaria_transition_count: pd.DataFrame
     moderate_pem_transition_count: pd.DataFrame
     severe_pem_transition_count: pd.DataFrame
     stunting_state_person_time: pd.DataFrame
