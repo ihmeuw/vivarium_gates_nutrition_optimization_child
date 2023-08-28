@@ -7,7 +7,6 @@ components:
             - SIS('lower_respiratory_infections')
             - SIS('malaria')
         risks:
-            - Risk('risk_factor.child_wasting')
             - RiskEffect('risk_factor.child_wasting', 'cause.diarrheal_diseases.incidence_rate')
             - RiskEffect('risk_factor.child_wasting', 'cause.measles.incidence_rate')
             - RiskEffect('risk_factor.child_wasting', 'cause.lower_respiratory_infections.incidence_rate')
@@ -28,7 +27,8 @@ components:
             - DiseaseObserver('moderate_protein_energy_malnutrition')
             - DiseaseObserver('severe_protein_energy_malnutrition')
             - CategoricalRiskObserver('child_stunting')
-            - CategoricalRiskObserver('child_wasting')
+            # - CategoricalRiskObserver('child_wasting')
+            - DiseaseObserver('child_wasting')
 
     vivarium_gates_nutrition_optimization_child:
         components:
@@ -37,7 +37,9 @@ components:
             - LBWSGLineList()
             - BirthObserver()
             - DisabilityObserver()
-
+            - ChildWasting()
+            - WastingTreatment('risk_factor.severe_acute_malnutrition_treatment')
+            - WastingTreatment('risk_factor.moderate_acute_malnutrition_treatment')
             - MaternalCharacteristics()
             - AdditiveRiskEffect('risk_factor.iron_folic_acid_supplementation', 'risk_factor.birth_weight.birth_exposure')
             - AdditiveRiskEffect('risk_factor.multiple_micronutrient_supplementation', 'risk_factor.birth_weight.birth_exposure')
@@ -85,6 +87,8 @@ configuration:
         child_scenario: 'baseline'
         maternal_scenario: 'baseline'
 
+    sam_k: 'alternative'
+    
     unmodeled_causes:
         - "upper_respiratory_infections"
         - "otitis_media"

@@ -44,7 +44,6 @@ MALARIA_DURATION: Tuple = (
 # and duration within the bin is bin_duration / 2
 EARLY_NEONATAL_CAUSE_DURATION: float = 3.5
 
-
 ##########################
 # LBWSG Model Parameters #
 ##########################
@@ -64,7 +63,7 @@ LBWSG = __LBWSG()
 ############################
 class __Wasting(NamedTuple):
     # Wasting age start (in years)
-    START_AGE: float = 0.5
+    DYNAMIC_START_AGE: float = 0.5
 
     # Wasting treatment distribution type and categories
     DISTRIBUTION: str = "ordered_polytomous"
