@@ -72,6 +72,9 @@ def make_measure_data(data: pd.DataFrame, disaggregate_seeds: bool):
         wasting_state_person_time=get_state_person_time_measure_data(
             data, "wasting_state_person_time", disaggregate_seeds
         ),
+        wasting_transition_count=get_transition_count_measure_data(
+            data, 'wasting_transition_count', disaggregate_seeds
+        ),
         low_birth_weight_and_short_gestation_sum=get_measure_data(
             data, "low_birth_weight_and_short_gestation_sum", disaggregate_seeds
         ),
@@ -101,6 +104,7 @@ class MeasureData(NamedTuple):
     severe_pem_transition_count: pd.DataFrame
     stunting_state_person_time: pd.DataFrame
     wasting_state_person_time: pd.DataFrame
+    wasting_transition_count: pd.DataFrame
     low_birth_weight_and_short_gestation_sum: pd.DataFrame
     live_births_count: pd.DataFrame
     low_weight_births_count: pd.DataFrame
