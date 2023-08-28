@@ -122,7 +122,7 @@ configuration:
             include:
                 - "maternal_supplementation"
                 - "sam_treatment"
-                - "man_treatment"
+                - "mam_treatment"
         birth:
             exclude:
                 - "age_group"
