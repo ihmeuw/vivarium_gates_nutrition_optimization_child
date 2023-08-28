@@ -73,7 +73,7 @@ def make_measure_data(data: pd.DataFrame, disaggregate_seeds: bool):
             data, "wasting_state_person_time", disaggregate_seeds
         ),
         wasting_transition_count=get_transition_count_measure_data(
-            data, 'wasting_transition_count', disaggregate_seeds
+            data, "wasting_transition_count", disaggregate_seeds
         ),
         low_birth_weight_and_short_gestation_sum=get_measure_data(
             data, "low_birth_weight_and_short_gestation_sum", disaggregate_seeds

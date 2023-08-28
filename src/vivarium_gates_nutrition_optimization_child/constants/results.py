@@ -105,7 +105,14 @@ NON_COUNT_TEMPLATES = []
 
 SEXES = ("Male", "Female")
 YEARS = tuple(range(2025, 2041))
-AGE_GROUPS = ("early_neonatal", "late_neonatal", "1-5_months", "6-11_months", "12_to_23_months", "2_to_4")
+AGE_GROUPS = (
+    "early_neonatal",
+    "late_neonatal",
+    "1-5_months",
+    "6-11_months",
+    "12_to_23_months",
+    "2_to_4",
+)
 DICHOTOMOUS_RISK_STATES = ("cat2", "cat1")
 CAUSES_OF_DEATH = (
     "other_causes",
