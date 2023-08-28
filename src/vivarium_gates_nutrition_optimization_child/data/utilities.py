@@ -450,7 +450,7 @@ def parse_short_gestation_description(description: str) -> pd.Interval:
 def scrub_neonatal_age_groups(data: pd.DataFrame) -> pd.DataFrame:
     # set early and late neonatal age groups to post-neonatal age group
     # split df to have age specific indices
-    non_neonatal = data.query("age_start >= 1")
+    non_neonatal = data.query("age_start >= 0.5")
     post_neonatal = data.loc[
         (data.index.get_level_values("age_start") >= NEONATAL_END_AGE)
         & (data.index.get_level_values("age_start") < 0.5)
