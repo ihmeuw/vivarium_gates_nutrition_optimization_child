@@ -37,8 +37,10 @@ components:
             - LBWSGLineList()
             - BirthObserver()
             - DisabilityObserver()
+            #- UnderweightObserver()
 
             - MaternalCharacteristics()
+            #- Underweight()
             - AdditiveRiskEffect('risk_factor.iron_folic_acid_supplementation', 'risk_factor.birth_weight.birth_exposure')
             - AdditiveRiskEffect('risk_factor.multiple_micronutrient_supplementation', 'risk_factor.birth_weight.birth_exposure')
             - AdditiveRiskEffect('risk_factor.balanced_energy_protein_supplementation', 'risk_factor.birth_weight.birth_exposure')
@@ -56,8 +58,9 @@ configuration:
     input_data:
         input_draw_number: 0
         # Artifact can also be defined at runtime using -i flag
-        artifact_path: '/mnt/team/simulation_science/costeffectiveness/artifacts/vivarium_gates_nutrition_optimization_child/model3.0/ethiopia.hdf'
-        fertility_input_data_path: '/mnt/team/simulation_science/costeffectiveness/results/vivarium_gates_nutrition_optimization/model8.0-and-model-6.0-bugfix/ethiopia/2023_08_18_13_38_11/child_data'
+        #artifact_path: '/mnt/team/simulation_science/costeffectiveness/artifacts/vivarium_gates_nutrition_optimization_child/model3.0/ethiopia.hdf'
+        artifact_path: '/home/hussain-jafari/artifacts/nutrition/model3.0/ethiopia.hdf'
+        fertility_input_data_path: '/home/hussain-jafari/artifacts/nutrition/child_data'
     interpolation:
         order: 0
         extrapolate: True

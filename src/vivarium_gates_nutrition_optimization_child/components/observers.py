@@ -17,6 +17,9 @@ from vivarium_public_health.metrics.stratification import (
 )
 
 from vivarium_gates_nutrition_optimization_child.constants import data_keys, results
+from vivarium_public_health.metrics.risk import (
+    CategoricalRiskObserver as CategoricalRiskObserver_,
+)
 
 
 class ResultsStratifier(ResultsStratifier_):
@@ -208,3 +211,27 @@ class BirthObserver:
 
 class MortalityObserver(MortalityObserver_):
     """This is a class to make component ordering work in the model spec."""
+
+
+class UnderweightObserver(CategoricalRiskObserver_):
+    def __init__(self):
+        super().__init__('underweight')
+    def setup(self, builder: Builder):
+        self.step_size = builder.time.step_size()
+        self.config = builder.configuration.stratification[self.risk]
+        self.categories = [f"cat{i+1}" for i in range(4)]
+
+        columns_required = ["alive"]
+        self.population_view = builder.population.get_view(columns_required)
+
+        for category in self.categories:
+            builder.results.register_observation(
+                name=f"{self.risk}_{category}_person_time",
+                pop_filter=f'alive == "alive" and `{self.exposure_pipeline_name}`=="{category}" and tracked==True',
+                aggregator=self.aggregate_risk_category_person_time,
+                requires_columns=["alive"],
+                requires_values=[self.exposure_pipeline_name],
+                additional_stratifications=self.config.include,
+                excluded_stratifications=self.config.exclude,
+                when="time_step__prepare",
+            )
