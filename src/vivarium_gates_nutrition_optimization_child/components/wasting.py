@@ -35,7 +35,6 @@ class ChildWasting:
             self.dynamic_model,
             self.static_model,
         ]
-        # noinspection PyAttributeOutsideInit
 
     @property
     def name(self):
@@ -43,7 +42,8 @@ class ChildWasting:
 
     def __repr__(self):
         return "ChildWasting()"
-
+    
+    # noinspection PyAttributeOutsideInit
     def setup(self, builder: Builder):
         self.population_view = builder.population.get_view(
             [
@@ -57,7 +57,7 @@ class ChildWasting:
         self.exposure = builder.value.register_value_producer(
             f"{self.name}.exposure",
             source=self.get_current_exposure,
-            requires_columns=[self.static_model.propensity_column_name],
+            requires_columns=[self.dynamic_model.state_column],
             requires_values=[self.static_model.exposure_pipeline_name],
             preferred_post_processor=get_exposure_post_processor(
                 builder, EntityString(f"risk_factor.{self.name}")
@@ -67,7 +67,7 @@ class ChildWasting:
     def get_current_exposure(self, index: pd.Index) -> pd.Series:
         pop = self.population_view.get(index)
         exposure = pop[self.dynamic_model.state_column].apply(models.get_risk_category)
-        under_six_months = (pop["age"] < data_values.WASTING.START_AGE) & (
+        under_six_months = (pop["age"] < data_values.WASTING.DYNAMIC_START_AGE) & (
             pop["alive"] == "alive"
         )
         if under_six_months.any():
@@ -170,9 +170,7 @@ class DynamicChildWastingModel(DiseaseModel):
             self.on_initialize_simulants,
             creates_columns=[self.state_column],
             requires_columns=["age", "sex", "static_child_wasting_propensity"],
-            requires_streams=[f"{self.state_column}_initial_states"],
         )
-        self.randomness = builder.randomness.get_stream(f"{self.state_column}_initial_states")
 
         builder.event.register_listener("time_step", self.on_time_step)
         builder.event.register_listener("time_step__cleanup", self.on_time_step_cleanup)
@@ -685,7 +683,7 @@ def load_child_wasting_birth_prevalence(
 ) -> pd.DataFrame:
     exposure = load_child_wasting_exposures(builder)[wasting_category]
     birth_prevalence = (
-        exposure[exposure.index.get_level_values("age_end") == data_values.WASTING.START_AGE]
+        exposure[exposure.index.get_level_values("age_end") == data_values.WASTING.DYNAMIC_START_AGE]
         .droplevel(["age_start", "age_end"])
         .reset_index()
     )
@@ -853,5 +851,5 @@ def _convert_daily_probability_to_annual_rate(
 
 def _reset_underage_transitions(transition_rates: pd.Series) -> None:
     transition_rates[
-        transition_rates.index.get_level_values("age_end") <= data_values.WASTING.START_AGE
+        transition_rates.index.get_level_values("age_end") <= data_values.WASTING.DYNAMIC_START_AGE
     ] = 0.0

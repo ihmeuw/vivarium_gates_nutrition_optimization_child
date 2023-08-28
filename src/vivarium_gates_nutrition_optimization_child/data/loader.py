@@ -511,7 +511,7 @@ def load_gbd_2021_rr(key: str, location: str) -> pd.DataFrame:
     elif key == data_keys.WASTING.RELATIVE_RISK:
         # Remove relative risks for simulants under 6 months
         data.loc[
-            data.index.get_level_values("age_end") <= data_values.WASTING.START_AGE
+            data.index.get_level_values("age_end") <= data_values.WASTING.DYNAMIC_START_AGE
         ] = 1.0
     return data
 
