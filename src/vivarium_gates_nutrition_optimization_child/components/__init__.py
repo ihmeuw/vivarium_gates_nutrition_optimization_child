@@ -14,10 +14,10 @@ from vivarium_gates_nutrition_optimization_child.components.maternal_characteris
 )
 from vivarium_gates_nutrition_optimization_child.components.observers import (
     BirthObserver,
+    ChildWastingObserver,
     DisabilityObserver,
     MortalityObserver,
     ResultsStratifier,
-    ChildWastingObserver,
 )
 from vivarium_gates_nutrition_optimization_child.components.population import (
     PopulationLineList,

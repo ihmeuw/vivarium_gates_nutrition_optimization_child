@@ -9,14 +9,13 @@ from vivarium.framework.population import PopulationView
 from vivarium_public_health.metrics.disability import (
     DisabilityObserver as DisabilityObserver_,
 )
+from vivarium_public_health.metrics.disease import DiseaseObserver
 from vivarium_public_health.metrics.mortality import (
     MortalityObserver as MortalityObserver_,
 )
 from vivarium_public_health.metrics.stratification import (
     ResultsStratifier as ResultsStratifier_,
 )
-
-from vivarium_public_health.metrics.disease import DiseaseObserver
 
 from vivarium_gates_nutrition_optimization_child.constants import data_keys, results
 
@@ -60,20 +59,19 @@ class ResultsStratifier(ResultsStratifier_):
             requires_columns=["maternal_bmi_anemia_exposure"],
         )
         builder.results.register_stratification(
-            'sam_treatment',
-            ['covered', 'uncovered'],
+            "sam_treatment",
+            ["covered", "uncovered"],
             self.map_wasting_treatment,
             is_vectorized=True,
-            requires_values=[f'{data_keys.SAM_TREATMENT.name}.exposure']
+            requires_values=[f"{data_keys.SAM_TREATMENT.name}.exposure"],
         )
         builder.results.register_stratification(
-            'mam_treatment',
-            ['covered', 'uncovered'],
+            "mam_treatment",
+            ["covered", "uncovered"],
             self.map_wasting_treatment,
             is_vectorized=True,
-            requires_values=[f'{data_keys.MAM_TREATMENT.name}.exposure']
+            requires_values=[f"{data_keys.MAM_TREATMENT.name}.exposure"],
         )
-                               
 
     ###########################
     # Stratifications Details #
@@ -89,7 +87,7 @@ class ResultsStratifier(ResultsStratifier_):
             "cat1": data_keys.CGFCategories.SEVERE.value,
         }
         return pop.squeeze(axis=1).map(mapper)
-    
+
     def map_wasting_treatment(self, pop: pd.DataFrame) -> pd.Series:
         # Both SAM and MAM treatments
         mapper = {
@@ -98,7 +96,6 @@ class ResultsStratifier(ResultsStratifier_):
             "cat1": "uncovered",
         }
         return pop.squeeze(axis=1).map(mapper)
-
 
     def map_age_groups(self, pop: pd.DataFrame) -> pd.Series:
         """Map age with age group name strings
@@ -235,8 +232,8 @@ class BirthObserver:
 class MortalityObserver(MortalityObserver_):
     """This is a class to make component ordering work in the model spec."""
 
+
 class ChildWastingObserver(DiseaseObserver):
- 
     def __init__(self):
         self.disease = self.risk = "child_wasting"
         self.configuration_defaults = self.get_configuration_defaults()
@@ -302,5 +299,3 @@ class ChildWastingObserver(DiseaseObserver):
                 excluded_stratifications=self.config.exclude,
                 when="collect_metrics",
             )
-    
-

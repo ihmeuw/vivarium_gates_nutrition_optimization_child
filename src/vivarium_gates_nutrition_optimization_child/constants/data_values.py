@@ -44,6 +44,7 @@ MALARIA_DURATION: Tuple = (
 # and duration within the bin is bin_duration / 2
 EARLY_NEONATAL_CAUSE_DURATION: float = 3.5
 
+
 ##########################
 # LBWSG Model Parameters #
 ##########################
