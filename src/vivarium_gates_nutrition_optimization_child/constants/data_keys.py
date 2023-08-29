@@ -291,6 +291,29 @@ class __Stunting(NamedTuple):
 STUNTING = __Stunting()
 
 
+class __Underweight(NamedTuple):
+    # Keys that will be loaded into the artifact. must have a colon type declaration
+    EXPOSURE: TargetString = "risk_factor.underweight.exposure"
+    CATEGORIES: TargetString = "risk_factor.underweight.categories"
+
+    # Useful keys not for the artifact - distinguished by not using the colon type declaration
+    CAT4 = "cat4"
+    CAT3 = "cat3"
+    CAT2 = "cat2"
+    CAT1 = "cat1"
+
+    @property
+    def name(self):
+        return "underweight"
+
+    @property
+    def log_name(self):
+        return "underweight"
+
+
+UNDERWEIGHT = __Underweight()
+
+
 class __WastingTreatment(NamedTuple):
     # Keys that will be loaded into the artifact. must have a colon type declaration
     EXPOSURE: TargetString
@@ -512,6 +535,7 @@ MAKE_ARTIFACT_KEY_GROUPS = [
     MALARIA,
     STUNTING,
     WASTING,
+    UNDERWEIGHT,
     PEM,
     MODERATE_PEM,
     SEVERE_PEM,

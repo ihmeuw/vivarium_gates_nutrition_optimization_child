@@ -113,6 +113,8 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.STUNTING.EXPOSURE: load_cgf_exposure,
         data_keys.STUNTING.RELATIVE_RISK: load_standard_data,
         data_keys.STUNTING.PAF: load_categorical_paf,
+        data_keys.UNDERWEIGHT.EXPOSURE: load_standard_data,
+        data_keys.UNDERWEIGHT.CATEGORIES: load_standard_data,
         data_keys.PEM.EMR: load_pem_emr,
         data_keys.PEM.CSMR: load_pem_csmr,
         data_keys.PEM.RESTRICTIONS: load_pem_restrictions,
