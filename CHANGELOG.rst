@@ -1,3 +1,7 @@
+**v0.3.0 - 08/30/23**
+
+ - Include malaria
+
 **v0.1.1 - 08/24/23**
 
  - Include effects of antenatal supplementation on gestational age
