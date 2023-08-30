@@ -70,15 +70,6 @@ def get_risk_category(state_name: str) -> str:
     }[state_name]
 
 
-def get_wasting_state(risk_category: str) -> str:
-    return {
-        data_keys.WASTING.CAT4: WASTING.SUSCEPTIBLE_STATE_NAME,
-        data_keys.WASTING.CAT3: WASTING.MILD_STATE_NAME,
-        data_keys.WASTING.CAT2: WASTING.MODERATE_STATE_NAME,
-        data_keys.WASTING.CAT1: WASTING.SEVERE_STATE_NAME,
-    }[state_name]
-
-
 CAUSE_MODELS: List[__SISModel] = [DIARRHEA, LRI, MEASLES, MALARIA, MODERATE_PEM, SEVERE_PEM]
 
 STATES = tuple(state for model in CAUSE_MODELS for state in model.STATES)
