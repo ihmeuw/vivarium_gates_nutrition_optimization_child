@@ -114,12 +114,6 @@ configuration:
         default:
             - "sex"
             - "age_group"
-        child_stunting:
-            include:
-                - "maternal_supplementation"
-        child_wasting:
-            include:
-                - "maternal_supplementation"
         birth:
             exclude:
                 - "age_group"
