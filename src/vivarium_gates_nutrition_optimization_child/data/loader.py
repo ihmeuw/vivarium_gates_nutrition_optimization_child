@@ -94,7 +94,7 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.LRI.CSMR: load_lri_csmr,
         data_keys.LRI.RESTRICTIONS: load_metadata,
         data_keys.MALARIA.DURATION: load_duration,
-        data_keys.MALARIA.PREVALENCE: load_malaria_prevalence,
+        data_keys.MALARIA.PREVALENCE: load_prevalence_from_incidence_and_duration,
         data_keys.MALARIA.INCIDENCE_RATE: load_standard_gbd_2019_data_as_gbd_2021_data,
         data_keys.MALARIA.REMISSION_RATE: load_malaria_remission_rate_from_duration,
         data_keys.MALARIA.DISABILITY_WEIGHT: load_standard_gbd_2019_data_as_gbd_2021_data,
@@ -331,6 +331,7 @@ def load_prevalence_from_incidence_and_duration(key: str, location: str) -> pd.D
         cause = {
             data_keys.DIARRHEA.PREVALENCE: data_keys.DIARRHEA,
             data_keys.LRI.PREVALENCE: data_keys.LRI,
+            data_keys.MALARIA.PREVALENCE: data_keys.MALARIA,
         }[key]
     except KeyError:
         raise ValueError(f"Unrecognized key {key}")
@@ -350,22 +351,6 @@ def load_prevalence_from_incidence_and_duration(key: str, location: str) -> pd.D
     # If cause is diarrhea, set early and late neonatal groups prevalence to that of post-neonatal age group
     if key == data_keys.DIARRHEA.PREVALENCE:
         prevalence = utilities.scrub_neonatal_age_groups(prevalence)
-    return prevalence
-
-
-def load_malaria_prevalence(key: str, location: str) -> pd.DataFrame:
-    """Get standard prevalence but update early neonatal data to be
-    (birth_prevalence + prevalence_cause) / 2
-    where birth_prevalence is 0 and prevalence_cause is cause prevalence from GBD.
-    """
-    prevalence = load_standard_gbd_2019_data_as_gbd_2021_data(key, location)
-    birth_prevalence = data_values.BIRTH_PREVALENCE_OF_ZERO
-    enn_prevalence = prevalence.query("age_start == 0")
-    enn_prevalence = (birth_prevalence + enn_prevalence) / 2
-    all_other_prevalence = prevalence.query("age_start != 0.0")
-
-    prevalence = pd.concat([enn_prevalence, all_other_prevalence]).sort_index()
-
     return prevalence
 
 
