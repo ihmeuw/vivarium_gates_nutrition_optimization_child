@@ -113,7 +113,7 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.STUNTING.EXPOSURE: load_cgf_exposure,
         data_keys.STUNTING.RELATIVE_RISK: load_standard_data,
         data_keys.STUNTING.PAF: load_categorical_paf,
-        data_keys.UNDERWEIGHT.EXPOSURE: load_standard_data,
+        data_keys.UNDERWEIGHT.EXPOSURE: load_underweight_exposure,
         data_keys.UNDERWEIGHT.CATEGORIES: load_standard_data,
         data_keys.PEM.EMR: load_pem_emr,
         data_keys.PEM.CSMR: load_pem_csmr,
@@ -428,6 +428,16 @@ def load_cgf_exposure(key: str, location: str) -> pd.DataFrame:
     data = get_exposure_without_model_version_id(entity, location_id)
     data = reshape_to_vivarium_format(data, location)
     return data
+
+
+def load_underweight_exposure(key: str, location: str) -> pd.DataFrame:
+    df = pd.read_csv(paths.UNDERWEIGHT_CONDITIONAL_DISTRIBUTIONS)
+    age_group_map = {'1-5_months': 0.076712,
+                     '12_to_23_months': 1,
+                     '2_to_4': 2,
+                     '6-11_months': 0.5,
+                     'late_neonatal': 0.019178}
+    return df
 
 
 def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
