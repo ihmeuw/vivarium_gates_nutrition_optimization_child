@@ -26,11 +26,17 @@ from vivarium_inputs.mapping_extension import (
 )
 from vivarium_inputs.validation.raw import check_metadata
 
-from vivarium_gates_nutrition_optimization_child.constants import data_keys
+from vivarium_gates_nutrition_optimization_child.constants import data_keys, data_values
 from vivarium_gates_nutrition_optimization_child.constants.metadata import (
     AGE_GROUP,
+    ARTIFACT_COLUMNS,
+    ARTIFACT_INDEX_COLUMNS,
     GBD_2019_ROUND_ID,
+    GBD_2021_ROUND_ID,
     NEONATAL_END_AGE,
+)
+from vivarium_gates_nutrition_optimization_child.utilities import (
+    get_random_variable_draws,
 )
 
 
@@ -307,7 +313,6 @@ def validate_and_reshape_gbd_data(
     gbd_round_id: int,
     age_group_ids: List[int] = None,
 ) -> pd.DataFrame:
-
     # from vivarium_inputs.core.get_data
     data = vi_utils.reshape(data, value_cols=vi_globals.DRAW_COLUMNS)
 
@@ -390,7 +395,7 @@ def filter_relative_risk_to_cause_restrictions(data: pd.DataFrame) -> pd.DataFra
     affected_measures = set(data.affected_measure)
     for cause, measure in product(affected_entities, affected_measures):
         df = data[(data.affected_entity == cause) & (data.affected_measure == measure)]
-        cause = get_entity(EntityKey(f"cause.{cause}.{measure}"))
+        cause = get_gbd_2021_entity(EntityKey(f"cause.{cause}.{measure}"))
         if measure == "excess_mortality_rate":
             start, end = vi_utils.get_age_group_ids_by_restriction(cause, "yll")
         else:  # incidence_rate
@@ -445,10 +450,10 @@ def parse_short_gestation_description(description: str) -> pd.Interval:
 def scrub_neonatal_age_groups(data: pd.DataFrame) -> pd.DataFrame:
     # set early and late neonatal age groups to post-neonatal age group
     # split df to have age specific indices
-    non_neonatal = data.query("age_start >= 1")
+    non_neonatal = data.query("age_start >= 0.5")
     post_neonatal = data.loc[
         (data.index.get_level_values("age_start") >= NEONATAL_END_AGE)
-        & (data.index.get_level_values("age_start") < 1)
+        & (data.index.get_level_values("age_start") < 0.5)
     ]
     early_neonatal = data.loc[data.index.get_level_values("age_start") == 0]
     late_neonatal = data.loc[
@@ -480,3 +485,127 @@ def load_lbwsg_exposure(location: str):
     # This data set is big, so let's reduce it by a factor of ~40
     data = data[data["year_id"] == 2019]
     return data
+
+
+def get_gbd_2021_entity(key: str) -> ModelableEntity:
+    # from load_standard_data
+    entity = get_entity(key)
+
+    if isinstance(entity, RiskFactor) or isinstance(entity, Cause):
+        # Set risk factor age restrictions for GBD 2021
+        if "yll_age_group_id_start" in entity.restrictions:
+            entity.restrictions.yll_age_group_id_start = min(AGE_GROUP.GBD_2021)
+        if "yld_age_group_id_start" in entity.restrictions:
+            entity.restrictions.yld_age_group_id_start = min(AGE_GROUP.GBD_2021)
+        if "yll_age_group_id_end" in entity.restrictions:
+            entity.restrictions.yll_age_group_id_end = max(AGE_GROUP.GBD_2021)
+        if "yld_age_group_id_end" in entity.restrictions:
+            entity.restrictions.yld_age_group_id_end = max(AGE_GROUP.GBD_2021)
+
+    return entity
+
+
+def reshape_gbd_2019_data_as_gbd_2021_data(gbd_2019_data: pd.DataFrame) -> pd.DataFrame:
+    # Get target output index
+    full_gbd_2021_idx = get_gbd_2021_demographic_dimensions().index
+
+    # Get target index subset to GBD 2019 estimation years
+    subset_gbd_2019_years_idx = (
+        full_gbd_2021_idx[full_gbd_2021_idx.get_level_values("year_start") < 2020]
+        .droplevel("age_end")
+        .reorder_levels(["year_start", "year_end", "sex", "age_start"])
+    )
+
+    # Reindex data with GBD 2021 age bins across GBD 2019 estimation years and fill forward NAs
+    gbd_2019_years_gbd_2021_age_bins_data = (
+        gbd_2019_data.droplevel("age_end")
+        .reorder_levels(["year_start", "year_end", "sex", "age_start"])
+        .reindex(index=subset_gbd_2019_years_idx)
+        .sort_index()
+        .ffill()
+    )
+
+    # Get full target index excluding year end and age end columns
+    full_gbd_2021_idx_without_end_columns = full_gbd_2021_idx.droplevel(
+        ["year_end", "age_end"]
+    ).reorder_levels(["sex", "age_start", "year_start"])
+
+    # Reindex data with GBD 2021 estimation years and fill forward NAs
+    full_data_without_end_columns = (
+        gbd_2019_years_gbd_2021_age_bins_data.droplevel("year_end")
+        .reorder_levels(["sex", "age_start", "year_start"])
+        .reindex(index=full_gbd_2021_idx_without_end_columns)
+        .sort_index()
+        .ffill()
+        .reset_index()
+    )
+
+    # Repopulate year_end and age_end columns and set index
+    full_data = apply_artifact_index(full_data_without_end_columns)
+    return full_data
+
+
+def get_gbd_2021_demographic_dimensions() -> pd.DataFrame:
+    estimation_years = get_gbd_estimation_years(GBD_2021_ROUND_ID)
+    year_starts = range(estimation_years[0], estimation_years[-1] + 1)
+    age_bins = get_gbd_age_bins(AGE_GROUP.GBD_2021)
+
+    unique_index_data = pd.DataFrame(
+        product(["Female", "Male"], age_bins.age_start, year_starts)
+    ).rename(columns={0: "sex", 1: "age_start", 2: "year_start"})
+
+    index_data = apply_artifact_index(unique_index_data)
+    return index_data.sort_index()
+
+
+def apply_artifact_index(data: pd.DataFrame) -> pd.DataFrame:
+    """Sets data frame index to match artifact format.
+    Populates year_end and age_end columns if they are missing"""
+
+    if "year_end" not in data.columns:
+        data["year_end"] = data["year_start"] + 1
+    if "age_end" not in data.columns:
+        age_bins = get_gbd_age_bins(AGE_GROUP.GBD_2021)
+        data["age_end"] = data["age_start"].apply(
+            lambda x: {
+                start: end for start, end in zip(age_bins.age_start, age_bins.age_end)
+            }[x]
+        )
+    data = data.set_index(ARTIFACT_INDEX_COLUMNS)
+    return data
+
+
+def get_treatment_efficacy(
+    demography: pd.DataFrame, treatment_type: str
+) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    baseline_efficacy = {
+        data_keys.WASTING.CAT1: get_random_variable_draws(
+            ARTIFACT_COLUMNS, *data_values.WASTING.BASELINE_SAM_TX_EFFICACY
+        ),
+        data_keys.WASTING.CAT2: get_random_variable_draws(
+            ARTIFACT_COLUMNS, *data_values.WASTING.BASELINE_MAM_TX_EFFICACY
+        ),
+    }
+    alternative_efficacy = {
+        data_keys.WASTING.CAT1: data_values.WASTING.SAM_TX_ALTERNATIVE_EFFICACY,
+        data_keys.WASTING.CAT2: data_values.WASTING.MAM_TX_ALTERNATIVE_EFFICACY,
+    }
+
+    idx_as_frame = demography.merge(
+        pd.DataFrame({"parameter": [f"cat{i}" for i in range(1, 4)]}), how="cross"
+    )
+    index = idx_as_frame.set_index(list(idx_as_frame.columns)).index
+
+    efficacy = pd.DataFrame({f"draw_{i}": 1.0 for i in range(0, 1000)}, index=index)
+    efficacy[index.get_level_values("parameter") == "cat1"] *= 0.0
+    efficacy[index.get_level_values("parameter") == "cat2"] *= baseline_efficacy[
+        treatment_type
+    ]
+    efficacy[index.get_level_values("parameter") == "cat3"] *= alternative_efficacy[
+        treatment_type
+    ]
+
+    tmrel_efficacy = efficacy[
+        efficacy.index.get_level_values("parameter") == data_keys.MAM_TREATMENT.TMREL_CATEGORY
+    ].droplevel("parameter")
+    return efficacy, tmrel_efficacy

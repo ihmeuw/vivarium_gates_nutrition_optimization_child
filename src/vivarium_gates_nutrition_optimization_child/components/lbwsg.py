@@ -75,7 +75,6 @@ class LBWSGLineList(LBWSGRisk):
 
     # noinspection PyAttributeOutsideInit
     def on_initialize_simulants(self, pop_data: SimulantData) -> None:
-
         if pop_data.creation_time < self.start_time:
             columns = [self.exposure_column_name(axis) for axis in self.AXES] + [
                 self.raw_gestational_age_exposure_column_name
