@@ -2,6 +2,11 @@
 
  - Include malaria
 
+**v0.2.0 - 08/29/23**
+
+ - Add Dynamic Child Wasting Model with GBD 2021 data
+ - Re-bin to 2021 age groups 
+
 **v0.1.1 - 08/24/23**
 
  - Include effects of antenatal supplementation on gestational age
