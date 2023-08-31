@@ -431,39 +431,44 @@ def load_cgf_exposure(key: str, location: str) -> pd.DataFrame:
 
 
 def load_underweight_exposure(key: str, location: str) -> pd.DataFrame:
-    '''Read in exposure distribution data (conditional on stunting
+    """Read in exposure distribution data (conditional on stunting
     and wasting) from file and transform. This data looks like standard
     categorical exposure distribution data but with stunting and wasting
-    parameter values in the index.'''
+    parameter values in the index."""
     df = pd.read_csv(paths.UNDERWEIGHT_CONDITIONAL_DISTRIBUTIONS)
     # add early neonatal data by copying late neonatal
-    early_neonatal = df[df['age_group_name'] == 'late_neonatal'].copy()
-    early_neonatal['age_group_name'] = 'early_neonatal'
+    early_neonatal = df[df["age_group_name"] == "late_neonatal"].copy()
+    early_neonatal["age_group_name"] = "early_neonatal"
     df = pd.concat([early_neonatal, df])
 
     # add age start and age end data instead of age group name
     age_bins = get_data(data_keys.POPULATION.AGE_BINS, location).reset_index()
-    age_bins['age_group_name'] = age_bins['age_group_name'].str.lower().str.replace(' ', '_')
-    age_start_map = dict(zip(age_bins['age_group_name'], age_bins['age_start']))
-    age_end_map = dict(zip(age_bins['age_group_name'], age_bins['age_end']))
-    df['age_start'] = df['age_group_name'].map(age_start_map)
-    df['age_end'] = df['age_group_name'].map(age_end_map)
-    df = df.drop('age_group_name', axis=1)
+    age_bins["age_group_name"] = age_bins["age_group_name"].str.lower().str.replace(" ", "_")
+    age_start_map = dict(zip(age_bins["age_group_name"], age_bins["age_start"]))
+    age_end_map = dict(zip(age_bins["age_group_name"], age_bins["age_end"]))
+    df["age_start"] = df["age_group_name"].map(age_start_map)
+    df["age_end"] = df["age_group_name"].map(age_end_map)
+    df = df.drop("age_group_name", axis=1)
 
     # duplicate data for 1990 to 2019
     year_specific_dfs = []
 
     for year_start in range(1990, 2020):
         year_specific_df = df.copy()
-        year_specific_df['year_start'], year_specific_df['year_end'] = year_start, year_start + 1
+        year_specific_df["year_start"], year_specific_df["year_end"] = (
+            year_start,
+            year_start + 1,
+        )
         year_specific_dfs.append(year_specific_df)
 
     df = pd.concat(year_specific_dfs)
 
     # define index
-    df = df.rename({'underweight_parameter': 'parameter'}, axis=1)
-    df = df.set_index(metadata.ARTIFACT_INDEX_COLUMNS +
-                      ['stunting_parameter', 'wasting_parameter','parameter'])
+    df = df.rename({"underweight_parameter": "parameter"}, axis=1)
+    df = df.set_index(
+        metadata.ARTIFACT_INDEX_COLUMNS
+        + ["stunting_parameter", "wasting_parameter", "parameter"]
+    )
 
     return df.sort_index()
 
