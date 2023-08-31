@@ -1,3 +1,7 @@
+**v0.3.0 - 08/30/23**
+
+ - Include malaria
+
 **v0.2.0 - 08/29/23**
 
  - Add Dynamic Child Wasting Model with GBD 2021 data
