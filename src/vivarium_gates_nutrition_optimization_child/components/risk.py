@@ -21,7 +21,7 @@ class Underweight(Risk):
     and wasting state."""
 
     def __init__(self):
-        super().__init__("risk_factor.underweight")
+        super().__init__("risk_factor.child_underweight")
         self._sub_components = []  # no exposure distribution
 
     #################
