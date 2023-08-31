@@ -293,8 +293,8 @@ STUNTING = __Stunting()
 
 class __Underweight(NamedTuple):
     # Keys that will be loaded into the artifact. must have a colon type declaration
-    EXPOSURE: TargetString = "risk_factor.underweight.exposure"
-    CATEGORIES: TargetString = "risk_factor.underweight.categories"
+    EXPOSURE: TargetString = "risk_factor.child_underweight.exposure"
+    CATEGORIES: TargetString = "risk_factor.child_underweight.categories"
 
     # Useful keys not for the artifact - distinguished by not using the colon type declaration
     CAT4 = "cat4"
@@ -304,11 +304,11 @@ class __Underweight(NamedTuple):
 
     @property
     def name(self):
-        return "underweight"
+        return "child_underweight"
 
     @property
     def log_name(self):
-        return "underweight"
+        return "child_underweight"
 
 
 UNDERWEIGHT = __Underweight()
