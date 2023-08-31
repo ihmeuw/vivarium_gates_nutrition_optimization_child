@@ -6,16 +6,21 @@ from vivarium.framework.values import Pipeline
 from vivarium_public_health.risks.data_transformations import (
     get_exposure_post_processor,
 )
-from vivarium_gates_nutrition_optimization_child.constants import data_values, paths
+from vivarium_gates_nutrition_optimization_child.constants import data_keys, data_values
 from vivarium_public_health.risks.distributions import PolytomousDistribution
+from vivarium_public_health.risks.data_transformations import pivot_categorical
 import itertools
 from typing import Dict
 
 
 class Underweight(Risk):
+    '''Model underweight risk in children. We model underweight using probability distributions
+    conditional on stunting and wasting exposure. Instead of using a standard exposure distribution,
+    the expoure pipeline will determine which distribution to use separately for each joint stunting
+    and wasting state.'''
     def __init__(self):
         super().__init__('risk_factor.underweight')
-        self._sub_components = []
+        self._sub_components = [] # no exposure distribution
 
     #################
     # Setup methods #
@@ -41,15 +46,18 @@ class Underweight(Risk):
         )
 
     def _get_distributions(self, builder: Builder) -> Dict[str, PolytomousDistribution]:
-        # TODO: update to read from artifact when RT data has been updated
-        # TODO: for now we're using the same conditional distribution
-        # TODO: for all stunting and wasting values
+        '''Store and setup distributions for each joint stunting and wasting state.'''
         distributions = {}
-        df = pd.read_csv(paths.RAW_DATA_DIR / "underweight_exposure_data.csv")
         categories = [f"cat{i+1}" for i in range(4)]
+        all_distribution_data = builder.data.load(data_keys.UNDERWEIGHT.EXPOSURE)
+
         for category_1, category_2 in itertools.product(categories, categories):
             key = f"stunting_{category_1}_wasting_{category_2}"
-            distributions[key] = PolytomousDistribution(key, df)
+            distribution_data = all_distribution_data.query("stunting_parameter == @category_1 and "
+                                                            "wasting_parameter == @category_2")
+            distribution_data = distribution_data.drop(['stunting_parameter', 'wasting_parameter'], axis=1)
+            distribution_data = pivot_categorical(distribution_data)
+            distributions[key] = PolytomousDistribution(key, distribution_data)
         for dist in distributions.values():
             dist.setup(builder)
         return distributions
@@ -59,6 +67,7 @@ class Underweight(Risk):
     ##################################
 
     def _get_current_exposure(self, index: pd.Index) -> pd.Series:
+        '''Calculate exposures separately for each joint stunting and wasting state and concatenate.'''
         if len(index) == 0:
             return pd.Series(index=index) # only happens on first time step when there's no simulants
         propensity = self.propensity(index).rename('propensity')
@@ -68,8 +77,8 @@ class Underweight(Risk):
 
         exposures = []
         for group, group_df in pop.groupby(['stunting', 'wasting']):
-            stunting, wasting = group
-            distribution = self.distributions[f"stunting_{stunting}_wasting_{wasting}"]
+            stunting_category, wasting_category = group
+            distribution = self.distributions[f"stunting_{stunting_category}_wasting_{wasting_category}"]
             exposure = distribution.ppf(group_df['propensity'])
             exposures.append(exposure)
         return pd.concat(exposures).sort_index()
