@@ -114,7 +114,7 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.STUNTING.RELATIVE_RISK: load_standard_data,
         data_keys.STUNTING.PAF: load_categorical_paf,
         data_keys.UNDERWEIGHT.EXPOSURE: load_underweight_exposure,
-        data_keys.UNDERWEIGHT.CATEGORIES: load_standard_data,
+        data_keys.UNDERWEIGHT.CATEGORIES: load_metadata,
         data_keys.PEM.EMR: load_pem_emr,
         data_keys.PEM.CSMR: load_pem_csmr,
         data_keys.PEM.RESTRICTIONS: load_pem_restrictions,
@@ -432,11 +432,35 @@ def load_cgf_exposure(key: str, location: str) -> pd.DataFrame:
 
 def load_underweight_exposure(key: str, location: str) -> pd.DataFrame:
     df = pd.read_csv(paths.UNDERWEIGHT_CONDITIONAL_DISTRIBUTIONS)
-    age_group_map = {'1-5_months': 0.076712,
-                     '12_to_23_months': 1,
-                     '2_to_4': 2,
-                     '6-11_months': 0.5,
-                     'late_neonatal': 0.019178}
+    # add early neonatal data by copying late neonatal
+    early_neonatal = df[df['age_group_name'] == 'late_neonatal'].copy()
+    early_neonatal['age_group_name'] = 'early_neonatal'
+    df = pd.concat([early_neonatal, df])
+
+    # reshape age data to be vivarium compatible
+    age_bins = get_data(data_keys.POPULATION.AGE_BINS, location).reset_index()
+    age_bins['age_group_name'] = age_bins['age_group_name'].str.lower().str.replace(' ', '_')
+    age_start_map = dict(zip(age_bins['age_group_name'], age_bins['age_start']))
+    age_end_map = dict(zip(age_bins['age_group_name'], age_bins['age_end']))
+    df['age_start'] = df['age_group_name'].map(age_start_map)
+    df['age_end'] = df['age_group_name'].map(age_end_map)
+
+    year_specific_dfs = []
+
+    for year_start in range(1990, 2020):
+        year_specific_df = df.copy()
+        year_specific_df['year_start'], year_specific_df['year_end'] = year_start, year_start + 1
+        year_specific_dfs.append(year_specific_df)
+
+    df = pd.concat(year_specific_dfs)
+
+    df = df.drop('age_group_name', axis=1)
+    df = df.rename({'underweight_parameter': 'parameter'}, axis=1)
+    df = df.set_index(
+        ['sex', 'age_start', 'age_end', 'year_start', 'year_end', 'stunting_parameter', 'wasting_parameter',
+         'parameter'])
+    breakpoint()
+
     return df
 
 
