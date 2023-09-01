@@ -113,6 +113,8 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.STUNTING.EXPOSURE: load_cgf_exposure,
         data_keys.STUNTING.RELATIVE_RISK: load_standard_data,
         data_keys.STUNTING.PAF: load_categorical_paf,
+        data_keys.UNDERWEIGHT.EXPOSURE: load_underweight_exposure,
+        data_keys.UNDERWEIGHT.CATEGORIES: load_metadata,
         data_keys.PEM.EMR: load_pem_emr,
         data_keys.PEM.CSMR: load_pem_csmr,
         data_keys.PEM.RESTRICTIONS: load_pem_restrictions,
@@ -426,6 +428,42 @@ def load_cgf_exposure(key: str, location: str) -> pd.DataFrame:
     data = get_exposure_without_model_version_id(entity, location_id)
     data = reshape_to_vivarium_format(data, location)
     return data
+
+
+def load_underweight_exposure(key: str, location: str) -> pd.DataFrame:
+    """Read in exposure distribution data (conditional on stunting
+    and wasting) from file and transform. This data looks like standard
+    categorical exposure distribution data but with stunting and wasting
+    parameter values in the index."""
+    df = pd.read_csv(paths.UNDERWEIGHT_CONDITIONAL_DISTRIBUTIONS)
+    # add early neonatal data by copying late neonatal
+    early_neonatal = df[df["age_group_name"] == "late_neonatal"].copy()
+    early_neonatal["age_group_name"] = "early_neonatal"
+    df = pd.concat([early_neonatal, df])
+
+    # add age start and age end data instead of age group name
+    age_bins = get_data(data_keys.POPULATION.AGE_BINS, location).reset_index()
+    age_bins["age_group_name"] = age_bins["age_group_name"].str.lower().str.replace(" ", "_")
+    age_start_map = dict(zip(age_bins["age_group_name"], age_bins["age_start"]))
+    age_end_map = dict(zip(age_bins["age_group_name"], age_bins["age_end"]))
+    df["age_start"] = df["age_group_name"].map(age_start_map)
+    df["age_end"] = df["age_group_name"].map(age_end_map)
+    df = df.drop("age_group_name", axis=1)
+
+    # duplicate data for 1990 to 2019
+    year_list = list(range(1990, 2020))
+    years = pd.DataFrame({"year_start": year_list}).set_index(pd.Index([1] * len(year_list)))
+    df = df.set_index(pd.Index([1] * len(df))).join(years)
+    df["year_end"] = df["year_start"] + 1
+
+    # define index
+    df = df.rename({"underweight_parameter": "parameter"}, axis=1)
+    df = df.set_index(
+        metadata.ARTIFACT_INDEX_COLUMNS
+        + ["stunting_parameter", "wasting_parameter", "parameter"]
+    )
+
+    return df.sort_index()
 
 
 def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
