@@ -556,7 +556,7 @@ def load_gbd_2021_rr(key: str, location: str) -> pd.DataFrame:
     elif key == data_keys.WASTING.RELATIVE_RISK:
         # Remove relative risks for simulants under 6 months
         data.loc[
-            data.index.get_level_values("age_end") <= data_values.WASTING.START_AGE
+            data.index.get_level_values("age_end") <= data_values.WASTING.DYNAMIC_START_AGE
         ] = 1.0
     return data
 
@@ -1061,7 +1061,8 @@ def reshape_shift_data(
     shift: pd.Series, index: pd.Index, target: TargetString
 ) -> pd.DataFrame:
     """Read in draw-level shift values and return a DataFrame where the data are the shift values,
-    and the index is the passed index appended with affected entity/measure and parameter data."""
+    and the index is the passed index appended with affected entity/measure and parameter data.
+    """
     exposed = pd.DataFrame([shift], index=index)
     exposed["parameter"] = "cat2"
     unexposed = pd.DataFrame([pd.Series(0.0, index=metadata.ARTIFACT_COLUMNS)], index=index)
