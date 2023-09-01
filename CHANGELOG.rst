@@ -1,3 +1,7 @@
+**v0.3.1 - 09/01/23**
+
+ - Update malaria prevalence to be calculated instead of taken from GBD
+
 **v0.4.0 - 09/01/23**
 
  - Add underweight exposure
