@@ -14,7 +14,7 @@ from vivarium_public_health.risks.distributions import PolytomousDistribution
 from vivarium_gates_nutrition_optimization_child.constants import data_keys, data_values
 
 
-class Underweight(Risk):
+class ChildUnderweight(Risk):
     """Model underweight risk in children. We model underweight using probability distributions
     conditional on stunting and wasting exposure. Instead of using a standard exposure distribution,
     the expoure pipeline will determine which distribution to use separately for each joint stunting
