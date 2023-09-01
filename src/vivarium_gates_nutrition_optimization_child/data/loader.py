@@ -436,17 +436,10 @@ def load_underweight_exposure(key: str, location: str) -> pd.DataFrame:
     df = df.drop("age_group_name", axis=1)
 
     # duplicate data for 1990 to 2019
-    year_specific_dfs = []
-
-    for year_start in range(1990, 2020):
-        year_specific_df = df.copy()
-        year_specific_df["year_start"], year_specific_df["year_end"] = (
-            year_start,
-            year_start + 1,
-        )
-        year_specific_dfs.append(year_specific_df)
-
-    df = pd.concat(year_specific_dfs)
+    year_list = list(range(1990, 2020))
+    years = pd.DataFrame({"year_start": year_list}).set_index(pd.Index([1] * len(year_list)))
+    df = df.set_index(pd.Index([1] * len(df))).join(years)
+    df["year_end"] = df["year_start"] + 1
 
     # define index
     df = df.rename({"underweight_parameter": "parameter"}, axis=1)
@@ -541,7 +534,7 @@ def load_gbd_2021_rr(key: str, location: str) -> pd.DataFrame:
     elif key == data_keys.WASTING.RELATIVE_RISK:
         # Remove relative risks for simulants under 6 months
         data.loc[
-            data.index.get_level_values("age_end") <= data_values.WASTING.START_AGE
+            data.index.get_level_values("age_end") <= data_values.WASTING.DYNAMIC_START_AGE
         ] = 1.0
     return data
 
@@ -1046,7 +1039,8 @@ def reshape_shift_data(
     shift: pd.Series, index: pd.Index, target: TargetString
 ) -> pd.DataFrame:
     """Read in draw-level shift values and return a DataFrame where the data are the shift values,
-    and the index is the passed index appended with affected entity/measure and parameter data."""
+    and the index is the passed index appended with affected entity/measure and parameter data.
+    """
     exposed = pd.DataFrame([shift], index=index)
     exposed["parameter"] = "cat2"
     unexposed = pd.DataFrame([pd.Series(0.0, index=metadata.ARTIFACT_COLUMNS)], index=index)
