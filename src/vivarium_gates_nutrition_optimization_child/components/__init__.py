@@ -14,6 +14,7 @@ from vivarium_gates_nutrition_optimization_child.components.maternal_characteris
 )
 from vivarium_gates_nutrition_optimization_child.components.observers import (
     BirthObserver,
+    ChildWastingObserver,
     DisabilityObserver,
     MortalityObserver,
     ResultsStratifier,
@@ -21,4 +22,8 @@ from vivarium_gates_nutrition_optimization_child.components.observers import (
 from vivarium_gates_nutrition_optimization_child.components.population import (
     PopulationLineList,
 )
-from vivarium_gates_nutrition_optimization_child.components.risk import Underweight
+from vivarium_gates_nutrition_optimization_child.components.risk import ChildUnderweight
+from vivarium_gates_nutrition_optimization_child.components.wasting import (
+    ChildWasting,
+    WastingTreatment,
+)
