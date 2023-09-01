@@ -452,10 +452,7 @@ def load_underweight_exposure(key: str, location: str) -> pd.DataFrame:
 
     # duplicate data for 1990 to 2019
     year_list = list(range(1990, 2020))
-    years = (
-        pd.DataFrame({"year_start": year_list})
-        .set_index(pd.Index([1] * len(year_list)))
-    )
+    years = pd.DataFrame({"year_start": year_list}).set_index(pd.Index([1] * len(year_list)))
     df = df.set_index(pd.Index([1] * len(df))).join(years)
     df["year_end"] = df["year_start"] + 1
 
