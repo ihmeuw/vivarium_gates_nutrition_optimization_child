@@ -1,3 +1,7 @@
+**v0.4.0 - 09/01/23**
+
+ - Add underweight exposure
+
 **v0.3.0 - 08/30/23**
 
  - Include malaria
