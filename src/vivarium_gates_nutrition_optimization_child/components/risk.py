@@ -4,11 +4,12 @@ from typing import Dict
 import pandas as pd
 from vivarium.framework.engine import Builder
 from vivarium.framework.values import Pipeline
-from vivarium_public_health.risks import Risk
+from vivarium_public_health.risks import Risk, RiskEffect
 from vivarium_public_health.risks.data_transformations import (
     get_exposure_post_processor,
     pivot_categorical,
 )
+from vivarium_public_health.utilities import EntityString, TargetString
 from vivarium_public_health.risks.distributions import PolytomousDistribution
 
 from vivarium_gates_nutrition_optimization_child.constants import data_keys, data_values
@@ -95,3 +96,22 @@ class ChildUnderweight(Risk):
             exposure = distribution.ppf(group_df["propensity"])
             exposures.append(exposure)
         return pd.concat(exposures).sort_index()
+
+class CGFRiskEffect(RiskEffect):
+
+    def __init__(self, target: str):
+        """
+        Parameters
+        ----------
+        target :
+            Type, name, and target rate of entity to be affected by risk factor,
+            supplied in the form "entity_type.entity_name.measure"
+            where entity_type should be singular (e.g., cause instead of causes).
+        """
+        self.risk = EntityString()
+        self.target = TargetString(target)
+        self.configuration_defaults = self._get_configuration_defaults()
+
+        self.exposure_pipeline_name = f"{self.risk.name}.exposure"
+        self.target_pipeline_name = f"{self.target.name}.{self.target.measure}"
+        self.target_paf_pipeline_name = f"{self.target_pipeline_name}.paf"
