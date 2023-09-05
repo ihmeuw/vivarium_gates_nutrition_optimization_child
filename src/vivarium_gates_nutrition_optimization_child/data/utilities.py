@@ -116,7 +116,7 @@ def process_exposure(
     data = data[data.measure_id == proper_measure_id.pop()]
 
     # from vivarium_inputs.core.get_exposure
-    data = data.drop("modelable_entity_id", "columns")
+    data = data.drop(["modelable_entity_id", "model_version_id"], "columns")
 
     if entity.name in vi_globals.EXTRA_RESIDUAL_CATEGORY:
         # noinspection PyUnusedLocal
