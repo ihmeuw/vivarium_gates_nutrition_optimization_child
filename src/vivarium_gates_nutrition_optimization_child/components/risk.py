@@ -1,4 +1,4 @@
-from functools import partial
+from functools import partial, update_wrapper
 import itertools
 from typing import Callable, Dict
 
@@ -155,8 +155,9 @@ class CGFRiskEffect(RiskEffect):
             effect = relative_risk.loc[exposure.index, "value"].droplevel(self.risk.name)
             affected_rates = target * effect
             return affected_rates
-
-        return partial(adjust_target, risk)
+        target_modifier = partial(adjust_target, risk)
+        update_wrapper(target_modifier, adjust_target)
+        return target_modifier
 
     def _register_target_modifier(self, builder: Builder, risk: EntityString) -> None:
         builder.value.register_value_modifier(
