@@ -558,6 +558,9 @@ def load_cgf_paf(key: str, location: str) -> pd.DataFrame:
     data = data.set_index(pd.Index([1] * len(data))).join(years)
     data["year_end"] = data["year_start"] + 1
 
+    # Capitalize Sex
+    data['sex'] = data['sex'].str.capitalize()
+
     # define index
     data = data.set_index(
         metadata.ARTIFACT_INDEX_COLUMNS
