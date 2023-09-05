@@ -1,8 +1,6 @@
-from functools import partial, update_wrapper
 import itertools
 from typing import Callable, Dict
 
-import numpy as np
 import pandas as pd
 from vivarium.framework.engine import Builder
 from vivarium.framework.lookup import LookupTable
@@ -10,12 +8,11 @@ from vivarium.framework.values import Pipeline
 from vivarium_public_health.risks import Risk, RiskEffect
 from vivarium_public_health.risks.data_transformations import (
     get_exposure_post_processor,
-    pivot_categorical,
-    get_population_attributable_fraction_data,
     get_relative_risk_data,
+    pivot_categorical,
 )
-from vivarium_public_health.utilities import EntityString, TargetString
 from vivarium_public_health.risks.distributions import PolytomousDistribution
+from vivarium_public_health.utilities import EntityString, TargetString
 
 from vivarium_gates_nutrition_optimization_child.constants import data_keys, data_values
 
@@ -102,8 +99,8 @@ class ChildUnderweight(Risk):
             exposures.append(exposure)
         return pd.concat(exposures).sort_index()
 
-class CGFRiskEffect(RiskEffect):
 
+class CGFRiskEffect(RiskEffect):
     def __init__(self, target: str):
         """
         Parameters
@@ -114,7 +111,14 @@ class CGFRiskEffect(RiskEffect):
             where entity_type should be singular (e.g., cause instead of causes).
         """
         self.risk = EntityString("risk_factor.child_growth_failure")
-        self.cgf_models = [EntityString(f"risk_factor.{risk}") for risk in [data_keys.WASTING.name, data_keys.WASTING.name, data_keys.STUNTING.name]]
+        self.cgf_models = [
+            EntityString(f"risk_factor.{risk}")
+            for risk in [
+                data_keys.WASTING.name,
+                data_keys.WASTING.name,
+                data_keys.STUNTING.name,
+            ]
+        ]
         self.target = TargetString(target)
         self.configuration_defaults = self._get_configuration_defaults()
 
@@ -126,23 +130,33 @@ class CGFRiskEffect(RiskEffect):
             return {
                 f"effect_of_{risk.name}_on_{self.target.name}": {
                     self.target.measure: RiskEffect.configuration_defaults[
-                    "effect_of_risk_on_target"]["measure"]
-                    }
+                        "effect_of_risk_on_target"
+                    ]["measure"]
                 }
+            }
+
         config = get_config_by_risk(self.risk)
         for sub_risk in self.cgf_models:
             config.update(get_config_by_risk(sub_risk))
         return config
 
-
     def _get_distribution_type(self, builder: Builder) -> str:
         return "ordered_polytomous"
 
     def _get_risk_exposure(self, builder: Builder) -> Callable[[pd.Index], pd.Series]:
-        return {risk: builder.value.get_value(f"{risk.name}.exposure") for risk in self.cgf_models}
+        return {
+            risk: builder.value.get_value(f"{risk.name}.exposure") for risk in self.cgf_models
+        }
 
     def _get_relative_risk_source(self, builder: Builder) -> LookupTable:
-        return {risk: builder.lookup.build_table(get_relative_risk_data(builder, risk, self.target), key_columns=["sex"], parameter_columns=["age", "year"]) for risk in self.cgf_models}
+        return {
+            risk: builder.lookup.build_table(
+                get_relative_risk_data(builder, risk, self.target),
+                key_columns=["sex"],
+                parameter_columns=["age", "year"],
+            )
+            for risk in self.cgf_models
+        }
 
     def _get_population_attributable_fraction_source(self, builder: Builder) -> LookupTable:
         paf_data = builder.data.load(f"{self.risk}.population_attributable_fraction")
@@ -159,7 +173,6 @@ class CGFRiskEffect(RiskEffect):
     def _get_target_modifier(
         self, builder: Builder
     ) -> Callable[[pd.Index, pd.Series], pd.Series]:
-
         def adjust_target(index: pd.Index, target: pd.Series) -> pd.Series:
             rrs = self.relative_risk
             exposures = self.exposure
