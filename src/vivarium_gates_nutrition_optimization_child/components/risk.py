@@ -1,3 +1,4 @@
+from functools import partial
 import itertools
 from typing import Callable, Dict
 
@@ -10,8 +11,6 @@ from vivarium_public_health.risks import Risk, RiskEffect
 from vivarium_public_health.risks.data_transformations import (
     get_exposure_post_processor,
     pivot_categorical,
-    get_distribution_type,
-    get_population_attributable_fraction_data,
     get_relative_risk_data,
 )
 from vivarium_public_health.utilities import EntityString, TargetString
@@ -118,52 +117,51 @@ class CGFRiskEffect(RiskEffect):
         self.target = TargetString(target)
         self.configuration_defaults = self._get_configuration_defaults()
 
-        self.exposure_pipeline_names = [f"{risk.name}.exposure" for risk in self.cgf_models]
         self.target_pipeline_name = f"{self.target.name}.{self.target.measure}"
         self.target_paf_pipeline_name = f"{self.target_pipeline_name}.paf"
 
-    def _get_distribution_type(self, builder: Builder) -> str:
-        return "ordered_polytomous"
+        # noinspection PyAttributeOutsideInit
+    def setup(self, builder: Builder) -> None:
+        for risk in self.cgf_models:
+            self._register_target_modifier(builder, risk)
 
-    def _get_risk_exposure(self, builder: Builder) -> Callable[[pd.Index], pd.Series]:
-        #this doesnt work
-        return pd.product([builder.value.get_value(pipeline) for pipeline in self.exposure_pipeline_namers])
-    
-    def _get_relative_risk_source(self, builder: Builder) -> LookupTable:
-                #this doesnt work
+        self.population_attributable_fraction = (
+            self._get_population_attributable_fraction_source(builder)
+        )
 
-        relative_risk_data = pd.product([get_relative_risk_data(builder, risk, self.target) for risk in self.cgf_models])
+        self._register_paf_modifier(builder)
+
+
+    def _get_relative_risk_source(self, builder: Builder, risk: EntityString) -> LookupTable:
+        relative_risk_data = get_relative_risk_data(builder, risk, self.target)
         return builder.lookup.build_table(
             relative_risk_data, key_columns=["sex"], parameter_columns=["age", "year"]
         )
-    
-    def _get_target_modifier( self, builder: Builder) -> Callable[[pd.Index, pd.Series], pd.Series]:
-            if self.exposure_distribution_type in ["normal", "lognormal", "ensemble"]:
-                tmred = builder.data.load(f"{self.risk}.tmred")
-                tmrel = 0.5 * (tmred["min"] + tmred["max"])
-                scale = builder.data.load(f"{self.risk}.relative_risk_scalar")
 
-                def adjust_target(index: pd.Index, target: pd.Series) -> pd.Series:
-                    rr = self.relative_risk(index)
-                    exposure = self.exposure(index)
-                    relative_risk = np.maximum(rr.values ** ((exposure - tmrel) / scale), 1)
-                    return target * relative_risk
+    def _get_target_modifier(
+        self, builder: Builder, risk: EntityString
+    ) -> Callable[[pd.Index, pd.Series], pd.Series]:
+        def adjust_target(risk: EntityString, index: pd.Index, target: pd.Series) -> pd.Series:
+            index_columns = ["index", risk.name]
+            rr = self._get_relative_risk_source(builder, risk)(index)
+            exposure = builder.value.get_value(f"{risk}.exposure")(index).reset_index()
+            exposure.columns = index_columns
+            exposure = exposure.set_index(index_columns)
 
-            else:
-                index_columns = ["index", self.risk.name]
+            relative_risk = rr.stack().reset_index()
+            relative_risk.columns = index_columns + ["value"]
+            relative_risk = relative_risk.set_index(index_columns)
 
-                def adjust_target(index: pd.Index, target: pd.Series) -> pd.Series:
-                    rr = self.relative_risk(index)
-                    exposure = self.exposure(index).reset_index()
-                    exposure.columns = index_columns
-                    exposure = exposure.set_index(index_columns)
+            effect = relative_risk.loc[exposure.index, "value"].droplevel(self.risk.name)
+            affected_rates = target * effect
+            return affected_rates
 
-                    relative_risk = rr.stack().reset_index()
-                    relative_risk.columns = index_columns + ["value"]
-                    relative_risk = relative_risk.set_index(index_columns)
+        return partial(adjust_target, risk)
 
-                    effect = relative_risk.loc[exposure.index, "value"].droplevel(self.risk.name)
-                    affected_rates = target * effect
-                    return affected_rates
-
-            return adjust_target
+    def _register_target_modifier(self, builder: Builder, risk: EntityString) -> None:
+        builder.value.register_value_modifier(
+            self.target_pipeline_name,
+            modifier= self._get_target_modifier(builder, risk),
+            requires_values=[f"{risk.name}.exposure"],
+            requires_columns=["age", "sex"],
+        )
