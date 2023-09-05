@@ -313,6 +313,7 @@ class __Underweight(NamedTuple):
 
 UNDERWEIGHT = __Underweight()
 
+
 class __ChildGrowthFailure(NamedTuple):
     PAF: TargetString = "risk_factor.child_growth_failure.population_attributable_fraction"
 

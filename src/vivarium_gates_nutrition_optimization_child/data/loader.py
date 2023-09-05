@@ -508,8 +508,9 @@ def load_gbd_2021_rr(key: str, location: str) -> pd.DataFrame:
         ] = 1.0
     return data
 
+
 def load_cgf_paf(key: str, location: str) -> pd.DataFrame:
-    data = pd.read_csv(paths.CGF_PAFS,index_col=0)
+    data = pd.read_csv(paths.CGF_PAFS, index_col=0)
 
     # add age start and age end data instead of age group name
     age_bins = get_data(data_keys.POPULATION.AGE_BINS, location).reset_index()
@@ -527,15 +528,13 @@ def load_cgf_paf(key: str, location: str) -> pd.DataFrame:
     data["year_end"] = data["year_start"] + 1
 
     # Capitalize Sex
-    data['sex'] = data['sex'].str.capitalize()
+    data["sex"] = data["sex"].str.capitalize()
 
     # define index
     data = data.set_index(
-        metadata.ARTIFACT_INDEX_COLUMNS
-        + ["affected_entity", "affected_measure"]
+        metadata.ARTIFACT_INDEX_COLUMNS + ["affected_entity", "affected_measure"]
     )
     return data.sort_index()
-
 
 
 def load_pem_disability_weight(key: str, location: str) -> pd.DataFrame:
