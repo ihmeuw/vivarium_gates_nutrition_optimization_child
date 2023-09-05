@@ -314,6 +314,20 @@ class __Underweight(NamedTuple):
 
 UNDERWEIGHT = __Underweight()
 
+class __ChildGrowthFailure(NamedTuple):
+    PAF: TargetString = "risk_factor.child_growth_failure.population_attributable_fraction"
+
+    @property
+    def name(self):
+        return "child_growth_failure"
+
+    @property
+    def log_name(self):
+        return "child_growth_failure"
+
+
+CHILD_GROWTH_FAILURE = __ChildGrowthFailure()
+
 
 class __WastingTreatment(NamedTuple):
     # Keys that will be loaded into the artifact. must have a colon type declaration

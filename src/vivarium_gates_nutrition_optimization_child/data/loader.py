@@ -106,17 +106,15 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.WASTING.CATEGORIES: load_metadata,
         data_keys.WASTING.EXPOSURE: load_gbd_2021_exposure,
         data_keys.WASTING.RELATIVE_RISK: load_gbd_2021_rr,
-        data_keys.WASTING.PAF: load_categorical_paf,
         data_keys.STUNTING.DISTRIBUTION: load_metadata,
         data_keys.STUNTING.ALT_DISTRIBUTION: load_metadata,
         data_keys.STUNTING.CATEGORIES: load_metadata,
         data_keys.STUNTING.EXPOSURE: load_cgf_exposure,
         data_keys.STUNTING.RELATIVE_RISK: load_gbd_2021_rr,
-        data_keys.STUNTING.PAF: load_categorical_paf,
         data_keys.UNDERWEIGHT.EXPOSURE: load_underweight_exposure,
         data_keys.UNDERWEIGHT.CATEGORIES: load_metadata,
         data_keys.UNDERWEIGHT.RELATIVE_RISK: load_gbd_2021_rr,
-        data_keys.UNDERWEIGHT.PAF: load_categorical_paf,
+        data_keys.CHILD_GROWTH_FAILURE.PAF: load_cgf_paf,
         data_keys.PEM.EMR: load_pem_emr,
         data_keys.PEM.CSMR: load_pem_csmr,
         data_keys.PEM.RESTRICTIONS: load_pem_restrictions,
@@ -539,6 +537,8 @@ def load_gbd_2021_rr(key: str, location: str) -> pd.DataFrame:
             data.index.get_level_values("age_end") <= data_values.WASTING.DYNAMIC_START_AGE
         ] = 1.0
     return data
+
+def load_cgf_paf(key: str, location: str) -> pd.DataFrame:
 
 
 def get_exposure_without_model_version_id(
