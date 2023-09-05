@@ -136,10 +136,10 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.MAM_TREATMENT.PAF: load_categorical_paf,
         data_keys.LBWSG.DISTRIBUTION: load_metadata,
         data_keys.LBWSG.CATEGORIES: load_metadata,
-        data_keys.LBWSG.EXPOSURE: load_lbwsg_exposure, ## Still 2019 age bins, but doesn't have effect past NN
-        data_keys.LBWSG.RELATIVE_RISK: load_lbwsg_rr, ## Still 2019 age bins, but doesn't have effect past NN
-        data_keys.LBWSG.RELATIVE_RISK_INTERPOLATOR: load_lbwsg_interpolated_rr, ## Still 2019 age bins, but doesn't have effect past NN
-        data_keys.LBWSG.PAF: load_lbwsg_paf, ## Still 2019 age bins, but doesn't have effect past NN
+        data_keys.LBWSG.EXPOSURE: load_lbwsg_exposure,  ## Still 2019 age bins, but doesn't have effect past NN
+        data_keys.LBWSG.RELATIVE_RISK: load_lbwsg_rr,  ## Still 2019 age bins, but doesn't have effect past NN
+        data_keys.LBWSG.RELATIVE_RISK_INTERPOLATOR: load_lbwsg_interpolated_rr,  ## Still 2019 age bins, but doesn't have effect past NN
+        data_keys.LBWSG.PAF: load_lbwsg_paf,  ## Still 2019 age bins, but doesn't have effect past NN
         data_keys.AFFECTED_UNMODELED_CAUSES.URI_CSMR: load_standard_gbd_2019_data_as_gbd_2021_data,
         data_keys.AFFECTED_UNMODELED_CAUSES.OTITIS_MEDIA_CSMR: load_standard_gbd_2019_data_as_gbd_2021_data,
         data_keys.AFFECTED_UNMODELED_CAUSES.MENINGITIS_CSMR: load_standard_gbd_2019_data_as_gbd_2021_data,
@@ -416,22 +416,39 @@ def load_emr_from_csmr_and_prevalence(key: str, location: str) -> pd.DataFrame:
         data.loc[data.index.get_level_values("age_start") < metadata.NEONATAL_END_AGE, :] = 0
     return data
 
+
 def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
     entity_key = EntityKey(key)
     entity = utilities.get_gbd_2021_entity(entity_key)
 
-    data = utilities.get_data(entity_key, entity, location, gbd_constants.SOURCES.EXPOSURE, 'rei_id',
-                              metadata.AGE_GROUP.GBD_2021, metadata.GBD_2021_ROUND_ID)
-    data = utilities.process_exposure(data, entity_key, entity, location, metadata.GBD_2021_ROUND_ID,
-                                      metadata.AGE_GROUP.GBD_2021)
+    data = utilities.get_data(
+        entity_key,
+        entity,
+        location,
+        gbd_constants.SOURCES.EXPOSURE,
+        "rei_id",
+        metadata.AGE_GROUP.GBD_2021,
+        metadata.GBD_2021_ROUND_ID,
+    )
+    data = utilities.process_exposure(
+        data,
+        entity_key,
+        entity,
+        location,
+        metadata.GBD_2021_ROUND_ID,
+        metadata.AGE_GROUP.GBD_2021,
+    )
 
     if entity_key == data_keys.STUNTING.EXPOSURE:
         # Remove neonatal exposure
-        neonatal_age_ends = data.index.get_level_values('age_end').unique()[:2]
-        data.loc[data.index.get_level_values('age_end').isin(neonatal_age_ends)] = 0.0
-        data.loc[data.index.get_level_values('age_end').isin(neonatal_age_ends)
-                 & (data.index.get_level_values('parameter') == data_keys.STUNTING.CAT4)] = 1.0
+        neonatal_age_ends = data.index.get_level_values("age_end").unique()[:2]
+        data.loc[data.index.get_level_values("age_end").isin(neonatal_age_ends)] = 0.0
+        data.loc[
+            data.index.get_level_values("age_end").isin(neonatal_age_ends)
+            & (data.index.get_level_values("parameter") == data_keys.STUNTING.CAT4)
+        ] = 1.0
     return data
+
 
 def load_gbd_2021_rr(key: str, location: str) -> pd.DataFrame:
     entity_key = EntityKey(key)
@@ -465,6 +482,7 @@ def load_gbd_2021_rr(key: str, location: str) -> pd.DataFrame:
             data.index.get_level_values("age_end") <= data_values.WASTING.DYNAMIC_START_AGE
         ] = 1.0
     return data
+
 
 def load_pem_disability_weight(key: str, location: str) -> pd.DataFrame:
     try:
