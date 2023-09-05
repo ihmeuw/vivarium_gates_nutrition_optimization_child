@@ -106,15 +106,15 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.WASTING.CATEGORIES: load_metadata,
         data_keys.WASTING.EXPOSURE: load_gbd_2021_exposure,
         data_keys.WASTING.RELATIVE_RISK: load_gbd_2021_rr,
-        data_keys.WASTING.PAF: load_categorical_paf,
         data_keys.STUNTING.DISTRIBUTION: load_metadata,
         data_keys.STUNTING.ALT_DISTRIBUTION: load_metadata,
         data_keys.STUNTING.CATEGORIES: load_metadata,
         data_keys.STUNTING.EXPOSURE: load_cgf_exposure,
-        data_keys.STUNTING.RELATIVE_RISK: load_standard_data,
-        data_keys.STUNTING.PAF: load_categorical_paf,
+        data_keys.STUNTING.RELATIVE_RISK: load_gbd_2021_rr,
         data_keys.UNDERWEIGHT.EXPOSURE: load_underweight_exposure,
         data_keys.UNDERWEIGHT.CATEGORIES: load_metadata,
+        data_keys.UNDERWEIGHT.RELATIVE_RISK: load_gbd_2021_rr,
+        data_keys.CHILD_GROWTH_FAILURE.PAF: load_cgf_paf,
         data_keys.PEM.EMR: load_pem_emr,
         data_keys.PEM.CSMR: load_pem_csmr,
         data_keys.PEM.RESTRICTIONS: load_pem_restrictions,
@@ -537,6 +537,32 @@ def load_gbd_2021_rr(key: str, location: str) -> pd.DataFrame:
             data.index.get_level_values("age_end") <= data_values.WASTING.DYNAMIC_START_AGE
         ] = 1.0
     return data
+
+def load_cgf_paf(key: str, location: str) -> pd.DataFrame:
+    data = pd.read_csv(paths.CGF_PAFS,index_col=0)
+
+    # add age start and age end data instead of age group name
+    age_bins = get_data(data_keys.POPULATION.AGE_BINS, location).reset_index()
+    age_bins["age_group_name"] = age_bins["age_group_name"].str.lower().str.replace(" ", "_")
+    age_start_map = dict(zip(age_bins["age_group_name"], age_bins["age_start"]))
+    age_end_map = dict(zip(age_bins["age_group_name"], age_bins["age_end"]))
+    data["age_start"] = data["age_group_name"].map(age_start_map)
+    data["age_end"] = data["age_group_name"].map(age_end_map)
+    data = data.drop(["age_group_name", "location_id"], axis=1)
+
+    # duplicate data for 1990 to 2022
+    year_list = list(range(1990, 2023))
+    years = pd.DataFrame({"year_start": year_list}).set_index(pd.Index([1] * len(year_list)))
+    data = data.set_index(pd.Index([1] * len(data))).join(years)
+    data["year_end"] = data["year_start"] + 1
+
+    # define index
+    data = data.set_index(
+        metadata.ARTIFACT_INDEX_COLUMNS
+        + ["affected_entity", "affected_measure"]
+    )
+    return data.sort_index()
+
 
 
 def get_exposure_without_model_version_id(
