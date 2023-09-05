@@ -294,8 +294,6 @@ class __Underweight(NamedTuple):
     # Keys that will be loaded into the artifact. must have a colon type declaration
     EXPOSURE: TargetString = "risk_factor.child_underweight.exposure"
     CATEGORIES: TargetString = "risk_factor.child_underweight.categories"
-    RELATIVE_RISK: TargetString = "risk_factor.child_underweight.relative_risk"
-    PAF: TargetString = "risk_factor.child_underweight.population_attributable_fraction"
 
     # Useful keys not for the artifact - distinguished by not using the colon type declaration
     CAT4 = "cat4"
@@ -313,20 +311,6 @@ class __Underweight(NamedTuple):
 
 
 UNDERWEIGHT = __Underweight()
-
-class __ChildGrowthFailure(NamedTuple):
-    PAF: TargetString = "risk_factor.child_growth_failure.population_attributable_fraction"
-
-    @property
-    def name(self):
-        return "child_growth_failure"
-
-    @property
-    def log_name(self):
-        return "child_growth_failure"
-
-
-CHILD_GROWTH_FAILURE = __ChildGrowthFailure()
 
 
 class __WastingTreatment(NamedTuple):
