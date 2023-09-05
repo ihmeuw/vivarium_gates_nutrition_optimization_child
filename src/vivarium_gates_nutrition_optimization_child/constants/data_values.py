@@ -182,3 +182,22 @@ class __MaternalCharacteristics(NamedTuple):
 
 
 MATERNAL_CHARACTERISTICS = __MaternalCharacteristics()
+
+
+##################
+# Pipeline names #
+##################
+
+
+class __Pipelines(NamedTuple):
+    """value pipeline names"""
+
+    STUNTING_EXPOSURE: str = "child_stunting.exposure"
+    WASTING_EXPOSURE: str = "child_wasting.exposure"
+
+    @property
+    def name(self):
+        return "pipelines"
+
+
+PIPELINES = __Pipelines()
