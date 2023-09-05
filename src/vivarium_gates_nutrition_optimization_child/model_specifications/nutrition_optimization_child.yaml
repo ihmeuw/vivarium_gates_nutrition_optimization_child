@@ -124,3 +124,18 @@ configuration:
             include:
                 - "maternal_supplementation"
                 - "bmi_anemia"
+        mortality:
+            include:
+                - "wasting_state"
+        diarrheal_diseases:
+            include:
+                - "wasting_state"
+        measles:
+            include:
+                - "wasting_state"
+        lower_respiratory_infections:
+            include:
+                - "wasting_state"
+        malaria:
+            include:
+                - "wasting_state"
