@@ -11,6 +11,7 @@ from vivarium_public_health.risks import Risk, RiskEffect
 from vivarium_public_health.risks.data_transformations import (
     get_exposure_post_processor,
     pivot_categorical,
+    get_population_attributable_fraction_data,
     get_relative_risk_data,
 )
 from vivarium_public_health.utilities import EntityString, TargetString
@@ -120,49 +121,61 @@ class CGFRiskEffect(RiskEffect):
         self.target_pipeline_name = f"{self.target.name}.{self.target.measure}"
         self.target_paf_pipeline_name = f"{self.target_pipeline_name}.paf"
 
-        # noinspection PyAttributeOutsideInit
-    def setup(self, builder: Builder) -> None:
-        for risk in self.cgf_models:
-            self._register_target_modifier(builder, risk)
+    def _get_configuration_defaults(self) -> Dict[str, Dict]:
+        def get_config_by_risk(risk):
+            return {
+                f"effect_of_{risk.name}_on_{self.target.name}": {
+                    self.target.measure: RiskEffect.configuration_defaults[
+                    "effect_of_risk_on_target"]["measure"]
+                    }
+                }
+        config = get_config_by_risk(self.risk)
+        for sub_risk in self.cgf_models:
+            config.update(get_config_by_risk(sub_risk))
+        return config
 
-        self.population_attributable_fraction = (
-            self._get_population_attributable_fraction_source(builder)
+
+    def _get_distribution_type(self, builder: Builder) -> str:
+        return "ordered_polytomous"
+
+    def _get_risk_exposure(self, builder: Builder) -> Callable[[pd.Index], pd.Series]:
+        return {risk: builder.value.get_value(f"{risk}.exposure") for risk in self.cgf_models}
+
+    def _get_relative_risk_source(self, builder: Builder) -> LookupTable:
+        return {risk: builder.lookup.build_table(get_relative_risk_data(builder, risk, self.target), key_columns=["sex"], parameter_columns=["age", "year"]) for risk in self.cgf_models}
+
+    def _get_population_attributable_fraction_source(self, builder: Builder) -> LookupTable:
+        paf_data = builder.data.load(f"{self.risk}.population_attributable_fraction")
+        correct_target = (paf_data["affected_entity"] == self.target.name) & (
+            paf_data["affected_measure"] == self.target.measure
         )
-
-        self._register_paf_modifier(builder)
-
-
-    def _get_relative_risk_source(self, builder: Builder, risk: EntityString) -> LookupTable:
-        relative_risk_data = get_relative_risk_data(builder, risk, self.target)
+        paf_data = paf_data[correct_target].drop(
+            columns=["affected_entity", "affected_measure"]
+        )
         return builder.lookup.build_table(
-            relative_risk_data, key_columns=["sex"], parameter_columns=["age", "year"]
+            paf_data, key_columns=["sex"], parameter_columns=["age", "year"]
         )
 
     def _get_target_modifier(
-        self, builder: Builder, risk: EntityString
+        self, builder: Builder
     ) -> Callable[[pd.Index, pd.Series], pd.Series]:
-        def adjust_target(risk: EntityString, index: pd.Index, target: pd.Series) -> pd.Series:
-            index_columns = ["index", risk.name]
-            rr = self._get_relative_risk_source(builder, risk)(index)
-            exposure = builder.value.get_value(f"{risk}.exposure")(index).reset_index()
-            exposure.columns = index_columns
-            exposure = exposure.set_index(index_columns)
 
-            relative_risk = rr.stack().reset_index()
-            relative_risk.columns = index_columns + ["value"]
-            relative_risk = relative_risk.set_index(index_columns)
+        def adjust_target(index: pd.Index, target: pd.Series) -> pd.Series:
+            rrs = self.relative_risk
+            exposures = self.exposure
+            for risk in self.cgf_models:
+                index_columns = ["index", risk.name]
+                rr = rrs[risk](index)
+                exposure = exposures[risk](index).reset_index()
+                exposure.columns = index_columns
+                exposure = exposure.set_index(index_columns)
 
-            effect = relative_risk.loc[exposure.index, "value"].droplevel(self.risk.name)
-            affected_rates = target * effect
-            return affected_rates
-        target_modifier = partial(adjust_target, risk)
-        update_wrapper(target_modifier, adjust_target)
-        return target_modifier
+                relative_risk = rr.stack().reset_index()
+                relative_risk.columns = index_columns + ["value"]
+                relative_risk = relative_risk.set_index(index_columns)
 
-    def _register_target_modifier(self, builder: Builder, risk: EntityString) -> None:
-        builder.value.register_value_modifier(
-            self.target_pipeline_name,
-            modifier= self._get_target_modifier(builder, risk),
-            requires_values=[f"{risk.name}.exposure"],
-            requires_columns=["age", "sex"],
-        )
+                effect = relative_risk.loc[exposure.index, "value"].droplevel(risk.name)
+                target *= effect
+            return target
+
+        return adjust_target
