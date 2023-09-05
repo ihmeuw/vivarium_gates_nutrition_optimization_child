@@ -1,13 +1,18 @@
 import itertools
-from typing import Dict
+from typing import Callable, Dict
 
+import numpy as np
 import pandas as pd
 from vivarium.framework.engine import Builder
+from vivarium.framework.lookup import LookupTable
 from vivarium.framework.values import Pipeline
 from vivarium_public_health.risks import Risk, RiskEffect
 from vivarium_public_health.risks.data_transformations import (
     get_exposure_post_processor,
     pivot_categorical,
+    get_distribution_type,
+    get_population_attributable_fraction_data,
+    get_relative_risk_data,
 )
 from vivarium_public_health.utilities import EntityString, TargetString
 from vivarium_public_health.risks.distributions import PolytomousDistribution
@@ -108,10 +113,57 @@ class CGFRiskEffect(RiskEffect):
             supplied in the form "entity_type.entity_name.measure"
             where entity_type should be singular (e.g., cause instead of causes).
         """
-        self.risk = EntityString()
+        self.risk = EntityString("risk_factor.child_growth_failure")
+        self.cgf_models = [EntityString(f"risk_factor.{risk}") for risk in [data_keys.WASTING.name, data_keys.WASTING.name, data_keys.STUNTING.name]]
         self.target = TargetString(target)
         self.configuration_defaults = self._get_configuration_defaults()
 
-        self.exposure_pipeline_name = f"{self.risk.name}.exposure"
+        self.exposure_pipeline_names = [f"{risk.name}.exposure" for risk in self.cgf_models]
         self.target_pipeline_name = f"{self.target.name}.{self.target.measure}"
         self.target_paf_pipeline_name = f"{self.target_pipeline_name}.paf"
+
+    def _get_distribution_type(self, builder: Builder) -> str:
+        return "ordered_polytomous"
+
+    def _get_risk_exposure(self, builder: Builder) -> Callable[[pd.Index], pd.Series]:
+        #this doesnt work
+        return pd.product([builder.value.get_value(pipeline) for pipeline in self.exposure_pipeline_namers])
+    
+    def _get_relative_risk_source(self, builder: Builder) -> LookupTable:
+                #this doesnt work
+
+        relative_risk_data = pd.product([get_relative_risk_data(builder, risk, self.target) for risk in self.cgf_models])
+        return builder.lookup.build_table(
+            relative_risk_data, key_columns=["sex"], parameter_columns=["age", "year"]
+        )
+    
+    def _get_target_modifier( self, builder: Builder) -> Callable[[pd.Index, pd.Series], pd.Series]:
+            if self.exposure_distribution_type in ["normal", "lognormal", "ensemble"]:
+                tmred = builder.data.load(f"{self.risk}.tmred")
+                tmrel = 0.5 * (tmred["min"] + tmred["max"])
+                scale = builder.data.load(f"{self.risk}.relative_risk_scalar")
+
+                def adjust_target(index: pd.Index, target: pd.Series) -> pd.Series:
+                    rr = self.relative_risk(index)
+                    exposure = self.exposure(index)
+                    relative_risk = np.maximum(rr.values ** ((exposure - tmrel) / scale), 1)
+                    return target * relative_risk
+
+            else:
+                index_columns = ["index", self.risk.name]
+
+                def adjust_target(index: pd.Index, target: pd.Series) -> pd.Series:
+                    rr = self.relative_risk(index)
+                    exposure = self.exposure(index).reset_index()
+                    exposure.columns = index_columns
+                    exposure = exposure.set_index(index_columns)
+
+                    relative_risk = rr.stack().reset_index()
+                    relative_risk.columns = index_columns + ["value"]
+                    relative_risk = relative_risk.set_index(index_columns)
+
+                    effect = relative_risk.loc[exposure.index, "value"].droplevel(self.risk.name)
+                    affected_rates = target * effect
+                    return affected_rates
+
+            return adjust_target
