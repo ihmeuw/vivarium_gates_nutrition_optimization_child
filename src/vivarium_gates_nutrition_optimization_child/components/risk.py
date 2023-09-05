@@ -139,7 +139,7 @@ class CGFRiskEffect(RiskEffect):
         return "ordered_polytomous"
 
     def _get_risk_exposure(self, builder: Builder) -> Callable[[pd.Index], pd.Series]:
-        return {risk: builder.value.get_value(f"{risk}.exposure") for risk in self.cgf_models}
+        return {risk: builder.value.get_value(f"{risk.name}.exposure") for risk in self.cgf_models}
 
     def _get_relative_risk_source(self, builder: Builder) -> LookupTable:
         return {risk: builder.lookup.build_table(get_relative_risk_data(builder, risk, self.target), key_columns=["sex"], parameter_columns=["age", "year"]) for risk in self.cgf_models}
