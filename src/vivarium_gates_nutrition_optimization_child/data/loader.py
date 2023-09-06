@@ -290,8 +290,18 @@ def load_categorical_paf(key: str, location: str) -> pd.DataFrame:
 
 def load_wasting_transition_rates(key: str, location: str) -> pd.DataFrame:
     rates = pd.read_csv(paths.WASTING_TRANSITIONS_DATA_DIR / f"{location.lower()}.csv")
-    breakpoint()
-    return rates
+
+    # duplicate data for 1990 to 2019 (only for 2019 in file)
+    rates = rates.drop(['year_start', 'year_end'], axis=1)
+    year_list = list(range(1990, 2020))
+    years = pd.DataFrame({"year_start": year_list}).set_index(pd.Index([1] * len(year_list)))
+    rates = rates.set_index(pd.Index([1] * len(rates))).join(years)
+    rates["year_end"] = rates["year_start"] + 1
+
+    # define index
+    rates = rates.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ["transition"])
+
+    return rates.sort_index()
 
 
 def _load_em_from_meid(location, meid, measure):
