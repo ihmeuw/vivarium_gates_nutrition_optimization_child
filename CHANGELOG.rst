@@ -1,3 +1,7 @@
+**v0.5.0 - 09/05/23**
+
+ - Update CGF Risk Effects
+
 **v0.3.1 - 09/01/23**
 
  - Update malaria prevalence to be calculated instead of taken from GBD
