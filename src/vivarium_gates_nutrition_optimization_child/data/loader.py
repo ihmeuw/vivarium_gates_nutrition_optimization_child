@@ -107,6 +107,7 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.WASTING.EXPOSURE: load_gbd_2021_exposure,
         data_keys.WASTING.RELATIVE_RISK: load_gbd_2021_rr,
         data_keys.WASTING.PAF: load_categorical_paf,
+        data_keys.WASTING.TRANSITION_RATES: load_wasting_transition_rates,
         data_keys.STUNTING.DISTRIBUTION: load_metadata,
         data_keys.STUNTING.ALT_DISTRIBUTION: load_metadata,
         data_keys.STUNTING.CATEGORIES: load_metadata,
@@ -285,6 +286,12 @@ def load_categorical_paf(key: str, location: str) -> pd.DataFrame:
     )
     paf = (sum_exp_x_rr - 1) / sum_exp_x_rr
     return paf
+
+
+def load_wasting_transition_rates(key: str, location: str) -> pd.DataFrame:
+    rates = pd.read_csv(paths.WASTING_TRANSITIONS_DATA_DIR / f"{location.lower()}.csv")
+    breakpoint()
+    return rates
 
 
 def _load_em_from_meid(location, meid, measure):
