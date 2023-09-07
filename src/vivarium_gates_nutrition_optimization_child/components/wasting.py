@@ -333,8 +333,8 @@ def load_mild_wasting_exposure(builder: Builder, cause: str) -> pd.DataFrame:
     return load_child_wasting_exposures(builder)[WASTING.CAT3].reset_index()
 
 
-def load_wasting_rate(builder: Builder, *args) -> pd.DataFrame:
-    args_to_transition_map = {
+def load_wasting_rate(builder: Builder, *wasting_states) -> pd.DataFrame:
+    states_to_transition_map = {
         ("mild_child_wasting",): "inc_rate_mild",
         ("mild_child_wasting", "moderate_acute_malnutrition"): "inc_rate_mam",
         ("moderate_acute_malnutrition", "severe_acute_malnutrition"): "inc_rate_sam",
@@ -343,7 +343,7 @@ def load_wasting_rate(builder: Builder, *args) -> pd.DataFrame:
         ("severe_acute_malnutrition", "mild_child_wasting"): "tx_rem_rate_sam",
         ("severe_acute_malnutrition", "moderate_acute_malnutrition"): "ux_rem_rate_sam",
     }
-    transition = args_to_transition_map[args]
+    transition = states_to_transition_map[wasting_states]
     data = get_transition_data(builder, transition)
     return data
 
