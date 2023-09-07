@@ -26,7 +26,11 @@ from vivarium_inputs.mapping_extension import (
 )
 from vivarium_inputs.validation.raw import check_metadata
 
-from vivarium_gates_nutrition_optimization_child.constants import data_keys, data_values, paths
+from vivarium_gates_nutrition_optimization_child.constants import (
+    data_keys,
+    data_values,
+    paths,
+)
 from vivarium_gates_nutrition_optimization_child.constants.metadata import (
     AGE_GROUP,
     ARTIFACT_COLUMNS,
@@ -579,8 +583,8 @@ def get_treatment_efficacy(
     demography: pd.DataFrame, treatment_type: str, location: str
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
     baseline_efficacy = {
-        data_keys.WASTING.CAT1: get_wasting_treatment_parameter_data('e_sam', location),
-        data_keys.WASTING.CAT2: get_wasting_treatment_parameter_data('e_mam', location),
+        data_keys.WASTING.CAT1: get_wasting_treatment_parameter_data("e_sam", location),
+        data_keys.WASTING.CAT2: get_wasting_treatment_parameter_data("e_mam", location),
     }
     alternative_efficacy = {
         data_keys.WASTING.CAT1: data_values.WASTING.SAM_TX_ALTERNATIVE_EFFICACY,
@@ -607,8 +611,8 @@ def get_treatment_efficacy(
 
 
 def get_wasting_treatment_parameter_data(parameter: str, location: str) -> pd.Series:
-    '''Get coverage or efficacy values for SAM or MAM treatment for all draws.'''
+    """Get coverage or efficacy values for SAM or MAM treatment for all draws."""
     draws = pd.read_csv(paths.WASTING_TREATMENT_PARAMETERS_DIR / f"{location.lower()}.csv")
-    draws = draws.query("parameter==@parameter").drop('parameter', axis=1)
-    draws = draws.T.squeeze() # transpose and convert to series
+    draws = draws.query("parameter==@parameter").drop("parameter", axis=1)
+    draws = draws.T.squeeze()  # transpose and convert to series
     return draws

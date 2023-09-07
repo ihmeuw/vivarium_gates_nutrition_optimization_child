@@ -289,12 +289,12 @@ def load_categorical_paf(key: str, location: str) -> pd.DataFrame:
 
 
 def load_wasting_transition_rates(key: str, location: str) -> pd.DataFrame:
-    '''Read in wasting transition rates from flat file and expand to include all years.
-    The parameter column refers to the different transitions.'''
+    """Read in wasting transition rates from flat file and expand to include all years.
+    The parameter column refers to the different transitions."""
     rates = pd.read_csv(paths.WASTING_TRANSITIONS_DATA_DIR / f"{location.lower()}.csv")
 
     # duplicate data for 1990 to 2019 (only for 2019 in file)
-    rates = rates.drop(['year_start', 'year_end'], axis=1)
+    rates = rates.drop(["year_start", "year_end"], axis=1)
     year_list = list(range(1990, 2020))
     years = pd.DataFrame({"year_start": year_list}).set_index(pd.Index([1] * len(year_list)))
     rates = rates.set_index(pd.Index([1] * len(rates))).join(years)
@@ -597,9 +597,9 @@ def load_wasting_treatment_categories(key: str, location: str) -> str:
 
 def load_wasting_treatment_exposure(key: str, location: str) -> pd.DataFrame:
     if key == data_keys.SAM_TREATMENT.EXPOSURE:
-        parameter = 'c_sam'
+        parameter = "c_sam"
     elif key == data_keys.MAM_TREATMENT.EXPOSURE:
-        parameter = 'c_mam'
+        parameter = "c_mam"
     else:
         raise ValueError(f"Unrecognized key {key}")
 
