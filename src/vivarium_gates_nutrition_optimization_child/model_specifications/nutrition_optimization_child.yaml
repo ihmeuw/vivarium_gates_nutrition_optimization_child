@@ -120,7 +120,10 @@ configuration:
             - "sex"
             - "age_group"
         mortality:
-            - "wasting_state"
+            include:
+                - "wasting_state"
+        child_wasting:
+            include: ["mam_treatment", "sam_treatment"]
         birth:
             exclude:
                 - "age_group"
