@@ -609,6 +609,6 @@ def get_treatment_efficacy(
 
 def get_wasting_treatment_parameter_data(parameter: str, location: str) -> pd.Series:
     draws = pd.read_csv(paths.WASTING_TREATMENT_PARAMETERS_DIR / f"{location.lower()}.csv")
-    draws = draws.query("parameter==@efficacy_type").drop('parameter', axis=1)
+    draws = draws.query("parameter==@parameter").drop('parameter', axis=1)
     draws = draws.T.squeeze() # transpose and convert to series
     return draws
