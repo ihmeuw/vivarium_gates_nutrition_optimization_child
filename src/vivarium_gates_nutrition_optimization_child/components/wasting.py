@@ -4,8 +4,7 @@ import numpy as np
 import pandas as pd
 from vivarium.framework.engine import Builder
 from vivarium.framework.event import Event
-from vivarium.framework.lookup import LookupTable
-from vivarium.framework.population import PopulationView, SimulantData
+from vivarium.framework.population import PopulationView
 from vivarium_public_health.disease import DiseaseModel, DiseaseState, SusceptibleState
 from vivarium_public_health.risks import Risk
 from vivarium_public_health.risks.data_transformations import (
@@ -344,7 +343,10 @@ def load_mild_wasting_incidence_rate(builder: Builder, cause: str) -> pd.DataFra
         builder, exposures, adjustment, mortality_probs
     )
     incidence_rate = _convert_daily_probability_to_annual_rate(daily_probability)
-    breakpoint()
+    transition = 'inc_rate_mam'
+    rates = builder.data.load('risk_factor.child_wasting.transition_rates').query("transition==@transition")
+    rates = rates.drop('transition', axis=1).reset_index(drop=True)
+    rates = rates.set_index(metadata.ARTIFACT_INDEX_COLUMNS).squeeze()
     return incidence_rate.reset_index()
 
 
@@ -474,6 +476,7 @@ def load_mam_remission_rate(builder: Builder, *args) -> float:
         builder, index, mam_tx_coverage, mam_tx_efficacy
     )
     incidence_rate = _convert_daily_probability_to_annual_rate(daily_probability)
+    breakpoint()
     return incidence_rate.reset_index()
 
 
