@@ -26,7 +26,7 @@ from vivarium_inputs.mapping_extension import (
 )
 from vivarium_inputs.validation.raw import check_metadata
 
-from vivarium_gates_nutrition_optimization_child.constants import data_keys, data_values
+from vivarium_gates_nutrition_optimization_child.constants import data_keys, data_values, paths
 from vivarium_gates_nutrition_optimization_child.constants.metadata import (
     AGE_GROUP,
     ARTIFACT_COLUMNS,
@@ -576,7 +576,7 @@ def apply_artifact_index(data: pd.DataFrame) -> pd.DataFrame:
 
 
 def get_treatment_efficacy(
-    demography: pd.DataFrame, treatment_type: str
+    demography: pd.DataFrame, treatment_type: str, location: str
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
     baseline_efficacy = {
         data_keys.WASTING.CAT1: get_random_variable_draws(
@@ -609,3 +609,10 @@ def get_treatment_efficacy(
         efficacy.index.get_level_values("parameter") == data_keys.MAM_TREATMENT.TMREL_CATEGORY
     ].droplevel("parameter")
     return efficacy, tmrel_efficacy
+
+
+def get_efficacy_draws_from_file(efficacy_type: str, location: str) -> pd.Series:
+    draws = pd.read_csv(paths.WASTING_TREATMENT_PARAMETERS_DIR / f"{location.lower()}.csv")
+    draws = draws.query("parameter==@efficacy_type").drop('parameter', axis=1).T
+    breakpoint()
+    return draws

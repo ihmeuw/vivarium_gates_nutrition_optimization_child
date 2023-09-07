@@ -628,7 +628,7 @@ def load_sam_treatment_rr(key: str, location: str) -> pd.DataFrame:
 
     demography = get_data(data_keys.POPULATION.DEMOGRAPHY, location).reset_index()
     sam_tx_efficacy, sam_tx_efficacy_tmrel = utilities.get_treatment_efficacy(
-        demography, data_keys.WASTING.CAT1
+        demography, data_keys.WASTING.CAT1, location
     )
 
     # rr_t1 = t1 / t1_tmrel
@@ -664,7 +664,7 @@ def load_mam_treatment_rr(key: str, location: str) -> pd.DataFrame:
 
     demography = get_data(data_keys.POPULATION.DEMOGRAPHY, location).reset_index()
     mam_tx_efficacy, mam_tx_efficacy_tmrel = utilities.get_treatment_efficacy(
-        demography, data_keys.WASTING.CAT2
+        demography, data_keys.WASTING.CAT2, location
     )
     index = mam_tx_efficacy.index
 
