@@ -344,7 +344,6 @@ def load_mild_wasting_incidence_rate(builder: Builder, cause: str) -> pd.DataFra
         builder, exposures, adjustment, mortality_probs
     )
     incidence_rate = _convert_daily_probability_to_annual_rate(daily_probability)
-    breakpoint()
     return incidence_rate.reset_index()
 
 

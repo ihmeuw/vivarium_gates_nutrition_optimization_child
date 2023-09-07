@@ -586,7 +586,6 @@ def get_treatment_efficacy(
         data_keys.WASTING.CAT1: data_values.WASTING.SAM_TX_ALTERNATIVE_EFFICACY,
         data_keys.WASTING.CAT2: data_values.WASTING.MAM_TX_ALTERNATIVE_EFFICACY,
     }
-    breakpoint()
     idx_as_frame = demography.merge(
         pd.DataFrame({"parameter": [f"cat{i}" for i in range(1, 4)]}), how="cross"
     )
@@ -608,6 +607,7 @@ def get_treatment_efficacy(
 
 
 def get_wasting_treatment_parameter_data(parameter: str, location: str) -> pd.Series:
+    '''Get coverage or efficacy values for SAM or MAM treatment for all draws.'''
     draws = pd.read_csv(paths.WASTING_TREATMENT_PARAMETERS_DIR / f"{location.lower()}.csv")
     draws = draws.query("parameter==@parameter").drop('parameter', axis=1)
     draws = draws.T.squeeze() # transpose and convert to series
