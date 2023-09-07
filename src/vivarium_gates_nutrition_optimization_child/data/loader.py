@@ -595,15 +595,13 @@ def load_wasting_treatment_categories(key: str, location: str) -> str:
 
 def load_wasting_treatment_exposure(key: str, location: str) -> pd.DataFrame:
     if key == data_keys.SAM_TREATMENT.EXPOSURE:
-        coverage_distribution = data_values.WASTING.BASELINE_SAM_TX_COVERAGE
+        parameter = 'c_sam'
     elif key == data_keys.MAM_TREATMENT.EXPOSURE:
-        coverage_distribution = data_values.WASTING.BASELINE_MAM_TX_COVERAGE
+        parameter = 'c_mam'
     else:
         raise ValueError(f"Unrecognized key {key}")
 
-    treatment_coverage = get_random_variable_draws(
-        metadata.ARTIFACT_COLUMNS, *coverage_distribution
-    )
+    treatment_coverage = utilities.get_wasting_treatment_parameter_data(parameter, location)
 
     idx = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index
     cat3 = pd.DataFrame({f"draw_{i}": 0.0 for i in range(0, 1000)}, index=idx)
