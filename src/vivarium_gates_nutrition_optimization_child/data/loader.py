@@ -98,7 +98,7 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.MALARIA.INCIDENCE_RATE: load_standard_gbd_2019_data_as_gbd_2021_data,
         data_keys.MALARIA.REMISSION_RATE: load_malaria_remission_rate_from_duration,
         data_keys.MALARIA.DISABILITY_WEIGHT: load_standard_gbd_2019_data_as_gbd_2021_data,
-        data_keys.MALARIA.EMR: load_standard_gbd_2019_data_as_gbd_2021_data,
+        data_keys.MALARIA.EMR: load_emr_from_csmr_and_prevalence,
         data_keys.MALARIA.CSMR: load_standard_gbd_2019_data_as_gbd_2021_data,
         data_keys.MALARIA.RESTRICTIONS: load_metadata,
         data_keys.WASTING.DISTRIBUTION: load_metadata,
@@ -392,6 +392,7 @@ def load_emr_from_csmr_and_prevalence(key: str, location: str) -> pd.DataFrame:
         cause = {
             data_keys.DIARRHEA.EMR: data_keys.DIARRHEA,
             data_keys.LRI.EMR: data_keys.LRI,
+            data_keys.MALARIA.EMR: data_keys.MALARIA,
         }[key]
     except KeyError:
         raise ValueError(f"Unrecognized key {key}")
