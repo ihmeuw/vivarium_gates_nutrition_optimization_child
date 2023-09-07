@@ -334,23 +334,26 @@ def load_mild_wasting_exposure(builder: Builder, cause: str) -> pd.DataFrame:
 
 
 def load_wasting_rate(builder: Builder, *args) -> pd.DataFrame:
-    args_to_transition_map = {('mild_child_wasting',): 'inc_rate_mild',
-                              ('mild_child_wasting', 'moderate_acute_malnutrition'): 'inc_rate_mam',
-                              ('moderate_acute_malnutrition', 'severe_acute_malnutrition'): 'inc_rate_sam',
-                              ('child_wasting',): 'rem_rate_mild',
-                              ('moderate_acute_malnutrition', 'mild_child_wasting'): 'rem_rate_mam',
-                              ('severe_acute_malnutrition', 'mild_child_wasting'): 'tx_rem_rate_sam',
-                              ('severe_acute_malnutrition', 'moderate_acute_malnutrition'): 'ux_rem_rate_sam',
-                              }
+    args_to_transition_map = {
+        ("mild_child_wasting",): "inc_rate_mild",
+        ("mild_child_wasting", "moderate_acute_malnutrition"): "inc_rate_mam",
+        ("moderate_acute_malnutrition", "severe_acute_malnutrition"): "inc_rate_sam",
+        ("child_wasting",): "rem_rate_mild",
+        ("moderate_acute_malnutrition", "mild_child_wasting"): "rem_rate_mam",
+        ("severe_acute_malnutrition", "mild_child_wasting"): "tx_rem_rate_sam",
+        ("severe_acute_malnutrition", "moderate_acute_malnutrition"): "ux_rem_rate_sam",
+    }
     transition = args_to_transition_map[args]
     data = get_transition_data(builder, transition)
     return data
 
 
 def get_transition_data(builder: Builder, transition: str) -> pd.DataFrame:
-    rates = builder.data.load('risk_factor.child_wasting.transition_rates').query("transition==@transition")
-    rates = rates.drop('transition', axis=1).reset_index(drop=True)
-    rates = rates.rename({'value': 0}, axis=1)
+    rates = builder.data.load("risk_factor.child_wasting.transition_rates").query(
+        "transition==@transition"
+    )
+    rates = rates.drop("transition", axis=1).reset_index(drop=True)
+    rates = rates.rename({"value": 0}, axis=1)
     return rates
 
 
