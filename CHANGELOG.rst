@@ -1,3 +1,11 @@
+**v0.4.1 - 09/07/23**
+
+ - Use updated underweight exposure distribution data (lookup.csv)
+
+**v0.3.2 - 09/06/23**
+
+ - Update malaria EMR to be calculated instead of taken from GBD
+
 **v0.3.1 - 09/01/23**
 
  - Update malaria prevalence to be calculated instead of taken from GBD
