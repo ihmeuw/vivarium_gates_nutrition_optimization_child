@@ -26,7 +26,11 @@ from vivarium_inputs.mapping_extension import (
 )
 from vivarium_inputs.validation.raw import check_metadata
 
-from vivarium_gates_nutrition_optimization_child.constants import data_keys, data_values
+from vivarium_gates_nutrition_optimization_child.constants import (
+    data_keys,
+    data_values,
+    paths,
+)
 from vivarium_gates_nutrition_optimization_child.constants.metadata import (
     AGE_GROUP,
     ARTIFACT_COLUMNS,
@@ -576,21 +580,16 @@ def apply_artifact_index(data: pd.DataFrame) -> pd.DataFrame:
 
 
 def get_treatment_efficacy(
-    demography: pd.DataFrame, treatment_type: str
+    demography: pd.DataFrame, treatment_type: str, location: str
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
     baseline_efficacy = {
-        data_keys.WASTING.CAT1: get_random_variable_draws(
-            ARTIFACT_COLUMNS, *data_values.WASTING.BASELINE_SAM_TX_EFFICACY
-        ),
-        data_keys.WASTING.CAT2: get_random_variable_draws(
-            ARTIFACT_COLUMNS, *data_values.WASTING.BASELINE_MAM_TX_EFFICACY
-        ),
+        data_keys.WASTING.CAT1: get_wasting_treatment_parameter_data("e_sam", location),
+        data_keys.WASTING.CAT2: get_wasting_treatment_parameter_data("e_mam", location),
     }
     alternative_efficacy = {
         data_keys.WASTING.CAT1: data_values.WASTING.SAM_TX_ALTERNATIVE_EFFICACY,
         data_keys.WASTING.CAT2: data_values.WASTING.MAM_TX_ALTERNATIVE_EFFICACY,
     }
-
     idx_as_frame = demography.merge(
         pd.DataFrame({"parameter": [f"cat{i}" for i in range(1, 4)]}), how="cross"
     )
@@ -609,3 +608,11 @@ def get_treatment_efficacy(
         efficacy.index.get_level_values("parameter") == data_keys.MAM_TREATMENT.TMREL_CATEGORY
     ].droplevel("parameter")
     return efficacy, tmrel_efficacy
+
+
+def get_wasting_treatment_parameter_data(parameter: str, location: str) -> pd.Series:
+    """Get coverage or efficacy values for SAM or MAM treatment for all draws."""
+    draws = pd.read_csv(paths.WASTING_TREATMENT_PARAMETERS_DIR / f"{location.lower()}.csv")
+    draws = draws.query("parameter==@parameter").drop("parameter", axis=1)
+    draws = draws.T.squeeze()  # transpose and convert to series
+    return draws
