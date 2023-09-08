@@ -36,25 +36,3 @@ class __InterventionScenarios(NamedTuple):
 
 
 INTERVENTION_SCENARIOS = __InterventionScenarios()
-
-
-class SamKScenario:
-    def __init__(self, name: str, has_alternative_sam_k: bool = False):
-        self.name = name
-        self.distribution = (
-            WASTING.ALTERNATIVE_SAM_K if has_alternative_sam_k else WASTING.SAM_K
-        )
-
-
-class __SamKScenarios(NamedTuple):
-    BASELINE: SamKScenario = SamKScenario("baseline")
-    ALTERNATIVE: SamKScenario = SamKScenario("alternative", has_alternative_sam_k=True)
-
-    def __getitem__(self, item) -> InterventionScenario:
-        for scenario in self:
-            if scenario.name == item:
-                return scenario
-        raise KeyError(item)
-
-
-SAM_K_SCENARIOS = __SamKScenarios()
