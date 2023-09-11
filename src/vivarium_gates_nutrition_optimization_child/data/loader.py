@@ -255,7 +255,7 @@ def load_standard_gbd_2019_data_as_gbd_2021_data(key: str, location: str) -> pd.
     ]
 
     if key in neonatal_deleted_keys:
-        data = data.loc[data.reset_index()["age_start"] < metadata.NEONATAL_END_AGE, :] = 0
+        data.loc[data.reset_index()["age_start"] < metadata.NEONATAL_END_AGE, :] = 0
 
     return data
 
