@@ -407,10 +407,8 @@ def load_emr_from_csmr_and_prevalence(key: str, location: str) -> pd.DataFrame:
 
 
 def load_neonatal_deleted_csmr(key: str, location: str) -> pd.DataFrame:
-    '''Get GBD 2019 CSMR data with 2021 age groups and zero out neonatal age groups.'''
-    allowed_keys = [data_keys.DIARRHEA.CSMR,
-                    data_keys.LRI.CSMR,
-                    data_keys.MALARIA.CSMR]
+    """Get GBD 2019 CSMR data with 2021 age groups and zero out neonatal age groups."""
+    allowed_keys = [data_keys.DIARRHEA.CSMR, data_keys.LRI.CSMR, data_keys.MALARIA.CSMR]
     if key not in allowed_keys:
         raise ValueError(f"Unrecognized key {key}")
 
@@ -420,7 +418,7 @@ def load_neonatal_deleted_csmr(key: str, location: str) -> pd.DataFrame:
 
 
 def load_post_neonatal_birth_prevalence(key: str, location: str) -> pd.DataFrame:
-    '''Return post neonatal data (1 month to 6 months) as birth prevalence.'''
+    """Return post neonatal data (1 month to 6 months) as birth prevalence."""
     try:
         cause = {
             data_keys.DIARRHEA.BIRTH_PREVALENCE: data_keys.DIARRHEA,
@@ -430,7 +428,9 @@ def load_post_neonatal_birth_prevalence(key: str, location: str) -> pd.DataFrame
         raise ValueError(f"Unrecognized key {key}")
 
     prevalence = get_data(cause.PREVALENCE, location)
-    is_post_neonatal = np.isclose(prevalence.reset_index()['age_start'], metadata.NEONATAL_END_AGE)
+    is_post_neonatal = np.isclose(
+        prevalence.reset_index()["age_start"], metadata.NEONATAL_END_AGE
+    )
     post_neonatal_prevalence = prevalence[is_post_neonatal]
     data = post_neonatal_prevalence.droplevel(["age_start", "age_end"])
 
