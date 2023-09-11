@@ -87,8 +87,6 @@ configuration:
     intervention:
         child_scenario: 'baseline'
         maternal_scenario: 'baseline'
-
-    sam_k: 'alternative'
     
     unmodeled_causes:
         - "upper_respiratory_infections"
