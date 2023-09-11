@@ -430,8 +430,9 @@ def load_post_neonatal_birth_prevalence(key: str, location: str) -> pd.DataFrame
         raise ValueError(f"Unrecognized key {key}")
 
     prevalence = get_data(cause.PREVALENCE, location)
-    post_neonatal = prevalence.query("age_start == @metadata.NEONATAL_END_AGE")
-    data = post_neonatal.droplevel(["age_start", "age_end"])
+    is_post_neonatal = np.isclose(prevalence.reset_index()['age_start'], metadata.NEONATAL_END_AGE)
+    post_neonatal_prevalence = prevalence[is_post_neonatal]
+    data = post_neonatal_prevalence.droplevel(["age_start", "age_end"])
 
     return data
 
