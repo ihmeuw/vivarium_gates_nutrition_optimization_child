@@ -241,8 +241,23 @@ def load_standard_data(key: str, location: str) -> pd.DataFrame:
 
 
 def load_standard_gbd_2019_data_as_gbd_2021_data(key: str, location: str) -> pd.DataFrame:
+    """Read in GBD 2019 data with GBD 2021 ages and years. Zero out neonatal age group data if necessary."""
     gbd_2019_data = load_standard_data(key, location)
-    return utilities.reshape_gbd_2019_data_as_gbd_2021_data(gbd_2019_data)
+    data = utilities.reshape_gbd_2019_data_as_gbd_2021_data(gbd_2019_data)
+
+    neonatal_deleted_keys = [
+        data_keys.DIARRHEA.INCIDENCE_RATE,
+        data_keys.DIARRHEA.DISABILITY_WEIGHT,
+        data_keys.LRI.INCIDENCE_RATE,
+        data_keys.LRI.DISABILITY_WEIGHT,
+        data_keys.MALARIA.INCIDENCE_RATE,
+        data_keys.MALARIA.DISABILITY_WEIGHT,
+    ]
+
+    if key in neonatal_deleted_keys:
+        data = data.loc[data.reset_index()["age_start"] < metadata.NEONATAL_END_AGE, :] = 0
+
+    return data
 
 
 def load_metadata(key: str, location: str):
@@ -356,6 +371,7 @@ def load_prevalence_from_incidence_and_duration(key: str, location: str) -> pd.D
 
 
 def load_remission_rate_from_duration(key: str, location: str) -> pd.DataFrame:
+    """Calculate remission rate from duration and zero out neonatal age group data."""
     try:
         cause = {
             data_keys.DIARRHEA.REMISSION_RATE: data_keys.DIARRHEA,
@@ -367,23 +383,26 @@ def load_remission_rate_from_duration(key: str, location: str) -> pd.DataFrame:
     duration = get_data(cause.DURATION, location)
     remission_rate = (-1 / step_size) * np.log(1 - step_size / duration)
 
-    if key == data_keys.DIARRHEA.REMISSION_RATE:
-        remission_rate.loc[
-            remission_rate.index.get_level_values("age_start") < metadata.NEONATAL_END_AGE, :
-        ] = 0
+    remission_rate.loc[
+        remission_rate.index.get_level_values("age_start") < metadata.NEONATAL_END_AGE, :
+    ] = 0
     return remission_rate
 
 
 def load_malaria_remission_rate_from_duration(key: str, location: str) -> pd.DataFrame:
-    """Return 1 / duration."""
+    """Return 1 / duration with zero'd out neonatal age groups."""
     try:
         cause = {
             data_keys.MALARIA.REMISSION_RATE: data_keys.MALARIA,
         }[key]
     except KeyError:
         raise ValueError(f"Unrecognized key {key}")
+
     duration = get_data(cause.DURATION, location)
-    return 1 / duration
+    data = 1 / duration
+    data.loc[data.reset_index()["age_start"] < metadata.NEONATAL_END_AGE, :] = 0
+
+    return data
 
 
 def load_emr_from_csmr_and_prevalence(key: str, location: str) -> pd.DataFrame:
