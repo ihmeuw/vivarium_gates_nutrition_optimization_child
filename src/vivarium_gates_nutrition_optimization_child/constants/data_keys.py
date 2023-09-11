@@ -136,6 +136,7 @@ class __Malaria(NamedTuple):
     EMR: TargetString = TargetString("cause.malaria.excess_mortality_rate")
     CSMR: TargetString = TargetString("cause.malaria.cause_specific_mortality_rate")
     RESTRICTIONS: TargetString = TargetString("cause.malaria.restrictions")
+    BIRTH_PREVALENCE: TargetString = TargetString("cause.malaria.birth_prevalence")
 
     @property
     def name(self):
