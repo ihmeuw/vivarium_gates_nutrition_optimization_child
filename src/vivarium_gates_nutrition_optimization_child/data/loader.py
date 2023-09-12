@@ -113,6 +113,7 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.STUNTING.EXPOSURE: load_gbd_2021_exposure,
         data_keys.STUNTING.RELATIVE_RISK: load_gbd_2021_rr,
         data_keys.STUNTING.PAF: load_categorical_paf,
+        data_keys.UNDERWEIGHT.DISTRIBUTION: load_metadata,
         data_keys.UNDERWEIGHT.EXPOSURE: load_underweight_exposure,
         data_keys.UNDERWEIGHT.CATEGORIES: load_metadata,
         data_keys.UNDERWEIGHT.RELATIVE_RISK: load_gbd_2021_rr,

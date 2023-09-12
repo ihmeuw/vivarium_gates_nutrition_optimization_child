@@ -292,6 +292,7 @@ STUNTING = __Stunting()
 
 class __Underweight(NamedTuple):
     # Keys that will be loaded into the artifact. must have a colon type declaration
+    DISTRIBUTION: TargetString = "risk_factor.child_underweight.distribution"
     EXPOSURE: TargetString = "risk_factor.child_underweight.exposure"
     CATEGORIES: TargetString = "risk_factor.child_underweight.categories"
     RELATIVE_RISK: TargetString = "risk_factor.child_underweight.relative_risk"
