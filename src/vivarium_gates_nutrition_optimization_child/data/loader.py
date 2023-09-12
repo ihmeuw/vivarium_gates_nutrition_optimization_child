@@ -389,7 +389,9 @@ def load_neonatal_deleted_remission_from_duration(key: str, location: str) -> pd
     return remission_rate
 
 
-def load_neonatal_deleted_malaria_remission_from_duration(key: str, location: str) -> pd.DataFrame:
+def load_neonatal_deleted_malaria_remission_from_duration(
+    key: str, location: str
+) -> pd.DataFrame:
     """Return 1 / duration with zero'd out neonatal age groups."""
     try:
         cause = {
