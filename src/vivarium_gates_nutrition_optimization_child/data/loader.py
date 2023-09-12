@@ -76,9 +76,9 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.DIARRHEA.REMISSION_RATE: load_remission_rate_from_duration,
         data_keys.DIARRHEA.DISABILITY_WEIGHT: load_standard_gbd_2019_data_as_gbd_2021_data,
         data_keys.DIARRHEA.EMR: load_emr_from_csmr_and_prevalence,
-        data_keys.DIARRHEA.CSMR: load_diarrhea_csmr,
+        data_keys.DIARRHEA.CSMR: load_neonatal_deleted_csmr,
         data_keys.DIARRHEA.RESTRICTIONS: load_metadata,
-        data_keys.DIARRHEA.BIRTH_PREVALENCE: load_diarrhea_birth_prevalence,
+        data_keys.DIARRHEA.BIRTH_PREVALENCE: load_post_neonatal_birth_prevalence,
         data_keys.MEASLES.PREVALENCE: load_standard_gbd_2019_data_as_gbd_2021_data,
         data_keys.MEASLES.INCIDENCE_RATE: load_standard_gbd_2019_data_as_gbd_2021_data,
         data_keys.MEASLES.DISABILITY_WEIGHT: load_standard_gbd_2019_data_as_gbd_2021_data,
@@ -88,19 +88,20 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.LRI.DURATION: load_duration,
         data_keys.LRI.PREVALENCE: load_prevalence_from_incidence_and_duration,
         data_keys.LRI.INCIDENCE_RATE: load_standard_gbd_2019_data_as_gbd_2021_data,
-        data_keys.LRI.REMISSION_RATE: load_remission_rate_from_duration,
+        data_keys.LRI.REMISSION_RATE: load_neonatal_deleted_remission_from_duration,
         data_keys.LRI.DISABILITY_WEIGHT: load_standard_gbd_2019_data_as_gbd_2021_data,
         data_keys.LRI.EMR: load_emr_from_csmr_and_prevalence,
-        data_keys.LRI.CSMR: load_lri_csmr,
+        data_keys.LRI.CSMR: load_neonatal_deleted_csmr,
         data_keys.LRI.RESTRICTIONS: load_metadata,
         data_keys.MALARIA.DURATION: load_duration,
         data_keys.MALARIA.PREVALENCE: load_prevalence_from_incidence_and_duration,
         data_keys.MALARIA.INCIDENCE_RATE: load_standard_gbd_2019_data_as_gbd_2021_data,
-        data_keys.MALARIA.REMISSION_RATE: load_malaria_remission_rate_from_duration,
+        data_keys.MALARIA.REMISSION_RATE: load_neonatal_deleted_malaria_remission_from_duration,
         data_keys.MALARIA.DISABILITY_WEIGHT: load_standard_gbd_2019_data_as_gbd_2021_data,
         data_keys.MALARIA.EMR: load_emr_from_csmr_and_prevalence,
-        data_keys.MALARIA.CSMR: load_standard_gbd_2019_data_as_gbd_2021_data,
+        data_keys.MALARIA.CSMR: load_neonatal_deleted_csmr,
         data_keys.MALARIA.RESTRICTIONS: load_metadata,
+        data_keys.MALARIA.BIRTH_PREVALENCE: load_post_neonatal_birth_prevalence,
         data_keys.WASTING.DISTRIBUTION: load_metadata,
         data_keys.WASTING.ALT_DISTRIBUTION: load_metadata,
         data_keys.WASTING.CATEGORIES: load_metadata,
@@ -240,8 +241,23 @@ def load_standard_data(key: str, location: str) -> pd.DataFrame:
 
 
 def load_standard_gbd_2019_data_as_gbd_2021_data(key: str, location: str) -> pd.DataFrame:
+    """Read in GBD 2019 data with GBD 2021 ages and years. Zero out neonatal age group data if necessary."""
     gbd_2019_data = load_standard_data(key, location)
-    return utilities.reshape_gbd_2019_data_as_gbd_2021_data(gbd_2019_data)
+    data = utilities.reshape_gbd_2019_data_as_gbd_2021_data(gbd_2019_data)
+
+    neonatal_deleted_keys = [
+        data_keys.DIARRHEA.INCIDENCE_RATE,
+        data_keys.DIARRHEA.DISABILITY_WEIGHT,
+        data_keys.LRI.INCIDENCE_RATE,
+        data_keys.LRI.DISABILITY_WEIGHT,
+        data_keys.MALARIA.INCIDENCE_RATE,
+        data_keys.MALARIA.DISABILITY_WEIGHT,
+    ]
+
+    if key in neonatal_deleted_keys:
+        data.loc[data.reset_index()["age_start"] < metadata.NEONATAL_END_AGE, :] = 0
+
+    return data
 
 
 def load_metadata(key: str, location: str):
@@ -354,7 +370,8 @@ def load_prevalence_from_incidence_and_duration(key: str, location: str) -> pd.D
     return prevalence
 
 
-def load_remission_rate_from_duration(key: str, location: str) -> pd.DataFrame:
+def load_neonatal_deleted_remission_from_duration(key: str, location: str) -> pd.DataFrame:
+    """Calculate remission rate from duration and zero out neonatal age group data."""
     try:
         cause = {
             data_keys.DIARRHEA.REMISSION_RATE: data_keys.DIARRHEA,
@@ -366,23 +383,28 @@ def load_remission_rate_from_duration(key: str, location: str) -> pd.DataFrame:
     duration = get_data(cause.DURATION, location)
     remission_rate = (-1 / step_size) * np.log(1 - step_size / duration)
 
-    if key == data_keys.DIARRHEA.REMISSION_RATE:
-        remission_rate.loc[
-            remission_rate.index.get_level_values("age_start") < metadata.NEONATAL_END_AGE, :
-        ] = 0
+    remission_rate.loc[
+        remission_rate.index.get_level_values("age_start") < metadata.NEONATAL_END_AGE, :
+    ] = 0
     return remission_rate
 
 
-def load_malaria_remission_rate_from_duration(key: str, location: str) -> pd.DataFrame:
-    """Return 1 / duration."""
+def load_neonatal_deleted_malaria_remission_from_duration(
+    key: str, location: str
+) -> pd.DataFrame:
+    """Return 1 / duration with zero'd out neonatal age groups."""
     try:
         cause = {
             data_keys.MALARIA.REMISSION_RATE: data_keys.MALARIA,
         }[key]
     except KeyError:
         raise ValueError(f"Unrecognized key {key}")
+
     duration = get_data(cause.DURATION, location)
-    return 1 / duration
+    data = 1 / duration
+    data.loc[data.reset_index()["age_start"] < metadata.NEONATAL_END_AGE, :] = 0
+
+    return data
 
 
 def load_emr_from_csmr_and_prevalence(key: str, location: str) -> pd.DataFrame:
@@ -402,6 +424,37 @@ def load_emr_from_csmr_and_prevalence(key: str, location: str) -> pd.DataFrame:
 
     if key == data_keys.DIARRHEA.EMR:
         data.loc[data.index.get_level_values("age_start") < metadata.NEONATAL_END_AGE, :] = 0
+    return data
+
+
+def load_neonatal_deleted_csmr(key: str, location: str) -> pd.DataFrame:
+    """Get GBD 2019 CSMR data with 2021 age groups and zero out neonatal age groups."""
+    allowed_keys = [data_keys.DIARRHEA.CSMR, data_keys.LRI.CSMR, data_keys.MALARIA.CSMR]
+    if key not in allowed_keys:
+        raise ValueError(f"Unrecognized key {key}")
+
+    data = load_standard_gbd_2019_data_as_gbd_2021_data(key, location)
+    data.loc[data.reset_index()["age_start"] < metadata.NEONATAL_END_AGE, :] = 0
+    return data
+
+
+def load_post_neonatal_birth_prevalence(key: str, location: str) -> pd.DataFrame:
+    """Return post neonatal data (1 month to 6 months) as birth prevalence."""
+    try:
+        cause = {
+            data_keys.DIARRHEA.BIRTH_PREVALENCE: data_keys.DIARRHEA,
+            data_keys.MALARIA.BIRTH_PREVALENCE: data_keys.MALARIA,
+        }[key]
+    except KeyError:
+        raise ValueError(f"Unrecognized key {key}")
+
+    prevalence = get_data(cause.PREVALENCE, location)
+    is_post_neonatal = np.isclose(
+        prevalence.reset_index()["age_start"], metadata.NEONATAL_END_AGE
+    )
+    post_neonatal_prevalence = prevalence[is_post_neonatal]
+    data = post_neonatal_prevalence.droplevel(["age_start", "age_end"])
+
     return data
 
 
@@ -845,6 +898,24 @@ def load_sids_csmr(key: str, location: str) -> pd.DataFrame:
         raise ValueError(f"Unrecognized key {key}")
 
 
+def load_neonatal_lri_csmr(key: str, location: str) -> pd.DataFrame:
+    if key != data_keys.AFFECTED_UNMODELED_CAUSES.NEONATAL_LRI_CSMR:
+        raise ValueError(f"Unrecognized key {key}")
+
+    data = load_standard_gbd_2019_data_as_gbd_2021_data(data_keys.LRI.CSMR, location)
+    data.loc[data.index.get_level_values("age_start") >= metadata.NEONATAL_END_AGE, :] = 0
+    return data
+
+
+def load_neonatal_diarrhea_csmr(key: str, location: str) -> pd.DataFrame:
+    if key != data_keys.AFFECTED_UNMODELED_CAUSES.NEONATAL_DIARRHEAL_DISEASES_CSMR:
+        raise ValueError(f"Unrecognized key {key}")
+
+    data = load_standard_gbd_2019_data_as_gbd_2021_data(data_keys.DIARRHEA.CSMR, location)
+    data.loc[data.index.get_level_values("age_start") >= metadata.NEONATAL_END_AGE, :] = 0
+    return data
+
+
 def load_intervention_distribution(key: str, location: str) -> str:
     try:
         return {
@@ -1151,57 +1222,6 @@ def load_maternal_bmi_anemia_excess_shift(key: str, location: str) -> pd.DataFra
         ["affected_entity", "affected_measure", "parameter"], append=True
     ).sort_index()
     return excess_shift
-
-
-def load_neonatal_lri_csmr(key: str, location: str) -> pd.DataFrame:
-    if key != data_keys.AFFECTED_UNMODELED_CAUSES.NEONATAL_LRI_CSMR:
-        raise ValueError(f"Unrecognized key {key}")
-
-    data = load_standard_gbd_2019_data_as_gbd_2021_data(data_keys.LRI.CSMR, location)
-    data.loc[data.index.get_level_values("age_start") >= metadata.NEONATAL_END_AGE, :] = 0
-    return data
-
-
-def load_lri_csmr(key: str, location: str) -> pd.DataFrame:
-    if key != data_keys.LRI.CSMR:
-        raise ValueError(f"Unrecognized key {key}")
-
-    data = load_standard_gbd_2019_data_as_gbd_2021_data(data_keys.LRI.CSMR, location)
-    data.loc[data.index.get_level_values("age_start") < metadata.NEONATAL_END_AGE, :] = 0
-    return data
-
-
-def load_diarrhea_csmr(key: str, location: str) -> pd.DataFrame:
-    if key != data_keys.DIARRHEA.CSMR:
-        raise ValueError(f"Unrecognized key {key}")
-
-    data = load_standard_gbd_2019_data_as_gbd_2021_data(data_keys.DIARRHEA.CSMR, location)
-    data.loc[data.index.get_level_values("age_start") < metadata.NEONATAL_END_AGE, :] = 0
-    return data
-
-
-def load_neonatal_diarrhea_csmr(key: str, location: str) -> pd.DataFrame:
-    if key != data_keys.AFFECTED_UNMODELED_CAUSES.NEONATAL_DIARRHEAL_DISEASES_CSMR:
-        raise ValueError(f"Unrecognized key {key}")
-
-    data = load_standard_gbd_2019_data_as_gbd_2021_data(data_keys.DIARRHEA.CSMR, location)
-    data.loc[data.index.get_level_values("age_start") >= metadata.NEONATAL_END_AGE, :] = 0
-    return data
-
-
-def load_diarrhea_birth_prevalence(key: str, location: str) -> pd.DataFrame:
-    if key != data_keys.DIARRHEA.BIRTH_PREVALENCE:
-        raise ValueError(f"Unrecognized key {key}")
-
-    prevalence = get_data(data_keys.DIARRHEA.PREVALENCE, location)
-    post_neonatal = prevalence.loc[
-        (prevalence.index.get_level_values("age_start") >= metadata.NEONATAL_END_AGE)
-        ### I think this is just supposed to pull late neonatal, and the bin sizes have changed.
-        & (prevalence.index.get_level_values("age_start") < 0.5)
-    ]
-    data = post_neonatal.droplevel(["age_start", "age_end"])
-
-    return data
 
 
 def reshape_to_vivarium_format(df, location):
