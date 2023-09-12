@@ -88,7 +88,7 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.LRI.DURATION: load_duration,
         data_keys.LRI.PREVALENCE: load_prevalence_from_incidence_and_duration,
         data_keys.LRI.INCIDENCE_RATE: load_standard_gbd_2019_data_as_gbd_2021_data,
-        data_keys.LRI.REMISSION_RATE: load_remission_rate_from_duration,
+        data_keys.LRI.REMISSION_RATE: load_neonatal_deleted_remission_from_duration,
         data_keys.LRI.DISABILITY_WEIGHT: load_standard_gbd_2019_data_as_gbd_2021_data,
         data_keys.LRI.EMR: load_emr_from_csmr_and_prevalence,
         data_keys.LRI.CSMR: load_neonatal_deleted_csmr,
@@ -96,7 +96,7 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.MALARIA.DURATION: load_duration,
         data_keys.MALARIA.PREVALENCE: load_prevalence_from_incidence_and_duration,
         data_keys.MALARIA.INCIDENCE_RATE: load_standard_gbd_2019_data_as_gbd_2021_data,
-        data_keys.MALARIA.REMISSION_RATE: load_malaria_remission_rate_from_duration,
+        data_keys.MALARIA.REMISSION_RATE: load_neonatal_deleted_malaria_remission_from_duration,
         data_keys.MALARIA.DISABILITY_WEIGHT: load_standard_gbd_2019_data_as_gbd_2021_data,
         data_keys.MALARIA.EMR: load_emr_from_csmr_and_prevalence,
         data_keys.MALARIA.CSMR: load_neonatal_deleted_csmr,
@@ -370,7 +370,7 @@ def load_prevalence_from_incidence_and_duration(key: str, location: str) -> pd.D
     return prevalence
 
 
-def load_remission_rate_from_duration(key: str, location: str) -> pd.DataFrame:
+def load_neonatal_deleted_remission_from_duration(key: str, location: str) -> pd.DataFrame:
     """Calculate remission rate from duration and zero out neonatal age group data."""
     try:
         cause = {
@@ -389,7 +389,7 @@ def load_remission_rate_from_duration(key: str, location: str) -> pd.DataFrame:
     return remission_rate
 
 
-def load_malaria_remission_rate_from_duration(key: str, location: str) -> pd.DataFrame:
+def load_neonatal_deleted_malaria_remission_from_duration(key: str, location: str) -> pd.DataFrame:
     """Return 1 / duration with zero'd out neonatal age groups."""
     try:
         cause = {
