@@ -126,13 +126,17 @@ class WastingTreatment(Risk):
         )
 
     def _register_on_time_step_prepare_listener(self, builder: Builder) -> None:
-        builder.event.register_listener("time_step__cleanup", self.on_time_step_cleanup)
+        # we want to reset propensities before updating previous state column
+        builder.event.register_listener(
+            "time_step__prepare", self.on_time_step_prepare, priority=4
+        )
 
     ########################
     # Event-driven methods #
     ########################
 
-    def on_time_step_cleanup(self, event: Event):
+    def on_time_step_prepare(self, event: Event):
+        """'redraw propensities upon transition to new wasting state"""
         pop = self.population_view.get(event.index)
         propensity = pop[self.propensity_column_name]
         remitted_mask = (pop[self.previous_wasting_column] == self.treated_state) & pop[
