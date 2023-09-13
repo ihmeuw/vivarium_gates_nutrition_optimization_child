@@ -534,7 +534,7 @@ def load_gbd_2021_rr(key: str, location: str) -> pd.DataFrame:
     entity_key = EntityKey(key)
     entity = utilities.get_gbd_2021_entity(entity_key)
 
-    data = utilities.get_data(
+    raw_data = utilities.get_data(
         entity_key,
         entity,
         location,
@@ -543,14 +543,23 @@ def load_gbd_2021_rr(key: str, location: str) -> pd.DataFrame:
         metadata.AGE_GROUP.GBD_2021,
         metadata.GBD_2021_ROUND_ID,
     )
-    data = utilities.process_relative_risk(
-        data,
+    raw_data = utilities.process_gbd_2021_relative_risk(
+        raw_data,
         entity_key,
         entity,
         location,
         metadata.GBD_2021_ROUND_ID,
         metadata.AGE_GROUP.GBD_2021,
     )
+    
+    inc = raw_data.query('affected_measure == "incidence_rate"')
+    csmr = raw_data.query('affected_measure == "cause_specific_mortality_rate"')
+    emr = csmr.droplevel('affected_measure') / inc.droplevel('affected_measure')
+    emr['affected_measure'] = 'excess_mortality_rate'
+    emr = emr.set_index('affected_measure', append=True).reorder_levels(inc.index.names)
+
+    data = pd.concat([inc, emr])
+
 
     if key == data_keys.STUNTING.RELATIVE_RISK:
         # Remove neonatal relative risks
