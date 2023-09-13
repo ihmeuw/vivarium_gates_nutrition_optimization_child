@@ -73,7 +73,7 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.DIARRHEA.DURATION: load_duration,
         data_keys.DIARRHEA.PREVALENCE: load_prevalence_from_incidence_and_duration,
         data_keys.DIARRHEA.INCIDENCE_RATE: load_standard_gbd_2019_data_as_gbd_2021_data,
-        data_keys.DIARRHEA.REMISSION_RATE: load_remission_rate_from_duration,
+        data_keys.DIARRHEA.REMISSION_RATE: load_neonatal_deleted_remission_from_duration,
         data_keys.DIARRHEA.DISABILITY_WEIGHT: load_standard_gbd_2019_data_as_gbd_2021_data,
         data_keys.DIARRHEA.EMR: load_emr_from_csmr_and_prevalence,
         data_keys.DIARRHEA.CSMR: load_neonatal_deleted_csmr,
