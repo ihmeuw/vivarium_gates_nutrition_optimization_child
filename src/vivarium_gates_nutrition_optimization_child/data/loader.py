@@ -182,6 +182,7 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.MATERNAL_BMI_ANEMIA.EXPOSURE: load_maternal_bmi_anemia_exposure,
         data_keys.MATERNAL_BMI_ANEMIA.EXCESS_SHIFT: load_maternal_bmi_anemia_excess_shift,
         data_keys.MATERNAL_BMI_ANEMIA.RISK_SPECIFIC_SHIFT: load_risk_specific_shift,
+        data_keys.SQLNS_TREATMENT.RISK_RATIOS: load_sqlns_risk_ratios,
     }
     return mapping[lookup_key](lookup_key, location)
 
@@ -1222,6 +1223,15 @@ def load_maternal_bmi_anemia_excess_shift(key: str, location: str) -> pd.DataFra
         ["affected_entity", "affected_measure", "parameter"], append=True
     ).sort_index()
     return excess_shift
+
+
+def load_sqlns_risk_ratios(key: str, location: str) -> pd.DataFrame:
+    if key != data_keys.SQLNS_TREATMENT.RISK_RATIOS:
+        raise ValueError(f"Unrecognized key {key}")
+
+    breakpoint()
+
+    return 0
 
 
 def reshape_to_vivarium_format(df, location):
