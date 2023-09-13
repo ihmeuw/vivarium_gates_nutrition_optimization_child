@@ -115,7 +115,7 @@ class CGFRiskEffect(RiskEffect):
             EntityString(f"risk_factor.{risk}")
             for risk in [
                 data_keys.WASTING.name,
-                data_keys.WASTING.name,
+                data_keys.UNDERWEIGHT.name,
                 data_keys.STUNTING.name,
             ]
         ]
