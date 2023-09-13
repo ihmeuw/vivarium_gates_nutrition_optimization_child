@@ -289,8 +289,7 @@ def load_categorical_paf(key: str, location: str) -> pd.DataFrame:
 
 
 def load_wasting_transition_rates(key: str, location: str) -> pd.DataFrame:
-    """Read in wasting transition rates from flat file and expand to include all years.
-    The parameter column refers to the type of transition."""
+    """Read in wasting transition rates from flat file and expand to include all years."""
     rates = pd.read_csv(paths.WASTING_TRANSITIONS_DATA_DIR / f"{location.lower()}.csv")
 
     # duplicate data for 1990 to 2019 (only for 2019 in file)
@@ -301,7 +300,7 @@ def load_wasting_transition_rates(key: str, location: str) -> pd.DataFrame:
     rates["year_end"] = rates["year_start"] + 1
 
     # define index
-    rates = rates.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ["parameter"])
+    rates = rates.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ["transition"])
 
     return rates.sort_index()
 
