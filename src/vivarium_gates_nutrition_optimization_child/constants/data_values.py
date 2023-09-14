@@ -184,16 +184,6 @@ class __MaternalCharacteristics(NamedTuple):
 MATERNAL_CHARACTERISTICS = __MaternalCharacteristics()
 
 
-class __SQLNS(NamedTuple):
-    COVERAGE_START_AGE: float = 0.5
-    COVERAGE_END_AGE: float = 2.0
-    COVERAGE_BASELINE: float = 0.0
-    COVERAGE_RAMP_UP: float = 0.7
-
-
-SQ_LNS = __SQLNS()
-
-
 ##################
 # Pipeline names #
 ##################
