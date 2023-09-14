@@ -190,9 +190,9 @@ class __SQLNS(NamedTuple):
     COVERAGE_BASELINE: float = 0.5
     COVERAGE_RAMP_UP: float = 0.7
 
-    PROPENSITY_COLUMN = 'sq_lns_propensity'
-    PROPENSITY_PIPELINE = 'sq_lns.propensity'
-    COVERAGE_PIPELINE = 'sq_lns.coverage'
+    PROPENSITY_COLUMN = "sq_lns_propensity"
+    PROPENSITY_PIPELINE = "sq_lns.propensity"
+    COVERAGE_PIPELINE = "sq_lns.coverage"
 
 
 SQ_LNS = __SQLNS()
