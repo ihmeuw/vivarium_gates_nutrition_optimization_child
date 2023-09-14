@@ -155,6 +155,7 @@ def process_exposure(
     )
     return data
 
+
 def process_gbd_2021_relative_risk(
     data: pd.DataFrame,
     key: str,
@@ -215,6 +216,7 @@ def process_gbd_2021_relative_risk(
         data, entity, key, location, gbd_round_id, age_group_ids
     )
     return data
+
 
 def process_relative_risk(
     data: pd.DataFrame,
