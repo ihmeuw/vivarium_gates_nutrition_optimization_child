@@ -1240,7 +1240,7 @@ def load_sqlns_risk_ratios(key: str, location: str) -> pd.DataFrame:
     draw_columns = pd.DataFrame(draw for draw in draws).T
     draw_columns.columns = metadata.ARTIFACT_COLUMNS
     index_cols = ['age_start', 'age_end', 'affected_outcome']
-    data = pd.concat([risk_ratios[index_cols], draw_columns], axis=1)
+    data = pd.concat([risk_ratios[index_cols], draw_columns], axis=1).set_index(index_cols)
 
     return data
 
