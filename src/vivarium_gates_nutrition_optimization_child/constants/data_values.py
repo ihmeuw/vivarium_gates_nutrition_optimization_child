@@ -186,37 +186,9 @@ MATERNAL_CHARACTERISTICS = __MaternalCharacteristics()
 
 class __SQLNS(NamedTuple):
     COVERAGE_START_AGE: float = 0.5
-    COVERAGE_END_AGE: float = 1.5
+    COVERAGE_END_AGE: float = 2.0
     COVERAGE_BASELINE: float = 0.0
     COVERAGE_RAMP_UP: float = 0.7
-
-    TMREL_TO_MILD_6_to_10_MONTHS: Tuple = (
-        'tmrel_to_mild_6_to_10_months', get_lognorm_from_quantiles(median=0.8, lower=0.71, upper=0.93)
-    )
-    TMREL_TO_MILD_10_to_18_MONTHS: Tuple = (
-        'tmrel_to_mild_10_to_18_months', get_lognorm_from_quantiles(median=0.9, lower=0.84, upper=0.96)
-    )
-    MILD_TO_MAM_6_to_10_MONTHS: Tuple = (
-        'mild_to_mam_6_to_10_months', get_lognorm_from_quantiles(median=0.7, lower=0.57, upper=0.88)
-    )
-    MILD_TO_MAM_10_to_18_MONTHS: Tuple = (
-        'mild_to_mam_10_to_18_months', get_lognorm_from_quantiles(median=0.9, lower=0.83, upper=0.97)
-    )
-    MAM_TO_SAM_6_to_10_MONTHS: Tuple = (
-        'mam_to_sam_6_to_10_months', get_lognorm_from_quantiles(median=0.3, lower=0.15, upper=0.68)
-    )
-    MAM_TO_SAM_10_to_18_MONTHS: Tuple = (
-        'mam_to_sam_10_to_18_months', get_lognorm_from_quantiles(median=0.79, lower=0.64, upper=0.895)
-    )
-
-    RISK_RATIO_STUNTING_SEVERE: Tuple = (
-        'sq_lns_severe_stunting_effect',
-        get_lognorm_from_quantiles(median=0.83, lower=0.78, upper=0.90)
-    )
-    RISK_RATIO_STUNTING_MODERATE: Tuple = (
-        'sq_lns_moderate_stunting_effect',
-        get_lognorm_from_quantiles(median=0.89, lower=0.86, upper=0.93)
-    )
 
 
 SQ_LNS = __SQLNS()
