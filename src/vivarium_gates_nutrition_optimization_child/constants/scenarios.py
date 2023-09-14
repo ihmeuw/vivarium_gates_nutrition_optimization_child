@@ -11,25 +11,27 @@ class InterventionScenario:
     def __init__(
         self,
         name: str,
-        has_alternative_sam_treatment: bool = False,
-        has_alternative_mam_treatment: bool = False,
+        sam_tx_coverage: str = 'baseline',
+        mam_tx_coverage: str = 'baseline',
+        sqlns_coverage: str = 'baseline',
     ):
         self.name = name
-        self.has_alternative_sam_treatment = has_alternative_sam_treatment
-        self.has_alternative_mam_treatment = has_alternative_mam_treatment
+        self.sam_tx_coverage = sam_tx_coverage
+        self.mam_tx_coverage = mam_tx_coverage
+        self.sqlns_coverage = sqlns_coverage
 
 
 class __InterventionScenarios(NamedTuple):
     BASELINE: InterventionScenario = InterventionScenario("baseline")
-    SAM_TREATMENT: InterventionScenario = InterventionScenario(
-        "sam_treatment",
-        has_alternative_sam_treatment=True,
-    )
-    MAM_TREATMENT: InterventionScenario = InterventionScenario(
-        "mam_treatment",
-        has_alternative_sam_treatment=True,
-        has_alternative_mam_treatment=True,
-    )
+    SCENARIO_0: InterventionScenario = InterventionScenario("scenario_0_zero_coverage", "none", "none", "none")
+    SCENARIO_1: InterventionScenario = InterventionScenario("scenario_1_sam_tx", 'full', 'none', 'none')
+    SCENARIO_2: InterventionScenario = InterventionScenario("scenario_2_mam_tx", 'none', 'full', 'none')
+    SCENARIO_3: InterventionScenario = InterventionScenario("scenario_3_sqlns", 'none', 'none', 'full')
+    # no scenario 4
+    SCENARIO_5: InterventionScenario = InterventionScenario("scenario_5_sam_and_mam", "full", "full", "none")
+    SCENARIO_6: InterventionScenario = InterventionScenario("scenario_6_sam_and_sqlns", "full", "none", "full")
+    SCENARIO_7: InterventionScenario = InterventionScenario("scenario_7_mam_and_sqlns", "none", "full", "full")
+    SCENARIO_8: InterventionScenario = InterventionScenario("scenario_8_all", "full", "full", "full")
 
     def __get_item__(self, item):
         return self._asdict()[item]
@@ -37,24 +39,3 @@ class __InterventionScenarios(NamedTuple):
 
 INTERVENTION_SCENARIOS = __InterventionScenarios()
 
-
-class SamKScenario:
-    def __init__(self, name: str, has_alternative_sam_k: bool = False):
-        self.name = name
-        self.distribution = (
-            WASTING.ALTERNATIVE_SAM_K if has_alternative_sam_k else WASTING.SAM_K
-        )
-
-
-class __SamKScenarios(NamedTuple):
-    BASELINE: SamKScenario = SamKScenario("baseline")
-    ALTERNATIVE: SamKScenario = SamKScenario("alternative", has_alternative_sam_k=True)
-
-    def __getitem__(self, item) -> InterventionScenario:
-        for scenario in self:
-            if scenario.name == item:
-                return scenario
-        raise KeyError(item)
-
-
-SAM_K_SCENARIOS = __SamKScenarios()
