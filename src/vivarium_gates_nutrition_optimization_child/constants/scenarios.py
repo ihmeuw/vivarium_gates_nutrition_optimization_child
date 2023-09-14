@@ -38,4 +38,3 @@ class __InterventionScenarios(NamedTuple):
 
 
 INTERVENTION_SCENARIOS = __InterventionScenarios()
-

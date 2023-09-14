@@ -109,6 +109,7 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.WASTING.EXPOSURE: load_gbd_2021_exposure,
         data_keys.WASTING.RELATIVE_RISK: load_gbd_2021_rr,
         data_keys.WASTING.PAF: load_categorical_paf,
+        data_keys.WASTING.TRANSITION_RATES: load_wasting_transition_rates,
         data_keys.STUNTING.DISTRIBUTION: load_metadata,
         data_keys.STUNTING.ALT_DISTRIBUTION: load_metadata,
         data_keys.STUNTING.CATEGORIES: load_metadata,
@@ -303,6 +304,23 @@ def load_categorical_paf(key: str, location: str) -> pd.DataFrame:
     )
     paf = (sum_exp_x_rr - 1) / sum_exp_x_rr
     return paf
+
+
+def load_wasting_transition_rates(key: str, location: str) -> pd.DataFrame:
+    """Read in wasting transition rates from flat file and expand to include all years."""
+    rates = pd.read_csv(paths.WASTING_TRANSITIONS_DATA_DIR / f"{location.lower()}.csv")
+
+    # duplicate data for 1990 to 2019 (only for 2019 in file)
+    rates = rates.drop(["year_start", "year_end"], axis=1)
+    year_list = list(range(1990, 2020))
+    years = pd.DataFrame({"year_start": year_list}).set_index(pd.Index([1] * len(year_list)))
+    rates = rates.set_index(pd.Index([1] * len(rates))).join(years)
+    rates["year_end"] = rates["year_start"] + 1
+
+    # define index
+    rates = rates.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ["transition"])
+
+    return rates.sort_index()
 
 
 def _load_em_from_meid(location, meid, measure):
@@ -633,15 +651,13 @@ def load_wasting_treatment_categories(key: str, location: str) -> str:
 
 def load_wasting_treatment_exposure(key: str, location: str) -> pd.DataFrame:
     if key == data_keys.SAM_TREATMENT.EXPOSURE:
-        coverage_distribution = data_values.WASTING.BASELINE_SAM_TX_COVERAGE
+        parameter = "c_sam"
     elif key == data_keys.MAM_TREATMENT.EXPOSURE:
-        coverage_distribution = data_values.WASTING.BASELINE_MAM_TX_COVERAGE
+        parameter = "c_mam"
     else:
         raise ValueError(f"Unrecognized key {key}")
 
-    treatment_coverage = get_random_variable_draws(
-        metadata.ARTIFACT_COLUMNS, *coverage_distribution
-    )
+    treatment_coverage = utilities.get_wasting_treatment_parameter_data(parameter, location)
 
     idx = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index
     cat3 = pd.DataFrame({f"draw_{i}": 0.0 for i in range(0, 1000)}, index=idx)
@@ -666,7 +682,7 @@ def load_sam_treatment_rr(key: str, location: str) -> pd.DataFrame:
 
     demography = get_data(data_keys.POPULATION.DEMOGRAPHY, location).reset_index()
     sam_tx_efficacy, sam_tx_efficacy_tmrel = utilities.get_treatment_efficacy(
-        demography, data_keys.WASTING.CAT1
+        demography, data_keys.WASTING.CAT1, location
     )
 
     # rr_t1 = t1 / t1_tmrel
@@ -702,7 +718,7 @@ def load_mam_treatment_rr(key: str, location: str) -> pd.DataFrame:
 
     demography = get_data(data_keys.POPULATION.DEMOGRAPHY, location).reset_index()
     mam_tx_efficacy, mam_tx_efficacy_tmrel = utilities.get_treatment_efficacy(
-        demography, data_keys.WASTING.CAT2
+        demography, data_keys.WASTING.CAT2, location
     )
     index = mam_tx_efficacy.index
 
