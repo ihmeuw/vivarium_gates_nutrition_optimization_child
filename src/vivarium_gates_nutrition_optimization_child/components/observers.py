@@ -28,6 +28,21 @@ class ResultsStratifier(ResultsStratifier_):
     final column labels for the subgroups.
     """
 
+    def get_age_bins(self, builder: Builder) -> pd.DataFrame:
+        """Define more granular age groups for SQ-LNS V&V."""
+        age_bins = super().get_age_bins(builder)
+        data_dict = {'age_start': [0.5, 0.83333, 1, 1.5],
+                    'age_end': [0.83333, 1, 1.5, 2],
+                    'age_group_name': ['6_to_10_months', '10_to_11_months', '12_to_17_months', '18_to_23_months']
+                     }
+        new_age_bins = pd.DataFrame(data_dict)
+
+        new_age_starts = data_dict['age_start']
+        age_bins = age_bins.query("age_start not in @new_age_starts")
+        age_bins = pd.concat([age_bins, new_age_bins])
+
+        return age_bins.sort_values(["age_start"]).reset_index(drop=True)
+
     def register_stratifications(self, builder: Builder) -> None:
         """Register each desired stratification with calls to _setup_stratification"""
         super().register_stratifications(builder)
