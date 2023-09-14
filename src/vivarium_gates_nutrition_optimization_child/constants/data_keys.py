@@ -529,9 +529,7 @@ MMN_SUPPLEMENTATION = __MMN_Supplementation()
 
 class __SQLNS_Treatment(NamedTuple):
     # Keys that will be loaded into the artifact. must have a colon type declaration
-    RISK_RATIOS: TargetString = TargetString(
-        "risk_factor.sqlns_treatment.risk_ratios"
-    )
+    RISK_RATIOS: TargetString = TargetString("risk_factor.sqlns_treatment.risk_ratios")
 
     @property
     def name(self):

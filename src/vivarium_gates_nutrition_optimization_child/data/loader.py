@@ -1227,17 +1227,21 @@ def load_maternal_bmi_anemia_excess_shift(key: str, location: str) -> pd.DataFra
 
 
 def load_sqlns_risk_ratios(key: str, location: str) -> pd.DataFrame:
-    '''Load effects of SQ-LNS treatment on wasting incidence and stunting prevalence ratios.'''
+    """Load effects of SQ-LNS treatment on wasting incidence and stunting prevalence ratios."""
     if key != data_keys.SQLNS_TREATMENT.RISK_RATIOS:
         raise ValueError(f"Unrecognized key {key}")
 
     # generate draws using distribution parameters for each row
     risk_ratios = pd.read_csv(paths.SQLNS_RISK_RATIOS_DIR / f"{location.lower()}.csv")
-    distributions = get_lognorm_from_quantiles(risk_ratios['median'], risk_ratios['lower'], risk_ratios['upper'])
-    draws = get_random_variable_draws(metadata.ARTIFACT_COLUMNS, 'sqlns_risk_ratios', distributions)
+    distributions = get_lognorm_from_quantiles(
+        risk_ratios["median"], risk_ratios["lower"], risk_ratios["upper"]
+    )
+    draws = get_random_variable_draws(
+        metadata.ARTIFACT_COLUMNS, "sqlns_risk_ratios", distributions
+    )
 
     # reshape
-    index_cols = ['age_start', 'age_end', 'affected_outcome']
+    index_cols = ["age_start", "age_end", "affected_outcome"]
     draw_columns = pd.DataFrame(draw for draw in draws).T
     draw_columns.columns = metadata.ARTIFACT_COLUMNS
     data = pd.concat([risk_ratios[index_cols], draw_columns], axis=1)
