@@ -43,6 +43,7 @@ class ResultsStratifier(ResultsStratifier_):
         }
         new_age_bins = pd.DataFrame(data_dict)
 
+        # remove duplicated ages and concat
         new_age_starts = data_dict["age_start"]
         age_bins = age_bins.query("age_start not in @new_age_starts")
         age_bins = pd.concat([age_bins, new_age_bins])
