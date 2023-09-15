@@ -89,10 +89,14 @@ class SQLNSTreatment:
         )
 
     def get_coverage_value(self, builder: Builder) -> float:
-        scenario = scenarios.INTERVENTION_SCENARIOS[builder.configuration.intervention.child_scenario]
-        coverage_map = {'baseline': data_values.SQ_LNS.COVERAGE_BASELINE,
-                        'none': 0,
-                        'full': 1}
+        scenario = scenarios.INTERVENTION_SCENARIOS[
+            builder.configuration.intervention.child_scenario
+        ]
+        coverage_map = {
+            "baseline": data_values.SQ_LNS.COVERAGE_BASELINE,
+            "none": 0,
+            "full": 1,
+        }
         return coverage_map[scenario.sqlns_coverage]
 
     def get_risk_ratios(self, builder: Builder, affected_outcome: str) -> LookupTable:
