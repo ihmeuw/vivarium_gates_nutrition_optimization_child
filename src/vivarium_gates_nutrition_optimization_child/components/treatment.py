@@ -26,6 +26,7 @@ class SQLNSTreatment:
         draw = builder.configuration.input_data.input_draw_number
         self.randomness = builder.randomness.get_stream(self._randomness_stream_name)
 
+        self.coverage_value = self.get_coverage_value(builder)
         self.tmrel_to_mild_wasting_risk_ratio = self.get_risk_ratios(
             builder, "tmrel_to_mild_rate"
         )
@@ -87,6 +88,13 @@ class SQLNSTreatment:
             requires_streams=[self._randomness_stream_name],
         )
 
+    def get_coverage_value(self, builder: Builder) -> float:
+        scenario = scenarios.INTERVENTION_SCENARIOS[builder.configuration.intervention.child_scenario]
+        coverage_map = {'baseline': data_values.SQ_LNS.COVERAGE_BASELINE,
+                        'none': 0,
+                        'full': 1}
+        return coverage_map[scenario.sqlns_coverage]
+
     def get_risk_ratios(self, builder: Builder, affected_outcome: str) -> LookupTable:
         risk_ratios = builder.data.load(data_keys.SQLNS_TREATMENT.RISK_RATIOS)
         risk_ratios = risk_ratios.query("affected_outcome==@affected_outcome").drop(
@@ -108,11 +116,11 @@ class SQLNSTreatment:
         coverage = pd.Series("uncovered", index=index)
 
         covered = (
-            (propensity < data_values.SQ_LNS.COVERAGE_BASELINE)
+            (propensity < self.coverage_value)
             & (data_values.SQ_LNS.COVERAGE_START_AGE <= age)
             & (age <= data_values.SQ_LNS.COVERAGE_END_AGE)
         )
-        received = (propensity < data_values.SQ_LNS.COVERAGE_BASELINE) & (
+        received = (propensity < self.coverage_value) & (
             data_values.SQ_LNS.COVERAGE_END_AGE < age
         )
 

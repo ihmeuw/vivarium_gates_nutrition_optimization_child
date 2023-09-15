@@ -33,8 +33,11 @@ class __InterventionScenarios(NamedTuple):
     SCENARIO_7: InterventionScenario = InterventionScenario("scenario_7_mam_and_sqlns", "none", "full", "full")
     SCENARIO_8: InterventionScenario = InterventionScenario("scenario_8_all", "full", "full", "full")
 
-    def __get_item__(self, item):
-        return self._asdict()[item]
+    def __getitem__(self, item) -> InterventionScenario:
+        for scenario in self:
+            if scenario.name == item:
+                return scenario
+        raise KeyError(item)
 
 
 INTERVENTION_SCENARIOS = __InterventionScenarios()
