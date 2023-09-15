@@ -13,7 +13,7 @@ for an example.
    No logging is done here. Logging is done in vivarium inputs itself and forwarded.
 """
 import pickle
-from typing import Tuple, Union
+from typing import Dict, List, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -290,19 +290,33 @@ def load_categorical_paf(key: str, location: str) -> pd.DataFrame:
 
 def load_wasting_transition_rates(key: str, location: str) -> pd.DataFrame:
     """Read in wasting transition rates from flat file and expand to include all years."""
+    demography = get_data(data_keys.POPULATION.DEMOGRAPHY, location)
     rates = pd.read_csv(paths.WASTING_TRANSITIONS_DATA_DIR / f"{location.lower()}.csv")
 
-    # duplicate data for 1990 to 2019 (only for 2019 in file)
+    # duplicate data for all years (only for 2019 in file)
     rates = rates.drop(["year_start", "year_end"], axis=1)
-    year_list = list(range(1990, 2020))
-    years = pd.DataFrame({"year_start": year_list}).set_index(pd.Index([1] * len(year_list)))
-    rates = rates.set_index(pd.Index([1] * len(rates))).join(years)
+    years = demography.reset_index()['year_start'].unique()
+    rates = expand_data(rates, 'year_start', years)
     rates["year_end"] = rates["year_start"] + 1
 
-    # define index
-    rates = rates.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ["transition"])
+    # explicitly add the youngest age data (all 0)
+    demography = demography.query("age_start < .5")
+    youngest_ages_data = pd.DataFrame(0, columns=metadata.ARTIFACT_COLUMNS, index=demography.index)
+    transitions = rates.reset_index()['transition'].unique()
+    youngest_ages_data = expand_data(youngest_ages_data, 'transition', transitions)
 
-    return rates.sort_index()
+    rates = pd.concat([youngest_ages_data, rates])
+    rates = rates.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ["transition"]).sort_index()
+
+    return rates
+
+
+def expand_data(data: pd.DataFrame, column_name: str, column_values: List) -> pd.DataFrame:
+    '''Equivalent to creating one copy of data with a new column for each new value. Concat these copies.'''
+    join_index = pd.Index([1]*len(column_values))
+    new_values = pd.DataFrame({column_name: column_values}).set_index(join_index)
+    data = data.set_index(join_index).join(new_values)
+    return data
 
 
 def _load_em_from_meid(location, meid, measure):
