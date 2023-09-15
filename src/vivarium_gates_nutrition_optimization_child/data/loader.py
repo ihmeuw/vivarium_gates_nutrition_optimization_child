@@ -299,7 +299,7 @@ def load_wasting_transition_rates(key: str, location: str) -> pd.DataFrame:
     rates = expand_data(rates, 'year_start', years)
     rates["year_end"] = rates["year_start"] + 1
 
-    # explicitly add the youngest age data (all 0)
+    # explicitly add the youngest ages data (all 0)
     demography = demography.query("age_start < .5")
     youngest_ages_data = pd.DataFrame(0, columns=metadata.ARTIFACT_COLUMNS, index=demography.index)
     # add all transitions
