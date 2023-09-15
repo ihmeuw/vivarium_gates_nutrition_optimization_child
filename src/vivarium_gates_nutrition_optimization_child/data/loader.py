@@ -313,8 +313,10 @@ def load_wasting_transition_rates(key: str, location: str) -> pd.DataFrame:
 
 def expand_data(data: pd.DataFrame, column_name: str, column_values: List) -> pd.DataFrame:
     '''Equivalent to: For each column value, create a copy of data with a new column with this value. Concat these copies.'''
+    original_index = data.index
     new_values = pd.DataFrame({column_name: column_values}).set_index(pd.Index([1]*len(column_values)))
     data = data.set_index(pd.Index([1]*len(data))).join(new_values)
+    data.set_index(original_index)
     return data
 
 
