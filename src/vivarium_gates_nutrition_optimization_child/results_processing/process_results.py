@@ -28,44 +28,44 @@ RENAME_COLUMNS = {
 def make_measure_data(data: pd.DataFrame, disaggregate_seeds: bool):
     measure_data = MeasureData(
         ylls=get_by_cause_measure_data(data, "ylls", disaggregate_seeds),
-#        ylds=get_by_cause_measure_data(data, "ylds", disaggregate_seeds),
+        #        ylds=get_by_cause_measure_data(data, "ylds", disaggregate_seeds),
         deaths=get_by_cause_measure_data(data, "deaths", disaggregate_seeds),
-#        diarrhea_state_person_time=get_state_person_time_measure_data(
-#            data, "diarrhea_state_person_time", disaggregate_seeds
-#        ),
-#        lri_state_person_time=get_state_person_time_measure_data(
-#            data, "lri_state_person_time", disaggregate_seeds
-#        ),
-#        measles_state_person_time=get_state_person_time_measure_data(
-#            data, "measles_state_person_time", disaggregate_seeds
-#        ),
-#        malaria_state_person_time=get_state_person_time_measure_data(
-#            data, "malaria_state_person_time", disaggregate_seeds
-#        ),
-#        moderate_pem_state_person_time=get_state_person_time_measure_data(
-#            data, "moderate_pem_state_person_time", disaggregate_seeds
-#        ),
-#        severe_pem_state_person_time=get_state_person_time_measure_data(
-#            data, "severe_pem_state_person_time", disaggregate_seeds
-#        ),
-#        diarrhea_transition_count=get_transition_count_measure_data(
-#            data, "diarrhea_transition_count", disaggregate_seeds
-#        ),
-#        lri_transition_count=get_transition_count_measure_data(
-#            data, "lri_transition_count", disaggregate_seeds
-#        ),
-#        measles_transition_count=get_transition_count_measure_data(
-#            data, "measles_transition_count", disaggregate_seeds
-#        ),
-#        malaria_transition_count=get_transition_count_measure_data(
-#            data, "malaria_transition_count", disaggregate_seeds
-#        ),
-#        moderate_pem_transition_count=get_transition_count_measure_data(
-#            data, "moderate_pem_transition_count", disaggregate_seeds
-#        ),
-#        severe_pem_transition_count=get_transition_count_measure_data(
-#            data, "severe_pem_transition_count", disaggregate_seeds
-#        ),
+        #        diarrhea_state_person_time=get_state_person_time_measure_data(
+        #            data, "diarrhea_state_person_time", disaggregate_seeds
+        #        ),
+        #        lri_state_person_time=get_state_person_time_measure_data(
+        #            data, "lri_state_person_time", disaggregate_seeds
+        #        ),
+        #        measles_state_person_time=get_state_person_time_measure_data(
+        #            data, "measles_state_person_time", disaggregate_seeds
+        #        ),
+        #        malaria_state_person_time=get_state_person_time_measure_data(
+        #            data, "malaria_state_person_time", disaggregate_seeds
+        #        ),
+        #        moderate_pem_state_person_time=get_state_person_time_measure_data(
+        #            data, "moderate_pem_state_person_time", disaggregate_seeds
+        #        ),
+        #        severe_pem_state_person_time=get_state_person_time_measure_data(
+        #            data, "severe_pem_state_person_time", disaggregate_seeds
+        #        ),
+        #        diarrhea_transition_count=get_transition_count_measure_data(
+        #            data, "diarrhea_transition_count", disaggregate_seeds
+        #        ),
+        #        lri_transition_count=get_transition_count_measure_data(
+        #            data, "lri_transition_count", disaggregate_seeds
+        #        ),
+        #        measles_transition_count=get_transition_count_measure_data(
+        #            data, "measles_transition_count", disaggregate_seeds
+        #        ),
+        #        malaria_transition_count=get_transition_count_measure_data(
+        #            data, "malaria_transition_count", disaggregate_seeds
+        #        ),
+        #        moderate_pem_transition_count=get_transition_count_measure_data(
+        #            data, "moderate_pem_transition_count", disaggregate_seeds
+        #        ),
+        #        severe_pem_transition_count=get_transition_count_measure_data(
+        #            data, "severe_pem_transition_count", disaggregate_seeds
+        #        ),
         stunting_state_person_time=get_state_person_time_measure_data(
             data, "stunting_state_person_time", disaggregate_seeds
         ),
@@ -78,40 +78,40 @@ def make_measure_data(data: pd.DataFrame, disaggregate_seeds: bool):
         underweight_state_person_time=get_state_person_time_measure_data(
             data, "underweight_state_person_time", disaggregate_seeds
         ),
-#        low_birth_weight_and_short_gestation_sum=get_measure_data(
-#            data, "low_birth_weight_and_short_gestation_sum", disaggregate_seeds
-#        ),
-#        live_births_count=get_measure_data(data, "live_births_count", disaggregate_seeds),
-#        low_weight_births_count=get_measure_data(
-#            data, "low_weight_births_count", disaggregate_seeds
-#        ),
+        #        low_birth_weight_and_short_gestation_sum=get_measure_data(
+        #            data, "low_birth_weight_and_short_gestation_sum", disaggregate_seeds
+        #        ),
+        #        live_births_count=get_measure_data(data, "live_births_count", disaggregate_seeds),
+        #        low_weight_births_count=get_measure_data(
+        #            data, "low_weight_births_count", disaggregate_seeds
+        #        ),
     )
     return measure_data
 
 
 class MeasureData(NamedTuple):
     ylls: pd.DataFrame
-#    ylds: pd.DataFrame
+    #    ylds: pd.DataFrame
     deaths: pd.DataFrame
-#    diarrhea_state_person_time: pd.DataFrame
-#    lri_state_person_time: pd.DataFrame
-#    measles_state_person_time: pd.DataFrame
-#    malaria_state_person_time: pd.DataFrame
-#    moderate_pem_state_person_time: pd.DataFrame
-#    severe_pem_state_person_time: pd.DataFrame
-#    diarrhea_transition_count: pd.DataFrame
-#    lri_transition_count: pd.DataFrame
-#    measles_transition_count: pd.DataFrame
-#    malaria_transition_count: pd.DataFrame
-#    moderate_pem_transition_count: pd.DataFrame
-#    severe_pem_transition_count: pd.DataFrame
+    #    diarrhea_state_person_time: pd.DataFrame
+    #    lri_state_person_time: pd.DataFrame
+    #    measles_state_person_time: pd.DataFrame
+    #    malaria_state_person_time: pd.DataFrame
+    #    moderate_pem_state_person_time: pd.DataFrame
+    #    severe_pem_state_person_time: pd.DataFrame
+    #    diarrhea_transition_count: pd.DataFrame
+    #    lri_transition_count: pd.DataFrame
+    #    measles_transition_count: pd.DataFrame
+    #    malaria_transition_count: pd.DataFrame
+    #    moderate_pem_transition_count: pd.DataFrame
+    #    severe_pem_transition_count: pd.DataFrame
     stunting_state_person_time: pd.DataFrame
     wasting_state_person_time: pd.DataFrame
     wasting_transition_count: pd.DataFrame
     underweight_state_person_time: pd.DataFrame
-#    low_birth_weight_and_short_gestation_sum: pd.DataFrame
-#    live_births_count: pd.DataFrame
-#    low_weight_births_count: pd.DataFrame
+    #    low_birth_weight_and_short_gestation_sum: pd.DataFrame
+    #    live_births_count: pd.DataFrame
+    #    low_weight_births_count: pd.DataFrame
 
     def dump(self, output_dir: Path):
         for key, df in self._asdict().items():
