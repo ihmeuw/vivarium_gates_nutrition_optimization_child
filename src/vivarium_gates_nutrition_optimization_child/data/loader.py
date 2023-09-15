@@ -302,9 +302,11 @@ def load_wasting_transition_rates(key: str, location: str) -> pd.DataFrame:
     # explicitly add the youngest age data (all 0)
     demography = demography.query("age_start < .5")
     youngest_ages_data = pd.DataFrame(0, columns=metadata.ARTIFACT_COLUMNS, index=demography.index)
+    # add all transitions
     transitions = rates.reset_index()['transition'].unique()
     youngest_ages_data = expand_data(youngest_ages_data, 'transition', transitions)
 
+    rates = rates[youngest_ages_data.columns]
     rates = pd.concat([youngest_ages_data, rates])
     rates = rates.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ["transition"]).sort_index()
 
@@ -312,11 +314,13 @@ def load_wasting_transition_rates(key: str, location: str) -> pd.DataFrame:
 
 
 def expand_data(data: pd.DataFrame, column_name: str, column_values: List) -> pd.DataFrame:
-    '''Equivalent to: For each column value, create a copy of data with a new column with this value. Concat these copies.'''
-    original_index = data.index
+    '''Equivalent to: For each column value, create a copy of data with a new column with this value. Concat these copies.
+    Note: This transformation will reset the index of your data.'''
+    data = data.reset_index()
+    if 'index' in data.columns:
+        data = data.drop('index', axis=1)
     new_values = pd.DataFrame({column_name: column_values}).set_index(pd.Index([1]*len(column_values)))
     data = data.set_index(pd.Index([1]*len(data))).join(new_values)
-    data.set_index(original_index)
     return data
 
 
