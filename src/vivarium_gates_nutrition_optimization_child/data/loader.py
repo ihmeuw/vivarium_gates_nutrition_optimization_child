@@ -293,13 +293,13 @@ def load_wasting_transition_rates(key: str, location: str) -> pd.DataFrame:
     demography = get_data(data_keys.POPULATION.DEMOGRAPHY, location)
     rates = pd.read_csv(paths.WASTING_TRANSITIONS_DATA_DIR / f"{location.lower()}.csv")
 
-    # duplicate data for all years (only for 2019 in file)
+    # duplicate data for all years (file only has 2019 data)
     rates = rates.drop(["year_start", "year_end"], axis=1)
     years = demography.reset_index()["year_start"].unique()
     rates = expand_data(rates, "year_start", years)
     rates["year_end"] = rates["year_start"] + 1
 
-    # explicitly add the youngest ages data (all 0)
+    # explicitly add the youngest ages data with values of 0
     demography = demography.query("age_start < .5")
     youngest_ages_data = pd.DataFrame(
         0, columns=metadata.ARTIFACT_COLUMNS, index=demography.index
