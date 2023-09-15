@@ -32,8 +32,8 @@ class ResultsStratifier(ResultsStratifier_):
         """Define more granular age groups for SQ-LNS V&V."""
         age_bins = super().get_age_bins(builder)
         data_dict = {
-            "age_start": [0.5, 0.83333, 1, 1.5],
-            "age_end": [0.83333, 1, 1.5, 2],
+            "age_start": [0.5, 10 / 12, 1, 1.5],
+            "age_end": [10 / 12, 1, 1.5, 2],
             "age_group_name": [
                 "6_to_10_months",
                 "10_to_11_months",
