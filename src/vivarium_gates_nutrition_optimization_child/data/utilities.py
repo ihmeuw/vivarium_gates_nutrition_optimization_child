@@ -165,10 +165,8 @@ def process_gbd_2021_relative_risk(
     age_group_ids: List[int] = None,
     whitelist_sids: bool = False,
 ) -> pd.DataFrame:
-    ## This function is required to make 'morbidity' RRs
-    ## set to CSMR instead of EMR
+    ## This function is required to make 'morbidity' RRs set to CSMR instead of EMR
 
-    
     # from vivarium_gbd_access.gbd.get_relative_risk
     data["rei_id"] = entity.gbd_id
 
