@@ -11,4 +11,3 @@ branches:
   - intervention:
       child_scenario: ['scenario_0_zero_coverage', 'scenario_3_sqlns']
       maternal_scenario: ['zero_coverage']
-  
