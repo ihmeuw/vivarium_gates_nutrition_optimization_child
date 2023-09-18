@@ -1,3 +1,7 @@
+**v0.7.0 - 09/18/23**
+
+ - Add SQ-LNS intervention
+
 **v0.4.1 - 09/07/23**
 
  - Use updated underweight exposure distribution data (lookup.csv)
