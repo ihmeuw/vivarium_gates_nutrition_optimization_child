@@ -2,6 +2,22 @@
 
  - Update wasting exposure model (use transition rate data and new coverage/effectiveness values)
 
+**v0.5.3 - 09/15/23**
+
+ - Fix CGF PAF csv
+
+**v0.5.2 - 09/14/23**
+
+ - CGF Risk Effects Bug Fixes: Fix CGF Relative Risks
+
+**v0.5.1 09/13/23**
+
+ - CGF Risk Effects Bug Fixes: Include Underweight
+
+**v0.5.0 - 09/07/23**
+
+ - Update CGF Risk Effects
+
 **v0.4.1 - 09/07/23**
 
  - Use updated underweight exposure distribution data (lookup.csv)

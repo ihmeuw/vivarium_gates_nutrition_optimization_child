@@ -136,6 +136,7 @@ class __Malaria(NamedTuple):
     EMR: TargetString = TargetString("cause.malaria.excess_mortality_rate")
     CSMR: TargetString = TargetString("cause.malaria.cause_specific_mortality_rate")
     RESTRICTIONS: TargetString = TargetString("cause.malaria.restrictions")
+    BIRTH_PREVALENCE: TargetString = TargetString("cause.malaria.birth_prevalence")
 
     @property
     def name(self):
@@ -293,8 +294,10 @@ STUNTING = __Stunting()
 
 class __Underweight(NamedTuple):
     # Keys that will be loaded into the artifact. must have a colon type declaration
+    DISTRIBUTION: TargetString = "risk_factor.child_underweight.distribution"
     EXPOSURE: TargetString = "risk_factor.child_underweight.exposure"
     CATEGORIES: TargetString = "risk_factor.child_underweight.categories"
+    RELATIVE_RISK: TargetString = "risk_factor.child_underweight.relative_risk"
 
     # Useful keys not for the artifact - distinguished by not using the colon type declaration
     CAT4 = "cat4"
@@ -312,6 +315,21 @@ class __Underweight(NamedTuple):
 
 
 UNDERWEIGHT = __Underweight()
+
+
+class __ChildGrowthFailure(NamedTuple):
+    PAF: TargetString = "risk_factor.child_growth_failure.population_attributable_fraction"
+
+    @property
+    def name(self):
+        return "child_growth_failure"
+
+    @property
+    def log_name(self):
+        return "child_growth_failure"
+
+
+CHILD_GROWTH_FAILURE = __ChildGrowthFailure()
 
 
 class __WastingTreatment(NamedTuple):
@@ -536,6 +554,7 @@ MAKE_ARTIFACT_KEY_GROUPS = [
     STUNTING,
     WASTING,
     UNDERWEIGHT,
+    CHILD_GROWTH_FAILURE,
     PEM,
     MODERATE_PEM,
     SEVERE_PEM,

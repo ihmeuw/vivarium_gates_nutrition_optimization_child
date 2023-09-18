@@ -160,6 +160,70 @@ def process_exposure(
     return data
 
 
+def process_gbd_2021_relative_risk(
+    data: pd.DataFrame,
+    key: str,
+    entity: Union[RiskFactor, AlternativeRiskFactor],
+    location: str,
+    gbd_round_id: int,
+    age_group_ids: List[int] = None,
+    whitelist_sids: bool = False,
+) -> pd.DataFrame:
+    ## This function is required to make 'morbidity' RRs set to CSMR instead of EMR
+
+    # from vivarium_gbd_access.gbd.get_relative_risk
+    data["rei_id"] = entity.gbd_id
+
+    # from vivarium_inputs.extract.extract_relative_risk
+    data = vi_utils.filter_to_most_detailed_causes(data)
+
+    # from vivarium_inputs.core.get_relative_risk
+    yll_only_causes = set(
+        [
+            c.gbd_id
+            for c in causes
+            if c.restrictions.yll_only
+            and (c != causes.sudden_infant_death_syndrome if whitelist_sids else True)
+        ]
+    )
+    data = data[~data.cause_id.isin(yll_only_causes)]
+
+    data = vi_utils.convert_affected_entity(data, "cause_id")
+    morbidity = data.morbidity == 1
+    mortality = data.mortality == 1
+    data.loc[morbidity & ~mortality, "affected_measure"] = "incidence_rate"
+    data.loc[~morbidity & mortality, "affected_measure"] = "cause_specific_mortality_rate"
+    data = filter_relative_risk_to_cause_restrictions(data)
+
+    data = data.filter(
+        vi_globals.DEMOGRAPHIC_COLUMNS
+        + ["affected_entity", "affected_measure", "parameter"]
+        + vi_globals.DRAW_COLUMNS
+    )
+    data = (
+        data.groupby(["affected_entity", "parameter"])
+        .apply(
+            normalize_age_and_years,
+            fill_value=1,
+            gbd_round_id=gbd_round_id,
+            age_group_ids=age_group_ids,
+        )
+        .reset_index(drop=True)
+    )
+
+    if entity.distribution in ["dichotomous", "ordered_polytomous", "unordered_polytomous"]:
+        tmrel_cat = utility_data.get_tmrel_category(entity)
+        tmrel_mask = data.parameter == tmrel_cat
+        data.loc[tmrel_mask, vi_globals.DRAW_COLUMNS] = data.loc[
+            tmrel_mask, vi_globals.DRAW_COLUMNS
+        ].mask(np.isclose(data.loc[tmrel_mask, vi_globals.DRAW_COLUMNS], 1.0), 1.0)
+
+    data = validate_and_reshape_gbd_data(
+        data, entity, key, location, gbd_round_id, age_group_ids
+    )
+    return data
+
+
 def process_relative_risk(
     data: pd.DataFrame,
     key: str,
