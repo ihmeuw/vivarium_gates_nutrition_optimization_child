@@ -317,8 +317,10 @@ class ChildWastingObserver(DiseaseObserver):
         #         when="time_step__prepare",
         #     )
 
-        incident_transitions = ['moderate_acute_malnutrition_to_severe_acute_malnutrition',
-                                'mild_child_wasting_to_moderate_acute_malnutrition']
+        incident_transitions = [
+            "moderate_acute_malnutrition_to_severe_acute_malnutrition",
+            "mild_child_wasting_to_moderate_acute_malnutrition",
+        ]
 
         for transition in disease_model.transition_names:
             # only want incident cases
