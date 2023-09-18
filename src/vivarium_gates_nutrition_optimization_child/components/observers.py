@@ -100,7 +100,7 @@ class ResultsStratifier(ResultsStratifier_):
         )
         builder.results.register_stratification(
             "sqlns_coverage",
-            ["covered", "uncovered", "receieved"],
+            ["covered", "uncovered", "received"],
             is_vectorized=True,
             requires_values=[data_values.SQ_LNS.COVERAGE_PIPELINE],
         )
