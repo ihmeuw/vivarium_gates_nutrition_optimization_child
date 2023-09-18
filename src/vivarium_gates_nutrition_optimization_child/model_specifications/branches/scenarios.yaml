@@ -11,17 +11,17 @@ branches:
   - intervention:
       child_scenario:
         - 'scenario_0_zero_coverage'
-        - 'scenario_1_sam_tx'
-        - 'scenario_2_mam_tx'
+#        - 'scenario_1_sam_tx'
+#        - 'scenario_2_mam_tx'
         - 'scenario_3_sqlns'
-        - 'scenario_5_sam_and_mam'
-        - 'scenario_6_sam_and_sqlns',
-        - 'scenario_7_mam_and_sqlns'
+#        - 'scenario_5_sam_and_mam'
+#        - 'scenario_6_sam_and_sqlns',
+#        - 'scenario_7_mam_and_sqlns'
         - 'scenario_8_all'
       maternal_scenario:
         - 'zero_coverage'
-        - 'mms'
+#        - 'mms'
         - 'universal_bep'
-        - 'targeted_bep_mms'
-        - 'targeted_bep_no_mms'
+#        - 'targeted_bep_mms'
+#        - 'targeted_bep_no_mms'
 
