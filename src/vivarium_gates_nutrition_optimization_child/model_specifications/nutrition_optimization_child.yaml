@@ -112,7 +112,7 @@ configuration:
 
     stratification:
         default:
-            - 'age'
+            - 'sex'
         child_stunting:
             include:
                 - 'sqlns_coverage'
