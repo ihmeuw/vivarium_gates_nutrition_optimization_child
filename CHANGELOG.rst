@@ -1,3 +1,7 @@
+**v0.6 - 09/18/23**
+
+ - Update wasting exposure model (use transition rate data and new coverage/effectiveness values)
+
 **v0.4.1 - 09/07/23**
 
  - Use updated underweight exposure distribution data (lookup.csv)
