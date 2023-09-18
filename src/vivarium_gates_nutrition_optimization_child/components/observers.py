@@ -17,7 +17,11 @@ from vivarium_public_health.metrics.stratification import (
     ResultsStratifier as ResultsStratifier_,
 )
 
-from vivarium_gates_nutrition_optimization_child.constants import data_keys, results
+from vivarium_gates_nutrition_optimization_child.constants import (
+    data_keys,
+    data_values,
+    results,
+)
 
 
 class ResultsStratifier(ResultsStratifier_):
@@ -93,6 +97,12 @@ class ResultsStratifier(ResultsStratifier_):
             self.map_wasting_treatment,
             is_vectorized=True,
             requires_values=[f"{data_keys.MAM_TREATMENT.name}.exposure"],
+        )
+        builder.results.register_stratification(
+            "sqlns_coverage",
+            ["covered", "uncovered", "received"],
+            is_vectorized=True,
+            requires_values=[data_values.SQ_LNS.COVERAGE_PIPELINE],
         )
 
     ###########################

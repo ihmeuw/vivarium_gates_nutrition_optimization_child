@@ -120,6 +120,9 @@ configuration:
         default:
             - "sex"
             - "age_group"
+        child_stunting:
+            include:
+                - 'sqlns_coverage'
         birth:
             exclude:
                 - "age_group"
