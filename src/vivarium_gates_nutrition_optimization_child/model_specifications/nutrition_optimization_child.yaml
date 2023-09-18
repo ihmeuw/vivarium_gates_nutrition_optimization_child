@@ -7,14 +7,11 @@ components:
             - SIS('lower_respiratory_infections')
             - SIS('malaria')
         risks:
-            - RiskEffect('risk_factor.child_wasting', 'cause.diarrheal_diseases.incidence_rate')
-            - RiskEffect('risk_factor.child_wasting', 'cause.measles.incidence_rate')
-            - RiskEffect('risk_factor.child_wasting', 'cause.lower_respiratory_infections.incidence_rate')
-
             - Risk('risk_factor.child_stunting')
-            - RiskEffect('risk_factor.child_stunting', 'cause.diarrheal_diseases.incidence_rate')
-            - RiskEffect('risk_factor.child_stunting', 'cause.measles.incidence_rate')
-            - RiskEffect('risk_factor.child_stunting', 'cause.lower_respiratory_infections.incidence_rate')
+
+            - RiskEffect('risk_factor.severe_acute_malnutrition_treatment', 'risk_factor.severe_acute_malnutrition_to_mild_child_wasting.transition_rate')
+            - RiskEffect('risk_factor.severe_acute_malnutrition_treatment', 'risk_factor.severe_acute_malnutrition_to_moderate_acute_malnutrition.transition_rate')
+            - RiskEffect('risk_factor.moderate_acute_malnutrition_treatment', 'risk_factor.moderate_acute_malnutrition_to_mild_child_wasting.transition_rate')
 
             - RiskEffect('risk_factor.severe_acute_malnutrition_treatment', 'risk_factor.severe_acute_malnutrition_to_mild_child_wasting.transition_rate')
             - RiskEffect('risk_factor.severe_acute_malnutrition_treatment', 'risk_factor.severe_acute_malnutrition_to_moderate_acute_malnutrition.transition_rate')
@@ -47,6 +44,14 @@ components:
             - SQLNSTreatment()
             - MaternalCharacteristics()
             - ChildUnderweight()
+            - CGFRiskEffect('cause.diarrheal_diseases.incidence_rate')
+            - CGFRiskEffect('cause.measles.incidence_rate')
+            - CGFRiskEffect('cause.lower_respiratory_infections.incidence_rate')
+            - CGFRiskEffect('cause.malaria.incidence_rate')
+            - CGFRiskEffect('cause.diarrheal_diseases.excess_mortality_rate')
+            - CGFRiskEffect('cause.measles.excess_mortality_rate')
+            - CGFRiskEffect('cause.lower_respiratory_infections.excess_mortality_rate')
+            - CGFRiskEffect('cause.malaria.excess_mortality_rate')
             - AdditiveRiskEffect('risk_factor.iron_folic_acid_supplementation', 'risk_factor.birth_weight.birth_exposure')
             - AdditiveRiskEffect('risk_factor.multiple_micronutrient_supplementation', 'risk_factor.birth_weight.birth_exposure')
             - AdditiveRiskEffect('risk_factor.balanced_energy_protein_supplementation', 'risk_factor.birth_weight.birth_exposure')
@@ -129,3 +134,18 @@ configuration:
             include:
                 - "maternal_supplementation"
                 - "bmi_anemia"
+        mortality:
+            include:
+                - "wasting_state"
+        diarrheal_diseases:
+            include:
+                - "wasting_state"
+        measles:
+            include:
+                - "wasting_state"
+        lower_respiratory_infections:
+            include:
+                - "wasting_state"
+        malaria:
+            include:
+                - "wasting_state"
