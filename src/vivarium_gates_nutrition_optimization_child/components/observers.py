@@ -380,7 +380,7 @@ class MortalityHazardRateObserver:
             requires_columns=["alive"],
             additional_stratifications=self.config.include,
             excluded_stratifications=self.config.exclude,
-            when="time_step__prepare",
+            when="collect_metrics",
         )
 
     def calculate_mortality_hazard_rate(self, x: pd.DataFrame) -> float:
