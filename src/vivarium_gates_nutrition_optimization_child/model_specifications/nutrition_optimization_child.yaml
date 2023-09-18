@@ -13,6 +13,10 @@ components:
             - RiskEffect('risk_factor.severe_acute_malnutrition_treatment', 'risk_factor.severe_acute_malnutrition_to_moderate_acute_malnutrition.transition_rate')
             - RiskEffect('risk_factor.moderate_acute_malnutrition_treatment', 'risk_factor.moderate_acute_malnutrition_to_mild_child_wasting.transition_rate')
 
+            - RiskEffect('risk_factor.severe_acute_malnutrition_treatment', 'risk_factor.severe_acute_malnutrition_to_mild_child_wasting.transition_rate')
+            - RiskEffect('risk_factor.severe_acute_malnutrition_treatment', 'risk_factor.severe_acute_malnutrition_to_moderate_acute_malnutrition.transition_rate')
+            - RiskEffect('risk_factor.moderate_acute_malnutrition_treatment', 'risk_factor.moderate_acute_malnutrition_to_mild_child_wasting.transition_rate')
+
             - LBWSGRiskEffect('cause.diarrheal_diseases.excess_mortality_rate')
             - LBWSGRiskEffect('cause.lower_respiratory_infections.excess_mortality_rate')
             - LBWSGRiskEffect('cause.affected_unmodeled.cause_specific_mortality_rate')
@@ -37,6 +41,7 @@ components:
             - ChildWastingObserver()
             - WastingTreatment('risk_factor.severe_acute_malnutrition_treatment')
             - WastingTreatment('risk_factor.moderate_acute_malnutrition_treatment')
+            - SQLNSTreatment()
             - MaternalCharacteristics()
             - ChildUnderweight()
             - CGFRiskEffect('cause.diarrheal_diseases.incidence_rate')
@@ -64,8 +69,8 @@ configuration:
     input_data:
         input_draw_number: 0
         # Artifact can also be defined at runtime using -i flag
-        artifact_path: '/mnt/team/simulation_science/costeffectiveness/artifacts/vivarium_gates_nutrition_optimization_child/model6.0.2/ethiopia.hdf'
-        fertility_input_data_path: '/mnt/team/simulation_science/costeffectiveness/results/vivarium_gates_nutrition_optimization/model8.0-and-model-6.0-bugfix/ethiopia/2023_08_18_13_38_11/child_data'
+        artifact_path: '/mnt/team/simulation_science/costeffectiveness/artifacts/vivarium_gates_nutrition_optimization_child/model7.0/ethiopia.hdf'
+        fertility_input_data_path: '/mnt/team/simulation_science/costeffectiveness/results/vivarium_gates_nutrition_optimization/model8.3-background-morbidity/ethiopia/2023_08_29_10_46_48/child_data'
     interpolation:
         order: 0
         extrapolate: True
@@ -120,11 +125,9 @@ configuration:
         default:
             - "sex"
             - "age_group"
-        mortality:
+        child_stunting:
             include:
-                - "wasting_state"
-        child_wasting:
-            include: ["mam_treatment", "sam_treatment"]
+                - 'sqlns_coverage'
         birth:
             exclude:
                 - "age_group"

@@ -1,3 +1,7 @@
+**v0.7.0 - 09/18/23**
+
+ - Add SQ-LNS intervention
+
 **v0.6 - 09/18/23**
 
  - Update wasting exposure model (use transition rate data and new coverage/effectiveness values)

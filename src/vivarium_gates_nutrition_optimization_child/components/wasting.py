@@ -118,6 +118,9 @@ class WastingTreatment(Risk):
 
     def setup(self, builder: Builder):
         super().setup(builder)
+        self.scenario = scenarios.INTERVENTION_SCENARIOS[
+            builder.configuration.intervention.child_scenario
+        ]
         self._register_on_time_step_prepare_listener(builder)
 
     def _get_population_view(self, builder: Builder) -> PopulationView:
@@ -144,6 +147,32 @@ class WastingTreatment(Risk):
         ] != self.treated_state
         propensity.loc[remitted_mask] = self.randomness.get_draw(remitted_mask.index)
         self.population_view.update(propensity)
+
+    ##################################
+    # Pipeline sources and modifiers #
+    ##################################
+
+    def _get_current_exposure(self, index: pd.Index) -> pd.Series:
+        is_mam_component = self.risk.name == "moderate_acute_malnutrition_treatment"
+        coverage_to_exposure_map = {"none": "cat1", "full": "cat2"}
+
+        if is_mam_component:
+            mam_coverage = self.scenario.mam_tx_coverage
+            if mam_coverage == "baseline":  # return standard exposure if baseline
+                propensity = self.propensity(index)
+                return pd.Series(self.exposure_distribution.ppf(propensity), index=index)
+            else:  # return either all or none covered otherwise
+                exposure = coverage_to_exposure_map[mam_coverage]
+                return pd.Series(exposure, index=index)
+
+        else:  # we're in the SAM treatment component
+            sam_coverage = self.scenario.sam_tx_coverage
+            if sam_coverage == "baseline":
+                propensity = self.propensity(index)
+                return pd.Series(self.exposure_distribution.ppf(propensity), index=index)
+            else:
+                exposure = coverage_to_exposure_map[sam_coverage]
+                return pd.Series(exposure, index=index)
 
 
 class DynamicChildWastingModel(DiseaseModel):

@@ -17,7 +17,11 @@ from vivarium_public_health.metrics.stratification import (
     ResultsStratifier as ResultsStratifier_,
 )
 
-from vivarium_gates_nutrition_optimization_child.constants import data_keys, results
+from vivarium_gates_nutrition_optimization_child.constants import (
+    data_keys,
+    data_values,
+    results,
+)
 
 
 class ResultsStratifier(ResultsStratifier_):
@@ -27,6 +31,28 @@ class ResultsStratifier(ResultsStratifier_):
     results production and have this component manage adjustments to the
     final column labels for the subgroups.
     """
+
+    def get_age_bins(self, builder: Builder) -> pd.DataFrame:
+        """Define more granular age groups for SQ-LNS V&V."""
+        age_bins = super().get_age_bins(builder)
+        data_dict = {
+            "age_start": [0.5, 10 / 12, 1, 1.5],
+            "age_end": [10 / 12, 1, 1.5, 2],
+            "age_group_name": [
+                "6_to_10_months",
+                "10_to_11_months",
+                "12_to_17_months",
+                "18_to_23_months",
+            ],
+        }
+        new_age_bins = pd.DataFrame(data_dict)
+
+        # remove duplicated ages and concat
+        new_age_starts = data_dict["age_start"]
+        age_bins = age_bins.query("age_start not in @new_age_starts")
+        age_bins = pd.concat([age_bins, new_age_bins])
+
+        return age_bins.sort_values(["age_start"]).reset_index(drop=True)
 
     def register_stratifications(self, builder: Builder) -> None:
         """Register each desired stratification with calls to _setup_stratification"""
@@ -71,6 +97,12 @@ class ResultsStratifier(ResultsStratifier_):
             self.map_wasting_treatment,
             is_vectorized=True,
             requires_values=[f"{data_keys.MAM_TREATMENT.name}.exposure"],
+        )
+        builder.results.register_stratification(
+            "sqlns_coverage",
+            ["covered", "uncovered", "received"],
+            is_vectorized=True,
+            requires_values=[data_values.SQ_LNS.COVERAGE_PIPELINE],
         )
 
     ###########################

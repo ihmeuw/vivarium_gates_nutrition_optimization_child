@@ -93,8 +93,10 @@ AGE_GROUPS = (
     "early_neonatal",
     "late_neonatal",
     "1-5_months",
-    "6-11_months",
-    "12_to_23_months",
+    "6_to_10_months",
+    "10_to_11_months",
+    "12_to_17_months",
+    "18_to_23_months",
     "2_to_4",
 )
 DICHOTOMOUS_RISK_STATES = ("cat2", "cat1")
