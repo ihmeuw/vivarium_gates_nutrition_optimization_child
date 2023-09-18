@@ -77,37 +77,11 @@ class __Wasting(NamedTuple):
 
     # Wasting treatment coverage
     COVERAGE_START_AGE: float = 28 / YEAR_DURATION  # ~0.0767
-    BASELINE_SAM_TX_COVERAGE: Tuple = (
-        "sam_tx_coverage",
-        get_norm_from_quantiles(mean=0.488, lower=0.374, upper=0.604),
-    )
-    BASELINE_MAM_TX_COVERAGE: Tuple = (
-        "sam_tx_coverage",
-        get_norm_from_quantiles(mean=0.15, lower=0.1, upper=0.2),
-    )
     ALTERNATIVE_TX_COVERAGE: float = 0.7
 
     # Wasting treatment efficacy
-    BASELINE_SAM_TX_EFFICACY: Tuple = (
-        "sam_tx_efficacy",
-        get_norm_from_quantiles(mean=0.700, lower=0.64, upper=0.76),
-    )
-    BASELINE_MAM_TX_EFFICACY: Tuple = (
-        "mam_tx_efficacy",
-        get_norm_from_quantiles(mean=0.731, lower=0.585, upper=0.877),
-    )
     SAM_TX_ALTERNATIVE_EFFICACY: float = 0.75
     MAM_TX_ALTERNATIVE_EFFICACY: float = 0.75
-
-    # Incidence correction factor (total exit rate)
-    SAM_K: Tuple = (
-        "sam_incidence_correction",
-        get_lognorm_from_quantiles(median=6.7, lower=5.3, upper=8.4),
-    )
-    ALTERNATIVE_SAM_K: Tuple = (
-        "alt_sam_incidence_correction",
-        get_lognorm_from_quantiles(median=3.5, lower=3.1, upper=3.9),
-    )
 
     # Untreated time to recovery in days
     MAM_UX_RECOVERY_TIME_OVER_6MO: float = 147.0
@@ -120,16 +94,6 @@ class __Wasting(NamedTuple):
         get_norm_from_quantiles(mean=55.3, lower=48.4, upper=63.0),
     )
     MAM_TX_RECOVERY_TIME_UNDER_6MO: float = 13.3
-
-    R4_UNDER_12MO: Tuple = (
-        "r4_under_12mo",
-        get_truncnorm_from_sd(
-            mean=0.006140,
-            sd=0.003015,
-        ),
-    )
-
-    R4_OVER_12MO: Tuple = ("r4_over_12mo", get_truncnorm_from_sd(mean=0.005043, sd=0.002428))
 
 
 WASTING = __Wasting()

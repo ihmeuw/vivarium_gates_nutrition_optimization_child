@@ -13,7 +13,7 @@ for an example.
    No logging is done here. Logging is done in vivarium inputs itself and forwarded.
 """
 import pickle
-from typing import Tuple, Union
+from typing import Dict, List, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -108,6 +108,7 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.WASTING.EXPOSURE: load_gbd_2021_exposure,
         data_keys.WASTING.RELATIVE_RISK: load_gbd_2021_rr,
         data_keys.WASTING.PAF: load_categorical_paf,
+        data_keys.WASTING.TRANSITION_RATES: load_wasting_transition_rates,
         data_keys.STUNTING.DISTRIBUTION: load_metadata,
         data_keys.STUNTING.ALT_DISTRIBUTION: load_metadata,
         data_keys.STUNTING.CATEGORIES: load_metadata,
@@ -304,6 +305,46 @@ def load_categorical_paf(key: str, location: str) -> pd.DataFrame:
     )
     paf = (sum_exp_x_rr - 1) / sum_exp_x_rr
     return paf
+
+
+def load_wasting_transition_rates(key: str, location: str) -> pd.DataFrame:
+    """Read in wasting transition rates from flat file and expand to include all years."""
+    demography = get_data(data_keys.POPULATION.DEMOGRAPHY, location)
+    rates = pd.read_csv(paths.WASTING_TRANSITIONS_DATA_DIR / f"{location.lower()}.csv")
+
+    # duplicate data for all years (file only has 2019 data)
+    rates = rates.drop(["year_start", "year_end"], axis=1)
+    years = demography.reset_index()["year_start"].unique()
+    rates = expand_data(rates, "year_start", years)
+    rates["year_end"] = rates["year_start"] + 1
+
+    # explicitly add the youngest ages data with values of 0
+    demography = demography.query("age_start < .5")
+    youngest_ages_data = pd.DataFrame(
+        0, columns=metadata.ARTIFACT_COLUMNS, index=demography.index
+    )
+    # add all transitions
+    transitions = rates.reset_index()["transition"].unique()
+    youngest_ages_data = expand_data(youngest_ages_data, "transition", transitions)
+
+    rates = rates[youngest_ages_data.columns]
+    rates = pd.concat([youngest_ages_data, rates])
+    rates = rates.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ["transition"]).sort_index()
+
+    return rates
+
+
+def expand_data(data: pd.DataFrame, column_name: str, column_values: List) -> pd.DataFrame:
+    """Equivalent to: For each column value, create a copy of data with a new column with this value. Concat these copies.
+    Note: This transformation will reset the index of your data."""
+    data = data.reset_index()
+    if "index" in data.columns:
+        data = data.drop("index", axis=1)
+    new_values = pd.DataFrame({column_name: column_values}).set_index(
+        pd.Index([1] * len(column_values))
+    )
+    data = data.set_index(pd.Index([1] * len(data))).join(new_values)
+    return data
 
 
 def _load_em_from_meid(location, meid, measure):
@@ -665,15 +706,13 @@ def load_wasting_treatment_categories(key: str, location: str) -> str:
 
 def load_wasting_treatment_exposure(key: str, location: str) -> pd.DataFrame:
     if key == data_keys.SAM_TREATMENT.EXPOSURE:
-        coverage_distribution = data_values.WASTING.BASELINE_SAM_TX_COVERAGE
+        parameter = "c_sam"
     elif key == data_keys.MAM_TREATMENT.EXPOSURE:
-        coverage_distribution = data_values.WASTING.BASELINE_MAM_TX_COVERAGE
+        parameter = "c_mam"
     else:
         raise ValueError(f"Unrecognized key {key}")
 
-    treatment_coverage = get_random_variable_draws(
-        metadata.ARTIFACT_COLUMNS, *coverage_distribution
-    )
+    treatment_coverage = utilities.get_wasting_treatment_parameter_data(parameter, location)
 
     idx = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index
     cat3 = pd.DataFrame({f"draw_{i}": 0.0 for i in range(0, 1000)}, index=idx)
@@ -698,7 +737,7 @@ def load_sam_treatment_rr(key: str, location: str) -> pd.DataFrame:
 
     demography = get_data(data_keys.POPULATION.DEMOGRAPHY, location).reset_index()
     sam_tx_efficacy, sam_tx_efficacy_tmrel = utilities.get_treatment_efficacy(
-        demography, data_keys.WASTING.CAT1
+        demography, data_keys.WASTING.CAT1, location
     )
 
     # rr_t1 = t1 / t1_tmrel
@@ -734,7 +773,7 @@ def load_mam_treatment_rr(key: str, location: str) -> pd.DataFrame:
 
     demography = get_data(data_keys.POPULATION.DEMOGRAPHY, location).reset_index()
     mam_tx_efficacy, mam_tx_efficacy_tmrel = utilities.get_treatment_efficacy(
-        demography, data_keys.WASTING.CAT2
+        demography, data_keys.WASTING.CAT2, location
     )
     index = mam_tx_efficacy.index
 

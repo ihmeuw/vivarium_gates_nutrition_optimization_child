@@ -1,3 +1,7 @@
+**v0.6 - 09/18/23**
+
+ - Update wasting exposure model (use transition rate data and new coverage/effectiveness values)
+
 **v0.5.3 - 09/15/23**
 
  - Fix CGF PAF csv
