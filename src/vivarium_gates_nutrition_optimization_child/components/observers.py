@@ -17,7 +17,11 @@ from vivarium_public_health.metrics.stratification import (
     ResultsStratifier as ResultsStratifier_,
 )
 
-from vivarium_gates_nutrition_optimization_child.constants import data_keys, data_values, results
+from vivarium_gates_nutrition_optimization_child.constants import (
+    data_keys,
+    data_values,
+    results,
+)
 
 
 class ResultsStratifier(ResultsStratifier_):
