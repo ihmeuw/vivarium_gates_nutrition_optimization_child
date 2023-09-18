@@ -13,29 +13,17 @@ components:
             - RiskEffect('risk_factor.severe_acute_malnutrition_treatment', 'risk_factor.severe_acute_malnutrition_to_moderate_acute_malnutrition.transition_rate')
             - RiskEffect('risk_factor.moderate_acute_malnutrition_treatment', 'risk_factor.moderate_acute_malnutrition_to_mild_child_wasting.transition_rate')
 
-            - RiskEffect('risk_factor.severe_acute_malnutrition_treatment', 'risk_factor.severe_acute_malnutrition_to_mild_child_wasting.transition_rate')
-            - RiskEffect('risk_factor.severe_acute_malnutrition_treatment', 'risk_factor.severe_acute_malnutrition_to_moderate_acute_malnutrition.transition_rate')
-            - RiskEffect('risk_factor.moderate_acute_malnutrition_treatment', 'risk_factor.moderate_acute_malnutrition_to_mild_child_wasting.transition_rate')
-
             - LBWSGRiskEffect('cause.diarrheal_diseases.excess_mortality_rate')
             - LBWSGRiskEffect('cause.lower_respiratory_infections.excess_mortality_rate')
             - LBWSGRiskEffect('cause.affected_unmodeled.cause_specific_mortality_rate')
         metrics:
-            - DiseaseObserver('diarrheal_diseases')
-            - DiseaseObserver('measles')
-            - DiseaseObserver('lower_respiratory_infections')
-            - DiseaseObserver('malaria')
-            - DiseaseObserver('moderate_protein_energy_malnutrition')
-            - DiseaseObserver('severe_protein_energy_malnutrition')
             - CategoricalRiskObserver('child_stunting')
-            - CategoricalRiskObserver('child_underweight')
 
     vivarium_gates_nutrition_optimization_child:
         components:
             - PopulationLineList()
             - FertilityLineList()
             - LBWSGLineList()
-            - BirthObserver()
             - DisabilityObserver()
             - ChildWasting()
             - ChildWastingObserver()
@@ -63,6 +51,7 @@ components:
             - RiskAttributableDisease('cause.moderate_protein_energy_malnutrition', 'risk_factor.child_wasting')
             - RiskAttributableDisease('cause.severe_protein_energy_malnutrition', 'risk_factor.child_wasting')
             - MortalityObserver()
+            - MortalityHazardRateObserver()
             - ResultsStratifier()
 
 configuration:
@@ -123,29 +112,7 @@ configuration:
 
     stratification:
         default:
-            - "sex"
-            - "age_group"
+            - 'sex'
         child_stunting:
             include:
                 - 'sqlns_coverage'
-        birth:
-            exclude:
-                - "age_group"
-            include:
-                - "maternal_supplementation"
-                - "bmi_anemia"
-        mortality:
-            include:
-                - "wasting_state"
-        diarrheal_diseases:
-            include:
-                - "wasting_state"
-        measles:
-            include:
-                - "wasting_state"
-        lower_respiratory_infections:
-            include:
-                - "wasting_state"
-        malaria:
-            include:
-                - "wasting_state"

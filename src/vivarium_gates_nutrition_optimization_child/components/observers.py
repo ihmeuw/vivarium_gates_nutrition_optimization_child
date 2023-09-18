@@ -305,29 +305,83 @@ class ChildWastingObserver(DiseaseObserver):
 
         builder.event.register_listener("time_step__prepare", self.on_time_step_prepare)
 
-        for category in self.categories:
-            builder.results.register_observation(
-                name=f"{self.risk}_{category}_person_time",
-                pop_filter=f'alive == "alive" and `{self.exposure_pipeline_name}`=="{category}" and tracked==True',
-                aggregator=self.aggregate_state_person_time,
-                requires_columns=["alive"],
-                requires_values=[self.exposure_pipeline_name],
-                additional_stratifications=self.config.include,
-                excluded_stratifications=self.config.exclude,
-                when="time_step__prepare",
-            )
+        # for category in self.categories:
+        #     builder.results.register_observation(
+        #         name=f"{self.risk}_{category}_person_time",
+        #         pop_filter=f'alive == "alive" and `{self.exposure_pipeline_name}`=="{category}" and tracked==True',
+        #         aggregator=self.aggregate_state_person_time,
+        #         requires_columns=["alive"],
+        #         requires_values=[self.exposure_pipeline_name],
+        #         additional_stratifications=self.config.include,
+        #         excluded_stratifications=self.config.exclude,
+        #         when="time_step__prepare",
+        #     )
+
+        incident_transitions = ['moderate_acute_malnutrition_to_severe_acute_malnutrition',
+                                'mild_child_wasting_to_moderate_acute_malnutrition']
 
         for transition in disease_model.transition_names:
-            filter_string = (
-                f'{self.previous_state_column_name} == "{transition.from_state}" '
-                f'and {self.disease} == "{transition.to_state}" '
-                f"and tracked==True"
-            )
-            builder.results.register_observation(
-                name=f"{transition}_event_count",
-                pop_filter=filter_string,
-                requires_columns=[self.previous_state_column_name, self.disease],
-                additional_stratifications=self.config.include,
-                excluded_stratifications=self.config.exclude,
-                when="collect_metrics",
-            )
+            # only want incident cases
+            if transition in incident_transitions:
+                filter_string = (
+                    f'{self.previous_state_column_name} == "{transition.from_state}" '
+                    f'and {self.disease} == "{transition.to_state}" '
+                    f"and tracked==True"
+                )
+                builder.results.register_observation(
+                    name=f"{transition}_event_count",
+                    pop_filter=filter_string,
+                    requires_columns=[self.previous_state_column_name, self.disease],
+                    additional_stratifications=self.config.include,
+                    excluded_stratifications=self.config.exclude,
+                    when="collect_metrics",
+                )
+
+
+class MortalityHazardRateObserver:
+    configuration_defaults = {
+        "stratification": {
+            "mortality_hazard_rate": {
+                "exclude": [],
+                "include": [],
+            }
+        }
+    }
+
+    def __init__(self):
+        self.mortality_rate_pipeline_name = "mortality_rate"
+
+    def __repr__(self):
+        return "MortalityHazardRateObserver()"
+
+    ##############
+    # Properties #
+    ##############
+
+    @property
+    def name(self):
+        return "mortality_hazard_rate_observer"
+
+    #################
+    # Setup methods #
+    #################
+
+    # noinspection PyAttributeOutsideInit
+    def setup(self, builder: Builder):
+        self.config = builder.configuration.stratification.mortality_hazard_rate
+        self.mortality_rates = builder.value.get_value(self.mortality_rate_pipeline_name)
+
+        builder.results.register_observation(
+            name=f"mortality_hazard_rate_first_moment",
+            pop_filter="alive=='alive'",
+            aggregator=self.calculate_mortality_hazard_rate,
+            requires_columns=["alive"],
+            additional_stratifications=self.config.include,
+            excluded_stratifications=self.config.exclude,
+            when="time_step__prepare",
+        )
+
+    def calculate_mortality_hazard_rate(self, x: pd.DataFrame) -> float:
+        # sum mortality rates across all causes
+        summed_mortality_rates = self.mortality_rates(x.index).sum()
+        return sum(summed_mortality_rates)

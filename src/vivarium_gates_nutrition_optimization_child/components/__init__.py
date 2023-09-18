@@ -17,6 +17,7 @@ from vivarium_gates_nutrition_optimization_child.components.observers import (
     ChildWastingObserver,
     DisabilityObserver,
     MortalityObserver,
+    MortalityHazardRateObserver,
     ResultsStratifier,
 )
 from vivarium_gates_nutrition_optimization_child.components.population import (
