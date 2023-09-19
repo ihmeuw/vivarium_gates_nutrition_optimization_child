@@ -6,6 +6,7 @@ from vivarium import ConfigTree
 from vivarium.framework.engine import Builder
 from vivarium.framework.event import Event
 from vivarium.framework.population import PopulationView
+from vivarium_public_health.disease.transition import TransitionString
 from vivarium_public_health.metrics.disability import (
     DisabilityObserver as DisabilityObserver_,
 )
@@ -318,25 +319,24 @@ class ChildWastingObserver(DiseaseObserver):
         #     )
 
         incident_transitions = [
-            "moderate_acute_malnutrition_to_severe_acute_malnutrition",
-            "mild_child_wasting_to_moderate_acute_malnutrition",
+            TransitionString("moderate_acute_malnutrition_to_severe_acute_malnutrition"),
+            TransitionString("mild_child_wasting_to_moderate_acute_malnutrition"),
         ]
 
-        for transition in disease_model.transition_names:
-            if transition in incident_transitions:
-                filter_string = (
-                    f'{self.previous_state_column_name} == "{transition.from_state}" '
-                    f'and {self.disease} == "{transition.to_state}" '
-                    f"and tracked==True"
-                )
-                builder.results.register_observation(
-                    name=f"{transition}_event_count",
-                    pop_filter=filter_string,
-                    requires_columns=[self.previous_state_column_name, self.disease],
-                    additional_stratifications=self.config.include,
-                    excluded_stratifications=self.config.exclude,
-                    when="collect_metrics",
-                )
+        for transition in incident_transitions:
+            filter_string = (
+                f'{self.previous_state_column_name} == "{transition.from_state}" '
+                f'and {self.disease} == "{transition.to_state}" '
+                f"and tracked==True"
+            )
+            builder.results.register_observation(
+                name=f"{transition}_event_count",
+                pop_filter=filter_string,
+                requires_columns=[self.previous_state_column_name, self.disease],
+                additional_stratifications=self.config.include,
+                excluded_stratifications=self.config.exclude,
+                when="collect_metrics",
+            )
 
 
 class MortalityHazardRateObserver:
