@@ -1066,11 +1066,10 @@ def load_bep_excess_shift(key: str, location: str) -> pd.DataFrame:
     cat3_shift["maternal_bmi_anemia_exposure"] = 'cat3'
     cat4_shift["maternal_bmi_anemia_exposure"] = 'cat4'
 
-    df = pd.concat([cat1_shift, cat2_shift, cat3_shift, cat4_shift])
+    shift = pd.concat([cat1_shift, cat2_shift, cat3_shift, cat4_shift])
+    shift = shift.set_index('maternal_bmi_anemia_exposure', append=True)
 
-    breakpoint()
-
-    return 0
+    return shift.sort_index()
 
 
 def load_dichotomous_exposure(
