@@ -9,7 +9,8 @@ from vivarium_gates_nutrition_optimization_child.constants import results, scena
 
 SCENARIO_COLUMN = "child_scenario"
 MATERNAL_SCENARIO_COLUMN = "intervention.maternal_scenario"
-GROUPBY_COLUMNS = [results.INPUT_DRAW_COLUMN, SCENARIO_COLUMN, MATERNAL_SCENARIO_COLUMN]
+RANDOM_SEED_COLUMN = 'random_seed'
+GROUPBY_COLUMNS = [results.INPUT_DRAW_COLUMN, SCENARIO_COLUMN, MATERNAL_SCENARIO_COLUMN, RANDOM_SEED_COLUMN]
 OUTPUT_COLUMN_SORT_ORDER = [
     "age_group",
     "sex",
