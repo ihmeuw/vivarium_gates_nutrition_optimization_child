@@ -319,8 +319,8 @@ class ChildWastingObserver(DiseaseObserver):
         #     )
 
         incident_transitions = [
-            TransitionString("moderate_acute_malnutrition_to_severe_acute_malnutrition"),
-            TransitionString("mild_child_wasting_to_moderate_acute_malnutrition"),
+            TransitionString("moderate_acute_malnutrition_TO_severe_acute_malnutrition"),
+            TransitionString("mild_child_wasting_TO_moderate_acute_malnutrition"),
         ]
 
         for transition in incident_transitions:
