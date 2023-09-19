@@ -392,7 +392,7 @@ class BEPEffectOnBirthweight(AdditiveRiskEffect):
         )
 
 
-    def _pivot_categorical(data: pd.DataFrame) -> pd.DataFrame:
+    def _pivot_categorical(self, data: pd.DataFrame) -> pd.DataFrame:
         """Pivots data that is long on categories to be wide.
         Copied from VPH but include maternal BMI anemia exposure."""
         key_cols = ["sex", "age_start", "age_end", "year_start", "year_end", "maternal_bmi_anemia_exposure"]
