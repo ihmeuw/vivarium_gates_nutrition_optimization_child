@@ -175,7 +175,7 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.BEP_SUPPLEMENTATION.DISTRIBUTION: load_intervention_distribution,
         data_keys.BEP_SUPPLEMENTATION.CATEGORIES: load_intervention_categories,
         data_keys.BEP_SUPPLEMENTATION.EXPOSURE: load_dichotomous_treatment_exposure,
-        data_keys.BEP_SUPPLEMENTATION.EXCESS_SHIFT: load_treatment_excess_shift,
+        data_keys.BEP_SUPPLEMENTATION.EXCESS_SHIFT: load_bep_excess_shift,
         data_keys.BEP_SUPPLEMENTATION.RISK_SPECIFIC_SHIFT: load_risk_specific_shift,
         data_keys.IV_IRON.DISTRIBUTION: load_intervention_distribution,
         data_keys.IV_IRON.CATEGORIES: load_intervention_categories,
@@ -1047,6 +1047,18 @@ def load_treatment_excess_shift(key: str, location: str) -> pd.DataFrame:
     except KeyError:
         raise ValueError(f"Unrecognized key {key}")
     return load_dichotomous_excess_shift(location, distribution_data)
+
+
+def load_bep_excess_shift(key: str, location: str) -> pd.DataFrame:
+    undernourished_distribution = data_values.MATERNAL_CHARACTERISTICS.BEP_UNDERNOURISHED_BIRTH_WEIGHT_SHIFT
+    adequately_nourished_distribution = data_values.MATERNAL_CHARACTERISTICS.BEP_ADEQUATELY_NOURISHED_BIRTH_WEIGHT_SHIFT
+
+    undernourished_shift = load_dichotomous_excess_shift(location, adequately_nourished_distribution)
+    adequately_nourished_shift = load_dichotomous_excess_shift(location, undernourished_distribution)
+
+    breakpoint()
+
+    return 0
 
 
 def load_dichotomous_exposure(

@@ -366,6 +366,22 @@ class MMSEffectOnGestationalAge(AdditiveRiskEffect):
         return excess_shift
 
 
+class BEPEffectOnBirthweight(AdditiveRiskEffect):
+    '''Model effect of BEP on birthweight. Unique component because effect of BEP depends
+    on mother's BMI status.'''
+    def _get_excess_shift_source(self, builder: Builder) -> LookupTable:
+        excess_shift_data = builder.data.load(
+            f"{self.risk}.excess_shift",
+            affected_entity=self.target.name,
+            affected_measure=self.target.measure,
+        )
+        excess_shift_data = rebin_relative_risk_data(builder, self.risk, excess_shift_data)
+        excess_shift_data = pivot_categorical(excess_shift_data)
+        return builder.lookup.build_table(
+            excess_shift_data, key_columns=["sex", "maternal_bmi_anemia_exposure"], parameter_columns=["age", "year"]
+        )
+
+
 class BirthWeightShiftEffect:
     def __init__(self):
         self.ifa_effect_pipeline_name = f"{IFA_SUPPLEMENTATION.name}_on_birth_weight.effect"
