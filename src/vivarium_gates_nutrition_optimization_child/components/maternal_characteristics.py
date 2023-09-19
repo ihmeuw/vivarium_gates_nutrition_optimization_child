@@ -369,6 +369,9 @@ class MMSEffectOnGestationalAge(AdditiveRiskEffect):
 class BEPEffectOnBirthweight(AdditiveRiskEffect):
     '''Model effect of BEP on birthweight. Unique component because effect of BEP depends
     on mother's BMI status.'''
+    def __init__(self):
+        super().__init__('risk_factor.balanced_energy_protein_supplementation', 'risk_factor.birth_weight.birth_exposure')
+
     def _get_excess_shift_source(self, builder: Builder) -> LookupTable:
         excess_shift_data = builder.data.load(
             f"{self.risk}.excess_shift",
