@@ -322,22 +322,20 @@ class ChildWastingObserver(DiseaseObserver):
             "mild_child_wasting_to_moderate_acute_malnutrition",
         ]
 
-        for transition in disease_model.transition_names:
-            # only want incident cases
-            if transition in incident_transitions:
-                filter_string = (
-                    f'{self.previous_state_column_name} == "{transition.from_state}" '
-                    f'and {self.disease} == "{transition.to_state}" '
-                    f"and tracked==True"
-                )
-                builder.results.register_observation(
-                    name=f"{transition}_event_count",
-                    pop_filter=filter_string,
-                    requires_columns=[self.previous_state_column_name, self.disease],
-                    additional_stratifications=self.config.include,
-                    excluded_stratifications=self.config.exclude,
-                    when="collect_metrics",
-                )
+        for transition in incident_transitions:
+            filter_string = (
+                f'{self.previous_state_column_name} == "{transition.from_state}" '
+                f'and {self.disease} == "{transition.to_state}" '
+                f"and tracked==True"
+            )
+            builder.results.register_observation(
+                name=f"{transition}_event_count",
+                pop_filter=filter_string,
+                requires_columns=[self.previous_state_column_name, self.disease],
+                additional_stratifications=self.config.include,
+                excluded_stratifications=self.config.exclude,
+                when="collect_metrics",
+            )
 
 
 class MortalityHazardRateObserver:
