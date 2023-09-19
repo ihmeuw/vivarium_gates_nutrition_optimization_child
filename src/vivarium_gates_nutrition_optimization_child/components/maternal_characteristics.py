@@ -386,10 +386,21 @@ class BEPEffectOnBirthweight(AdditiveRiskEffect):
             affected_measure=self.target.measure,
         )
         excess_shift_data = rebin_relative_risk_data(builder, self.risk, excess_shift_data)
-        excess_shift_data = pivot_categorical(excess_shift_data)
+        excess_shift_data = self._pivot_categorical(excess_shift_data)
         return builder.lookup.build_table(
             excess_shift_data, key_columns=["sex", "maternal_bmi_anemia_exposure"], parameter_columns=["age", "year"]
         )
+
+
+    def _pivot_categorical(data: pd.DataFrame) -> pd.DataFrame:
+        """Pivots data that is long on categories to be wide.
+        Copied from VPH but include maternal BMI anemia exposure."""
+        key_cols = ["sex", "age_start", "age_end", "year_start", "year_end", "maternal_bmi_anemia_exposure"]
+        key_cols = [k for k in key_cols if k in data.columns]
+        data = data.pivot_table(index=key_cols, columns="parameter", values="value").reset_index()
+        data.columns.name = None
+        return data
+
 
     def get_effect(self, index: pd.Index) -> pd.Series:
         index_columns = ["index", self.risk.name]
