@@ -372,12 +372,6 @@ class BEPEffectOnBirthweight(AdditiveRiskEffect):
     def __init__(self):
         super().__init__('risk_factor.balanced_energy_protein_supplementation', 'risk_factor.birth_weight.birth_exposure')
 
-    def setup(self, builder: Builder) -> None:
-        super().setup(builder)
-        self.excess_shift_source = self._get_excess_shift_source(builder)
-        self.risk_specific_shift_source = self._get_risk_specific_shift_source(builder)
-        self.population_view = builder.population.get_view(['maternal_bmi_anemia_exposure'])
-
     def _get_excess_shift_source(self, builder: Builder) -> LookupTable:
         excess_shift_data = builder.data.load(
             f"{self.risk}.excess_shift",
@@ -390,7 +384,6 @@ class BEPEffectOnBirthweight(AdditiveRiskEffect):
             excess_shift_data, key_columns=["sex", "maternal_bmi_anemia_exposure"], parameter_columns=["age", "year"]
         )
 
-
     def _pivot_categorical(self, data: pd.DataFrame) -> pd.DataFrame:
         """Pivots data that is long on categories to be wide.
         Copied from VPH but include maternal BMI anemia exposure."""
@@ -399,27 +392,6 @@ class BEPEffectOnBirthweight(AdditiveRiskEffect):
         data = data.pivot_table(index=key_cols, columns="parameter", values="value").reset_index()
         data.columns.name = None
         return data
-
-
-    def get_effect(self, index: pd.Index) -> pd.Series:
-        index_columns = ["index", self.risk.name]
-
-        excess_shift = self.excess_shift_source(index)
-        pop = self.population_view.get(index)
-        breakpoint()
-        exposure = self.exposure(index).reset_index()
-        exposure.columns = index_columns
-        exposure = exposure.set_index(index_columns)
-
-        relative_risk = excess_shift.stack().reset_index()
-        relative_risk.columns = index_columns + ["value"]
-        relative_risk = relative_risk.set_index(index_columns)
-
-        raw_effect = relative_risk.loc[exposure.index, "value"].droplevel(self.risk.name)
-
-        risk_specific_shift = self.risk_specific_shift_source(index)
-        effect = raw_effect - risk_specific_shift
-        return effect
 
 
 class BirthWeightShiftEffect:
