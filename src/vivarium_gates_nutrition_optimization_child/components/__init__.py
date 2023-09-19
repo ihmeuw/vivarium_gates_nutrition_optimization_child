@@ -8,6 +8,7 @@ from vivarium_gates_nutrition_optimization_child.components.fertility import (
 from vivarium_gates_nutrition_optimization_child.components.lbwsg import LBWSGLineList
 from vivarium_gates_nutrition_optimization_child.components.maternal_characteristics import (
     AdditiveRiskEffect,
+    BEPEffectOnBirthweight,
     BirthWeightShiftEffect,
     MaternalCharacteristics,
     MMSEffectOnGestationalAge,
