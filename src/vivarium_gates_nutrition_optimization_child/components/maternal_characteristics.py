@@ -374,7 +374,6 @@ class BEPEffectOnBirthweight(AdditiveRiskEffect):
 
     def setup(self, builder: Builder) -> None:
         super().setup(builder)
-        self.effect = self._get_effect_pipeline(builder)
         self.excess_shift_source = self._get_excess_shift_source(builder)
         self.risk_specific_shift_source = self._get_risk_specific_shift_source(builder)
         self.population_view = builder.population.get_view(['maternal_bmi_anemia_exposure'])
