@@ -15,7 +15,7 @@ branches:
         - 'scenario_2_mam_tx'
         - 'scenario_3_sqlns'
         - 'scenario_5_sam_and_mam'
-        - 'scenario_6_sam_and_sqlns',
+        - 'scenario_6_sam_and_sqlns'
         - 'scenario_7_mam_and_sqlns'
         - 'scenario_8_all'
       maternal_scenario:
