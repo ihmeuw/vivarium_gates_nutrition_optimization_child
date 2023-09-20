@@ -6,6 +6,7 @@ from vivarium import ConfigTree
 from vivarium.framework.engine import Builder
 from vivarium.framework.event import Event
 from vivarium.framework.population import PopulationView
+from vivarium_public_health.disease.transition import TransitionString
 from vivarium_public_health.metrics.disability import (
     DisabilityObserver as DisabilityObserver_,
 )
@@ -318,8 +319,8 @@ class ChildWastingObserver(DiseaseObserver):
         #     )
 
         incident_transitions = [
-            "moderate_acute_malnutrition_to_severe_acute_malnutrition",
-            "mild_child_wasting_to_moderate_acute_malnutrition",
+            TransitionString("moderate_acute_malnutrition_TO_severe_acute_malnutrition"),
+            TransitionString("mild_child_wasting_TO_moderate_acute_malnutrition"),
         ]
 
         for transition in incident_transitions:

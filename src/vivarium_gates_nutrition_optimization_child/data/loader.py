@@ -175,7 +175,7 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.BEP_SUPPLEMENTATION.DISTRIBUTION: load_intervention_distribution,
         data_keys.BEP_SUPPLEMENTATION.CATEGORIES: load_intervention_categories,
         data_keys.BEP_SUPPLEMENTATION.EXPOSURE: load_dichotomous_treatment_exposure,
-        data_keys.BEP_SUPPLEMENTATION.EXCESS_SHIFT: load_treatment_excess_shift,
+        data_keys.BEP_SUPPLEMENTATION.EXCESS_SHIFT: load_bep_excess_shift,
         data_keys.BEP_SUPPLEMENTATION.RISK_SPECIFIC_SHIFT: load_risk_specific_shift,
         data_keys.IV_IRON.DISTRIBUTION: load_intervention_distribution,
         data_keys.IV_IRON.CATEGORIES: load_intervention_categories,
@@ -1047,6 +1047,37 @@ def load_treatment_excess_shift(key: str, location: str) -> pd.DataFrame:
     except KeyError:
         raise ValueError(f"Unrecognized key {key}")
     return load_dichotomous_excess_shift(location, distribution_data)
+
+
+def load_bep_excess_shift(key: str, location: str) -> pd.DataFrame:
+    undernourished_distribution = (
+        data_values.MATERNAL_CHARACTERISTICS.BEP_UNDERNOURISHED_BIRTH_WEIGHT_SHIFT
+    )
+    adequately_nourished_distribution = (
+        data_values.MATERNAL_CHARACTERISTICS.BEP_ADEQUATELY_NOURISHED_BIRTH_WEIGHT_SHIFT
+    )
+
+    undernourished_shift = load_dichotomous_excess_shift(
+        location, undernourished_distribution
+    )
+    adequately_nourished_shift = load_dichotomous_excess_shift(
+        location, adequately_nourished_distribution
+    )
+
+    cat1_shift = undernourished_shift.copy()
+    cat2_shift = adequately_nourished_shift.copy()
+    cat3_shift = undernourished_shift.copy()
+    cat4_shift = adequately_nourished_shift.copy()
+
+    cat1_shift["maternal_bmi_anemia_exposure"] = "cat1"
+    cat2_shift["maternal_bmi_anemia_exposure"] = "cat2"
+    cat3_shift["maternal_bmi_anemia_exposure"] = "cat3"
+    cat4_shift["maternal_bmi_anemia_exposure"] = "cat4"
+
+    shift = pd.concat([cat1_shift, cat2_shift, cat3_shift, cat4_shift])
+    shift = shift.set_index("maternal_bmi_anemia_exposure", append=True)
+
+    return shift.sort_index()
 
 
 def load_dichotomous_exposure(
