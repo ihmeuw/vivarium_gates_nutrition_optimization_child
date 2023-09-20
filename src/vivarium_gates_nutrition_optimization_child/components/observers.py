@@ -48,7 +48,6 @@ class ResultsStratifier(ResultsStratifier_):
 
         return pd.DataFrame(data_dict)
 
-
     def register_stratifications(self, builder: Builder) -> None:
         """Register each desired stratification with calls to _setup_stratification"""
         super().register_stratifications(builder)
