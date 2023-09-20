@@ -34,26 +34,19 @@ class ResultsStratifier(ResultsStratifier_):
     """
 
     def get_age_bins(self, builder: Builder) -> pd.DataFrame:
-        """Define more granular age groups for SQ-LNS V&V."""
+        """Define final age groups for production runs."""
         age_bins = super().get_age_bins(builder)
         data_dict = {
-            "age_start": [0.5, 10 / 12, 1, 1.5],
-            "age_end": [10 / 12, 1, 1.5, 2],
+            "age_start": [0.0, 0.5, 1.5],
+            "age_end": [0.5, 1.5, 5],
             "age_group_name": [
-                "6_to_10_months",
-                "10_to_11_months",
-                "12_to_17_months",
-                "18_to_23_months",
+                "0_to_6_months",
+                "6_to_18_months",
+                "18_to_59_months",
             ],
         }
-        new_age_bins = pd.DataFrame(data_dict)
 
-        # remove duplicated ages and concat
-        new_age_starts = data_dict["age_start"]
-        age_bins = age_bins.query("age_start not in @new_age_starts")
-        age_bins = pd.concat([age_bins, new_age_bins])
-
-        return age_bins.sort_values(["age_start"]).reset_index(drop=True)
+        return pd.DataFrame(data_dict)
 
     def register_stratifications(self, builder: Builder) -> None:
         """Register each desired stratification with calls to _setup_stratification"""
@@ -318,12 +311,7 @@ class ChildWastingObserver(DiseaseObserver):
         #         when="time_step__prepare",
         #     )
 
-        incident_transitions = [
-            TransitionString("moderate_acute_malnutrition_TO_severe_acute_malnutrition"),
-            TransitionString("mild_child_wasting_TO_moderate_acute_malnutrition"),
-        ]
-
-        for transition in incident_transitions:
+        for transition in disease_model.transition_names:
             filter_string = (
                 f'{self.previous_state_column_name} == "{transition.from_state}" '
                 f'and {self.disease} == "{transition.to_state}" '
