@@ -22,9 +22,9 @@ def SIS_with_birth_prevalence(cause: str) -> DiseaseModel:
     infected = DiseaseState(cause, get_data_functions=with_condition_data_functions)
 
     healthy.allow_self_transitions()
-    healthy.add_transition(infected, source_data_type="rate")
+    healthy.add_rate_transition(infected)
     infected.allow_self_transitions()
-    infected.add_transition(healthy, source_data_type="rate")
+    infected.add_rate_transition(healthy)
 
     return DiseaseModel(cause, states=[healthy, infected])
 

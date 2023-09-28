@@ -7,6 +7,7 @@ This module contains a component for creating a base population from line list d
 
 """
 import glob
+from typing import List
 
 import pandas as pd
 from vivarium.framework.engine import Builder
@@ -23,6 +24,22 @@ class PopulationLineList(BasePopulation):
     """
     Component to produce and age simulants based on line list data.
     """
+    @property
+    def columns_created(self) -> List[str]:
+        return [
+            "age",
+            "sex",
+            "alive",
+            "location",
+            "entrance_time",
+            "exit_time",
+            "maternal_id",
+        ]
+
+    @property
+    def time_step_priority(self) -> int:
+        return 8
+
 
     # noinspection PyAttributeOutsideInit
     def setup(self, builder: Builder) -> None:
@@ -55,47 +72,28 @@ class PopulationLineList(BasePopulation):
         }
         self.register_simulants = builder.randomness.register_simulants
 
-        columns = [
-            "age",
-            "sex",
-            "alive",
-            "location",
-            "entrance_time",
-            "exit_time",
-            "maternal_id",
-        ]
+        #self.population_view = builder.population.get_view(columns)
+        # builder.population.initializes_simulants(
+        #     self.on_initialize_simulants, creates_columns=columns
+        # )
 
-        self.population_view = builder.population.get_view(columns)
-        builder.population.initializes_simulants(
-            self.on_initialize_simulants, creates_columns=columns
-        )
-
-        builder.event.register_listener("time_step", self.on_time_step, priority=8)
+        # builder.event.register_listener("time_step", self.on_time_step, priority=8)
         self.start_time = get_time_stamp(builder.configuration.time.start)
         self.location = self._get_location(builder)
 
-    @property
-    def name(self) -> str:
-        return "line_list_population"
-
-    def __repr__(self) -> str:
-        return "PopulationLineList()"
+    # @property
+    # def name(self) -> str:
+    #     return "line_list_population"
+    #
+    # def __repr__(self) -> str:
+    #     return "PopulationLineList()"
 
     def on_initialize_simulants(self, pop_data: SimulantData) -> None:
         """
         Creates simulants based on their birth date from the line list data.  Their demographic characteristics are also
         determined by the input data.
         """
-        columns = [
-            "age",
-            "sex",
-            "alive",
-            "location",
-            "entrance_time",
-            "exit_time",
-            "maternal_id",
-        ]
-        new_simulants = pd.DataFrame(columns=columns, index=pop_data.index)
+        new_simulants = pd.DataFrame(columns=self.columns_created, index=pop_data.index)
 
         if pop_data.creation_time >= self.start_time:
             new_births = pop_data.user_data["new_births"]

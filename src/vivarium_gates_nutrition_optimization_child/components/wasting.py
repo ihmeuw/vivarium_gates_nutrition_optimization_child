@@ -1,4 +1,4 @@
-from typing import Callable, Dict, Tuple, Union
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -11,6 +11,7 @@ from vivarium_public_health.risks.data_transformations import (
     get_exposure_post_processor,
 )
 from vivarium_public_health.utilities import EntityString
+from vivarium import Component
 
 from vivarium_gates_nutrition_optimization_child.constants import (
     data_keys,
@@ -23,8 +24,30 @@ from vivarium_gates_nutrition_optimization_child.constants.data_keys import WAST
 from vivarium_gates_nutrition_optimization_child.utilities import get_random_variable
 
 
-class ChildWasting:
+class ChildWasting(Component):
+    @property
+    def columns_required(self) -> Optional[List[str]]:
+        #return ["alive","age","sex",self.dynamic_model.state_column,self.static_model.propensity_column_name]
+        return ["alive", "age", self.dynamic_model.state_column]
+
+    # @property
+    # def initialization_requirements(self) -> Dict[str, List[str]]:
+    #     return {
+    #         "requires_columns": ["age", "sex", self.static_model.propensity_column_name],
+    #         "requires_values": [self.static_model.exposure_pipeline_name],
+    #         "requires_streams": [],
+    #     }
+
+    @property
+    def initialization_requirements(self) -> Dict[str, List[str]]:
+        return {
+            "requires_columns": ["age", "sex", self.static_model.propensity_column_name],
+            "requires_values": [self.static_model.exposure_pipeline_name],
+            "requires_streams": [],
+        }
+
     def __init__(self):
+        super().__init__()
         self.dynamic_model = DynamicChildWasting()
         self.static_model = StaticChildWasting()
 
@@ -35,24 +58,25 @@ class ChildWasting:
             self.static_model,
         ]
 
-    @property
-    def name(self):
-        return f"child_wasting"
-
-    def __repr__(self):
-        return "ChildWasting()"
+    # @property
+    # def name(self):
+    #     return f"child_wasting"
+    #
+    # def __repr__(self):
+    #     self._repr = "ChildWasting()"
+    #     return self._repr
 
     # noinspection PyAttributeOutsideInit
     def setup(self, builder: Builder):
-        self.population_view = builder.population.get_view(
-            [
-                "alive",
-                "age",
-                "sex",
-                self.dynamic_model.state_column,
-                self.static_model.propensity_column_name,
-            ]
-        )
+        # self.population_view = builder.population.get_view(
+        #     [
+        #         "alive",
+        #         "age",
+        #         "sex",
+        #         self.dynamic_model.state_column,
+        #         self.static_model.propensity_column_name,
+        #     ]
+        # )
         self.exposure = builder.value.register_value_producer(
             f"{self.name}.exposure",
             source=self.get_current_exposure,
@@ -78,18 +102,12 @@ class ChildWasting:
 
 class StaticChildWasting(Risk):
     def __init__(self):
-        """
-        Parameters
-        ----------
-        risk :
-            the type and name of a risk, specified as "type.name". Type is singular.
-        """
-        self.risk = EntityString("risk_factor.child_wasting")
-        name = "static_child_wasting"
-        self.configuration_defaults = self._get_configuration_defaults()
-        self.exposure_distribution = self._get_exposure_distribution()
-        self._sub_components = [self.exposure_distribution]
+        # use super's init to get exposure distribution
+        # but overwrite other names
+        risk = "risk_factor.child_wasting"
+        super().__init__(risk)
 
+        name = "static_child_wasting"
         self._randomness_stream_name = f"initial_{name}_propensity"
         self.propensity_column_name = f"{name}_propensity"
         self.propensity_pipeline_name = f"{name}.propensity"
@@ -97,6 +115,15 @@ class StaticChildWasting(Risk):
 
 
 class WastingTreatment(Risk):
+    @property
+    def time_step_prepare_priority(self) -> int:
+        # we want to reset propensities before updating previous state column
+        return 4
+
+    @property
+    def name(self) -> str:
+        return f"wasting_treatment_{self.risk}"
+
     def __init__(self, treatment_type: str):
         super().__init__(treatment_type)
 
@@ -104,6 +131,14 @@ class WastingTreatment(Risk):
         self.wasting_column = data_keys.WASTING.name
 
         self.treated_state = self._get_treated_state()
+
+    @property
+    def columns_created(self) -> List[str]:
+        return [self.propensity_column_name]
+
+    @property
+    def columns_required(self) -> Optional[List[str]]:
+        return [self.previous_wasting_column, self.wasting_column]
 
     ##########################
     # Initialization methods #
@@ -121,18 +156,18 @@ class WastingTreatment(Risk):
         self.scenario = scenarios.INTERVENTION_SCENARIOS[
             builder.configuration.intervention.child_scenario
         ]
-        self._register_on_time_step_prepare_listener(builder)
+        # self._register_on_time_step_prepare_listener(builder)
 
-    def _get_population_view(self, builder: Builder) -> PopulationView:
-        return builder.population.get_view(
-            [self.propensity_column_name, self.previous_wasting_column, self.wasting_column]
-        )
+    # def _get_population_view(self, builder: Builder) -> PopulationView:
+    #     return builder.population.get_view(
+    #         [self.propensity_column_name, self.previous_wasting_column, self.wasting_column]
+    #     )
 
-    def _register_on_time_step_prepare_listener(self, builder: Builder) -> None:
-        # we want to reset propensities before updating previous state column
-        builder.event.register_listener(
-            "time_step__prepare", self.on_time_step_prepare, priority=4
-        )
+    # def _register_on_time_step_prepare_listener(self, builder: Builder) -> None:
+    #     # we want to reset propensities before updating previous state column
+    #     builder.event.register_listener(
+    #         "time_step__prepare", self.on_time_step_prepare, priority=4
+    #     )
 
     ########################
     # Event-driven methods #
@@ -176,6 +211,26 @@ class WastingTreatment(Risk):
 
 
 class DynamicChildWastingModel(DiseaseModel):
+    @property
+    def name(self):
+        return f"disease_model.child_wasting"
+
+    @property
+    def columns_created(self) -> List[str]:
+        return [self.state_column]
+
+    @property
+    def columns_required(self) -> Optional[List[str]]:
+        return ["age", "sex", "static_child_wasting_propensity"]
+
+    @property
+    def initialization_requirements(self) -> Dict[str, List[str]]:
+        return {
+            "requires_columns": ["age", "sex", "static_child_wasting_propensity"],
+            "requires_values": ["static_child_wasting.exposure"],
+            "requires_streams": [],
+        }
+
     def setup(self, builder):
         """Perform this component's setup."""
         super(DiseaseModel, self).setup(builder)
@@ -195,17 +250,17 @@ class DynamicChildWastingModel(DiseaseModel):
             requires_columns=["age", "sex"],
         )
 
-        self.population_view = builder.population.get_view(
-            ["age", "sex", self.state_column, "static_child_wasting_propensity"]
-        )
-        builder.population.initializes_simulants(
-            self.on_initialize_simulants,
-            creates_columns=[self.state_column],
-            requires_columns=["age", "sex", "static_child_wasting_propensity"],
-        )
+        # self.population_view = builder.population.get_view(
+        #     ["age", "sex", self.state_column, "static_child_wasting_propensity"]
+        # )
+        # builder.population.initializes_simulants(
+        #     self.on_initialize_simulants,
+        #     creates_columns=[self.state_column],
+        #     requires_columns=["age", "sex", "static_child_wasting_propensity"],
+        # )
 
-        builder.event.register_listener("time_step", self.on_time_step)
-        builder.event.register_listener("time_step__cleanup", self.on_time_step_cleanup)
+        # builder.event.register_listener("time_step", self.on_time_step)
+        # builder.event.register_listener("time_step__cleanup", self.on_time_step_cleanup)
 
     def on_initialize_simulants(self, pop_data):
         population = self.population_view.subview(
@@ -285,9 +340,8 @@ def DynamicChildWasting() -> DynamicChildWastingModel:
 
     # Add transitions for tmrel
     tmrel.allow_self_transitions()
-    tmrel.add_transition(
+    tmrel.add_rate_transition(
         mild,
-        source_data_type="rate",
         get_data_functions={
             "incidence_rate": load_wasting_rate,
         },
@@ -295,16 +349,14 @@ def DynamicChildWasting() -> DynamicChildWastingModel:
 
     # Add transitions for mild
     mild.allow_self_transitions()
-    mild.add_transition(
+    mild.add_rate_transition(
         moderate,
-        source_data_type="rate",
         get_data_functions={
             "transition_rate": load_wasting_rate,
         },
     )
-    mild.add_transition(
+    mild.add_rate_transition(
         tmrel,
-        source_data_type="rate",
         get_data_functions={
             "remission_rate": load_wasting_rate,
         },
@@ -312,16 +364,14 @@ def DynamicChildWasting() -> DynamicChildWastingModel:
 
     # Add transitions for moderate
     moderate.allow_self_transitions()
-    moderate.add_transition(
+    moderate.add_rate_transition(
         severe,
-        source_data_type="rate",
         get_data_functions={
             "transition_rate": load_wasting_rate,
         },
     )
-    moderate.add_transition(
+    moderate.add_rate_transition(
         mild,
-        source_data_type="rate",
         get_data_functions={
             "transition_rate": load_wasting_rate,
         },
@@ -329,16 +379,14 @@ def DynamicChildWasting() -> DynamicChildWastingModel:
 
     # Add transitions for severe
     severe.allow_self_transitions()
-    severe.add_transition(
+    severe.add_rate_transition(
         moderate,
-        source_data_type="rate",
         get_data_functions={
             "transition_rate": load_wasting_rate,
         },
     )
-    severe.add_transition(
+    severe.add_rate_transition(
         mild,
-        source_data_type="rate",
         get_data_functions={
             "transition_rate": load_wasting_rate,
         },
@@ -371,7 +419,7 @@ def load_wasting_rate(builder: Builder, *wasting_states) -> pd.DataFrame:
         ("mild_child_wasting",): "inc_rate_mild",
         ("mild_child_wasting", "moderate_acute_malnutrition"): "inc_rate_mam",
         ("moderate_acute_malnutrition", "severe_acute_malnutrition"): "inc_rate_sam",
-        ("child_wasting",): "rem_rate_mild",
+        ("susceptible_to_child_wasting",): "rem_rate_mild",
         ("moderate_acute_malnutrition", "mild_child_wasting"): "rem_rate_mam",
         ("severe_acute_malnutrition", "mild_child_wasting"): "tx_rem_rate_sam",
         ("severe_acute_malnutrition", "moderate_acute_malnutrition"): "ux_rem_rate_sam",

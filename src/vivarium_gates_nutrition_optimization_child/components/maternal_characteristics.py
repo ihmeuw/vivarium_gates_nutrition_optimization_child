@@ -6,6 +6,8 @@ from typing import Callable, Dict
 
 import numpy as np
 import pandas as pd
+from typing import Optional, List
+from vivarium import Component
 from vivarium.framework.engine import Builder
 from vivarium.framework.lookup import LookupTable
 from vivarium.framework.population import PopulationView, SimulantData
@@ -32,8 +34,8 @@ from vivarium_gates_nutrition_optimization_child.constants.data_keys import (
 from vivarium_gates_nutrition_optimization_child.utilities import get_random_variable
 
 
-class MaternalCharacteristics:
-    configuration_defaults = {
+class MaternalCharacteristics(Component):
+    CONFIGURATION_DEFAULTS = {
         IFA_SUPPLEMENTATION.name: {
             "exposure": "data",
             "rebinned_exposed": [],
@@ -62,6 +64,7 @@ class MaternalCharacteristics:
     }
 
     def __init__(self):
+        super().__init__()
         self.supplementation_exposure_column_name = "maternal_supplementation_exposure"
         self.maternal_bmi_anemia_exposure_column_name = "maternal_bmi_anemia_exposure"
 
@@ -70,12 +73,20 @@ class MaternalCharacteristics:
         self.mmn_exposure_pipeline_name = f"{MMN_SUPPLEMENTATION.name}.exposure"
         self.maternal_bmi_anemia_exposure_pipeline_name = "maternal_bmi_anemia.exposure"
 
-    def __repr__(self):
-        return "MaternalCharacteristics()"
+    # def __repr__(self):
+    #     return "MaternalCharacteristics()"
+    #
+    # @property
+    # def name(self) -> str:
+    #     return "maternal_characteristics"
 
     @property
-    def name(self) -> str:
-        return "maternal_characteristics"
+    def columns_required(self) -> List[str]:
+        return ["alive", "cause_of_death"]
+
+    @property
+    def columns_created(self) -> List[str]:
+        return [self.supplementation_exposure_column_name,self.maternal_bmi_anemia_exposure_column_name]
 
     #################
     # Setup methods #
@@ -105,28 +116,25 @@ class MaternalCharacteristics:
             requires_columns=[self.maternal_bmi_anemia_exposure_column_name],
         )
 
-        self.population_view = self._get_population_view(builder)
+        #self.population_view = self._get_population_view(builder)
 
-        self._register_simulant_initializer(builder)
+        # self._register_simulant_initializer(builder)
 
-    def _register_simulant_initializer(self, builder: Builder) -> None:
-        builder.population.initializes_simulants(
-            self.on_initialize_simulants,
-            creates_columns=[
-                self.supplementation_exposure_column_name,
-                self.maternal_bmi_anemia_exposure_column_name,
-            ],
-        )
+    # def _register_simulant_initializer(self, builder: Builder) -> None:
+    #     builder.population.initializes_simulants(
+    #         self.on_initialize_simulants,
+    #         creates_columns=[
+    #             self.supplementation_exposure_column_name,
+    #             self.maternal_bmi_anemia_exposure_column_name,
+    #         ],
+    #     )
 
     def on_initialize_simulants(self, pop_data: SimulantData) -> None:
         """
         Initialize simulants from line list data. Population configuration
         contains a key "new_births" which is the line list data.
         """
-        columns = [
-            self.supplementation_exposure_column_name,
-            self.maternal_bmi_anemia_exposure_column_name,
-        ]
+        columns = self.columns_created
         new_simulants = pd.DataFrame(columns=columns, index=pop_data.index)
 
         if pop_data.creation_time >= self.start_time:
@@ -145,13 +153,13 @@ class MaternalCharacteristics:
 
         self.population_view.update(new_simulants)
 
-    def _get_population_view(self, builder: Builder) -> PopulationView:
-        return builder.population.get_view(
-            [
-                self.supplementation_exposure_column_name,
-                self.maternal_bmi_anemia_exposure_column_name,
-            ]
-        )
+    # def _get_population_view(self, builder: Builder) -> PopulationView:
+    #     return builder.population.get_view(
+    #         [
+    #             self.supplementation_exposure_column_name,
+    #             self.maternal_bmi_anemia_exposure_column_name,
+    #         ]
+    #     )
 
     ##################################
     # Pipeline sources and modifiers #
@@ -200,26 +208,26 @@ class AdditiveRiskEffect(RiskEffect):
     # noinspection PyAttributeOutsideInit
     def setup(self, builder: Builder) -> None:
         super().setup(builder)
-        self.effect = self._get_effect_pipeline(builder)
-        self.excess_shift_source = self._get_excess_shift_source(builder)
-        self.risk_specific_shift_source = self._get_risk_specific_shift_source(builder)
+        self.effect = self.get_effect_pipeline(builder)
+        self.excess_shift_source = self.get_excess_shift_source(builder)
+        self.risk_specific_shift_source = self.get_risk_specific_shift_source(builder)
 
     # NOTE: this RR will never be used. Overriding superclass to avoid error
-    def _get_relative_risk_source(self, builder: Builder) -> LookupTable:
+    def get_relative_risk_source(self, builder: Builder) -> LookupTable:
         return builder.lookup.build_table(1)
 
     # NOTE: this PAF will never be used. Overriding superclass to avoid error
-    def _get_population_attributable_fraction_source(self, builder: Builder) -> LookupTable:
+    def get_population_attributable_fraction_source(self, builder: Builder) -> LookupTable:
         return builder.lookup.build_table(0)
 
-    def _get_effect_pipeline(self, builder: Builder) -> Pipeline:
+    def get_effect_pipeline(self, builder: Builder) -> Pipeline:
         return builder.value.register_value_producer(
             self.effect_pipeline_name,
             source=self.get_effect,
             requires_values=[self.exposure_pipeline_name],
         )
 
-    def _get_excess_shift_source(self, builder: Builder) -> LookupTable:
+    def get_excess_shift_source(self, builder: Builder) -> LookupTable:
         excess_shift_data = builder.data.load(
             f"{self.risk}.excess_shift",
             affected_entity=self.target.name,
@@ -231,7 +239,7 @@ class AdditiveRiskEffect(RiskEffect):
             excess_shift_data, key_columns=["sex"], parameter_columns=["age", "year"]
         )
 
-    def _get_target_modifier(
+    def get_target_modifier(
         self, builder: Builder
     ) -> Callable[[pd.Index, pd.Series], pd.Series]:
         def adjust_target(index: pd.Index, target: pd.Series) -> pd.Series:
@@ -240,7 +248,7 @@ class AdditiveRiskEffect(RiskEffect):
 
         return adjust_target
 
-    def _get_risk_specific_shift_source(self, builder: Builder) -> LookupTable:
+    def get_risk_specific_shift_source(self, builder: Builder) -> LookupTable:
         risk_specific_shift_data = builder.data.load(
             f"{self.risk}.risk_specific_shift",
             affected_entity=self.target.name,
@@ -250,7 +258,7 @@ class AdditiveRiskEffect(RiskEffect):
             risk_specific_shift_data, key_columns=["sex"], parameter_columns=["age", "year"]
         )
 
-    def _register_paf_modifier(self, builder: Builder) -> None:
+    def register_paf_modifier(self, builder: Builder) -> None:
         pass
 
     ##################################
@@ -293,16 +301,19 @@ class MMSEffectOnGestationalAge(AdditiveRiskEffect):
         )
         self.raw_gestational_age_exposure_column_name = "raw_gestational_age_exposure"
 
+    @property
+    def columns_required(self) -> Optional[List[str]]:
+        return [self.raw_gestational_age_exposure_column_name]
+
     #################
     # Setup methods #
     #################
 
     # noinspection PyAttributeOutsideInit
     def setup(self, builder: Builder) -> None:
-        super().setup(builder)
-        self.population_view = self._get_population_view(builder)
+        # self.population_view = self._get_population_view(builder)
         self.ifa_on_gestational_age = builder.components.get_component(
-            f"risk_effect.risk_factor.iron_folic_acid_supplementation.{self.target}"
+            f"additive_risk_effect.risk_factor.iron_folic_acid_supplementation.{self.target}"
         )
         self.mms_subpop_1_excess_shift = self._get_mms_excess_shift_data(
             builder, data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_1
@@ -311,8 +322,8 @@ class MMSEffectOnGestationalAge(AdditiveRiskEffect):
             builder, data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_2
         )
 
-    def _get_population_view(self, builder: Builder) -> PopulationView:
-        return builder.population.get_view([self.raw_gestational_age_exposure_column_name])
+    # def _get_population_view(self, builder: Builder) -> PopulationView:
+    #     return builder.population.get_view([self.raw_gestational_age_exposure_column_name])
 
     def _get_mms_excess_shift_data(
         self, builder: Builder, key: str
@@ -329,14 +340,14 @@ class MMSEffectOnGestationalAge(AdditiveRiskEffect):
     ##################################
     # Pipeline sources and modifiers #
     ##################################
-    def _get_excess_shift_source(self, builder: Builder) -> Pipeline:
+    def get_excess_shift_source(self, builder: Builder) -> Pipeline:
         return builder.value.register_value_producer(
             self.excess_shift_pipeline_name,
             source=self.get_excess_shift,
             requires_columns=[self.raw_gestational_age_exposure_column_name],
         )
 
-    def _get_risk_specific_shift_source(self, builder: Builder) -> LookupTable:
+    def get_risk_specific_shift_source(self, builder: Builder) -> LookupTable:
         return builder.lookup.build_table(0)
 
     def get_excess_shift(self, index: pd.Index) -> pd.Series:
@@ -376,7 +387,7 @@ class BEPEffectOnBirthweight(AdditiveRiskEffect):
             "risk_factor.birth_weight.birth_exposure",
         )
 
-    def _get_excess_shift_source(self, builder: Builder) -> LookupTable:
+    def get_excess_shift_source(self, builder: Builder) -> LookupTable:
         excess_shift_data = builder.data.load(
             f"{self.risk}.excess_shift",
             affected_entity=self.target.name,
@@ -409,8 +420,9 @@ class BEPEffectOnBirthweight(AdditiveRiskEffect):
         return data
 
 
-class BirthWeightShiftEffect:
+class BirthWeightShiftEffect(Component):
     def __init__(self):
+        super().__init__()
         self.ifa_effect_pipeline_name = f"{IFA_SUPPLEMENTATION.name}_on_birth_weight.effect"
         self.mmn_effect_pipeline_name = f"{MMN_SUPPLEMENTATION.name}_on_birth_weight.effect"
         self.bep_effect_pipeline_name = f"{BEP_SUPPLEMENTATION.name}_on_birth_weight.effect"
@@ -423,16 +435,16 @@ class BirthWeightShiftEffect:
             f"risk_factor.{WASTING.name}.exposure_parameters"
         )
 
-    def __repr__(self):
-        return f"BirthWeightShiftEffect()"
-
-    ##############
-    # Properties #
-    ##############
-
-    @property
-    def name(self) -> str:
-        return f"birth_weight_shift_effect"
+    # def __repr__(self):
+    #     return f"BirthWeightShiftEffect()"
+    #
+    # ##############
+    # # Properties #
+    # ##############
+    #
+    # @property
+    # def name(self) -> str:
+    #     return f"birth_weight_shift_effect"
 
     #################
     # Setup methods #

@@ -7,9 +7,10 @@ Fertility module to create simulants from existing data
 
 """
 from pathlib import Path
-
+from typing import List
 import numpy as np
 import pandas as pd
+from vivarium import Component
 from vivarium.framework.engine import Builder
 from vivarium.framework.event import Event
 from vivarium_public_health import utilities
@@ -17,20 +18,31 @@ from vivarium_public_health import utilities
 PREGNANCY_DURATION = pd.Timedelta(days=9 * utilities.DAYS_PER_MONTH)
 
 
-class FertilityLineList:
+class FertilityLineList(Component):
     """
     This class will determine what simulants need to be added to the state table based on their birth data from existing
     line list data.  Simulants will be registered to the state table on the time steps in which their birth takes place.
     """
 
-    configuration_defaults = {}
+    CONFIGURATION_DEFAULTS = {}
 
-    def __repr__(self):
-        return "FertilityLineList()"
+    def __init__(self):
+        super().__init__()
+
+    # def __repr__(self):
+    #     return "FertilityLineList()"
+    #
+    # @property
+    # def name(self):
+    #     return "line_list_fertility"
 
     @property
-    def name(self):
-        return "line_list_fertility"
+    def columns_required(self) -> List[str]:
+        return ["alive", "cause_of_death"]
+
+    #################
+    # Setup methods #
+    #################
 
     # noinspection PyAttributeOutsideInit
     def setup(self, builder: Builder):
@@ -40,10 +52,11 @@ class FertilityLineList:
         # Requirements for input data
         self.birth_records = self._get_birth_records(builder)
 
-        self.population_view = builder.population.get_view(["alive", "cause_of_death"])
+        #self.population_view = builder.population.get_view(["alive", "cause_of_death"])
 
-        builder.event.register_listener("time_step", self.on_time_step)
-        builder.event.register_listener("time_step__cleanup", self.on_time_step_cleanup)
+        # builder.event.register_listener("time_step", self.on_time_step)
+        # builder.event.register_listener("time_step__cleanup", self.on_time_step_cleanup)
+
 
     @staticmethod
     def _get_birth_records(builder: Builder) -> pd.DataFrame:
@@ -71,7 +84,7 @@ class FertilityLineList:
         born_previous_step_mask = (birth_records["birth_date"] < self.clock()) & (
             birth_records["birth_date"] > self.clock() - event.step_size
         )
-        born_previous_step = birth_records[born_previous_step_mask].copy()
+        born_previous_step = birth_records[born_previous_step_mask].reset_index().copy()
         # everyone is currently born on the first time step so this is always empty after the first time step
         if born_previous_step.empty:
             return
