@@ -29,13 +29,6 @@ class FertilityLineList(Component):
     def __init__(self):
         super().__init__()
 
-    # def __repr__(self):
-    #     return "FertilityLineList()"
-    #
-    # @property
-    # def name(self):
-    #     return "line_list_fertility"
-
     @property
     def columns_required(self) -> List[str]:
         return ["alive", "cause_of_death"]
@@ -51,11 +44,6 @@ class FertilityLineList(Component):
 
         # Requirements for input data
         self.birth_records = self._get_birth_records(builder)
-
-        #self.population_view = builder.population.get_view(["alive", "cause_of_death"])
-
-        # builder.event.register_listener("time_step", self.on_time_step)
-        # builder.event.register_listener("time_step__cleanup", self.on_time_step_cleanup)
 
 
     @staticmethod

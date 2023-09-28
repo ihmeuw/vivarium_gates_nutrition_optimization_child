@@ -73,13 +73,6 @@ class MaternalCharacteristics(Component):
         self.mmn_exposure_pipeline_name = f"{MMN_SUPPLEMENTATION.name}.exposure"
         self.maternal_bmi_anemia_exposure_pipeline_name = "maternal_bmi_anemia.exposure"
 
-    # def __repr__(self):
-    #     return "MaternalCharacteristics()"
-    #
-    # @property
-    # def name(self) -> str:
-    #     return "maternal_characteristics"
-
     @property
     def columns_required(self) -> List[str]:
         return ["alive", "cause_of_death"]
@@ -116,19 +109,6 @@ class MaternalCharacteristics(Component):
             requires_columns=[self.maternal_bmi_anemia_exposure_column_name],
         )
 
-        #self.population_view = self._get_population_view(builder)
-
-        # self._register_simulant_initializer(builder)
-
-    # def _register_simulant_initializer(self, builder: Builder) -> None:
-    #     builder.population.initializes_simulants(
-    #         self.on_initialize_simulants,
-    #         creates_columns=[
-    #             self.supplementation_exposure_column_name,
-    #             self.maternal_bmi_anemia_exposure_column_name,
-    #         ],
-    #     )
-
     def on_initialize_simulants(self, pop_data: SimulantData) -> None:
         """
         Initialize simulants from line list data. Population configuration
@@ -152,14 +132,6 @@ class MaternalCharacteristics(Component):
             ]
 
         self.population_view.update(new_simulants)
-
-    # def _get_population_view(self, builder: Builder) -> PopulationView:
-    #     return builder.population.get_view(
-    #         [
-    #             self.supplementation_exposure_column_name,
-    #             self.maternal_bmi_anemia_exposure_column_name,
-    #         ]
-    #     )
 
     ##################################
     # Pipeline sources and modifiers #
@@ -311,7 +283,6 @@ class MMSEffectOnGestationalAge(AdditiveRiskEffect):
 
     # noinspection PyAttributeOutsideInit
     def setup(self, builder: Builder) -> None:
-        # self.population_view = self._get_population_view(builder)
         self.ifa_on_gestational_age = builder.components.get_component(
             f"additive_risk_effect.risk_factor.iron_folic_acid_supplementation.{self.target}"
         )
@@ -321,9 +292,6 @@ class MMSEffectOnGestationalAge(AdditiveRiskEffect):
         self.mms_subpop_2_excess_shift = self._get_mms_excess_shift_data(
             builder, data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_2
         )
-
-    # def _get_population_view(self, builder: Builder) -> PopulationView:
-    #     return builder.population.get_view([self.raw_gestational_age_exposure_column_name])
 
     def _get_mms_excess_shift_data(
         self, builder: Builder, key: str
@@ -434,17 +402,6 @@ class BirthWeightShiftEffect(Component):
         self.wasting_exposure_parameters_pipeline_name = (
             f"risk_factor.{WASTING.name}.exposure_parameters"
         )
-
-    # def __repr__(self):
-    #     return f"BirthWeightShiftEffect()"
-    #
-    # ##############
-    # # Properties #
-    # ##############
-    #
-    # @property
-    # def name(self) -> str:
-    #     return f"birth_weight_shift_effect"
 
     #################
     # Setup methods #

@@ -27,21 +27,12 @@ from vivarium_gates_nutrition_optimization_child.utilities import get_random_var
 class ChildWasting(Component):
     @property
     def columns_required(self) -> Optional[List[str]]:
-        #return ["alive","age","sex",self.dynamic_model.state_column,self.static_model.propensity_column_name]
         return ["alive", "age", self.dynamic_model.state_column]
-
-    # @property
-    # def initialization_requirements(self) -> Dict[str, List[str]]:
-    #     return {
-    #         "requires_columns": ["age", "sex", self.static_model.propensity_column_name],
-    #         "requires_values": [self.static_model.exposure_pipeline_name],
-    #         "requires_streams": [],
-    #     }
 
     @property
     def initialization_requirements(self) -> Dict[str, List[str]]:
         return {
-            "requires_columns": ["age", "sex", self.static_model.propensity_column_name],
+            "requires_columns": ["sex", self.static_model.propensity_column_name],
             "requires_values": [self.static_model.exposure_pipeline_name],
             "requires_streams": [],
         }
@@ -58,25 +49,8 @@ class ChildWasting(Component):
             self.static_model,
         ]
 
-    # @property
-    # def name(self):
-    #     return f"child_wasting"
-    #
-    # def __repr__(self):
-    #     self._repr = "ChildWasting()"
-    #     return self._repr
-
     # noinspection PyAttributeOutsideInit
     def setup(self, builder: Builder):
-        # self.population_view = builder.population.get_view(
-        #     [
-        #         "alive",
-        #         "age",
-        #         "sex",
-        #         self.dynamic_model.state_column,
-        #         self.static_model.propensity_column_name,
-        #     ]
-        # )
         self.exposure = builder.value.register_value_producer(
             f"{self.name}.exposure",
             source=self.get_current_exposure,
@@ -156,18 +130,6 @@ class WastingTreatment(Risk):
         self.scenario = scenarios.INTERVENTION_SCENARIOS[
             builder.configuration.intervention.child_scenario
         ]
-        # self._register_on_time_step_prepare_listener(builder)
-
-    # def _get_population_view(self, builder: Builder) -> PopulationView:
-    #     return builder.population.get_view(
-    #         [self.propensity_column_name, self.previous_wasting_column, self.wasting_column]
-    #     )
-
-    # def _register_on_time_step_prepare_listener(self, builder: Builder) -> None:
-    #     # we want to reset propensities before updating previous state column
-    #     builder.event.register_listener(
-    #         "time_step__prepare", self.on_time_step_prepare, priority=4
-    #     )
 
     ########################
     # Event-driven methods #
@@ -249,18 +211,6 @@ class DynamicChildWastingModel(DiseaseModel):
             self.adjust_cause_specific_mortality_rate,
             requires_columns=["age", "sex"],
         )
-
-        # self.population_view = builder.population.get_view(
-        #     ["age", "sex", self.state_column, "static_child_wasting_propensity"]
-        # )
-        # builder.population.initializes_simulants(
-        #     self.on_initialize_simulants,
-        #     creates_columns=[self.state_column],
-        #     requires_columns=["age", "sex", "static_child_wasting_propensity"],
-        # )
-
-        # builder.event.register_listener("time_step", self.on_time_step)
-        # builder.event.register_listener("time_step__cleanup", self.on_time_step_cleanup)
 
     def on_initialize_simulants(self, pop_data):
         population = self.population_view.subview(

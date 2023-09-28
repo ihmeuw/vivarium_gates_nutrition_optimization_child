@@ -116,9 +116,6 @@ class CGFRiskEffect(RiskEffect):
         for sub_risk in self.cgf_models:
             config.update(get_config_by_risk(sub_risk))
         return config
-    # @property
-    # def name(self) -> str:
-    #     return f"risk_effect_{self.target}"
 
     def __init__(self, target: str):
         """
@@ -130,7 +127,6 @@ class CGFRiskEffect(RiskEffect):
             where entity_type should be singular (e.g., cause instead of causes).
         """
         super().__init__("risk_factor.child_growth_failure", target)
-        #self.risk = EntityString("risk_factor.child_growth_failure")
         self.cgf_models = [
             EntityString(f"risk_factor.{risk}")
             for risk in [

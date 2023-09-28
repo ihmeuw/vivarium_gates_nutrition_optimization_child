@@ -97,13 +97,6 @@ class SQLNSTreatment(Component):
             requires_values=[self.coverage_pipeline_name],
         )
 
-        # self.population_view = builder.population.get_view(required_columns)
-        # builder.population.initializes_simulants(
-        #     self.on_initialize_simulants,
-        #     creates_columns=[self.propensity_column_name],
-        #     requires_streams=[self._randomness_stream_name],
-        # )
-
     def get_coverage_value(self, builder: Builder) -> float:
         scenario = scenarios.INTERVENTION_SCENARIOS[
             builder.configuration.intervention.child_scenario

@@ -42,13 +42,6 @@ class LBWSGLineList(LBWSGRisk):
         super().__init__()
         self.raw_gestational_age_exposure_column_name = "raw_gestational_age_exposure"
 
-    # @property
-    # def name(self) -> str:
-    #     return "line_list_low_birth_weight_and_short_gestation"
-    #
-    # def __repr__(self):
-    #     return "LBWSGLineList()"
-
     # noinspection PyAttributeOutsideInit
     def setup(self, builder: Builder):
         super().setup(builder)
@@ -65,20 +58,6 @@ class LBWSGLineList(LBWSGRisk):
         return {
             self.birth_exposure_pipeline_name(axis): get_pipeline(axis) for axis in self.AXES
         }
-
-    # def _get_population_view(self, builder: Builder) -> PopulationView:
-    #     columns = [self.exposure_column_name(axis) for axis in self.AXES] + [
-    #         self.raw_gestational_age_exposure_column_name
-    #     ]
-    #     return builder.population.get_view(columns)
-
-    # def _register_simulant_initializer(self, builder: Builder) -> None:
-    #     builder.population.initializes_simulants(
-    #         self.on_initialize_simulants,
-    #         creates_columns=[self.exposure_column_name(axis) for axis in self.AXES]
-    #         + [self.raw_gestational_age_exposure_column_name],
-    #         requires_streams=[self.randomness_stream_name],
-    #     )
 
     ########################
     # Event-driven methods #

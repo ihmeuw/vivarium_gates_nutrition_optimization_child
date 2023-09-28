@@ -72,21 +72,9 @@ class PopulationLineList(BasePopulation):
         }
         self.register_simulants = builder.randomness.register_simulants
 
-        #self.population_view = builder.population.get_view(columns)
-        # builder.population.initializes_simulants(
-        #     self.on_initialize_simulants, creates_columns=columns
-        # )
-
         # builder.event.register_listener("time_step", self.on_time_step, priority=8)
         self.start_time = get_time_stamp(builder.configuration.time.start)
         self.location = self._get_location(builder)
-
-    # @property
-    # def name(self) -> str:
-    #     return "line_list_population"
-    #
-    # def __repr__(self) -> str:
-    #     return "PopulationLineList()"
 
     def on_initialize_simulants(self, pop_data: SimulantData) -> None:
         """

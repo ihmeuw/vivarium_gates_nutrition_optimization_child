@@ -94,12 +94,12 @@ class ResultsStratifier(ResultsStratifier_):
             is_vectorized=True,
             requires_values=[f"{data_keys.MAM_TREATMENT.name}.exposure"],
         )
-        # builder.results.register_stratification(
-        #     "sqlns_coverage",
-        #     ["covered", "uncovered", "received"],
-        #     is_vectorized=True,
-        #     requires_values=[data_values.SQ_LNS.COVERAGE_PIPELINE],
-        # )
+        builder.results.register_stratification(
+            "sqlns_coverage",
+            ["covered", "uncovered", "received"],
+            is_vectorized=True,
+            requires_values=[data_values.SQ_LNS.COVERAGE_PIPELINE],
+        )
 
     ###########################
     # Stratifications Details #
@@ -173,17 +173,6 @@ class BirthObserver(Component):
         self.gestational_age_column_name = "gestational_age_exposure"
         self.low_birth_weight_limit = 2500  # grams
 
-    # def __repr__(self):
-    #     return "BirthObserver()"
-    #
-    # ##############
-    # # Properties #
-    # ##############
-    #
-    # @property
-    # def name(self):
-    #     return "birth_observer"
-
     @property
     def columns_required(self) -> Optional[List[str]]:
         return [
@@ -200,8 +189,6 @@ class BirthObserver(Component):
     def setup(self, builder: Builder) -> None:
         self.clock = builder.time.clock()
         self.config = builder.configuration.stratification.birth
-
-        #self.population_view = builder.population.get_view(columns_required)
 
         builder.results.register_observation(
             name=f"live_births",
@@ -273,17 +260,6 @@ class ChildWastingObserver(DiseaseObserver):
         self.disease = self.risk = "child_wasting"
         self.exposure_pipeline_name = f"{self.risk}.exposure"
 
-    # def __repr__(self):
-    #     return "ChildWastingObserver()"
-    #
-    # ##############
-    # # Properties #
-    # ##############
-    #
-    # @property
-    # def name(self):
-    #     return "child_wasting_observer"
-
     @property
     def columns_required(self) -> Optional[List[str]]:
         return [self.disease]
@@ -299,14 +275,6 @@ class ChildWastingObserver(DiseaseObserver):
         self.categories = builder.data.load(f"risk_factor.{self.risk}.categories")
 
         disease_model = builder.components.get_component(f"disease_model.{self.disease}")
-
-        # builder.population.initializes_simulants(
-        #     self.on_initialize_simulants, creates_columns=[self.previous_state_column_name]
-        # )
-
-        # self.population_view = builder.population.get_view(columns_required)
-        #
-        # builder.event.register_listener("time_step__prepare", self.on_time_step_prepare)
 
         # for category in self.categories:
         #     builder.results.register_observation(
@@ -349,17 +317,6 @@ class MortalityHazardRateObserver(Component):
     def __init__(self):
         super().__init__()
         self.mortality_rate_pipeline_name = "mortality_rate"
-
-    # def __repr__(self):
-    #     return "MortalityHazardRateObserver()"
-    #
-    # ##############
-    # # Properties #
-    # ##############
-    #
-    # @property
-    # def name(self):
-    #     return "mortality_hazard_rate_observer"
 
     #################
     # Setup methods #
