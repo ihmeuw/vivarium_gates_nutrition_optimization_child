@@ -263,8 +263,9 @@ class ChildWastingObserver(DiseaseObserver):
         self.config = builder.configuration.stratification[self.disease]
         self.categories = builder.data.load(f"risk_factor.{self.risk}.categories")
 
-        disease_model = builder.components.get_component(f"disease_model.{self.disease}")
+        disease_model = builder.components.get_component(f"dynamic_child_wasting_model.{self.disease}")
 
+        # not needed in current output but keeping just in case we want to add it back
         # for category in self.categories:
         #     builder.results.register_observation(
         #         name=f"{self.risk}_{category}_person_time",

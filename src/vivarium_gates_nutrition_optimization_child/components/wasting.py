@@ -174,10 +174,6 @@ class WastingTreatment(Risk):
 
 class DynamicChildWastingModel(DiseaseModel):
     @property
-    def name(self):
-        return f"disease_model.child_wasting"
-
-    @property
     def columns_created(self) -> List[str]:
         return [self.state_column]
 
