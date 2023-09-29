@@ -2,11 +2,10 @@
 Component for maternal supplementation and risk effects
 """
 
-from typing import Callable, Dict
+from typing import Callable, Dict, List, Optional
 
 import numpy as np
 import pandas as pd
-from typing import Optional, List
 from vivarium import Component
 from vivarium.framework.engine import Builder
 from vivarium.framework.lookup import LookupTable
@@ -79,7 +78,10 @@ class MaternalCharacteristics(Component):
 
     @property
     def columns_created(self) -> List[str]:
-        return [self.supplementation_exposure_column_name,self.maternal_bmi_anemia_exposure_column_name]
+        return [
+            self.supplementation_exposure_column_name,
+            self.maternal_bmi_anemia_exposure_column_name,
+        ]
 
     #################
     # Setup methods #

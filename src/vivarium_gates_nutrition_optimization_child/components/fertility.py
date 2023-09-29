@@ -8,6 +8,7 @@ Fertility module to create simulants from existing data
 """
 from pathlib import Path
 from typing import List
+
 import numpy as np
 import pandas as pd
 from vivarium import Component
@@ -44,7 +45,6 @@ class FertilityLineList(Component):
 
         # Requirements for input data
         self.birth_records = self._get_birth_records(builder)
-
 
     @staticmethod
     def _get_birth_records(builder: Builder) -> pd.DataFrame:

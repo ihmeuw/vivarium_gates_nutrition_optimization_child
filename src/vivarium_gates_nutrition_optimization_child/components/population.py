@@ -24,6 +24,7 @@ class PopulationLineList(BasePopulation):
     """
     Component to produce and age simulants based on line list data.
     """
+
     @property
     def columns_created(self) -> List[str]:
         return [
@@ -39,7 +40,6 @@ class PopulationLineList(BasePopulation):
     @property
     def time_step_priority(self) -> int:
         return 8
-
 
     # noinspection PyAttributeOutsideInit
     def setup(self, builder: Builder) -> None:

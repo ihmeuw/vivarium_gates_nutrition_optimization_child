@@ -1,10 +1,8 @@
 from collections import Counter
-from typing import Dict
+from typing import Dict, List, Optional
 
 import pandas as pd
-from typing import Optional, List
-from vivarium import ConfigTree
-from vivarium import Component
+from vivarium import Component, ConfigTree
 from vivarium.framework.engine import Builder
 from vivarium.framework.event import Event
 from vivarium.framework.population import PopulationView
@@ -165,10 +163,10 @@ class BirthObserver(Component):
     @property
     def columns_required(self) -> Optional[List[str]]:
         return [
-        "entrance_time",
-        self.birth_weight_column_name,
-        self.gestational_age_column_name,
-    ]
+            "entrance_time",
+            self.birth_weight_column_name,
+            self.gestational_age_column_name,
+        ]
 
     #################
     # Setup methods #
@@ -245,7 +243,7 @@ class MortalityObserver(MortalityObserver_):
 
 class ChildWastingObserver(DiseaseObserver):
     def __init__(self):
-        super().__init__('child_wasting')
+        super().__init__("child_wasting")
         self.disease = self.risk = "child_wasting"
         self.exposure_pipeline_name = f"{self.risk}.exposure"
 
@@ -263,7 +261,9 @@ class ChildWastingObserver(DiseaseObserver):
         self.config = builder.configuration.stratification[self.disease]
         self.categories = builder.data.load(f"risk_factor.{self.risk}.categories")
 
-        disease_model = builder.components.get_component(f"dynamic_child_wasting_model.{self.disease}")
+        disease_model = builder.components.get_component(
+            f"dynamic_child_wasting_model.{self.disease}"
+        )
 
         # not needed in current output but keeping just in case we want to add it back
         # for category in self.categories:

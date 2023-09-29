@@ -1,5 +1,6 @@
 """Prevention and treatment models"""
 from typing import Dict, List, Optional
+
 import pandas as pd
 from vivarium import Component
 from vivarium.framework.engine import Builder
@@ -15,9 +16,10 @@ from vivarium_gates_nutrition_optimization_child.constants import (
 
 class SQLNSTreatment(Component):
     """Manages SQ-LNS prevention"""
+
     @property
     def columns_required(self) -> Optional[List[str]]:
-        return ['age']
+        return ["age"]
 
     @property
     def columns_created(self) -> Optional[List[str]]:
@@ -31,14 +33,12 @@ class SQLNSTreatment(Component):
             "requires_streams": [self._randomness_stream_name],
         }
 
-
     def __init__(self):
         super().__init__()
         self._randomness_stream_name = f"initial_{self.name}_propensity"
         self.propensity_column_name = data_values.SQ_LNS.PROPENSITY_COLUMN
         self.propensity_pipeline_name = data_values.SQ_LNS.PROPENSITY_PIPELINE
         self.coverage_pipeline_name = data_values.SQ_LNS.COVERAGE_PIPELINE
-
 
     # noinspection PyAttributeOutsideInit
     def setup(self, builder: Builder):
