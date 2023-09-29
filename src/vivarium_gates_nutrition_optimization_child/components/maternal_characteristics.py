@@ -73,10 +73,6 @@ class MaternalCharacteristics(Component):
         self.maternal_bmi_anemia_exposure_pipeline_name = "maternal_bmi_anemia.exposure"
 
     @property
-    def columns_required(self) -> List[str]:
-        return ["alive", "cause_of_death"]
-
-    @property
     def columns_created(self) -> List[str]:
         return [
             self.supplementation_exposure_column_name,

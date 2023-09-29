@@ -156,6 +156,7 @@ class BirthObserver(Component):
     }
 
     def __init__(self):
+        super().__init__()
         self.birth_weight_column_name = "birth_weight_exposure"
         self.gestational_age_column_name = "gestational_age_exposure"
         self.low_birth_weight_limit = 2500  # grams

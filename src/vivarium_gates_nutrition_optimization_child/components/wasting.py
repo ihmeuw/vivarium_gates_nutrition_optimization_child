@@ -78,8 +78,7 @@ class StaticChildWasting(Risk):
     def __init__(self):
         # use super's init to get exposure distribution
         # but overwrite other names
-        risk = "risk_factor.child_wasting"
-        super().__init__(risk)
+        super().__init__("risk_factor.child_wasting")
 
         name = "static_child_wasting"
         self._randomness_stream_name = f"initial_{name}_propensity"
@@ -105,10 +104,6 @@ class WastingTreatment(Risk):
         self.wasting_column = data_keys.WASTING.name
 
         self.treated_state = self._get_treated_state()
-
-    @property
-    def columns_created(self) -> List[str]:
-        return [self.propensity_column_name]
 
     @property
     def columns_required(self) -> Optional[List[str]]:
@@ -185,7 +180,7 @@ class DynamicChildWastingModel(DiseaseModel):
     def initialization_requirements(self) -> Dict[str, List[str]]:
         return {
             "requires_columns": ["age", "sex", "static_child_wasting_propensity"],
-            "requires_values": ["static_child_wasting.exposure"],
+            "requires_values": [],
             "requires_streams": [],
         }
 

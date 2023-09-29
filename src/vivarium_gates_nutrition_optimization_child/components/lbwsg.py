@@ -29,9 +29,7 @@ class LBWSGLineList(LBWSGRisk):
 
     @property
     def columns_created(self) -> List[str]:
-        return [self.exposure_column_name(axis) for axis in self.AXES] + [
-            self.raw_gestational_age_exposure_column_name
-        ]
+        return super().columns_created + [self.raw_gestational_age_exposure_column_name]
 
     @property
     def initialization_requirements(self) -> Dict[str, List[str]]:

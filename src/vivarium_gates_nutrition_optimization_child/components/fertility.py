@@ -25,11 +25,6 @@ class FertilityLineList(Component):
     line list data.  Simulants will be registered to the state table on the time steps in which their birth takes place.
     """
 
-    CONFIGURATION_DEFAULTS = {}
-
-    def __init__(self):
-        super().__init__()
-
     @property
     def columns_required(self) -> List[str]:
         return ["alive", "cause_of_death"]
