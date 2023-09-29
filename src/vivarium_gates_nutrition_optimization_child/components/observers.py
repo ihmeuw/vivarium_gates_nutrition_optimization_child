@@ -147,17 +147,6 @@ class ResultsStratifier(ResultsStratifier_):
         return age_group
 
 
-# class DisabilityObserver(DisabilityObserver_):
-#     def on_post_setup(self, event: Event) -> None:
-#         cause_states = builder.components.get_components_by_type(tuple(self.disease_classes))
-#         for cause in self._cause_components:
-#             if (
-#                 cause.has_disability
-#                 or cause.name == "disease_model.moderate_protein_energy_malnutrition"
-#             ):
-#                 self.disability_pipelines[cause.state_id] = cause.disability_weight
-
-
 class BirthObserver(Component):
     CONFIGURATION_DEFAULTS = {
         "stratification": {

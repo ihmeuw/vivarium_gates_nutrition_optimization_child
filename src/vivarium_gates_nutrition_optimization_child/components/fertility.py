@@ -72,7 +72,7 @@ class FertilityLineList(Component):
         born_previous_step_mask = (birth_records["birth_date"] < self.clock()) & (
             birth_records["birth_date"] > self.clock() - event.step_size
         )
-        born_previous_step = birth_records[born_previous_step_mask].reset_index().copy()
+        born_previous_step = birth_records[born_previous_step_mask].copy()
         # everyone is currently born on the first time step so this is always empty after the first time step
         if born_previous_step.empty:
             return

@@ -72,7 +72,6 @@ class PopulationLineList(BasePopulation):
         }
         self.register_simulants = builder.randomness.register_simulants
 
-        # builder.event.register_listener("time_step", self.on_time_step, priority=8)
         self.start_time = get_time_stamp(builder.configuration.time.start)
         self.location = self._get_location(builder)
 
