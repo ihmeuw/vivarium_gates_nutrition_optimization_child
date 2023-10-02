@@ -27,15 +27,7 @@ from vivarium_gates_nutrition_optimization_child.utilities import get_random_var
 class ChildWasting(Component):
     @property
     def columns_required(self) -> Optional[List[str]]:
-        return ["alive", "age", self.dynamic_model.state_column]
-
-    @property
-    def initialization_requirements(self) -> Dict[str, List[str]]:
-        return {
-            "requires_columns": ["sex", self.static_model.propensity_column_name],
-            "requires_values": [self.static_model.exposure_pipeline_name],
-            "requires_streams": [],
-        }
+        return ["alive", "age", "sex", self.dynamic_model.state_column, self.static_model.propensity_column_name]
 
     def __init__(self):
         super().__init__()
