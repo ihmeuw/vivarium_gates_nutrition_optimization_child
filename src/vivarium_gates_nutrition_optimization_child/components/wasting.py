@@ -27,7 +27,13 @@ from vivarium_gates_nutrition_optimization_child.utilities import get_random_var
 class ChildWasting(Component):
     @property
     def columns_required(self) -> Optional[List[str]]:
-        return ["alive", "age", "sex", self.dynamic_model.state_column, self.static_model.propensity_column_name]
+        return [
+            "alive",
+            "age",
+            "sex",
+            self.dynamic_model.state_column,
+            self.static_model.propensity_column_name,
+        ]
 
     def __init__(self):
         super().__init__()
@@ -99,7 +105,7 @@ class WastingTreatment(Risk):
 
     @property
     def columns_required(self) -> Optional[List[str]]:
-        return ['age', self.previous_wasting_column, self.wasting_column]
+        return ["age", self.previous_wasting_column, self.wasting_column]
 
     ##########################
     # Initialization methods #
@@ -117,8 +123,12 @@ class WastingTreatment(Risk):
         self.scenario = scenarios.INTERVENTION_SCENARIOS[
             builder.configuration.intervention.child_scenario
         ]
-        self.wasting_exposure = builder.value.get_value(data_values.PIPELINES.WASTING_EXPOSURE)
-        self.underweight_exposure = builder.value.get_value(data_values.PIPELINES.UNDERWEIGHT_EXPOSURE)
+        self.wasting_exposure = builder.value.get_value(
+            data_values.PIPELINES.WASTING_EXPOSURE
+        )
+        self.underweight_exposure = builder.value.get_value(
+            data_values.PIPELINES.UNDERWEIGHT_EXPOSURE
+        )
 
     ########################
     # Event-driven methods #
@@ -147,23 +157,25 @@ class WastingTreatment(Risk):
             if mam_coverage == "baseline":  # return standard exposure if baseline
                 propensity = self.propensity(index)
                 return pd.Series(self.exposure_distribution.ppf(propensity), index=index)
-            elif mam_coverage == 'targeted':
+            elif mam_coverage == "targeted":
                 # initialize exposures as 0s using index
                 exposures = pd.Series(0, index=index)
 
                 # define relevant booleans
                 wasting = self.wasting_exposure(index)
-                age = self.population_view.get(index)['age']
+                age = self.population_view.get(index)["age"]
                 underweight = self.underweight_exposure(index)
 
-                in_mam_state = wasting == 'cat2'
+                in_mam_state = wasting == "cat2"
                 in_age_range = (age >= 0.5) & (age < 2)
-                is_severely_underweight = underweight == 'cat3'
+                is_severely_underweight = underweight == "cat3"
 
-                is_covered = (in_mam_state & in_age_range) | (in_mam_state & is_severely_underweight)
+                is_covered = (in_mam_state & in_age_range) | (
+                    in_mam_state & is_severely_underweight
+                )
                 exposures.loc[is_covered] = 1
                 return exposures
-            else: # return either all or none covered otherwise
+            else:  # return either all or none covered otherwise
                 exposure = coverage_to_exposure_map[mam_coverage]
                 return pd.Series(exposure, index=index)
 
