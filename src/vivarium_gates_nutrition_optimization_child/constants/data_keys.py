@@ -42,7 +42,7 @@ class __DiarrhealDiseases(NamedTuple):
     PREVALENCE: TargetString = TargetString("cause.diarrheal_diseases.prevalence")
     INCIDENCE_RATE: TargetString = TargetString("cause.diarrheal_diseases.incidence_rate")
     REMISSION_RATE: TargetString = TargetString(
-        "cause.susceptible_to_diarrheal_diseases.remission_rate"
+        "cause.diarrheal_diseases.remission_rate"
     )
     DISABILITY_WEIGHT: TargetString = TargetString(
         "cause.diarrheal_diseases.disability_weight"
@@ -99,7 +99,7 @@ class __LowerRespiratoryInfections(NamedTuple):
         "cause.lower_respiratory_infections.incidence_rate"
     )
     REMISSION_RATE: TargetString = TargetString(
-        "cause.susceptible_to_lower_respiratory_infections.remission_rate"
+        "cause.lower_respiratory_infections.remission_rate"
     )
     DISABILITY_WEIGHT: TargetString = TargetString(
         "cause.lower_respiratory_infections.disability_weight"
@@ -133,7 +133,7 @@ class __Malaria(NamedTuple):
     DURATION: TargetString = TargetString("cause.malaria.duration")
     PREVALENCE: TargetString = TargetString("cause.malaria.prevalence")
     INCIDENCE_RATE: TargetString = TargetString("cause.malaria.incidence_rate")
-    REMISSION_RATE: TargetString = TargetString("cause.susceptible_to_malaria.remission_rate")
+    REMISSION_RATE: TargetString = TargetString("cause.malaria.remission_rate")
     DISABILITY_WEIGHT: TargetString = TargetString("cause.malaria.disability_weight")
     EMR: TargetString = TargetString("cause.malaria.excess_mortality_rate")
     CSMR: TargetString = TargetString("cause.malaria.cause_specific_mortality_rate")
