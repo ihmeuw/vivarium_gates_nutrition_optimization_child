@@ -41,9 +41,7 @@ class __DiarrhealDiseases(NamedTuple):
     DURATION: TargetString = TargetString("cause.diarrheal_diseases.duration")
     PREVALENCE: TargetString = TargetString("cause.diarrheal_diseases.prevalence")
     INCIDENCE_RATE: TargetString = TargetString("cause.diarrheal_diseases.incidence_rate")
-    REMISSION_RATE: TargetString = TargetString(
-        "cause.diarrheal_diseases.remission_rate"
-    )
+    REMISSION_RATE: TargetString = TargetString("cause.diarrheal_diseases.remission_rate")
     DISABILITY_WEIGHT: TargetString = TargetString(
         "cause.diarrheal_diseases.disability_weight"
     )
