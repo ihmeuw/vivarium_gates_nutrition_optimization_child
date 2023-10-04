@@ -176,6 +176,7 @@ class __Pipelines(NamedTuple):
 
     STUNTING_EXPOSURE: str = "child_stunting.exposure"
     WASTING_EXPOSURE: str = "child_wasting.exposure"
+    UNDERWEIGHT_EXPOSURE: str = "child_underweight.exposure"
 
     @property
     def name(self):

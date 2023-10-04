@@ -48,6 +48,9 @@ class __InterventionScenarios(NamedTuple):
     SCENARIO_8: InterventionScenario = InterventionScenario(
         "scenario_8_all", "full", "full", "full"
     )
+    SCENARIO_13: InterventionScenario = InterventionScenario(
+        "scenario_13_targeted_mam", "none", "targeted", "none"
+    )
 
     def __getitem__(self, item) -> InterventionScenario:
         for scenario in self:
