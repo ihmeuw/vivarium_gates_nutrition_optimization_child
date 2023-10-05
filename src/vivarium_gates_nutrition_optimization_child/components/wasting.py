@@ -30,9 +30,7 @@ class ChildWasting(Component):
         return [
             "alive",
             "age",
-            "sex",
             self.dynamic_model.state_column,
-            self.static_model.propensity_column_name,
         ]
 
     def __init__(self):
@@ -52,7 +50,7 @@ class ChildWasting(Component):
         self.exposure = builder.value.register_value_producer(
             f"{self.name}.exposure",
             source=self.get_current_exposure,
-            requires_columns=[self.dynamic_model.state_column],
+            requires_columns=["age", "alive", self.dynamic_model.state_column],
             requires_values=[self.static_model.exposure_pipeline_name],
             preferred_post_processor=get_exposure_post_processor(
                 builder, EntityString(f"risk_factor.{self.name}")
