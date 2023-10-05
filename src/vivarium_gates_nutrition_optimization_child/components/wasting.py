@@ -103,7 +103,7 @@ class WastingTreatment(Risk):
 
     @property
     def columns_required(self) -> Optional[List[str]]:
-        return [self.previous_wasting_column, self.wasting_column]
+        return ["age", self.previous_wasting_column, self.wasting_column]
 
     ##########################
     # Initialization methods #
@@ -121,6 +121,12 @@ class WastingTreatment(Risk):
         self.scenario = scenarios.INTERVENTION_SCENARIOS[
             builder.configuration.intervention.child_scenario
         ]
+        self.wasting_exposure = builder.value.get_value(
+            data_values.PIPELINES.WASTING_EXPOSURE
+        )
+        self.underweight_exposure = builder.value.get_value(
+            data_values.PIPELINES.UNDERWEIGHT_EXPOSURE
+        )
 
     ########################
     # Event-driven methods #
@@ -140,7 +146,7 @@ class WastingTreatment(Risk):
     # Pipeline sources and modifiers #
     ##################################
 
-    def _get_current_exposure(self, index: pd.Index) -> pd.Series:
+    def get_current_exposure(self, index: pd.Index) -> pd.Series:
         is_mam_component = self.risk.name == "moderate_acute_malnutrition_treatment"
         coverage_to_exposure_map = {"none": "cat1", "full": "cat2"}
 
@@ -149,6 +155,24 @@ class WastingTreatment(Risk):
             if mam_coverage == "baseline":  # return standard exposure if baseline
                 propensity = self.propensity(index)
                 return pd.Series(self.exposure_distribution.ppf(propensity), index=index)
+            elif mam_coverage == "targeted":
+                # initialize exposures as 0s using index
+                exposures = pd.Series("cat1", index=index)
+
+                # define relevant booleans
+                wasting = self.wasting_exposure(index)
+                age = self.population_view.get(index)["age"]
+                underweight = self.underweight_exposure(index)
+
+                in_mam_state = wasting == "cat2"
+                in_age_range = (age >= 0.5) & (age < 2)
+                is_severely_underweight = underweight == "cat3"
+
+                is_covered = (in_mam_state & in_age_range) | (
+                    in_mam_state & is_severely_underweight
+                )
+                exposures.loc[is_covered] = "cat2"
+                return exposures
             else:  # return either all or none covered otherwise
                 exposure = coverage_to_exposure_map[mam_coverage]
                 return pd.Series(exposure, index=index)

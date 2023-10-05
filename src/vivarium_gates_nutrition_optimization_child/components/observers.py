@@ -67,6 +67,12 @@ class ResultsStratifier(ResultsStratifier_):
             requires_values=["child_stunting.exposure"],
         )
         builder.results.register_stratification(
+            "underweight_state",
+            [category.value for category in data_keys.CGFCategories],
+            is_vectorized=True,
+            requires_values=["child_underweight.exposure"],
+        )
+        builder.results.register_stratification(
             "maternal_supplementation",
             results.MATERNAL_SUPPLEMENTATION_TYPES,
             is_vectorized=True,
