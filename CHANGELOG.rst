@@ -1,3 +1,7 @@
+**v0.8.0 - 09/18/23**
+
+ - Update effect of BEP on birthweight to account for maternal BMI status
+
 **v0.7.1 - 09/18/23**
 
  - Remove explicit support for Python 3.7 and 3.8
