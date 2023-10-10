@@ -7,7 +7,7 @@ This is a module to subclass the LBWSG component in Vivrium Public Health to use
 simulants who are initialized from line list data.
 
 """
-from typing import Dict
+from typing import Dict, List
 
 import pandas as pd
 from vivarium.framework.engine import Builder
@@ -27,47 +27,38 @@ class LBWSGLineList(LBWSGRisk):
     Component to initialize low birthweight and short gestation data for simulants based on existing line list data.
     """
 
+    @property
+    def columns_created(self) -> List[str]:
+        return super().columns_created + [self.raw_gestational_age_exposure_column_name]
+
+    @property
+    def initialization_requirements(self) -> Dict[str, List[str]]:
+        return {
+            "requires_columns": [],
+            "requires_values": [],
+            "requires_streams": [self.randomness_stream_name],
+        }
+
     def __init__(self):
         super().__init__()
         self.raw_gestational_age_exposure_column_name = "raw_gestational_age_exposure"
-
-    @property
-    def name(self) -> str:
-        return "line_list_low_birth_weight_and_short_gestation"
-
-    def __repr__(self):
-        return "LBWSGLineList()"
 
     # noinspection PyAttributeOutsideInit
     def setup(self, builder: Builder):
         super().setup(builder)
         self.start_time = get_time_stamp(builder.configuration.time.start)
 
-    def _get_birth_exposure_pipelines(self, builder: Builder) -> Dict[str, Pipeline]:
+    def get_birth_exposure_pipelines(self, builder: Builder) -> Dict[str, Pipeline]:
         def get_pipeline(axis_: str):
             return builder.value.register_value_producer(
                 self.birth_exposure_pipeline_name(axis_),
-                source=lambda index: self._get_birth_exposure(axis_, index),
+                source=lambda index: self.get_birth_exposure(axis_, index),
                 preferred_post_processor=get_exposure_post_processor(builder, self.risk),
             )
 
         return {
             self.birth_exposure_pipeline_name(axis): get_pipeline(axis) for axis in self.AXES
         }
-
-    def _get_population_view(self, builder: Builder) -> PopulationView:
-        columns = [self.exposure_column_name(axis) for axis in self.AXES] + [
-            self.raw_gestational_age_exposure_column_name
-        ]
-        return builder.population.get_view(columns)
-
-    def _register_simulant_initializer(self, builder: Builder) -> None:
-        builder.population.initializes_simulants(
-            self.on_initialize_simulants,
-            creates_columns=[self.exposure_column_name(axis) for axis in self.AXES]
-            + [self.raw_gestational_age_exposure_column_name],
-            requires_streams=[self._randomness_stream_name],
-        )
 
     ########################
     # Event-driven methods #
@@ -95,5 +86,5 @@ class LBWSGLineList(LBWSGRisk):
     # Pipeline sources and modifiers #
     ##################################
 
-    def _get_birth_exposure(self, axis: str, index: pd.Index) -> pd.Series:
+    def get_birth_exposure(self, axis: str, index: pd.Index) -> pd.Series:
         return self.new_births.loc[index, axis]

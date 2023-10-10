@@ -118,9 +118,13 @@ class __MaternalCharacteristics(NamedTuple):
     )
 
     BASELINE_BEP_COVERAGE: float = 0.0
-    BEP_BIRTH_WEIGHT_SHIFT: Tuple[str, stats.norm] = (
+    BEP_UNDERNOURISHED_BIRTH_WEIGHT_SHIFT: Tuple[str, stats.norm] = (
         "bep_birth_weight_shift",
         get_norm_from_quantiles(mean=66.96, lower=13.13, upper=120.78),
+    )
+    BEP_ADEQUATELY_NOURISHED_BIRTH_WEIGHT_SHIFT: Tuple[str, stats.norm] = (
+        "bep_birth_weight_shift",
+        get_norm_from_quantiles(mean=15.93, lower=-20.83, upper=52.69),
     )
 
     BASELINE_IV_IRON_COVERAGE: float = 0.0
@@ -172,6 +176,7 @@ class __Pipelines(NamedTuple):
 
     STUNTING_EXPOSURE: str = "child_stunting.exposure"
     WASTING_EXPOSURE: str = "child_wasting.exposure"
+    UNDERWEIGHT_EXPOSURE: str = "child_underweight.exposure"
 
     @property
     def name(self):
