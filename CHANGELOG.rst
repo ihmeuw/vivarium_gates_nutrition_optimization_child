@@ -1,6 +1,7 @@
-**v0.8.0 - 09/18/23**
+**v0.7.1 - 09/18/23**
 
  - Remove explicit support for Python 3.7 and 3.8
+ - Refactor all components to subclass Component 
 
 **v0.7.0 - 09/18/23**
 

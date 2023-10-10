@@ -17,6 +17,7 @@ components:
             - LBWSGRiskEffect('cause.lower_respiratory_infections.excess_mortality_rate')
             - LBWSGRiskEffect('cause.affected_unmodeled.cause_specific_mortality_rate')
         metrics:
+            - DisabilityObserver()
             - CategoricalRiskObserver('child_stunting')
 
     vivarium_gates_nutrition_optimization_child:
@@ -24,7 +25,6 @@ components:
             - PopulationLineList()
             - FertilityLineList()
             - LBWSGLineList()
-            - DisabilityObserver()
             - ChildWasting()
             - ChildWastingObserver()
             - WastingTreatment('risk_factor.severe_acute_malnutrition_treatment')

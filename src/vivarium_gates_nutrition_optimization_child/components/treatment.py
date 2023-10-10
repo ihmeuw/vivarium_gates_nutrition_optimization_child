@@ -1,5 +1,8 @@
 """Prevention and treatment models"""
+from typing import Dict, List, Optional
+
 import pandas as pd
+from vivarium import Component
 from vivarium.framework.engine import Builder
 from vivarium.framework.lookup import LookupTable
 
@@ -11,11 +14,27 @@ from vivarium_gates_nutrition_optimization_child.constants import (
 )
 
 
-class SQLNSTreatment:
+class SQLNSTreatment(Component):
     """Manages SQ-LNS prevention"""
 
+    @property
+    def columns_required(self) -> Optional[List[str]]:
+        return ["age"]
+
+    @property
+    def columns_created(self) -> Optional[List[str]]:
+        return [self.propensity_column_name]
+
+    @property
+    def initialization_requirements(self) -> Dict[str, List[str]]:
+        return {
+            "requires_columns": [],
+            "requires_values": [],
+            "requires_streams": [self._randomness_stream_name],
+        }
+
     def __init__(self):
-        self.name = "sq_lns"
+        super().__init__()
         self._randomness_stream_name = f"initial_{self.name}_propensity"
         self.propensity_column_name = data_values.SQ_LNS.PROPENSITY_COLUMN
         self.propensity_pipeline_name = data_values.SQ_LNS.PROPENSITY_PIPELINE
@@ -23,7 +42,6 @@ class SQLNSTreatment:
 
     # noinspection PyAttributeOutsideInit
     def setup(self, builder: Builder):
-        draw = builder.configuration.input_data.input_draw_number
         self.randomness = builder.randomness.get_stream(self._randomness_stream_name)
 
         self.coverage_value = self.get_coverage_value(builder)
@@ -41,8 +59,6 @@ class SQLNSTreatment:
         self.moderate_stunting_risk_ratio = self.get_risk_ratios(
             builder, "moderate_stunting_prevalence_ratio"
         )
-
-        required_columns = ["age", self.propensity_column_name]
 
         self.propensity = builder.value.register_value_producer(
             self.propensity_pipeline_name,
@@ -79,13 +95,6 @@ class SQLNSTreatment:
             "risk_factor.child_stunting.exposure_parameters",
             modifier=self.apply_stunting_treatment,
             requires_values=[self.coverage_pipeline_name],
-        )
-
-        self.population_view = builder.population.get_view(required_columns)
-        builder.population.initializes_simulants(
-            self.on_initialize_simulants,
-            creates_columns=[self.propensity_column_name],
-            requires_streams=[self._randomness_stream_name],
         )
 
     def get_coverage_value(self, builder: Builder) -> float:
