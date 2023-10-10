@@ -167,15 +167,13 @@ class WastingTreatment(Risk):
                 underweight = self.underweight_exposure(index)
 
                 in_mam_state = wasting == "cat2"
-                in_age_range = (age >= 0.01) & (age < 2)
-                is_severely_underweight = underweight == "cat1"
+                in_age_range = (age >= 0.5) & (age < 2)
+                is_severely_underweight = underweight == "cat3"
 
                 is_covered = (in_mam_state & in_age_range) | (
                     in_mam_state & is_severely_underweight
                 )
-                exposures.loc[is_covered] = "cat3"
-                if sum(is_covered) > 0:
-                    breakpoint()
+                exposures.loc[is_covered] = "cat2"
                 return exposures
             else:  # return either all or none covered otherwise
                 exposure = coverage_to_exposure_map[mam_coverage]
