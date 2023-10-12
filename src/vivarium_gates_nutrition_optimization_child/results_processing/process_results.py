@@ -14,7 +14,7 @@ GROUPBY_COLUMNS = [
     results.INPUT_DRAW_COLUMN,
     SCENARIO_COLUMN,
     MATERNAL_SCENARIO_COLUMN,
-    #    RANDOM_SEED_COLUMN,
+    # RANDOM_SEED_COLUMN,
 ]
 OUTPUT_COLUMN_SORT_ORDER = [
     "age_group",
@@ -75,15 +75,15 @@ def make_measure_data(data: pd.DataFrame, disaggregate_seeds: bool):
         stunting_state_person_time=get_state_person_time_measure_data(
             data, "stunting_state_person_time", disaggregate_seeds
         ),
-        wasting_state_person_time=get_state_person_time_measure_data(
-            data, "wasting_state_person_time", disaggregate_seeds
-        ),
+        # wasting_state_person_time=get_state_person_time_measure_data(
+        #    data, "wasting_state_person_time", disaggregate_seeds
+        # ),
         wasting_transition_count=get_transition_count_measure_data(
             data, "wasting_transition_count", disaggregate_seeds
         ),
-        underweight_state_person_time=get_state_person_time_measure_data(
-            data, "underweight_state_person_time", disaggregate_seeds
-        ),
+        # underweight_state_person_time=get_state_person_time_measure_data(
+        #    data, "underweight_state_person_time", disaggregate_seeds
+        # ),
         #        low_birth_weight_and_short_gestation_sum=get_measure_data(
         #            data, "low_birth_weight_and_short_gestation_sum", disaggregate_seeds
         #        ),
@@ -112,9 +112,9 @@ class MeasureData(NamedTuple):
     #    moderate_pem_transition_count: pd.DataFrame
     #    severe_pem_transition_count: pd.DataFrame
     stunting_state_person_time: pd.DataFrame
-    wasting_state_person_time: pd.DataFrame
+    # wasting_state_person_time: pd.DataFrame
     wasting_transition_count: pd.DataFrame
-    underweight_state_person_time: pd.DataFrame
+    # underweight_state_person_time: pd.DataFrame
     #    low_birth_weight_and_short_gestation_sum: pd.DataFrame
     #    live_births_count: pd.DataFrame
     #    low_weight_births_count: pd.DataFrame
