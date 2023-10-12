@@ -351,14 +351,14 @@ def expand_data(data: pd.DataFrame, column_name: str, column_values: List) -> pd
 
 
 def load_wasting_birth_prevalence(key: str, location: str) -> pd.DataFrame:
-    wasting_prevalence = get_data(data_keys.WASTING.EXPOSURE, location).query("age_end == 0.5")
+    wasting_prevalence = get_data(data_keys.WASTING.EXPOSURE, location).query("age_end == 0.5").drop(["age_start", "age_end"])
     relative_risk = 2  # placeholder value
 
     # read and process prevalence of low birth weight amongst infants who survive to 30 days
     lbwsg_exposure = get_data(data_keys.LBWSG.EXPOSURE, location)
     low_birth_weight_exposures = lbwsg_exposure.query("parameter in @data_values.LBWSG.LOW_BIRTH_WEIGHT_CATEGORIES & age_start!=0")
     low_birth_weight_prevalence = low_birth_weight_exposures.groupby(metadata.ARTIFACT_INDEX_COLUMNS).sum()
-    low_birth_weight_prevalence = low_birth_weight_prevalence.droplevel(['year_start', 'year_end'])
+    low_birth_weight_prevalence = low_birth_weight_prevalence.droplevel(['age_start', 'age_end', 'year_start', 'year_end'])
 
     # reshape lbw prevalence to look like wasting prevalence index
     year_starts = wasting_prevalence.reset_index()['year_start'].unique()
@@ -369,20 +369,22 @@ def load_wasting_birth_prevalence(key: str, location: str) -> pd.DataFrame:
 
     low_birth_weight_prevalence = expand_data(low_birth_weight_prevalence, 'parameter', categories)
     low_birth_weight_prevalence = low_birth_weight_prevalence.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ['parameter']).sort_index()
+    breakpoint()
 
     more_severe_cats = ['cat1', 'cat2']
     adequate_bw_worse_wasting = wasting_prevalence.query("parameter in @more_severe_cats") / \
                                 ( (relative_risk * low_birth_weight_prevalence.query("parameter in @more_severe_cats")) +
                                   (1 - low_birth_weight_prevalence.query("parameter in @more_severe_cats")) )
-    adequate_bw_worse_wasting.loc['birth_weight_status'] = 'adequate_birth_weight'
+    adequate_bw_worse_wasting['birth_weight_status'] = 'adequate_birth_weight'
     adequate_bw_cat3_wasting = wasting_prevalence.query("parameter =='cat3'") / \
                                 ( (low_birth_weight_prevalence.query("parameter == 'cat3'") / relative_risk) +
                                   (1 - low_birth_weight_prevalence.query("parameter == 'cat3'")) )
-    adequate_bw_cat3_wasting.loc['birth_weight_status'] = 'adequate_birth_weight'
+    adequate_bw_cat3_wasting['birth_weight_status'] = 'adequate_birth_weight'
     adequate_bw_prevalence = pd.concat([adequate_bw_worse_wasting, adequate_bw_cat3_wasting])
     low_bw_prevalence = adequate_bw_prevalence * relative_risk
 
     birth_prevalence = pd.concat([low_bw_prevalence, adequate_bw_prevalence])
+    breakpoint()
     return birth_prevalence
 
 
