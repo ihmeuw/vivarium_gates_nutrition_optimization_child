@@ -54,7 +54,38 @@ class __LBWSG(NamedTuple):
         stats.norm(loc=1e-04, scale=3e-05),
     )
     WASTING_EFFECT_PER_GRAM: float = 5.75e-05
-    LOW_BIRTH_WEIGHT_CATEGORIES = ["cat10", "cat106", "cat11", "cat116", "cat117", "cat123", "cat124", "cat14", "cat15", "cat17", "cat19", "cat2", "cat20", "cat21", "cat22", "cat23", "cat24", "cat25", "cat26", "cat27", "cat28", "cat29", "cat30", "cat31", "cat32", "cat34", "cat35", "cat36", "cat8", "cat80"]
+    LOW_BIRTH_WEIGHT_CATEGORIES = [
+        "cat10",
+        "cat106",
+        "cat11",
+        "cat116",
+        "cat117",
+        "cat123",
+        "cat124",
+        "cat14",
+        "cat15",
+        "cat17",
+        "cat19",
+        "cat2",
+        "cat20",
+        "cat21",
+        "cat22",
+        "cat23",
+        "cat24",
+        "cat25",
+        "cat26",
+        "cat27",
+        "cat28",
+        "cat29",
+        "cat30",
+        "cat31",
+        "cat32",
+        "cat34",
+        "cat35",
+        "cat36",
+        "cat8",
+        "cat80",
+    ]
 
 
 LBWSG = __LBWSG()
