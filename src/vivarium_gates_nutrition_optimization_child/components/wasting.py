@@ -6,14 +6,13 @@ from vivarium import Component
 from vivarium.framework.engine import Builder
 from vivarium.framework.event import Event
 from vivarium.framework.population import PopulationView
+from vivarium.framework.values import list_combiner, union_post_processor
 from vivarium_public_health.disease import DiseaseModel, DiseaseState, SusceptibleState
 from vivarium_public_health.risks import Risk
 from vivarium_public_health.risks.data_transformations import (
     get_exposure_post_processor,
 )
-from vivarium_public_health.utilities import EntityString
-from vivarium_public_health.utilities import is_non_zero
-from vivarium.framework.values import list_combiner, union_post_processor
+from vivarium_public_health.utilities import EntityString, is_non_zero
 
 from vivarium_gates_nutrition_optimization_child.constants import (
     data_keys,
@@ -155,7 +154,7 @@ class WastingTreatment(Risk):
         # simulants under 6 months should not be on treatment
         if len(index) > 0:
             # all simulants are the same age so just check the first simulant
-            if self.population_view.get(pd.Index([0]))['age'].squeeze() < .5:
+            if self.population_view.get(pd.Index([0]))["age"].squeeze() < 0.5:
                 return pd.Series("cat1", index=index)
 
         if is_mam_component:
@@ -197,6 +196,7 @@ class WastingTreatment(Risk):
 
 class WastingDiseaseState(DiseaseState):
     """DiseaseState where birth prevalence LookupTables is parametrized by birthweight status."""
+
     def setup(self, builder: Builder) -> None:
         """Identical to DiseaseState setup but use birthweight parameter when building birth prevalence lookup table."""
         super(DiseaseState, self).setup(builder)
@@ -209,7 +209,9 @@ class WastingDiseaseState(DiseaseState):
 
         birth_prevalence_data = self.load_birth_prevalence_data(builder)
         self.birth_prevalence = builder.lookup.build_table(
-            birth_prevalence_data, key_columns=["sex", "birth_weight_status"], parameter_columns=["year"]
+            birth_prevalence_data,
+            key_columns=["sex", "birth_weight_status"],
+            parameter_columns=["year"],
         )
 
         dwell_time_data = self.load_dwell_time_data(builder)
@@ -512,5 +514,9 @@ def load_child_wasting_birth_prevalence(
     builder: Builder, wasting_category: str
 ) -> pd.DataFrame:
     birth_prevalence = builder.data.load(data_keys.WASTING.BIRTH_PREVALENCE)
-    birth_prevalence = birth_prevalence.query("parameter == @wasting_category").reset_index().drop(['parameter', 'index'], axis=1)
+    birth_prevalence = (
+        birth_prevalence.query("parameter == @wasting_category")
+        .reset_index()
+        .drop(["parameter", "index"], axis=1)
+    )
     return birth_prevalence
