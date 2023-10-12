@@ -75,9 +75,9 @@ def make_measure_data(data: pd.DataFrame, disaggregate_seeds: bool):
         stunting_state_person_time=get_state_person_time_measure_data(
             data, "stunting_state_person_time", disaggregate_seeds
         ),
-        # wasting_state_person_time=get_state_person_time_measure_data(
-        #    data, "wasting_state_person_time", disaggregate_seeds
-        # ),
+        wasting_state_person_time=get_state_person_time_measure_data(
+            data, "wasting_state_person_time", disaggregate_seeds
+        ),
         wasting_transition_count=get_transition_count_measure_data(
             data, "wasting_transition_count", disaggregate_seeds
         ),

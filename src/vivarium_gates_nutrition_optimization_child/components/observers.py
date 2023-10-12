@@ -274,17 +274,17 @@ class ChildWastingObserver(DiseaseObserver):
         )
 
         # not needed in current output but keeping just in case we want to add it back
-        # for category in self.categories:
-        #     builder.results.register_observation(
-        #         name=f"{self.risk}_{category}_person_time",
-        #         pop_filter=f'alive == "alive" and `{self.exposure_pipeline_name}`=="{category}" and tracked==True',
-        #         aggregator=self.aggregate_state_person_time,
-        #         requires_columns=["alive"],
-        #         requires_values=[self.exposure_pipeline_name],
-        #         additional_stratifications=self.config.include,
-        #         excluded_stratifications=self.config.exclude,
-        #         when="time_step__prepare",
-        #     )
+        for category in self.categories:
+            builder.results.register_observation(
+                name=f"{self.risk}_{category}_person_time",
+                pop_filter=f'alive == "alive" and `{self.exposure_pipeline_name}`=="{category}" and tracked==True',
+                aggregator=self.aggregate_state_person_time,
+                requires_columns=["alive"],
+                requires_values=[self.exposure_pipeline_name],
+                additional_stratifications=self.config.include,
+                excluded_stratifications=self.config.exclude,
+                when="time_step__prepare",
+            )
 
         for transition in disease_model.transition_names:
             filter_string = (

@@ -19,6 +19,7 @@ components:
         metrics:
             - DisabilityObserver()
             - CategoricalRiskObserver('child_stunting')
+            - CategoricalRiskObserver('child_underweight')
 
     vivarium_gates_nutrition_optimization_child:
         components:
@@ -112,8 +113,9 @@ configuration:
     stratification:
         default:
             - 'age_group'
+            - 'sex'
+            - 'underweight_state'
         child_wasting:
             include: ['mam_treatment', 'sam_treatment']
-        child_stunting:
-            include:
-                - 'sqlns_coverage'
+        child_underweight:
+            include: ['mam_treatment', 'sam_treatment']
