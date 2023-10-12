@@ -360,6 +360,7 @@ def load_wasting_birth_prevalence(key: str, location: str) -> pd.DataFrame:
 
     # read and process prevalence of low birth weight amongst infants who survive to 30 days
     lbwsg_exposure = get_data(data_keys.LBWSG.EXPOSURE, location)
+    # use data from 1 to 5 month age group and sum all low birth weight category prevalences
     lbwsg_exposure = lbwsg_exposure.query(
         "parameter in @data_values.LBWSG.LOW_BIRTH_WEIGHT_CATEGORIES & age_start!=0"
     )
@@ -374,26 +375,25 @@ def load_wasting_birth_prevalence(key: str, location: str) -> pd.DataFrame:
 
     lbw_prevalence = expand_data(lbw_prevalence, "year_start", year_starts)
     lbw_prevalence["year_end"] = lbw_prevalence["year_start"] + 1
-
     lbw_prevalence = expand_data(lbw_prevalence, "parameter", categories)
     lbw_prevalence = lbw_prevalence.set_index(
         ["sex", "year_start", "year_end", "parameter"]
     ).sort_index()
 
-    more_severe_cats = ["cat1", "cat2"]
-    wasting_cat1_and_2_prevalence = wasting_prevalence.query("parameter in @more_severe_cats")
+    # calculate prevalences
+    wasting_cat1_and_2_prevalence = wasting_prevalence.query("parameter=='cat1' or parameter=='cat2'")
     wasting_cat3_prevalence = wasting_prevalence.query("parameter == 'cat3'")
-    lbw_cat1_and_2_prevalence = wasting_prevalence.query("parameter in @more_severe_cats")
-    lbw_cat3_prevalence = wasting_prevalence.query("parameter == 'cat3'")
+    lbw_cat1_and_2_prevalence = lbw_prevalence.query("parameter=='cat1' or parameter=='cat2'")
+    lbw_cat3_prevalence = lbw_prevalence.query("parameter == 'cat3'")
 
-    adequate_bw_cat1_and_cat2_wasting = wasting_cat1_and_2_prevalence / (
+    adequate_bw_cat1_and_cat2_wasting_prevalence = wasting_cat1_and_2_prevalence / (
         (lbw_cat1_and_2_prevalence * relative_risk) + (1 - lbw_cat1_and_2_prevalence)
     )
-    adequate_bw_cat3_wasting = wasting_cat3_prevalence / (
+    adequate_bw_cat3_wasting_prevalence = wasting_cat3_prevalence / (
         (lbw_cat3_prevalence / relative_risk) + (1 - lbw_cat3_prevalence)
     )
     adequate_bw_prevalence = pd.concat(
-        [adequate_bw_cat1_and_cat2_wasting, adequate_bw_cat3_wasting]
+        [adequate_bw_cat1_and_cat2_wasting_prevalence, adequate_bw_cat3_wasting_prevalence]
     )
     low_bw_prevalence = adequate_bw_prevalence * relative_risk
 
