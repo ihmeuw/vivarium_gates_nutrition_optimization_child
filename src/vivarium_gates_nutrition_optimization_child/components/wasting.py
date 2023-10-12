@@ -31,7 +31,6 @@ class ChildWasting(Component):
             "alive",
             "age",
             self.dynamic_model.state_column,
-            self.dynamic_model.state_column,
         ]
 
     def __init__(self):
