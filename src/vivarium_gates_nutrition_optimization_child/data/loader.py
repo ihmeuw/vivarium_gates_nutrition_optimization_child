@@ -356,17 +356,17 @@ def load_wasting_birth_prevalence(key: str, location: str) -> pd.DataFrame:
 
     # read and process prevalence of low birth weight amongst infants who survive to 30 days
     lbwsg_exposure = get_data(data_keys.LBWSG.EXPOSURE, location)
-    low_birth_weight_exposures = lbwsg_exposure.query("parameter in @data_values.LBWSG.LOW_BIRTH_WEIGHT_CATEGORIES")
+    low_birth_weight_exposures = lbwsg_exposure.query("parameter in @data_values.LBWSG.LOW_BIRTH_WEIGHT_CATEGORIES & age_start!=0")
     low_birth_weight_prevalence = low_birth_weight_exposures.groupby(metadata.ARTIFACT_INDEX_COLUMNS).sum()
     low_birth_weight_prevalence = low_birth_weight_prevalence.droplevel(['year_start', 'year_end'])
 
     # reshape lbw prevalence to look like wasting prevalence index
     year_starts = wasting_prevalence.reset_index()['year_start'].unique()
-    year_ends = wasting_prevalence.reset_index()['year_end'].unique()
     categories = wasting_prevalence.reset_index()['parameter'].unique()
 
     low_birth_weight_prevalence = expand_data(low_birth_weight_prevalence, 'year_start', year_starts)
-    low_birth_weight_prevalence = expand_data(low_birth_weight_prevalence, 'year_end', year_ends)
+    low_birth_weight_prevalence['year_end'] = low_birth_weight_prevalence['year_start'] + 1
+
     low_birth_weight_prevalence = expand_data(low_birth_weight_prevalence, 'parameter', categories)
     low_birth_weight_prevalence = low_birth_weight_prevalence.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ['parameter']).sort_index()
 
