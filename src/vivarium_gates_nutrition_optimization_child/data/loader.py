@@ -110,6 +110,7 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.WASTING.RELATIVE_RISK: load_gbd_2021_rr,
         data_keys.WASTING.PAF: load_categorical_paf,
         data_keys.WASTING.TRANSITION_RATES: load_wasting_transition_rates,
+        data_keys.WASTING.BIRTH_PREVALENCE: load_wasting_birth_prevalence,
         data_keys.STUNTING.DISTRIBUTION: load_metadata,
         data_keys.STUNTING.ALT_DISTRIBUTION: load_metadata,
         data_keys.STUNTING.CATEGORIES: load_metadata,
@@ -347,6 +348,42 @@ def expand_data(data: pd.DataFrame, column_name: str, column_values: List) -> pd
     )
     data = data.set_index(pd.Index([1] * len(data))).join(new_values)
     return data
+
+
+def load_wasting_birth_prevalence(key: str, location: str) -> pd.DataFrame:
+    wasting_prevalence = get_data(data_keys.WASTING.EXPOSURE, location).query("age_end == 0.5")
+    relative_risk = 2  # placeholder value
+
+    # read and process prevalence of low birth weight amongst infants who survive to 30 days
+    lbwsg_exposure = get_data(data_keys.LBWSG.EXPOSURE, location)
+    low_birth_weight_exposures = lbwsg_exposure.query("parameter in @data_values.LBWSG.LOW_BIRTH_WEIGHT_CATEGORIES")
+    low_birth_weight_prevalence = low_birth_weight_exposures.groupby(metadata.ARTIFACT_INDEX_COLUMNS).sum()
+    low_birth_weight_prevalence = low_birth_weight_prevalence.droplevel(['year_start', 'year_end'])
+
+    # reshape lbw prevalence to look like wasting prevalence index
+    year_starts = wasting_prevalence.reset_index()['year_start'].unique()
+    year_ends = wasting_prevalence.reset_index()['year_end'].unique()
+    categories = wasting_prevalence.reset_index()['parameter'].unique()
+
+    low_birth_weight_prevalence = expand_data(low_birth_weight_prevalence, 'year_start', year_starts)
+    low_birth_weight_prevalence = expand_data(low_birth_weight_prevalence, 'year_end', year_ends)
+    low_birth_weight_prevalence = expand_data(low_birth_weight_prevalence, 'parameter', categories)
+    low_birth_weight_prevalence = low_birth_weight_prevalence.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ['parameter']).sort_index()
+
+    more_severe_cats = ['cat1', 'cat2']
+    adequate_bw_worse_wasting = wasting_prevalence.query("parameter in @more_severe_cats") / \
+                                ( (relative_risk * low_birth_weight_prevalence.query("parameter in @more_severe_cats")) +
+                                  (1 - low_birth_weight_prevalence.query("parameter in @more_severe_cats")) )
+    adequate_bw_worse_wasting.loc['birth_weight_status'] = 'adequate_birth_weight'
+    adequate_bw_cat3_wasting = wasting_prevalence.query("parameter =='cat3'") / \
+                                ( (low_birth_weight_prevalence.query("parameter == 'cat3'") / relative_risk) +
+                                  (1 - low_birth_weight_prevalence.query("parameter == 'cat3'")) )
+    adequate_bw_cat3_wasting.loc['birth_weight_status'] = 'adequate_birth_weight'
+    adequate_bw_prevalence = pd.concat([adequate_bw_worse_wasting, adequate_bw_cat3_wasting])
+    low_bw_prevalence = adequate_bw_prevalence * relative_risk
+
+    birth_prevalence = pd.concat([low_bw_prevalence, adequate_bw_prevalence])
+    return birth_prevalence
 
 
 def _load_em_from_meid(location, meid, measure):
@@ -729,6 +766,9 @@ def load_wasting_treatment_exposure(key: str, location: str) -> pd.DataFrame:
     cat3["parameter"] = "cat3"
 
     exposure = pd.concat([cat1, cat2, cat3]).set_index("parameter", append=True).sort_index()
+    # infants under 6 months of age should not receive treatment
+    under_6_months_idx = exposure.query("age_start < .5").index
+    exposure.loc[under_6_months_idx] = 0
     return exposure
 
 

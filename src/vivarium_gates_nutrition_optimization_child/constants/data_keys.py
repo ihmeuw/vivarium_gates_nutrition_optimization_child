@@ -246,6 +246,7 @@ class __Wasting(NamedTuple):
     RELATIVE_RISK: TargetString = "risk_factor.child_wasting.relative_risk"
     PAF: TargetString = "risk_factor.child_wasting.population_attributable_fraction"
     TRANSITION_RATES: TargetString = "risk_factor.child_wasting.transition_rates"
+    BIRTH_PREVALENCE: TargetString = "risk_factor.child_wasting.birth_prevalence"
 
     # Useful keys not for the artifact - distinguished by not using the colon type declaration
     CAT4 = "cat4"

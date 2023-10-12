@@ -12,6 +12,8 @@ from vivarium_public_health.risks.data_transformations import (
     get_exposure_post_processor,
 )
 from vivarium_public_health.utilities import EntityString
+from vivarium_public_health.utilities import is_non_zero
+from vivarium.framework.values import list_combiner, union_post_processor
 
 from vivarium_gates_nutrition_optimization_child.constants import (
     data_keys,
@@ -187,6 +189,75 @@ class WastingTreatment(Risk):
                 return pd.Series(exposure, index=index)
 
 
+class WastingDiseaseState(DiseaseState):
+    """DiseaseState where birth prevalence LookupTables is parametrized by birthweight status."""
+    def setup(self, builder: Builder) -> None:
+        """Identical to DiseaseState setup but use birthweight parameter when building birth prevalence lookup table."""
+        super().setup(builder)
+        self.clock = builder.time.clock()
+
+        prevalence_data = self.load_prevalence_data(builder)
+        self.prevalence = builder.lookup.build_table(
+            prevalence_data, key_columns=["sex"], parameter_columns=["age", "year"]
+        )
+
+        birth_prevalence_data = self.load_birth_prevalence_data(builder)
+        self.birth_prevalence = builder.lookup.build_table(
+            birth_prevalence_data, key_columns=["sex", "birth_weight_status"], parameter_columns=["year"]
+        )
+
+        dwell_time_data = self.load_dwell_time_data(builder)
+        self.dwell_time = builder.value.register_value_producer(
+            f"{self.state_id}.dwell_time",
+            source=builder.lookup.build_table(
+                dwell_time_data, key_columns=["sex"], parameter_columns=["age", "year"]
+            ),
+            requires_columns=["age", "sex"],
+        )
+
+        disability_weight_data = self.load_disability_weight_data(builder)
+        self.has_disability = is_non_zero(disability_weight_data)
+        self.base_disability_weight = builder.lookup.build_table(
+            disability_weight_data, key_columns=["sex"], parameter_columns=["age", "year"]
+        )
+        self.disability_weight = builder.value.register_value_producer(
+            f"{self.state_id}.disability_weight",
+            source=self.compute_disability_weight,
+            requires_columns=["age", "sex", "alive", self.model],
+        )
+        builder.value.register_value_modifier(
+            "disability_weight", modifier=self.disability_weight
+        )
+
+        excess_mortality_data = self.load_excess_mortality_rate_data(builder)
+        self.has_excess_mortality = is_non_zero(excess_mortality_data)
+        self.base_excess_mortality_rate = builder.lookup.build_table(
+            excess_mortality_data, key_columns=["sex"], parameter_columns=["age", "year"]
+        )
+        self.excess_mortality_rate = builder.value.register_rate_producer(
+            self.excess_mortality_rate_pipeline_name,
+            source=self.compute_excess_mortality_rate,
+            requires_columns=["age", "sex", "alive", self.model],
+            requires_values=[self.excess_mortality_rate_paf_pipeline_name],
+        )
+        paf = builder.lookup.build_table(0)
+        self.joint_paf = builder.value.register_value_producer(
+            self.excess_mortality_rate_paf_pipeline_name,
+            source=lambda idx: [paf(idx)],
+            preferred_combiner=list_combiner,
+            preferred_post_processor=union_post_processor,
+        )
+        builder.value.register_value_modifier(
+            "mortality_rate",
+            modifier=self.adjust_mortality_rate,
+            requires_values=[self.excess_mortality_rate_pipeline_name],
+        )
+
+        self.randomness_prevalence = builder.randomness.get_stream(
+            f"{self.state_id}_prevalent_cases"
+        )
+
+
 class DynamicChildWastingModel(DiseaseModel):
     @property
     def columns_created(self) -> List[str]:
@@ -268,7 +339,7 @@ class DynamicChildWastingModel(DiseaseModel):
 # noinspection PyPep8Naming
 def DynamicChildWasting() -> DynamicChildWastingModel:
     tmrel = SusceptibleState(models.WASTING.MODEL_NAME)
-    mild = DiseaseState(
+    mild = WastingDiseaseState(
         models.WASTING.MILD_STATE_NAME,
         cause_type="sequela",
         get_data_functions={
@@ -278,7 +349,7 @@ def DynamicChildWasting() -> DynamicChildWastingModel:
             "birth_prevalence": load_mild_wasting_birth_prevalence,
         },
     )
-    moderate = DiseaseState(
+    moderate = WastingDiseaseState(
         models.WASTING.MODERATE_STATE_NAME,
         cause_type="sequela",
         get_data_functions={
@@ -288,7 +359,7 @@ def DynamicChildWasting() -> DynamicChildWastingModel:
             "birth_prevalence": load_mam_birth_prevalence,
         },
     )
-    severe = DiseaseState(
+    severe = WastingDiseaseState(
         models.WASTING.SEVERE_STATE_NAME,
         cause_type="sequela",
         get_data_functions={
@@ -434,13 +505,6 @@ def load_child_wasting_exposures(builder: Builder) -> pd.DataFrame:
 def load_child_wasting_birth_prevalence(
     builder: Builder, wasting_category: str
 ) -> pd.DataFrame:
-    exposure = load_child_wasting_exposures(builder)[wasting_category]
-    birth_prevalence = (
-        exposure[
-            exposure.index.get_level_values("age_end")
-            == data_values.WASTING.DYNAMIC_START_AGE
-        ]
-        .droplevel(["age_start", "age_end"])
-        .reset_index()
-    )
+    birth_prevalence = builder.data.load(data_keys.WASTING.BIRTH_PREVALENCE)
+    birth_prevalence = birth_prevalence.query("parameter == @wasting_category").reset_index()
     return birth_prevalence
