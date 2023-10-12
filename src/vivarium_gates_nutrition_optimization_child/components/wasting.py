@@ -193,7 +193,7 @@ class WastingDiseaseState(DiseaseState):
     """DiseaseState where birth prevalence LookupTables is parametrized by birthweight status."""
     def setup(self, builder: Builder) -> None:
         """Identical to DiseaseState setup but use birthweight parameter when building birth prevalence lookup table."""
-        super().setup(builder)
+        super(DiseaseState, self).setup(builder)
         self.clock = builder.time.clock()
 
         prevalence_data = self.load_prevalence_data(builder)
@@ -265,7 +265,7 @@ class DynamicChildWastingModel(DiseaseModel):
 
     @property
     def columns_required(self) -> Optional[List[str]]:
-        return ["age", "sex", "static_child_wasting_propensity"]
+        return ["age", "sex", "static_child_wasting_propensity", "birth_weight_status"]
 
     @property
     def initialization_requirements(self) -> Dict[str, List[str]]:
@@ -328,7 +328,7 @@ class DynamicChildWastingModel(DiseaseModel):
         simulants_df, state_names, weights_bins, propensities
     ):
         simulants = simulants_df[["age", "sex", "static_child_wasting_propensity"]].copy()
-
+        breakpoint()
         choice_index = (propensities.values[np.newaxis].T > weights_bins).sum(axis=1)
         initial_states = pd.Series(np.array(state_names)[choice_index], index=simulants.index)
 
@@ -506,5 +506,5 @@ def load_child_wasting_birth_prevalence(
     builder: Builder, wasting_category: str
 ) -> pd.DataFrame:
     birth_prevalence = builder.data.load(data_keys.WASTING.BIRTH_PREVALENCE)
-    birth_prevalence = birth_prevalence.query("parameter == @wasting_category").reset_index()
+    birth_prevalence = birth_prevalence.query("parameter == @wasting_category").reset_index().drop(['parameter', 'index'], axis=1)
     return birth_prevalence

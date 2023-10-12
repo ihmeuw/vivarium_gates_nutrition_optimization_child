@@ -386,7 +386,6 @@ def load_wasting_birth_prevalence(key: str, location: str) -> pd.DataFrame:
 
     birth_prevalence = pd.concat([low_bw_prevalence, adequate_bw_prevalence])
     birth_prevalence = birth_prevalence.set_index('birth_weight_status', append=True).sort_index()
-    breakpoint()
     return birth_prevalence
 
 

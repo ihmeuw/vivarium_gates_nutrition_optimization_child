@@ -86,7 +86,7 @@ class LBWSGLineList(LBWSGRisk):
 
             # add birth weight status to state table
             birth_weight = self.population_view.get(pop_data.index)['birth_weight_exposure']
-            birth_weight_status = np.where(birth_weight <= 2500, 'low_birthweight', 'adequate_birthweight')
+            birth_weight_status = np.where(birth_weight <= 2500, 'low_birth_weight', 'adequate_birth_weight')
             birth_weight_status = pd.Series(birth_weight_status, name=self.birth_weight_status_column_name)
             self.population_view.update(birth_weight_status)
 
