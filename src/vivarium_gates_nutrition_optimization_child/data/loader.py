@@ -381,7 +381,9 @@ def load_wasting_birth_prevalence(key: str, location: str) -> pd.DataFrame:
     ).sort_index()
 
     # calculate prevalences
-    wasting_cat1_and_2_prevalence = wasting_prevalence.query("parameter=='cat1' or parameter=='cat2'")
+    wasting_cat1_and_2_prevalence = wasting_prevalence.query(
+        "parameter=='cat1' or parameter=='cat2'"
+    )
     wasting_cat3_prevalence = wasting_prevalence.query("parameter == 'cat3'")
     lbw_cat1_and_2_prevalence = lbw_prevalence.query("parameter=='cat1' or parameter=='cat2'")
     lbw_cat3_prevalence = lbw_prevalence.query("parameter == 'cat3'")
