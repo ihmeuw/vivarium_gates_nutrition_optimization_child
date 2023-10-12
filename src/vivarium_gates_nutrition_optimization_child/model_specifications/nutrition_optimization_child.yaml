@@ -19,7 +19,6 @@ components:
         metrics:
             - DisabilityObserver()
             - CategoricalRiskObserver('child_stunting')
-            - CategoricalRiskObserver('child_underweight')
 
     vivarium_gates_nutrition_optimization_child:
         components:
