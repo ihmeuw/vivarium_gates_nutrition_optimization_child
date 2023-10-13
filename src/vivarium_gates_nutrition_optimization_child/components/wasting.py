@@ -197,11 +197,14 @@ class WastingTreatment(Risk):
 
 class WastingDiseaseState(DiseaseState):
     """DiseaseState where birth prevalence LookupTables is parametrized by birthweight status."""
+
     def get_birth_prevalence(
         self, builder: Builder, birth_prevalence_data: LookupTableData
     ) -> LookupTable:
         return builder.lookup.build_table(
-            birth_prevalence_data, key_columns=["sex", "birth_weight_status"], parameter_columns=["year"]
+            birth_prevalence_data,
+            key_columns=["sex", "birth_weight_status"],
+            parameter_columns=["year"],
         )
 
 
