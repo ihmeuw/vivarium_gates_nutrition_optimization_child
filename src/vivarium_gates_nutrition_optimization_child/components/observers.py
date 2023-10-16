@@ -105,6 +105,12 @@ class ResultsStratifier(ResultsStratifier_):
             is_vectorized=True,
             requires_values=[data_values.SQ_LNS.COVERAGE_PIPELINE],
         )
+        builder.results.register_stratification(
+            "birth_weight_status",
+            ["low_birth_weight", "adequate_birth_weight"],
+            is_vectorized=True,
+            requires_columns=["birth_weight_status"],
+        )
 
     ###########################
     # Stratifications Details #
