@@ -14,7 +14,7 @@ GROUPBY_COLUMNS = [
     results.INPUT_DRAW_COLUMN,
     SCENARIO_COLUMN,
     MATERNAL_SCENARIO_COLUMN,
-    RANDOM_SEED_COLUMN,
+    # RANDOM_SEED_COLUMN,
 ]
 OUTPUT_COLUMN_SORT_ORDER = [
     "age_group",
@@ -33,8 +33,8 @@ RENAME_COLUMNS = {
 
 def make_measure_data(data: pd.DataFrame, disaggregate_seeds: bool):
     measure_data = MeasureData(
-        ylls=get_by_cause_measure_data(data, "ylls", disaggregate_seeds),
-        ylds=get_by_cause_measure_data(data, "ylds", disaggregate_seeds),
+        # ylls=get_by_cause_measure_data(data, "ylls", disaggregate_seeds),
+        # ylds=get_by_cause_measure_data(data, "ylds", disaggregate_seeds),
         deaths=get_by_cause_measure_data(data, "deaths", disaggregate_seeds),
         #        diarrhea_state_person_time=get_state_person_time_measure_data(
         #            data, "diarrhea_state_person_time", disaggregate_seeds
@@ -96,8 +96,8 @@ def make_measure_data(data: pd.DataFrame, disaggregate_seeds: bool):
 
 
 class MeasureData(NamedTuple):
-    ylls: pd.DataFrame
-    ylds: pd.DataFrame
+    # ylls: pd.DataFrame
+    # ylds: pd.DataFrame
     deaths: pd.DataFrame
     #    diarrhea_state_person_time: pd.DataFrame
     #    lri_state_person_time: pd.DataFrame

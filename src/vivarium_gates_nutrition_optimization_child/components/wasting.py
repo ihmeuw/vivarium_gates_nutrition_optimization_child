@@ -156,7 +156,7 @@ class WastingTreatment(Risk):
                 propensity = self.propensity(index)
                 return pd.Series(self.exposure_distribution.ppf(propensity), index=index)
             elif mam_coverage == "targeted":
-                # initialize exposures as 0s using index
+                # initialize exposures as cat1 using index
                 exposures = pd.Series("cat1", index=index)
 
                 # define relevant booleans
@@ -166,7 +166,7 @@ class WastingTreatment(Risk):
 
                 in_mam_state = wasting == "cat2"
                 in_age_range = (age >= 0.5) & (age < 2)
-                is_severely_underweight = underweight == "cat3"
+                is_severely_underweight = underweight == "cat1"
 
                 is_covered = (in_mam_state & in_age_range) | (
                     in_mam_state & is_severely_underweight

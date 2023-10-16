@@ -1,3 +1,7 @@
+**v0.9.0 - 10/12/23**
+
+ - Add MAM targeting scenario
+
 **v0.8.0 - 09/18/23**
 
  - Update effect of BEP on birthweight to account for maternal BMI status
