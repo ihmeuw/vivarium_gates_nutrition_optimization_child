@@ -790,8 +790,10 @@ def load_wasting_treatment_exposure(key: str, location: str) -> pd.DataFrame:
 
     exposure = pd.concat([cat1, cat2, cat3]).set_index("parameter", append=True).sort_index()
     # infants under 6 months of age should not receive treatment
-    under_6_months_idx = exposure.query("age_start < .5").index
-    exposure.loc[under_6_months_idx] = 0
+    under_6_months_unexposed_idx = exposure.query("age_start < .5 & parameter=='cat1'").index
+    under_6_months_exposed_idx = exposure.query("age_start < .5 & parameter!='cat1'").index
+    exposure.loc[under_6_months_unexposed_idx] = 1
+    exposure.loc[under_6_months_exposed_idx] = 0
     return exposure
 
 
