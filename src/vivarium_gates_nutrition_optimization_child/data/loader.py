@@ -577,6 +577,16 @@ def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
             data.index.get_level_values("age_end").isin(neonatal_age_ends)
             & (data.index.get_level_values("parameter") == data_keys.STUNTING.CAT4)
         ] = 1.0
+    if entity_key == data_keys.WASTING.EXPOSURE:
+        # distribute probability of entering MAM state amongst worse MAM (cat2) and better MAM (cat2.5)
+        cat2_rows = data.query("parameter=='cat2'")
+        # update cat2 rows
+        data.loc[data.query("parameter=='cat2'").index] = cat2_rows * data_values.WASTING.PROBABILITY_OF_CAT2
+        # create cat2.5 rows
+        cat25_rows = cat2_rows * (1-data_values.WASTING.PROBABILITY_OF_CAT2)
+        cat25_rows = cat25_rows.reset_index().replace({"parameter": {"cat2": "cat2.5"}}).set_index(data.index.names)
+
+        data = pd.concat([data, cat25_rows]).sort_index()
     return data
 
 
