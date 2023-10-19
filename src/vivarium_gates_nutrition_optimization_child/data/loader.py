@@ -272,6 +272,9 @@ def load_metadata(key: str, location: str):
     entity_metadata = entity[key.measure]
     if hasattr(entity_metadata, "to_dict"):
         entity_metadata = entity_metadata.to_dict()
+    if key == data_keys.WASTING.CATEGORIES:
+        entity_metadata['cat2'] = 'Wasting Between -3 SD and -2.5 SD (post-ensemble)'
+        entity_metadata['cat2.5'] = 'Wasting Between -2.5 SD and -2 SD (post-ensemble)'
     return entity_metadata
 
 
@@ -537,7 +540,11 @@ def load_underweight_exposure(key: str, location: str) -> pd.DataFrame:
         + ["stunting_parameter", "wasting_parameter", "parameter"]
     )
 
-    return df.sort_index()
+    # add wasting cat2.5 data by duplicating wasting cat2 data
+    cat2_rows = df.query("wasting_parameter=='cat2'").copy()
+    new_cat_rows = cat2_rows.reset_index().replace({"wasting_parameter": {"cat2": "cat2.5"}}).set_index(df.index.names)
+    df = pd.concat([df, new_cat_rows]).sort_index()
+    return df
 
 
 def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
@@ -729,6 +736,10 @@ def load_wasting_treatment_exposure(key: str, location: str) -> pd.DataFrame:
     cat3["parameter"] = "cat3"
 
     exposure = pd.concat([cat1, cat2, cat3]).set_index("parameter", append=True).sort_index()
+
+    if key == data_keys.MAM_TREATMENT.EXPOSURE:
+        cat2_rows = exposure.query("parameter=='cat2'").copy()
+        
     return exposure
 
 
@@ -809,6 +820,11 @@ def load_mam_treatment_rr(key: str, location: str) -> pd.DataFrame:
         [col for col in rr.index.names if col != "parameter"] + ["parameter"]
     )
     rr.sort_index()
+
+    # add cat2.5 rows to artifact (same as cat2 for now)
+    cat2_rows = rr.query("parameter=='cat2'").copy()
+    new_cat_rows = cat2_rows.reset_index().replace({"parameter": {"cat2": "cat2.5"}}).set_index(rr.index.names)
+    rr = pd.concat([rr, new_cat_rows]).sort_index()
     return rr
 
 
