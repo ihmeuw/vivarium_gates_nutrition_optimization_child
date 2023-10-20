@@ -110,6 +110,7 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.WASTING.RELATIVE_RISK: load_gbd_2021_rr,
         data_keys.WASTING.PAF: load_categorical_paf,
         data_keys.WASTING.TRANSITION_RATES: load_wasting_transition_rates,
+        data_keys.WASTING.BIRTH_PREVALENCE: load_wasting_birth_prevalence,
         data_keys.STUNTING.DISTRIBUTION: load_metadata,
         data_keys.STUNTING.ALT_DISTRIBUTION: load_metadata,
         data_keys.STUNTING.CATEGORIES: load_metadata,
@@ -352,6 +353,77 @@ def expand_data(data: pd.DataFrame, column_name: str, column_values: List) -> pd
     return data
 
 
+def load_wasting_birth_prevalence(key: str, location: str) -> pd.DataFrame:
+    wasting_prevalence = (
+        get_data(data_keys.WASTING.EXPOSURE, location)
+        .query("age_end == 0.5")
+        .droplevel(["age_start", "age_end"])
+    )
+    relative_risk = 2  # placeholder value
+
+    # read and process prevalence of low birth weight amongst infants who survive to 30 days
+    lbwsg_exposure = get_data(data_keys.LBWSG.EXPOSURE, location)
+    # use data from 1 to 5 month age group and sum all low birth weight category prevalences
+    lbwsg_exposure = lbwsg_exposure.query(
+        "parameter in @data_values.LBWSG.LOW_BIRTH_WEIGHT_CATEGORIES & age_start!=0"
+    )
+    lbw_prevalence = lbwsg_exposure.groupby(metadata.ARTIFACT_INDEX_COLUMNS).sum()
+    lbw_prevalence = lbw_prevalence.droplevel(
+        ["age_start", "age_end", "year_start", "year_end"]
+    )
+
+    # reshape lbw prevalence to look like wasting prevalence index
+    year_starts = wasting_prevalence.reset_index()["year_start"].unique()
+    categories = wasting_prevalence.reset_index()["parameter"].unique()
+
+    lbw_prevalence = expand_data(lbw_prevalence, "year_start", year_starts)
+    lbw_prevalence["year_end"] = lbw_prevalence["year_start"] + 1
+    lbw_prevalence = expand_data(lbw_prevalence, "parameter", categories)
+    lbw_prevalence = lbw_prevalence.set_index(
+        ["sex", "year_start", "year_end", "parameter"]
+    ).sort_index()
+
+    # calculate prevalences
+    wasting_cat1_and_2_prevalence = wasting_prevalence.query(
+        "parameter=='cat1' or parameter=='cat2'"
+    )
+    wasting_cat3_prevalence = wasting_prevalence.query("parameter == 'cat3'")
+    lbw_cat1_and_2_prevalence = lbw_prevalence.query("parameter=='cat1' or parameter=='cat2'")
+    lbw_cat3_prevalence = lbw_prevalence.query("parameter == 'cat3'")
+
+    adequate_bw_cat1_and_cat2_wasting_prevalence = wasting_cat1_and_2_prevalence / (
+        (lbw_cat1_and_2_prevalence * relative_risk) + (1 - lbw_cat1_and_2_prevalence)
+    )
+    adequate_bw_cat3_wasting_prevalence = wasting_cat3_prevalence / (
+        (lbw_cat3_prevalence / relative_risk) + (1 - lbw_cat3_prevalence)
+    )
+    adequate_bw_prevalence = pd.concat(
+        [adequate_bw_cat1_and_cat2_wasting_prevalence, adequate_bw_cat3_wasting_prevalence]
+    )
+    low_bw_prevalence = adequate_bw_prevalence * relative_risk
+
+    adequate_bw_prevalence["birth_weight_status"] = "adequate_birth_weight"
+    low_bw_prevalence["birth_weight_status"] = "low_birth_weight"
+
+    birth_prevalence = pd.concat([low_bw_prevalence, adequate_bw_prevalence])
+    birth_prevalence = birth_prevalence.set_index(
+        "birth_weight_status", append=True
+    ).sort_index()
+
+    # distribute probability of being initialized in MAM state
+    # amongst worse MAM (cat2) and better MAM (cat2.5)
+    cat2_rows = birth_prevalence.query("parameter=='cat2'").copy()
+    # update cat2 rows
+    birth_prevalence.loc[birth_prevalence.query("parameter=='cat2'").index] = cat2_rows * data_values.WASTING.PROBABILITY_OF_CAT2
+    # create cat2.5 rows
+    cat25_rows = cat2_rows * (1 - data_values.WASTING.PROBABILITY_OF_CAT2)
+    cat25_rows = cat25_rows.reset_index().replace({"parameter": {"cat2": "cat2.5"}}).set_index(birth_prevalence.index.names)
+
+    birth_prevalence = pd.concat([birth_prevalence, cat25_rows]).sort_index()
+
+    return birth_prevalence
+
+
 def _load_em_from_meid(location, meid, measure):
     location_id = utility_data.get_location_id(location)
     data = gbd.get_modelable_entity_draws(meid, location_id)
@@ -579,7 +651,7 @@ def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
         ] = 1.0
     if entity_key == data_keys.WASTING.EXPOSURE:
         # distribute probability of entering MAM state amongst worse MAM (cat2) and better MAM (cat2.5)
-        cat2_rows = data.query("parameter=='cat2'")
+        cat2_rows = data.query("parameter=='cat2'").copy()
         # update cat2 rows
         data.loc[data.query("parameter=='cat2'").index] = cat2_rows * data_values.WASTING.PROBABILITY_OF_CAT2
         # create cat2.5 rows
