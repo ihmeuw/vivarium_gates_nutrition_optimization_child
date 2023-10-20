@@ -9,6 +9,7 @@ simulants who are initialized from line list data.
 """
 from typing import Dict, List
 
+import numpy as np
 import pandas as pd
 from vivarium.framework.engine import Builder
 from vivarium.framework.population import PopulationView, SimulantData
@@ -29,7 +30,10 @@ class LBWSGLineList(LBWSGRisk):
 
     @property
     def columns_created(self) -> List[str]:
-        return super().columns_created + [self.raw_gestational_age_exposure_column_name]
+        return super().columns_created + [
+            self.raw_gestational_age_exposure_column_name,
+            self.birth_weight_status_column_name,
+        ]
 
     @property
     def initialization_requirements(self) -> Dict[str, List[str]]:
@@ -42,6 +46,7 @@ class LBWSGLineList(LBWSGRisk):
     def __init__(self):
         super().__init__()
         self.raw_gestational_age_exposure_column_name = "raw_gestational_age_exposure"
+        self.birth_weight_status_column_name = "birth_weight_status"
 
     # noinspection PyAttributeOutsideInit
     def setup(self, builder: Builder):
@@ -68,7 +73,8 @@ class LBWSGLineList(LBWSGRisk):
     def on_initialize_simulants(self, pop_data: SimulantData) -> None:
         if pop_data.creation_time < self.start_time:
             columns = [self.exposure_column_name(axis) for axis in self.AXES] + [
-                self.raw_gestational_age_exposure_column_name
+                self.raw_gestational_age_exposure_column_name,
+                self.birth_weight_status_column_name,
             ]
             new_simulants = pd.DataFrame(columns=columns, index=pop_data.index)
             self.population_view.update(new_simulants)
@@ -81,6 +87,16 @@ class LBWSGLineList(LBWSGRisk):
             self.population_view.update(gestational_age)
 
             super().on_initialize_simulants(pop_data)
+
+            # add birth weight status to state table
+            birth_weight = self.population_view.get(pop_data.index)["birth_weight_exposure"]
+            birth_weight_status = np.where(
+                birth_weight <= 2500, "low_birth_weight", "adequate_birth_weight"
+            )
+            birth_weight_status = pd.Series(
+                birth_weight_status, name=self.birth_weight_status_column_name
+            )
+            self.population_view.update(birth_weight_status)
 
     ##################################
     # Pipeline sources and modifiers #

@@ -5,13 +5,15 @@ import pandas as pd
 from vivarium import Component
 from vivarium.framework.engine import Builder
 from vivarium.framework.event import Event
+from vivarium.framework.lookup import LookupTable, LookupTableData
 from vivarium.framework.population import PopulationView
+from vivarium.framework.values import list_combiner, union_post_processor
 from vivarium_public_health.disease import DiseaseModel, DiseaseState, SusceptibleState
 from vivarium_public_health.risks import Risk
 from vivarium_public_health.risks.data_transformations import (
     get_exposure_post_processor,
 )
-from vivarium_public_health.utilities import EntityString
+from vivarium_public_health.utilities import EntityString, is_non_zero
 
 from vivarium_gates_nutrition_optimization_child.constants import (
     data_keys,
@@ -150,6 +152,12 @@ class WastingTreatment(Risk):
         is_mam_component = self.risk.name == "moderate_acute_malnutrition_treatment"
         coverage_to_exposure_map = {"none": "cat1", "full": "cat2"}
 
+        # simulants under 6 months should not be on treatment
+        if len(index) > 0:
+            # all simulants are the same age so just check the first simulant
+            if self.population_view.get(pd.Index([0]))["age"].squeeze() < 0.5:
+                return pd.Series("cat1", index=index)
+
         if is_mam_component:
             mam_coverage = self.scenario.mam_tx_coverage
             if mam_coverage == "baseline":  # return standard exposure if baseline
@@ -187,6 +195,19 @@ class WastingTreatment(Risk):
                 return pd.Series(exposure, index=index)
 
 
+class WastingDiseaseState(DiseaseState):
+    """DiseaseState where birth prevalence LookupTables is parametrized by birthweight status."""
+
+    def get_birth_prevalence(
+        self, builder: Builder, birth_prevalence_data: LookupTableData
+    ) -> LookupTable:
+        return builder.lookup.build_table(
+            birth_prevalence_data,
+            key_columns=["sex", "birth_weight_status"],
+            parameter_columns=["year"],
+        )
+
+
 class DynamicChildWastingModel(DiseaseModel):
     @property
     def columns_created(self) -> List[str]:
@@ -194,7 +215,7 @@ class DynamicChildWastingModel(DiseaseModel):
 
     @property
     def columns_required(self) -> Optional[List[str]]:
-        return ["age", "sex", "static_child_wasting_propensity"]
+        return ["age", "sex", "static_child_wasting_propensity", "birth_weight_status"]
 
     @property
     def initialization_requirements(self) -> Dict[str, List[str]]:
@@ -268,7 +289,7 @@ class DynamicChildWastingModel(DiseaseModel):
 # noinspection PyPep8Naming
 def DynamicChildWasting() -> DynamicChildWastingModel:
     tmrel = SusceptibleState(models.WASTING.MODEL_NAME)
-    mild = DiseaseState(
+    mild = WastingDiseaseState(
         models.WASTING.MILD_STATE_NAME,
         cause_type="sequela",
         get_data_functions={
@@ -278,7 +299,7 @@ def DynamicChildWasting() -> DynamicChildWastingModel:
             "birth_prevalence": load_mild_wasting_birth_prevalence,
         },
     )
-    moderate = DiseaseState(
+    moderate = WastingDiseaseState(
         models.WASTING.MODERATE_STATE_NAME,
         cause_type="sequela",
         get_data_functions={
@@ -288,7 +309,7 @@ def DynamicChildWasting() -> DynamicChildWastingModel:
             "birth_prevalence": load_mam_birth_prevalence,
         },
     )
-    severe = DiseaseState(
+    severe = WastingDiseaseState(
         models.WASTING.SEVERE_STATE_NAME,
         cause_type="sequela",
         get_data_functions={
@@ -434,13 +455,10 @@ def load_child_wasting_exposures(builder: Builder) -> pd.DataFrame:
 def load_child_wasting_birth_prevalence(
     builder: Builder, wasting_category: str
 ) -> pd.DataFrame:
-    exposure = load_child_wasting_exposures(builder)[wasting_category]
+    birth_prevalence = builder.data.load(data_keys.WASTING.BIRTH_PREVALENCE)
     birth_prevalence = (
-        exposure[
-            exposure.index.get_level_values("age_end")
-            == data_values.WASTING.DYNAMIC_START_AGE
-        ]
-        .droplevel(["age_start", "age_end"])
+        birth_prevalence.query("parameter == @wasting_category")
         .reset_index()
+        .drop(["parameter", "index"], axis=1)
     )
     return birth_prevalence

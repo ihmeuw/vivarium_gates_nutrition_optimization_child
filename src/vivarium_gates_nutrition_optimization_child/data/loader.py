@@ -819,9 +819,10 @@ def load_wasting_treatment_exposure(key: str, location: str) -> pd.DataFrame:
 
     exposure = pd.concat([cat1, cat2, cat3]).set_index("parameter", append=True).sort_index()
 
-    if key == data_keys.MAM_TREATMENT.EXPOSURE:
-        cat2_rows = exposure.query("parameter=='cat2'").copy()
-        
+    # infants under 6 months of age should not receive treatment
+    under_6_months_idx = exposure.query("age_start < .5").index
+    exposure.loc[under_6_months_idx] = 0
+
     return exposure
 
 
