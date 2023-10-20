@@ -336,7 +336,7 @@ def load_wasting_transition_rates(key: str, location: str) -> pd.DataFrame:
 
     rates = rates[youngest_ages_data.columns]
     rates = pd.concat([youngest_ages_data, rates])
-    rates = rates.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ["transition"]).sort_index()
+    #rates = rates.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ["transition"]).sort_index()
 
     # update rate transitions into MAM to substates
 
@@ -346,9 +346,9 @@ def load_wasting_transition_rates(key: str, location: str) -> pd.DataFrame:
     rates = pd.concat([rates, worse_mam_incidence_rates])
     rates = rates.replace({'transition': {'inc_rate_mam': 'inc_rate_better_mam'}})
     # update incidence transition values
+    rates = rates.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ["transition"]).sort_index()
     worse_mam_idx = rates.query("transition == 'inc_rate_worse_mam'").index
     better_mam_idx = rates.query("transition == 'inc_rate_better_mam'").index
-    rates = rates.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ["transition"]).sort_index()
     rates.loc[worse_mam_idx] = rates.loc[worse_mam_idx] * data_values.WASTING.PROBABILITY_OF_CAT2
     rates.loc[better_mam_idx] = rates.loc[better_mam_idx] * (1-data_values.WASTING.PROBABILITY_OF_CAT2)
 
@@ -359,9 +359,9 @@ def load_wasting_transition_rates(key: str, location: str) -> pd.DataFrame:
     rates = pd.concat([rates, worse_mam_remission_rates])
     rates = rates.replace({'transition': {'ux_rem_rate_sam': 'sam_to_better_mam'}})
     # update incidence transition values
+    rates = rates.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ["transition"]).sort_index()
     worse_mam_idx = rates.query("transition == 'sam_to_worse_mam'").index
     better_mam_idx = rates.query("transition == 'sam_to_better_mam'").index
-    rates = rates.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ["transition"]).sort_index()
     rates.loc[worse_mam_idx] = rates.loc[worse_mam_idx] * data_values.WASTING.PROBABILITY_OF_CAT2
     rates.loc[better_mam_idx] = rates.loc[better_mam_idx] * (1-data_values.WASTING.PROBABILITY_OF_CAT2)
 
