@@ -752,6 +752,15 @@ def load_gbd_2021_rr(key: str, location: str) -> pd.DataFrame:
         # Remove neonatal relative risks
         neonatal_age_ends = data.index.get_level_values("age_end").unique()[:2]
         data.loc[data.index.get_level_values("age_end").isin(neonatal_age_ends)] = 1.0
+    if key == data_keys.WASTING.RELATIVE_RISK:
+        # add wasting cat2.5 data by duplicating wasting cat2 data
+        cat2_rows = data.query("parameter=='cat2'").copy()
+        new_cat_rows = (
+            cat2_rows.reset_index()
+            .replace({"parameter": {"cat2": "cat2.5"}})
+            .set_index(data.index.names)
+        )
+        data = pd.concat([data, new_cat_rows]).sort_index()
     return data
 
 
@@ -959,15 +968,6 @@ def load_mam_treatment_rr(key: str, location: str) -> pd.DataFrame:
         [col for col in rr.index.names if col != "parameter"] + ["parameter"]
     )
     rr.sort_index()
-
-    # add wasting cat2.5 data by duplicating wasting cat2 data
-    cat2_rows = rr.query("parameter=='cat2'").copy()
-    new_cat_rows = (
-        cat2_rows.reset_index()
-        .replace({"parameter": {"cat2": "cat2.5"}})
-        .set_index(rr.index.names)
-    )
-    rr = pd.concat([rr, new_cat_rows]).sort_index()
     return rr
 
 
