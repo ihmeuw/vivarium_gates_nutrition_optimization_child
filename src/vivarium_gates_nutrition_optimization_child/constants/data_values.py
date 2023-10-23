@@ -96,7 +96,7 @@ LBWSG = __LBWSG()
 ############################
 class __Wasting(NamedTuple):
     # Wasting age start (in years)
-    DYNAMIC_START_AGE: float = 0.5
+    DYNAMIC_START_AGE: float = 0.07671233
 
     # Wasting treatment distribution type and categories
     DISTRIBUTION: str = "ordered_polytomous"
