@@ -326,7 +326,8 @@ def load_wasting_transition_rates(key: str, location: str) -> pd.DataFrame:
     rates["year_end"] = rates["year_start"] + 1
 
     # explicitly add the youngest ages data with values of 0
-    demography = demography.query("age_start < .5")
+    min_age = rates.reset_index()['age_start'].min()
+    demography = demography.query("age_start < @min_age")
     youngest_ages_data = pd.DataFrame(
         0, columns=metadata.ARTIFACT_COLUMNS, index=demography.index
     )
@@ -336,15 +337,14 @@ def load_wasting_transition_rates(key: str, location: str) -> pd.DataFrame:
 
     rates = rates[youngest_ages_data.columns]
     rates = pd.concat([youngest_ages_data, rates])
-    #rates = rates.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ["transition"]).sort_index()
 
     # update rate transitions into MAM to substates
 
     # update incidence transition names
     incidence_rates = rates.query("transition == 'inc_rate_mam'").copy()
     worse_mam_incidence_rates = incidence_rates.replace({'transition': {'inc_rate_mam': 'inc_rate_worse_mam'}})
-    rates = pd.concat([rates, worse_mam_incidence_rates])
     rates = rates.replace({'transition': {'inc_rate_mam': 'inc_rate_better_mam'}})
+    rates = pd.concat([rates, worse_mam_incidence_rates])
     # update incidence transition values
     rates = rates.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ["transition"]).sort_index()
     worse_mam_idx = rates.query("transition == 'inc_rate_worse_mam'").index
@@ -356,8 +356,8 @@ def load_wasting_transition_rates(key: str, location: str) -> pd.DataFrame:
     rates = rates.reset_index()
     remission_rates = rates.query("transition == 'ux_rem_rate_sam'").copy()
     worse_mam_remission_rates = remission_rates.replace({'transition': {'ux_rem_rate_sam': 'sam_to_worse_mam'}})
-    rates = pd.concat([rates, worse_mam_remission_rates])
     rates = rates.replace({'transition': {'ux_rem_rate_sam': 'sam_to_better_mam'}})
+    rates = pd.concat([rates, worse_mam_remission_rates])
     # update incidence transition values
     rates = rates.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ["transition"]).sort_index()
     worse_mam_idx = rates.query("transition == 'sam_to_worse_mam'").index
