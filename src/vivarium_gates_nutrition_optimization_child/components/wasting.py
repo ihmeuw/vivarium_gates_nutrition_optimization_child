@@ -435,13 +435,16 @@ def load_mild_wasting_exposure(builder: Builder, cause: str) -> pd.DataFrame:
 def load_wasting_rate(builder: Builder, *wasting_states) -> pd.DataFrame:
     states_to_transition_map = {
         ("mild_child_wasting",): "inc_rate_mild",
-        ("mild_child_wasting", "moderate_acute_malnutrition"): "inc_rate_mam",
-        #("moderate_acute_malnutrition", "severe_acute_malnutrition"): "inc_rate_sam",
+        ("mild_child_wasting", "better_moderate_acute_malnutrition"): "inc_rate_better_mam",
+        ("mild_child_wasting", "worse_moderate_acute_malnutrition"): "inc_rate_worse_mam",
+        ("better_moderate_acute_malnutrition", "severe_acute_malnutrition"): "inc_rate_sam",
+        ("worse_moderate_acute_malnutrition", "severe_acute_malnutrition"): "inc_rate_sam",
         ("susceptible_to_child_wasting",): "rem_rate_mild",
-        ("moderate_acute_malnutrition_better", "mild_child_wasting"): "rem_rate_mam",
-        ("moderate_acute_malnutrition_worse", "mild_child_wasting"): "rem_rate_mam",
+        ("better_moderate_acute_malnutrition", "mild_child_wasting"): "rem_rate_mam",
+        ("worse_moderate_acute_malnutrition", "mild_child_wasting"): "rem_rate_mam",
         ("severe_acute_malnutrition", "mild_child_wasting"): "tx_rem_rate_sam",
-        #("severe_acute_malnutrition", "moderate_acute_malnutrition"): "ux_rem_rate_sam",
+        ("severe_acute_malnutrition", "better_moderate_acute_malnutrition"): "sam_to_better_mam",
+        ("severe_acute_malnutrition", "worse_moderate_acute_malnutrition"): "sam_to_worse_mam",
     }
     transition = states_to_transition_map[wasting_states]
     data = get_transition_data(builder, transition)
