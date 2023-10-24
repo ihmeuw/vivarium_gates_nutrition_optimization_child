@@ -32,19 +32,19 @@ class ChildWasting(Component):
         return [
             "alive",
             "age",
-            self.dynamic_model.state_column,
+            self.disease_model.state_column,
         ]
 
     def __init__(self):
         super().__init__()
-        self.dynamic_model = DynamicChildWasting()
-        self.static_model = StaticChildWasting()
+        self.disease_model = ChildWastingDiseaseModel()
+        self.risk_model = ChildWastingRiskModel()
 
     @property
     def sub_components(self):
         return [
-            self.dynamic_model,
-            self.static_model,
+            self.disease_model,
+            self.risk_model,
         ]
 
     # noinspection PyAttributeOutsideInit
@@ -52,8 +52,7 @@ class ChildWasting(Component):
         self.exposure = builder.value.register_value_producer(
             f"{self.name}.exposure",
             source=self.get_current_exposure,
-            requires_columns=["age", "alive", self.dynamic_model.state_column],
-            requires_values=[self.static_model.exposure_pipeline_name],
+            requires_columns=["age", "alive", self.disease_model.state_column],
             preferred_post_processor=get_exposure_post_processor(
                 builder, EntityString(f"risk_factor.{self.name}")
             ),
@@ -61,18 +60,11 @@ class ChildWasting(Component):
 
     def get_current_exposure(self, index: pd.Index) -> pd.Series:
         pop = self.population_view.get(index)
-        exposure = pop[self.dynamic_model.state_column].apply(models.get_risk_category)
-        under_six_months = (pop["age"] < data_values.WASTING.DYNAMIC_START_AGE) & (
-            pop["alive"] == "alive"
-        )
-        if under_six_months.any():
-            exposure[under_six_months] = self.static_model.exposure(
-                pop[under_six_months].index
-            )
+        exposure = pop[self.disease_model.state_column].apply(models.get_risk_category)
         return exposure
 
 
-class StaticChildWasting(Risk):
+class ChildWastingRiskModel(Risk):
     def __init__(self):
         # use super's init to get exposure distribution
         # but overwrite other names
@@ -287,7 +279,7 @@ class DynamicChildWastingModel(DiseaseModel):
 
 
 # noinspection PyPep8Naming
-def DynamicChildWasting() -> DynamicChildWastingModel:
+def ChildWastingDiseaseModel() -> DynamicChildWastingModel:
     tmrel = SusceptibleState(models.WASTING.MODEL_NAME)
     mild = WastingDiseaseState(
         models.WASTING.MILD_STATE_NAME,

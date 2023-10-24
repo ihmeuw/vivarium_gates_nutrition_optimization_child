@@ -95,9 +95,6 @@ LBWSG = __LBWSG()
 # Wasting Model Parameters #
 ############################
 class __Wasting(NamedTuple):
-    # Wasting age start (in years)
-    DYNAMIC_START_AGE: float = 0.07671233
-
     # Wasting treatment distribution type and categories
     DISTRIBUTION: str = "ordered_polytomous"
     CATEGORIES: Dict[str, str] = {
