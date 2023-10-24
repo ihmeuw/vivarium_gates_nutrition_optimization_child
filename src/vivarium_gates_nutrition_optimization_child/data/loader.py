@@ -376,7 +376,7 @@ def load_wasting_birth_prevalence(key: str, location: str) -> pd.DataFrame:
     lbw_prevalence = expand_data(lbw_prevalence, "year_start", year_starts)
     lbw_prevalence["year_end"] = lbw_prevalence["year_start"] + 1
     lbw_prevalence = lbw_prevalence.set_index(
-        ["sex", "year_start", "year_end", "parameter"]
+        ["sex", "year_start", "year_end"]
     ).sort_index()
 
     # calculate prevalences
