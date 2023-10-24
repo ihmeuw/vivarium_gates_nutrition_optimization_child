@@ -371,7 +371,6 @@ def load_wasting_birth_prevalence(key: str, location: str) -> pd.DataFrame:
 
     # reshape lbw prevalence to look like wasting prevalence index
     year_starts = wasting_prevalence.reset_index()["year_start"].unique()
-    categories = wasting_prevalence.reset_index()["parameter"].unique()
 
     lbw_prevalence = expand_data(lbw_prevalence, "year_start", year_starts)
     lbw_prevalence["year_end"] = lbw_prevalence["year_start"] + 1
@@ -387,7 +386,8 @@ def load_wasting_birth_prevalence(key: str, location: str) -> pd.DataFrame:
 
     adequate_birth_weight_cat1_probability = prev_cat1 / ( (relative_risk * lbw_prevalence) + (1 - lbw_prevalence) )
     adequate_birth_weight_cat2_probability = prev_cat2 / ( (relative_risk * lbw_prevalence) + (1 - lbw_prevalence))
-    adequate_birth_weight_cat3_probability = prev_cat3 + ( (prev_cat1 + prev_cat2 - adequate_birth_weight_cat1_probability - adequate_birth_weight_cat2_probability) * prev_cat3 / (prev_cat3 + prev_cat4) )
+    adequate_birth_weight_cat3_probability = prev_cat3 + ( (prev_cat1.droplevel('parameter') + prev_cat2.droplevel('parameter') - adequate_birth_weight_cat1_probability.droplevel('parameter') - adequate_birth_weight_cat2_probability.droplevel('parameter')) * prev_cat3 / (prev_cat3 + prev_cat4.droplevel('parameter')) )
+    breakpoint()
     adequate_birth_weight_cat4_probability = prev_cat4 + ( (prev_cat1 + prev_cat2 - adequate_birth_weight_cat1_probability - adequate_birth_weight_cat2_probability) * prev_cat4 / (prev_cat3 + prev_cat4) )
 
     low_birth_weight_cat1_probability = adequate_birth_weight_cat1_probability * relative_risk
