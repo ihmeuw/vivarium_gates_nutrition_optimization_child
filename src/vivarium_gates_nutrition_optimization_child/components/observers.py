@@ -276,7 +276,7 @@ class ChildWastingObserver(DiseaseObserver):
         self.categories = builder.data.load(f"risk_factor.{self.risk}.categories")
 
         disease_model = builder.components.get_component(
-            f"dynamic_child_wasting_model.{self.disease}"
+            f"child_wasting_model.{self.disease}"
         )
 
         # not needed in current output but keeping just in case we want to add it back
