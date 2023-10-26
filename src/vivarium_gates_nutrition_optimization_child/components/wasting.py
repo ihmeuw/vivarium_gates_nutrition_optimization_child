@@ -113,12 +113,13 @@ class WastingTreatment(Risk):
                 age = self.population_view.get(index)["age"]
                 underweight = self.underweight_exposure(index)
 
-                in_mam_state = wasting == "cat2"
+                in_mam_state = (wasting == "cat2") | (wasting == "cat2.5")
+                in_worse_mam_state = wasting == "cat2.5"
                 in_age_range = (age >= 0.5) & (age < 2)
                 is_severely_underweight = underweight == "cat1"
 
-                is_covered = (in_mam_state & in_age_range) | (
-                    in_mam_state & is_severely_underweight
+                is_covered = in_mam_state & (
+                    (in_age_range | is_severely_underweight) | in_worse_mam_state
                 )
                 exposures.loc[is_covered] = "cat2"
                 return exposures
