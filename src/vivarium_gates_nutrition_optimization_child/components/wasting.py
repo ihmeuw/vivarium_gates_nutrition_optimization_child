@@ -236,7 +236,7 @@ class ChildWastingModel(DiseaseModel):
     @staticmethod
     def assign_initial_status_to_simulants(
         simulants_df, state_names, weights_bins, propensities
-    ):
+    ) -> pd.DataFrame:
         simulants = simulants_df[["age", "sex"]].copy()
 
         choice_index = (propensities.values[np.newaxis].T > weights_bins).sum(axis=1)
