@@ -207,9 +207,7 @@ class ChildWastingModel(DiseaseModel):
         initial_propensity = self.randomness.get_draw(pop_data.index).rename(
             f"initial_{self.state_column}_propensity"
         )
-        population = self.population_view.subview(
-            ["age", "sex"]
-        ).get(pop_data.index)
+        population = self.population_view.subview(["age", "sex"]).get(pop_data.index)
 
         assert self.initial_state in {s.state_id for s in self.states}
 
