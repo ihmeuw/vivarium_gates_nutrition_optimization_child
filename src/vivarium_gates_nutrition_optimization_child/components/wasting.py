@@ -113,12 +113,13 @@ class WastingTreatment(Risk):
                 age = self.population_view.get(index)["age"]
                 underweight = self.underweight_exposure(index)
 
-                in_mam_state = wasting == "cat2"
+                in_mam_state = (wasting == "cat2") | (wasting == "cat2.5")
+                in_worse_mam_state = wasting == "cat2.5"
                 in_age_range = (age >= 0.5) & (age < 2)
                 is_severely_underweight = underweight == "cat1"
 
-                is_covered = (in_mam_state & in_age_range) | (
-                    in_mam_state & is_severely_underweight
+                is_covered = in_mam_state & (
+                    (in_age_range | is_severely_underweight) | in_worse_mam_state
                 )
                 exposures.loc[is_covered] = "cat2"
                 return exposures
@@ -268,14 +269,24 @@ def ChildWasting() -> ChildWastingModel:
             "birth_prevalence": load_mild_wasting_birth_prevalence,
         },
     )
-    moderate = WastingDiseaseState(
-        models.WASTING.MODERATE_STATE_NAME,
+    better_moderate = WastingDiseaseState(
+        models.WASTING.BETTER_MODERATE_STATE_NAME,
         cause_type="sequela",
         get_data_functions={
-            "prevalence": load_mam_exposure,
+            "prevalence": load_better_mam_exposure,
             "disability_weight": lambda *_: 0,
             "excess_mortality_rate": lambda *_: 0,
-            "birth_prevalence": load_mam_birth_prevalence,
+            "birth_prevalence": load_better_mam_birth_prevalence,
+        },
+    )
+    worse_moderate = WastingDiseaseState(
+        models.WASTING.WORSE_MODERATE_STATE_NAME,
+        cause_type="sequela",
+        get_data_functions={
+            "prevalence": load_worse_mam_exposure,
+            "disability_weight": lambda *_: 0,
+            "excess_mortality_rate": lambda *_: 0,
+            "birth_prevalence": load_worse_mam_birth_prevalence,
         },
     )
     severe = WastingDiseaseState(
@@ -301,7 +312,13 @@ def ChildWasting() -> ChildWastingModel:
     # Add transitions for mild
     mild.allow_self_transitions()
     mild.add_rate_transition(
-        moderate,
+        better_moderate,
+        get_data_functions={
+            "transition_rate": load_wasting_rate,
+        },
+    )
+    mild.add_rate_transition(
+        worse_moderate,
         get_data_functions={
             "transition_rate": load_wasting_rate,
         },
@@ -314,14 +331,28 @@ def ChildWasting() -> ChildWastingModel:
     )
 
     # Add transitions for moderate
-    moderate.allow_self_transitions()
-    moderate.add_rate_transition(
+    better_moderate.allow_self_transitions()
+    better_moderate.add_rate_transition(
         severe,
         get_data_functions={
             "transition_rate": load_wasting_rate,
         },
     )
-    moderate.add_rate_transition(
+    better_moderate.add_rate_transition(
+        mild,
+        get_data_functions={
+            "transition_rate": load_wasting_rate,
+        },
+    )
+
+    worse_moderate.allow_self_transitions()
+    worse_moderate.add_rate_transition(
+        severe,
+        get_data_functions={
+            "transition_rate": load_wasting_rate,
+        },
+    )
+    worse_moderate.add_rate_transition(
         mild,
         get_data_functions={
             "transition_rate": load_wasting_rate,
@@ -331,7 +362,13 @@ def ChildWasting() -> ChildWastingModel:
     # Add transitions for severe
     severe.allow_self_transitions()
     severe.add_rate_transition(
-        moderate,
+        better_moderate,
+        get_data_functions={
+            "transition_rate": load_wasting_rate,
+        },
+    )
+    severe.add_rate_transition(
+        worse_moderate,
         get_data_functions={
             "transition_rate": load_wasting_rate,
         },
@@ -346,7 +383,7 @@ def ChildWasting() -> ChildWastingModel:
     return ChildWastingModel(
         models.WASTING.MODEL_NAME,
         get_data_functions={"cause_specific_mortality_rate": lambda *_: 0},
-        states=[severe, moderate, mild, tmrel],
+        states=[severe, better_moderate, worse_moderate, mild, tmrel],
     )
 
 
@@ -368,12 +405,22 @@ def load_mild_wasting_exposure(builder: Builder, cause: str) -> pd.DataFrame:
 def load_wasting_rate(builder: Builder, *wasting_states) -> pd.DataFrame:
     states_to_transition_map = {
         ("mild_child_wasting",): "inc_rate_mild",
-        ("mild_child_wasting", "moderate_acute_malnutrition"): "inc_rate_mam",
-        ("moderate_acute_malnutrition", "severe_acute_malnutrition"): "inc_rate_sam",
+        ("mild_child_wasting", "better_moderate_acute_malnutrition"): "inc_rate_better_mam",
+        ("mild_child_wasting", "worse_moderate_acute_malnutrition"): "inc_rate_worse_mam",
+        ("better_moderate_acute_malnutrition", "severe_acute_malnutrition"): "inc_rate_sam",
+        ("worse_moderate_acute_malnutrition", "severe_acute_malnutrition"): "inc_rate_sam",
         ("susceptible_to_child_wasting",): "rem_rate_mild",
-        ("moderate_acute_malnutrition", "mild_child_wasting"): "rem_rate_mam",
+        ("better_moderate_acute_malnutrition", "mild_child_wasting"): "rem_rate_mam",
+        ("worse_moderate_acute_malnutrition", "mild_child_wasting"): "rem_rate_mam",
         ("severe_acute_malnutrition", "mild_child_wasting"): "tx_rem_rate_sam",
-        ("severe_acute_malnutrition", "moderate_acute_malnutrition"): "ux_rem_rate_sam",
+        (
+            "severe_acute_malnutrition",
+            "better_moderate_acute_malnutrition",
+        ): "sam_to_better_mam",
+        (
+            "severe_acute_malnutrition",
+            "worse_moderate_acute_malnutrition",
+        ): "sam_to_worse_mam",
     }
     transition = states_to_transition_map[wasting_states]
     data = get_transition_data(builder, transition)
@@ -390,12 +437,22 @@ def get_transition_data(builder: Builder, transition: str) -> pd.DataFrame:
 
 
 # noinspection PyUnusedLocal
-def load_mam_birth_prevalence(builder: Builder, cause: str) -> pd.DataFrame:
+def load_better_mam_birth_prevalence(builder: Builder, cause: str) -> pd.DataFrame:
+    return load_child_wasting_birth_prevalence(builder, WASTING.CAT25)
+
+
+# noinspection PyUnusedLocal
+def load_worse_mam_birth_prevalence(builder: Builder, cause: str) -> pd.DataFrame:
     return load_child_wasting_birth_prevalence(builder, WASTING.CAT2)
 
 
 # noinspection PyUnusedLocal
-def load_mam_exposure(builder: Builder, cause: str) -> pd.DataFrame:
+def load_better_mam_exposure(builder: Builder, cause: str) -> pd.DataFrame:
+    return load_child_wasting_exposures(builder)[WASTING.CAT25].reset_index()
+
+
+# noinspection PyUnusedLocal
+def load_worse_mam_exposure(builder: Builder, cause: str) -> pd.DataFrame:
     return load_child_wasting_exposures(builder)[WASTING.CAT2].reset_index()
 
 

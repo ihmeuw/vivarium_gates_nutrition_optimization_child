@@ -57,13 +57,20 @@ class ChildUnderweight(Risk):
     def _get_distributions(self, builder: Builder) -> Dict[str, PolytomousDistribution]:
         """Store and setup distributions for each joint stunting and wasting state."""
         distributions = {}
-        categories = [f"cat{i+1}" for i in range(4)]
+        stunting_categories = [f"cat{i+1}" for i in range(4)]
+        wasting_categories = [f"cat{i + 1}" for i in range(4)] + ["cat2.5"]
         all_distribution_data = builder.data.load(data_keys.UNDERWEIGHT.EXPOSURE)
 
-        for category_1, category_2 in itertools.product(categories, categories):
-            key = f"risk_factor.stunting_{category_1}_wasting_{category_2}_underweight"
+        for stunting_cat, wasting_cat in itertools.product(
+            stunting_categories, wasting_categories
+        ):
+            if wasting_cat == "cat2.5":
+                # this key will not be parsed properly by the distribution if it contains a dot
+                key = f"risk_factor.stunting_{stunting_cat}_wasting_cat25_underweight"
+            else:
+                key = f"risk_factor.stunting_{stunting_cat}_wasting_{wasting_cat}_underweight"
             distribution_data = all_distribution_data.query(
-                "stunting_parameter == @category_1 and " "wasting_parameter == @category_2"
+                "stunting_parameter == @stunting_cat and " "wasting_parameter == @wasting_cat"
             )
             distribution_data = distribution_data.drop(
                 ["stunting_parameter", "wasting_parameter"], axis=1
@@ -92,6 +99,8 @@ class ChildUnderweight(Risk):
         exposures = []
         for group, group_df in pop.groupby(["stunting", "wasting"]):
             stunting_category, wasting_category = group
+            # update key to not include dot
+            wasting_category = "cat25" if wasting_category == "cat2.5" else wasting_category
             distribution = self.distributions[
                 f"risk_factor.stunting_{stunting_category}_wasting_{wasting_category}_underweight"
             ]
