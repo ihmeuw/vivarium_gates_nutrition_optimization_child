@@ -54,8 +54,8 @@ class ResultsStratifier(ResultsStratifier_):
 
         builder.results.register_stratification(
             "wasting_state",
-            [category.value for category in data_keys.CGFCategories],
-            self.child_growth_risk_factor_stratification_mapper,
+            [category.value for category in data_keys.ChildWastingCategories],
+            self.child_wasting_stratification_mapper,
             is_vectorized=True,
             requires_values=["child_wasting.exposure"],
         )
@@ -124,6 +124,17 @@ class ResultsStratifier(ResultsStratifier_):
             "cat3": data_keys.CGFCategories.MILD.value,
             "cat2": data_keys.CGFCategories.MODERATE.value,
             "cat1": data_keys.CGFCategories.SEVERE.value,
+        }
+        return pop.squeeze(axis=1).map(mapper)
+
+    def child_wasting_stratification_mapper(self, pop: pd.DataFrame) -> pd.Series:
+        # applicable to stunting and wasting
+        mapper = {
+            "cat4": data_keys.ChildWastingCategories.UNEXPOSED.value,
+            "cat3": data_keys.ChildWastingCategories.MILD.value,
+            "cat2.5": data_keys.ChildWastingCategories.BETTER_MODERATE.value,
+            "cat2": data_keys.ChildWastingCategories.WORSE_MODERATE.value,
+            "cat1": data_keys.ChildWastingCategories.SEVERE.value,
         }
         return pop.squeeze(axis=1).map(mapper)
 

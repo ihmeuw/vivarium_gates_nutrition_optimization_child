@@ -468,6 +468,14 @@ class CGFCategories(Enum):
     SEVERE = "severe"
 
 
+class ChildWastingCategories(Enum):
+    UNEXPOSED = "unexposed"
+    MILD = "mild"
+    BETTER_MODERATE = "better_moderate"
+    WORSE_MODERATE = "worse_moderate"
+    SEVERE = "severe"
+
+
 class __AdditiveRisk(NamedTuple):
     # Keys that will be loaded into the artifact. must have a colon type declaration
     EXPOSURE: TargetString
