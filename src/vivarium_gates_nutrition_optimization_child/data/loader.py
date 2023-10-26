@@ -273,6 +273,9 @@ def load_metadata(key: str, location: str):
     entity_metadata = entity[key.measure]
     if hasattr(entity_metadata, "to_dict"):
         entity_metadata = entity_metadata.to_dict()
+    if key == data_keys.WASTING.CATEGORIES:
+        entity_metadata["cat2"] = "Wasting Between -3 SD and -2.5 SD (post-ensemble)"
+        entity_metadata["cat2.5"] = "Wasting Between -2.5 SD and -2 SD (post-ensemble)"
     return entity_metadata
 
 
@@ -314,6 +317,7 @@ def load_wasting_transition_rates(key: str, location: str) -> pd.DataFrame:
     """Read in wasting transition rates from flat file and expand to include all years."""
     demography = get_data(data_keys.POPULATION.DEMOGRAPHY, location)
     rates = pd.read_csv(paths.WASTING_TRANSITIONS_DATA_DIR / f"{location.lower()}.csv")
+    rates = rates.rename({"parameter": "transition"}, axis=1)
 
     # duplicate data for all years (file only has 2019 data)
     rates = rates.drop(["year_start", "year_end"], axis=1)
@@ -322,7 +326,8 @@ def load_wasting_transition_rates(key: str, location: str) -> pd.DataFrame:
     rates["year_end"] = rates["year_start"] + 1
 
     # explicitly add the youngest ages data with values of 0
-    demography = demography.query("age_start < .5")
+    min_age = rates.reset_index()["age_start"].min()
+    demography = demography.query("age_start < @min_age")
     youngest_ages_data = pd.DataFrame(
         0, columns=metadata.ARTIFACT_COLUMNS, index=demography.index
     )
@@ -332,7 +337,45 @@ def load_wasting_transition_rates(key: str, location: str) -> pd.DataFrame:
 
     rates = rates[youngest_ages_data.columns]
     rates = pd.concat([youngest_ages_data, rates])
+
+    # update rate transitions into MAM to substates
+
+    # update incidence transition names
+    incidence_rates = rates.query("transition == 'inc_rate_mam'").copy()
+    worse_mam_incidence_rates = incidence_rates.replace(
+        {"transition": {"inc_rate_mam": "inc_rate_worse_mam"}}
+    )
+    rates = rates.replace({"transition": {"inc_rate_mam": "inc_rate_better_mam"}})
+    rates = pd.concat([rates, worse_mam_incidence_rates])
+    # update incidence transition values
     rates = rates.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ["transition"]).sort_index()
+    worse_mam_idx = rates.query("transition == 'inc_rate_worse_mam'").index
+    better_mam_idx = rates.query("transition == 'inc_rate_better_mam'").index
+    rates.loc[worse_mam_idx] = (
+        rates.loc[worse_mam_idx] * data_values.WASTING.PROBABILITY_OF_CAT2
+    )
+    rates.loc[better_mam_idx] = rates.loc[better_mam_idx] * (
+        1 - data_values.WASTING.PROBABILITY_OF_CAT2
+    )
+
+    # update remission transition names
+    rates = rates.reset_index()
+    remission_rates = rates.query("transition == 'ux_rem_rate_sam'").copy()
+    worse_mam_remission_rates = remission_rates.replace(
+        {"transition": {"ux_rem_rate_sam": "sam_to_worse_mam"}}
+    )
+    rates = rates.replace({"transition": {"ux_rem_rate_sam": "sam_to_better_mam"}})
+    rates = pd.concat([rates, worse_mam_remission_rates])
+    # update incidence transition values
+    rates = rates.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ["transition"]).sort_index()
+    worse_mam_idx = rates.query("transition == 'sam_to_worse_mam'").index
+    better_mam_idx = rates.query("transition == 'sam_to_better_mam'").index
+    rates.loc[worse_mam_idx] = (
+        rates.loc[worse_mam_idx] * data_values.WASTING.PROBABILITY_OF_CAT2
+    )
+    rates.loc[better_mam_idx] = rates.loc[better_mam_idx] * (
+        1 - data_values.WASTING.PROBABILITY_OF_CAT2
+    )
 
     return rates
 
@@ -456,6 +499,24 @@ def load_wasting_birth_prevalence(key: str, location: str) -> pd.DataFrame:
     birth_prevalence = birth_prevalence.set_index(
         "birth_weight_status", append=True
     ).sort_index()
+
+    # distribute probability of being initialized in MAM state
+    # amongst worse MAM (cat2) and better MAM (cat2.5)
+    cat2_rows = birth_prevalence.query("parameter=='cat2'").copy()
+    # update cat2 rows
+    birth_prevalence.loc[birth_prevalence.query("parameter=='cat2'").index] = (
+        cat2_rows * data_values.WASTING.PROBABILITY_OF_CAT2
+    )
+    # create cat2.5 rows
+    cat25_rows = cat2_rows * (1 - data_values.WASTING.PROBABILITY_OF_CAT2)
+    cat25_rows = (
+        cat25_rows.reset_index()
+        .replace({"parameter": {"cat2": "cat2.5"}})
+        .set_index(birth_prevalence.index.names)
+    )
+
+    birth_prevalence = pd.concat([birth_prevalence, cat25_rows]).sort_index()
+
     return birth_prevalence
 
 
@@ -647,7 +708,15 @@ def load_underweight_exposure(key: str, location: str) -> pd.DataFrame:
         + ["stunting_parameter", "wasting_parameter", "parameter"]
     )
 
-    return df.sort_index()
+    # add wasting cat2.5 data by duplicating wasting cat2 data
+    cat2_rows = df.query("wasting_parameter=='cat2'").copy()
+    new_cat_rows = (
+        cat2_rows.reset_index()
+        .replace({"wasting_parameter": {"cat2": "cat2.5"}})
+        .set_index(df.index.names)
+    )
+    df = pd.concat([df, new_cat_rows]).sort_index()
+    return df
 
 
 def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
@@ -680,6 +749,22 @@ def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
             data.index.get_level_values("age_end").isin(neonatal_age_ends)
             & (data.index.get_level_values("parameter") == data_keys.STUNTING.CAT4)
         ] = 1.0
+    if entity_key == data_keys.WASTING.EXPOSURE:
+        # distribute probability of entering MAM state amongst worse MAM (cat2) and better MAM (cat2.5)
+        cat2_rows = data.query("parameter=='cat2'").copy()
+        # update cat2 rows
+        data.loc[data.query("parameter=='cat2'").index] = (
+            cat2_rows * data_values.WASTING.PROBABILITY_OF_CAT2
+        )
+        # create cat2.5 rows
+        cat25_rows = cat2_rows * (1 - data_values.WASTING.PROBABILITY_OF_CAT2)
+        cat25_rows = (
+            cat25_rows.reset_index()
+            .replace({"parameter": {"cat2": "cat2.5"}})
+            .set_index(data.index.names)
+        )
+
+        data = pd.concat([data, cat25_rows]).sort_index()
     return data
 
 
@@ -717,6 +802,15 @@ def load_gbd_2021_rr(key: str, location: str) -> pd.DataFrame:
         # Remove neonatal relative risks
         neonatal_age_ends = data.index.get_level_values("age_end").unique()[:2]
         data.loc[data.index.get_level_values("age_end").isin(neonatal_age_ends)] = 1.0
+    if key == data_keys.WASTING.RELATIVE_RISK:
+        # add wasting cat2.5 data by duplicating wasting cat2 data
+        cat2_rows = data.query("parameter=='cat2'").copy()
+        new_cat_rows = (
+            cat2_rows.reset_index()
+            .replace({"parameter": {"cat2": "cat2.5"}})
+            .set_index(data.index.names)
+        )
+        data = pd.concat([data, new_cat_rows]).sort_index()
     return data
 
 
@@ -839,9 +933,11 @@ def load_wasting_treatment_exposure(key: str, location: str) -> pd.DataFrame:
     cat3["parameter"] = "cat3"
 
     exposure = pd.concat([cat1, cat2, cat3]).set_index("parameter", append=True).sort_index()
+
     # infants under 6 months of age should not receive treatment
     under_6_months_idx = exposure.query("age_start < .5").index
     exposure.loc[under_6_months_idx] = 0
+
     return exposure
 
 
