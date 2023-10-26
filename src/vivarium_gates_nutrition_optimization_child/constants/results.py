@@ -26,7 +26,6 @@ STANDARD_COLUMNS = {
 
 THROWAWAY_COLUMNS = [f"{state}_event_count" for state in models.STATES]
 
-
 DEATH_COLUMN_TEMPLATE = (
     "MEASURE_death_due_to_{CAUSE_OF_DEATH}_AGE_GROUP_{AGE_GROUP}_SEX_{SEX}"
 )
