@@ -351,14 +351,6 @@ def expand_data(data: pd.DataFrame, column_name: str, column_values: List) -> pd
 
 
 def load_wasting_birth_prevalence(key: str, location: str) -> pd.DataFrame:
-    def add_parameter_to_data(data_list, parameter):
-        final_data_list = []
-        for dataframe in data_list:
-            dataframe["parameter"] = parameter
-            dataframe.set_index(["parameter"], append=True)
-            final_data_list.append(dataframe)
-        return (*final_data_list,)
-
     wasting_prevalence = (
         get_data(data_keys.WASTING.EXPOSURE, location)
         .query("age_end == 0.5")
