@@ -231,7 +231,7 @@ class ChildWastingModel(DiseaseModel):
 
         self.configuration_age_start = builder.configuration.population.age_start
         self.configuration_age_end = builder.configuration.population.age_end
-        self.randomness = builder.randomness.get_stream(f'{self.state_column}_initial_states')
+        self.randomness = builder.randomness.get_stream(f"{self.state_column}_initial_states")
 
         self.exposure = builder.value.register_value_producer(
             f"{self.state_column}.exposure",
@@ -255,10 +255,8 @@ class ChildWastingModel(DiseaseModel):
         )
 
     def on_initialize_simulants(self, pop_data):
-        initial_propensity = (
-            self.randomness
-            .get_draw(pop_data.index)
-            .rename(f'initial_{self.state_column}_propensity')
+        initial_propensity = self.randomness.get_draw(pop_data.index).rename(
+            f"initial_{self.state_column}_propensity"
         )
         self.population_view.update(initial_propensity)
 
