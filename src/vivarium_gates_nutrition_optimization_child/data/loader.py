@@ -351,6 +351,14 @@ def expand_data(data: pd.DataFrame, column_name: str, column_values: List) -> pd
 
 
 def load_wasting_birth_prevalence(key: str, location: str) -> pd.DataFrame:
+    def add_parameter_to_data(data_list, parameter):
+        final_data_list = []
+        for dataframe in data_list:
+            dataframe["parameter"] = parameter
+            dataframe.set_index(["parameter"], append=True)
+            final_data_list.append(dataframe)
+        return (*final_data_list,)
+
     wasting_prevalence = (
         get_data(data_keys.WASTING.EXPOSURE, location)
         .query("age_end == 0.5")
@@ -374,9 +382,7 @@ def load_wasting_birth_prevalence(key: str, location: str) -> pd.DataFrame:
 
     lbw_prevalence = expand_data(lbw_prevalence, "year_start", year_starts)
     lbw_prevalence["year_end"] = lbw_prevalence["year_start"] + 1
-    lbw_prevalence = lbw_prevalence.set_index(
-        ["sex", "year_start", "year_end"]
-    ).sort_index()
+    lbw_prevalence = lbw_prevalence.set_index(["sex", "year_start", "year_end"]).sort_index()
 
     # calculate prevalences
     prev_cat1 = wasting_prevalence.query("parameter=='cat1'")
@@ -384,18 +390,72 @@ def load_wasting_birth_prevalence(key: str, location: str) -> pd.DataFrame:
     prev_cat3 = wasting_prevalence.query("parameter=='cat3'")
     prev_cat4 = wasting_prevalence.query("parameter=='cat4'")
 
-    adequate_birth_weight_cat1_probability = prev_cat1 / ( (relative_risk * lbw_prevalence) + (1 - lbw_prevalence) )
-    adequate_birth_weight_cat2_probability = prev_cat2 / ( (relative_risk * lbw_prevalence) + (1 - lbw_prevalence))
-    adequate_birth_weight_cat3_probability = prev_cat3 + ( (prev_cat1.droplevel('parameter') + prev_cat2.droplevel('parameter') - adequate_birth_weight_cat1_probability.droplevel('parameter') - adequate_birth_weight_cat2_probability.droplevel('parameter')) * prev_cat3 / (prev_cat3 + prev_cat4.droplevel('parameter')) )
-    adequate_birth_weight_cat4_probability = prev_cat4 + ( (prev_cat1.droplevel('parameter') + prev_cat2.droplevel('parameter') - adequate_birth_weight_cat1_probability.droplevel('parameter') - adequate_birth_weight_cat2_probability.droplevel('parameter')) * prev_cat4 / (prev_cat3.droplevel('parameter') + prev_cat4) )
+    adequate_birth_weight_cat1_probability = prev_cat1 / (
+        (relative_risk * lbw_prevalence) + (1 - lbw_prevalence)
+    )
+    adequate_birth_weight_cat2_probability = prev_cat2 / (
+        (relative_risk * lbw_prevalence) + (1 - lbw_prevalence)
+    )
+    adequate_birth_weight_cat3_probability = prev_cat3 + (
+        (
+            prev_cat1.droplevel("parameter")
+            + prev_cat2.droplevel("parameter")
+            - adequate_birth_weight_cat1_probability.droplevel("parameter")
+            - adequate_birth_weight_cat2_probability.droplevel("parameter")
+        )
+        * prev_cat3
+        / (prev_cat3 + prev_cat4.droplevel("parameter"))
+    )
+    adequate_birth_weight_cat4_probability = prev_cat4 + (
+        (
+            prev_cat1.droplevel("parameter")
+            + prev_cat2.droplevel("parameter")
+            - adequate_birth_weight_cat1_probability.droplevel("parameter")
+            - adequate_birth_weight_cat2_probability.droplevel("parameter")
+        )
+        * prev_cat4
+        / (prev_cat3.droplevel("parameter") + prev_cat4)
+    )
 
     low_birth_weight_cat1_probability = adequate_birth_weight_cat1_probability * relative_risk
     low_birth_weight_cat2_probability = adequate_birth_weight_cat2_probability * relative_risk
-    low_birth_weight_cat3_probability = prev_cat3 + ( (prev_cat1.droplevel('parameter') + prev_cat2.droplevel('parameter') - low_birth_weight_cat1_probability.droplevel('parameter') - low_birth_weight_cat2_probability.droplevel('parameter')) * prev_cat3 / (prev_cat3 + prev_cat4.droplevel('parameter')) )
-    low_birth_weight_cat4_probability = prev_cat4 + ( (prev_cat1.droplevel('parameter') + prev_cat2.droplevel('parameter') - low_birth_weight_cat1_probability.droplevel('parameter') - low_birth_weight_cat2_probability.droplevel('parameter')) * prev_cat4 / (prev_cat3.droplevel('parameter') + prev_cat4) )
+    low_birth_weight_cat3_probability = prev_cat3 + (
+        (
+            prev_cat1.droplevel("parameter")
+            + prev_cat2.droplevel("parameter")
+            - low_birth_weight_cat1_probability.droplevel("parameter")
+            - low_birth_weight_cat2_probability.droplevel("parameter")
+        )
+        * prev_cat3
+        / (prev_cat3 + prev_cat4.droplevel("parameter"))
+    )
+    low_birth_weight_cat4_probability = prev_cat4 + (
+        (
+            prev_cat1.droplevel("parameter")
+            + prev_cat2.droplevel("parameter")
+            - low_birth_weight_cat1_probability.droplevel("parameter")
+            - low_birth_weight_cat2_probability.droplevel("parameter")
+        )
+        * prev_cat4
+        / (prev_cat3.droplevel("parameter") + prev_cat4)
+    )
 
-    adequate_bw_prevalence = pd.concat([adequate_birth_weight_cat1_probability, adequate_birth_weight_cat2_probability, adequate_birth_weight_cat3_probability, adequate_birth_weight_cat4_probability])
-    low_bw_prevalence = pd.concat([low_birth_weight_cat1_probability, low_birth_weight_cat2_probability, low_birth_weight_cat3_probability, low_birth_weight_cat4_probability])
+    adequate_bw_prevalence = pd.concat(
+        [
+            adequate_birth_weight_cat1_probability,
+            adequate_birth_weight_cat2_probability,
+            adequate_birth_weight_cat3_probability,
+            adequate_birth_weight_cat4_probability,
+        ]
+    )
+    low_bw_prevalence = pd.concat(
+        [
+            low_birth_weight_cat1_probability,
+            low_birth_weight_cat2_probability,
+            low_birth_weight_cat3_probability,
+            low_birth_weight_cat4_probability,
+        ]
+    )
 
     adequate_bw_prevalence["birth_weight_status"] = "adequate_birth_weight"
     low_bw_prevalence["birth_weight_status"] = "low_birth_weight"
