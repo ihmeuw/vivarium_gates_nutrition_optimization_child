@@ -58,11 +58,13 @@ class ChildUnderweight(Risk):
         """Store and setup distributions for each joint stunting and wasting state."""
         distributions = {}
         stunting_categories = [f"cat{i+1}" for i in range(4)]
-        wasting_categories = [f"cat{i + 1}" for i in range(4)] + ['cat2.5']
+        wasting_categories = [f"cat{i + 1}" for i in range(4)] + ["cat2.5"]
         all_distribution_data = builder.data.load(data_keys.UNDERWEIGHT.EXPOSURE)
 
-        for stunting_cat, wasting_cat in itertools.product(stunting_categories, wasting_categories):
-            if wasting_cat=='cat2.5':
+        for stunting_cat, wasting_cat in itertools.product(
+            stunting_categories, wasting_categories
+        ):
+            if wasting_cat == "cat2.5":
                 # this key will not be parsed properly by the distribution if it contains a dot
                 key = f"risk_factor.stunting_{stunting_cat}_wasting_cat25_underweight"
             else:
@@ -98,7 +100,7 @@ class ChildUnderweight(Risk):
         for group, group_df in pop.groupby(["stunting", "wasting"]):
             stunting_category, wasting_category = group
             # update key to not include dot
-            wasting_category = 'cat25' if wasting_category == 'cat2.5' else wasting_category
+            wasting_category = "cat25" if wasting_category == "cat2.5" else wasting_category
             distribution = self.distributions[
                 f"risk_factor.stunting_{stunting_category}_wasting_{wasting_category}_underweight"
             ]

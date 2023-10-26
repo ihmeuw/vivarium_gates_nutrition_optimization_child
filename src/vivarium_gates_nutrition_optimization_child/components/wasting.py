@@ -412,8 +412,14 @@ def load_wasting_rate(builder: Builder, *wasting_states) -> pd.DataFrame:
         ("better_moderate_acute_malnutrition", "mild_child_wasting"): "rem_rate_mam",
         ("worse_moderate_acute_malnutrition", "mild_child_wasting"): "rem_rate_mam",
         ("severe_acute_malnutrition", "mild_child_wasting"): "tx_rem_rate_sam",
-        ("severe_acute_malnutrition", "better_moderate_acute_malnutrition"): "sam_to_better_mam",
-        ("severe_acute_malnutrition", "worse_moderate_acute_malnutrition"): "sam_to_worse_mam",
+        (
+            "severe_acute_malnutrition",
+            "better_moderate_acute_malnutrition",
+        ): "sam_to_better_mam",
+        (
+            "severe_acute_malnutrition",
+            "worse_moderate_acute_malnutrition",
+        ): "sam_to_worse_mam",
     }
     transition = states_to_transition_map[wasting_states]
     data = get_transition_data(builder, transition)
