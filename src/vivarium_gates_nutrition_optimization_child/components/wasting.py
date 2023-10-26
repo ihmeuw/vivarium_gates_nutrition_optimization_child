@@ -207,10 +207,8 @@ class ChildWastingModel(DiseaseModel):
         initial_propensity = self.randomness.get_draw(pop_data.index).rename(
             f"initial_{self.state_column}_propensity"
         )
-        self.population_view.update(initial_propensity)
-
         population = self.population_view.subview(
-            ["age", "sex", "initial_child_wasting_propensity"]
+            ["age", "sex"]
         ).get(pop_data.index)
 
         assert self.initial_state in {s.state_id for s in self.states}
@@ -225,7 +223,7 @@ class ChildWastingModel(DiseaseModel):
                 population,
                 state_names,
                 weights_bins,
-                population["initial_child_wasting_propensity"],
+                initial_propensity,
             )
 
             condition_column = condition_column.rename(
@@ -235,13 +233,13 @@ class ChildWastingModel(DiseaseModel):
             condition_column = pd.Series(
                 self.initial_state, index=population.index, name=self.state_column
             )
-        self.population_view.update(condition_column)
+        self.population_view.update(pd.concat([condition_column, initial_propensity], axis=1))
 
     @staticmethod
     def assign_initial_status_to_simulants(
         simulants_df, state_names, weights_bins, propensities
     ):
-        simulants = simulants_df[["age", "sex", "initial_child_wasting_propensity"]].copy()
+        simulants = simulants_df[["age", "sex"]].copy()
 
         choice_index = (propensities.values[np.newaxis].T > weights_bins).sum(axis=1)
         initial_states = pd.Series(np.array(state_names)[choice_index], index=simulants.index)
