@@ -25,56 +25,6 @@ from vivarium_gates_nutrition_optimization_child.constants import (
 from vivarium_gates_nutrition_optimization_child.constants.data_keys import WASTING
 from vivarium_gates_nutrition_optimization_child.utilities import get_random_variable
 
-# class ChildWasting(Component):
-#     @property
-#     def columns_required(self) -> Optional[List[str]]:
-#         return [
-#             "alive",
-#             "age",
-#             self.disease_model.state_column,
-#         ]
-#
-#     def __init__(self):
-#         super().__init__()
-#         self.disease_model = ChildWastingDiseaseModel()
-#         self.risk_model = ChildWastingRiskModel()
-#
-#     @property
-#     def sub_components(self):
-#         return [
-#             self.disease_model,
-#             self.risk_model,
-#         ]
-#
-#     # noinspection PyAttributeOutsideInit
-#     def setup(self, builder: Builder):
-#         self.exposure = builder.value.register_value_producer(
-#             f"{self.name}.exposure",
-#             source=self.get_current_exposure,
-#             requires_columns=["age", "alive", self.state_column],
-#             preferred_post_processor=get_exposure_post_processor(
-#                 builder, EntityString(f"risk_factor.{self.name}")
-#             ),
-#         )
-#
-#     def get_current_exposure(self, index: pd.Index) -> pd.Series:
-#         pop = self.population_view.get(index)
-#         exposure = pop[self.disease_model.state_column].apply(models.get_risk_category)
-#         return exposure
-#
-#
-# class ChildWastingRiskModel(Risk):
-#     def __init__(self):
-#         # use super's init to get exposure distribution
-#         # but overwrite other names
-#         super().__init__("risk_factor.child_wasting")
-#
-#         name = "static_child_wasting"
-#         self._randomness_stream_name = f"initial_{name}_propensity"
-#         self.propensity_column_name = f"{name}_propensity"
-#         self.propensity_pipeline_name = f"{name}.propensity"
-#         self.exposure_pipeline_name = f"{name}.exposure"
-
 
 class WastingTreatment(Risk):
     @property
