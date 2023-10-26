@@ -25,7 +25,6 @@ from vivarium_gates_nutrition_optimization_child.constants import (
 from vivarium_gates_nutrition_optimization_child.constants.data_keys import WASTING
 from vivarium_gates_nutrition_optimization_child.utilities import get_random_variable
 
-
 # class ChildWasting(Component):
 #     @property
 #     def columns_required(self) -> Optional[List[str]]:
