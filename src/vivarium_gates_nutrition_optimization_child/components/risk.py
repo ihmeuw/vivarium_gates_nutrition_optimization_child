@@ -63,6 +63,7 @@ class ChildUnderweight(Risk):
 
         for stunting_cat, wasting_cat in itertools.product(stunting_categories, wasting_categories):
             if wasting_cat=='cat2.5':
+                # this key will not be parsed properly by the distribution if it contains a dot
                 key = f"risk_factor.stunting_{stunting_cat}_wasting_cat25_underweight"
             else:
                 key = f"risk_factor.stunting_{stunting_cat}_wasting_{wasting_cat}_underweight"
@@ -96,6 +97,7 @@ class ChildUnderweight(Risk):
         exposures = []
         for group, group_df in pop.groupby(["stunting", "wasting"]):
             stunting_category, wasting_category = group
+            # update key to not include dot
             wasting_category = 'cat25' if wasting_category == 'cat2.5' else wasting_category
             distribution = self.distributions[
                 f"risk_factor.stunting_{stunting_category}_wasting_{wasting_category}_underweight"
