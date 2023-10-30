@@ -33,21 +33,6 @@ class ResultsStratifier(ResultsStratifier_):
     final column labels for the subgroups.
     """
 
-    #    def get_age_bins(self, builder: Builder) -> pd.DataFrame:
-    #        """Define final age groups for production runs."""
-    #        age_bins = super().get_age_bins(builder)
-    #        data_dict = {
-    #            "age_start": [0.0, 0.5, 1.5],
-    #            "age_end": [0.5, 1.5, 5],
-    #            "age_group_name": [
-    #                "0_to_6_months",
-    #                "6_to_18_months",
-    #                "18_to_59_months",
-    #            ],
-    #        }
-    #
-    #        return pd.DataFrame(data_dict)
-
     def register_stratifications(self, builder: Builder) -> None:
         """Register each desired stratification with calls to _setup_stratification"""
         super().register_stratifications(builder)
