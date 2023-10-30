@@ -376,8 +376,12 @@ def load_wasting_birth_prevalence(key: str, location: str) -> pd.DataFrame:
     lbw_prevalence = lbw_prevalence.set_index(["sex", "year_start", "year_end"]).sort_index()
 
     # relative risk
-    relative_risk_draws = get_random_variable_draws(metadata.ARTIFACT_COLUMNS, *data_values.LBWSG.RR_ON_WASTING)
-    relative_risk = pd.DataFrame([relative_risk_draws], columns=metadata.ARTIFACT_COLUMNS, index=lbw_prevalence.index)
+    relative_risk_draws = get_random_variable_draws(
+        metadata.ARTIFACT_COLUMNS, *data_values.LBWSG.RR_ON_WASTING
+    )
+    relative_risk = pd.DataFrame(
+        [relative_risk_draws], columns=metadata.ARTIFACT_COLUMNS, index=lbw_prevalence.index
+    )
 
     # calculate prevalences
     prev_cat1 = wasting_prevalence.query("parameter=='cat1'")
