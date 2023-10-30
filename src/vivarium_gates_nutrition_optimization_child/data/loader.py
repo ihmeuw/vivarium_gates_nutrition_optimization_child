@@ -375,7 +375,7 @@ def load_wasting_birth_prevalence(key: str, location: str) -> pd.DataFrame:
     lbw_prevalence["year_end"] = lbw_prevalence["year_start"] + 1
     lbw_prevalence = lbw_prevalence.set_index(["sex", "year_start", "year_end"]).sort_index()
 
-    # relative risk
+    # relative risk of LBW on wasting 
     relative_risk_draws = get_random_variable_draws(
         metadata.ARTIFACT_COLUMNS, *data_values.LBWSG.RR_ON_WASTING
     )
@@ -847,8 +847,10 @@ def load_wasting_treatment_exposure(key: str, location: str) -> pd.DataFrame:
 
     exposure = pd.concat([cat1, cat2, cat3]).set_index("parameter", append=True).sort_index()
     # infants under 6 months of age should not receive treatment
-    under_6_months_idx = exposure.query("age_start < .5").index
-    exposure.loc[under_6_months_idx] = 0
+    under_6_months_unexposed_idx = exposure.query("age_start < .5 & parameter=='cat1'").index
+    under_6_months_exposed_idx = exposure.query("age_start < .5 & parameter!='cat1'").index
+    exposure.loc[under_6_months_unexposed_idx] = 1
+    exposure.loc[under_6_months_exposed_idx] = 0
     return exposure
 
 
