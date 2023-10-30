@@ -86,6 +86,10 @@ class __LBWSG(NamedTuple):
         "cat8",
         "cat80",
     ]
+    RR_ON_WASTING: Tuple[str, stats.lognorm] = (
+        "relative_risk_of_birth_weight_status_on_wasting",
+        get_lognorm_from_quantiles(median=1.82, lower=1.35, upper=2.45),
+    )
 
 
 LBWSG = __LBWSG()
