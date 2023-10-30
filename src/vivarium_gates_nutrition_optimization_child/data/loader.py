@@ -356,8 +356,6 @@ def load_wasting_birth_prevalence(key: str, location: str) -> pd.DataFrame:
         .query("age_end == 0.5")
         .droplevel(["age_start", "age_end"])
     )
-    relative_risk_draws = get_random_variable_draws(metadata.ARTIFACT_COLUMNS, *data_values.LBWSG.RR_ON_WASTING)
-    relative_risk = pd.DataFrame([relative_risk_draws], columns=metadata.ARTIFACT_COLUMNS, index=wasting_prevalence.index)
 
     # read and process prevalence of low birth weight amongst infants who survive to 30 days
     lbwsg_exposure = get_data(data_keys.LBWSG.EXPOSURE, location)
@@ -376,6 +374,10 @@ def load_wasting_birth_prevalence(key: str, location: str) -> pd.DataFrame:
     lbw_prevalence = expand_data(lbw_prevalence, "year_start", year_starts)
     lbw_prevalence["year_end"] = lbw_prevalence["year_start"] + 1
     lbw_prevalence = lbw_prevalence.set_index(["sex", "year_start", "year_end"]).sort_index()
+
+    # relative risk
+    relative_risk_draws = get_random_variable_draws(metadata.ARTIFACT_COLUMNS, *data_values.LBWSG.RR_ON_WASTING)
+    relative_risk = pd.DataFrame([relative_risk_draws], columns=metadata.ARTIFACT_COLUMNS, index=lbw_prevalence.index)
 
     # calculate prevalences
     prev_cat1 = wasting_prevalence.query("parameter=='cat1'")
