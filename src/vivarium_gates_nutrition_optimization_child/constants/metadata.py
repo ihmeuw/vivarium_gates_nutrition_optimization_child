@@ -24,6 +24,7 @@ LOCATIONS = [
     "Ethiopia",
     "India",
     "Nigeria",
+    "Pakistan",
 ]
 
 ARTIFACT_INDEX_COLUMNS = [

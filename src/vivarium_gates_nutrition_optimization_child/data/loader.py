@@ -818,7 +818,7 @@ def load_gbd_2021_rr(key: str, location: str) -> pd.DataFrame:
 
 def load_cgf_paf(key: str, location: str) -> pd.DataFrame:
     location_id = utility_data.get_location_id(location)
-    data = pd.read_csv(paths.CGF_PAFS, index_col=0).query("location_id==@location_id")
+    data = pd.read_csv(paths.CGF_PAFS).query("location_id==@location_id")
 
     # add age start and age end data instead of age group name
     age_bins = get_data(data_keys.POPULATION.AGE_BINS, location).reset_index()
@@ -1144,6 +1144,7 @@ def load_lbwsg_paf(key: str, location: str) -> pd.DataFrame:
         "Ethiopia": "ethiopia",
         "Nigeria": "nigeria",
         "India": "india",
+        "Pakistan": "pakistan",
     }
 
     output_dir = paths.TEMPORARY_PAF_DIR / location_mapper[location]
