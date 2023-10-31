@@ -680,7 +680,9 @@ def load_underweight_exposure(key: str, location: str) -> pd.DataFrame:
     and wasting) from file and transform. This data looks like standard
     categorical exposure distribution data but with stunting and wasting
     parameter values in the index."""
+    location_id = utility_data.get_location_id(location)
     df = pd.read_csv(paths.UNDERWEIGHT_CONDITIONAL_DISTRIBUTIONS)
+    df = df.query("location_id==@location_id").drop('location_id', axis=1)
     # add early neonatal data by copying late neonatal
     early_neonatal = df[df["age_group_name"] == "late_neonatal"].copy()
     early_neonatal["age_group_name"] = "early_neonatal"
@@ -815,7 +817,8 @@ def load_gbd_2021_rr(key: str, location: str) -> pd.DataFrame:
 
 
 def load_cgf_paf(key: str, location: str) -> pd.DataFrame:
-    data = pd.read_csv(paths.CGF_PAFS, index_col=0)
+    location_id = utility_data.get_location_id(location)
+    data = pd.read_csv(paths.CGF_PAFS, index_col=0).query("location_id==@location_id")
 
     # add age start and age end data instead of age group name
     age_bins = get_data(data_keys.POPULATION.AGE_BINS, location).reset_index()
