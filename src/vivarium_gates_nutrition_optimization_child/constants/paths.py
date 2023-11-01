@@ -9,7 +9,7 @@ ARTIFACT_ROOT = BASE_DIR / "artifacts"
 MODEL_SPEC_DIR = BASE_DIR / "model_specifications"
 RAW_DATA_DIR = BASE_DIR / "data/raw"
 
-MATERNAL_INTERVENTION_COVERAGE_CSV = RAW_DATA_DIR / "simulation_intervention_coverage.csv"
+BASELINE_IFA_COVERAGE_CSV = RAW_DATA_DIR / "baseline_ifa.csv"
 
 IFA_GA_SHIFT_DATA_DIR = RAW_DATA_DIR / "ifa_gestational_age_shifts"
 MMS_GA_SHIFT_1_DATA_DIR = RAW_DATA_DIR / "mms_gestational_age_shifts/shift1"

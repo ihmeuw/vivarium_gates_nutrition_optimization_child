@@ -1407,33 +1407,14 @@ def load_risk_specific_shift(key: str, location: str) -> pd.DataFrame:
 def load_baseline_ifa_supplementation_coverage(location: str) -> pd.DataFrame:
     index = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index
     location_id = utility_data.get_location_id(location)
-    intervention_scenarios = pd.read_csv(paths.MATERNAL_INTERVENTION_COVERAGE_CSV)
+    data = pd.read_csv(paths.BASELINE_IFA_COVERAGE_CSV).drop('Unnamed: 0', axis=1)
+    data = data.query("location_id==@location_id").drop('location_id', axis=1).reset_index(drop=True)
 
-    df = intervention_scenarios.drop(
-        columns=[
-            "Unnamed: 0",
-            "scale_up",
-            "oral_iron_scenario",
-            "antenatal_iv_iron_scenario",
-            "postpartum_iv_iron_scenario",
-            "antenatal_and_postpartum_iv_iron_scenario",
-        ]
-    )
-    df = df.query('intervention == "ifa" & baseline_scenario == 1')
-    df = (
-        df.set_index(["location_id", "year", "draw"])
-        .loc[location_id]
-        .drop(columns=["intervention", "baseline_scenario"])
-    )
-    df = df.value.unstack()
-    df.columns.name = None
-    df = df.reset_index().drop(columns=["year"])
-    df = df.iloc[[0]]
+    draw_values = pd.pivot_table(data, values='value', columns='draw')
+    coverage = pd.DataFrame(np.repeat(draw_values.values, len(index), axis=0), columns=draw_values.columns)
+    coverage.index = index
 
-    exposure = pd.DataFrame(
-        data=np.repeat(df.values, len(index), axis=0), columns=df.columns, index=index
-    )
-    return exposure
+    return coverage
 
 
 def load_maternal_bmi_anemia_distribution(key: str, location: str) -> pd.DataFrame:
