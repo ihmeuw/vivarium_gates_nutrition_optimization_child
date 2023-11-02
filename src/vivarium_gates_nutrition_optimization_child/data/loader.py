@@ -1529,7 +1529,7 @@ def load_sqlns_risk_ratios(key: str, location: str) -> pd.DataFrame:
         raise ValueError(f"Unrecognized key {key}")
 
     # generate draws using distribution parameters for each row
-    risk_ratios = pd.read_csv(paths.SQLNS_RISK_RATIOS_DIR / f"{location.lower()}.csv")
+    risk_ratios = pd.read_csv(paths.SQLNS_RISK_RATIOS)
     distributions = get_lognorm_from_quantiles(
         risk_ratios["median"], risk_ratios["lower"], risk_ratios["upper"]
     )
