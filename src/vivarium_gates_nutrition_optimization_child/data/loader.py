@@ -1254,7 +1254,6 @@ def load_treatment_excess_shift(key: str, location: str) -> pd.DataFrame:
         distribution_data = {
             data_keys.IFA_SUPPLEMENTATION.EXCESS_SHIFT: data_values.MATERNAL_CHARACTERISTICS.IFA_BIRTH_WEIGHT_SHIFT,
             data_keys.MMN_SUPPLEMENTATION.EXCESS_SHIFT: data_values.MATERNAL_CHARACTERISTICS.MMN_BIRTH_WEIGHT_SHIFT,
-            data_keys.BEP_SUPPLEMENTATION.EXCESS_SHIFT: data_values.MATERNAL_CHARACTERISTICS.BEP_BIRTH_WEIGHT_SHIFT,
             data_keys.IV_IRON.EXCESS_SHIFT: data_values.MATERNAL_CHARACTERISTICS.IV_IRON_BIRTH_WEIGHT_SHIFT,
         }[key]
     except KeyError:
