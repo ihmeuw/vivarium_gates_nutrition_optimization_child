@@ -121,8 +121,10 @@ LBWSG_SUB_RISKS = ("birth_weight", "gestational_age")
 MATERNAL_SUPPLEMENTATION_TYPES = ("uncovered", "ifa", "mms", "bep")
 DICHOTOMOUS_COVERAGE_STATES = ("uncovered", "covered")
 INCIDENT_WASTING_TRANSITIONS = (
-    "mild_child_wasting_to_moderate_acute_malnutrition",
-    "moderate_acute_malnutrition_to_severe_acute_malnutrition",
+    "mild_child_wasting_to_better_moderate_acute_malnutrition",
+    "mild_child_wasting_to_worse_moderate_acute_malnutrition",
+    "better_moderate_acute_malnutrition_to_severe_acute_malnutrition",
+    "worse_moderate_acute_malnutrition_to_severe_acute_malnutrition",
 )
 SQLNS_COVERAGES = ("covered", "uncovered", "received")
 BIRTH_WEIGHT_STATUSES = ("low_birth_weight", "adequate_birth_weight")
