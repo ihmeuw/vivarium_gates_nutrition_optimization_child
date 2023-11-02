@@ -682,7 +682,7 @@ def load_underweight_exposure(key: str, location: str) -> pd.DataFrame:
     parameter values in the index."""
     location_id = utility_data.get_location_id(location)
     df = pd.read_csv(paths.UNDERWEIGHT_CONDITIONAL_DISTRIBUTIONS)
-    df = df.query("location_id==@location_id").drop('location_id', axis=1)
+    df = df.query("location_id==@location_id").drop("location_id", axis=1)
     # add early neonatal data by copying late neonatal
     early_neonatal = df[df["age_group_name"] == "late_neonatal"].copy()
     early_neonatal["age_group_name"] = "early_neonatal"
@@ -1406,11 +1406,17 @@ def load_risk_specific_shift(key: str, location: str) -> pd.DataFrame:
 def load_baseline_ifa_supplementation_coverage(location: str) -> pd.DataFrame:
     index = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index
     location_id = utility_data.get_location_id(location)
-    data = pd.read_csv(paths.BASELINE_IFA_COVERAGE_CSV).drop('Unnamed: 0', axis=1)
-    data = data.query("location_id==@location_id").drop('location_id', axis=1).reset_index(drop=True)
+    data = pd.read_csv(paths.BASELINE_IFA_COVERAGE_CSV).drop("Unnamed: 0", axis=1)
+    data = (
+        data.query("location_id==@location_id")
+        .drop("location_id", axis=1)
+        .reset_index(drop=True)
+    )
 
-    draw_values = pd.pivot_table(data, values='value', columns='draw')
-    coverage = pd.DataFrame(np.repeat(draw_values.values, len(index), axis=0), columns=draw_values.columns)
+    draw_values = pd.pivot_table(data, values="value", columns="draw")
+    coverage = pd.DataFrame(
+        np.repeat(draw_values.values, len(index), axis=0), columns=draw_values.columns
+    )
     coverage.index = index
 
     return coverage
