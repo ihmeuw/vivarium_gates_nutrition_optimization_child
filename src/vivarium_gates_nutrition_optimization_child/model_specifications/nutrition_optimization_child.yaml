@@ -114,5 +114,8 @@ configuration:
         default:
             - 'age_group'
             - 'sex'
+            - 'underweight_state'
         child_wasting:
-            include: ['birth_weight_status']
+            include: ['mam_treatment', 'sam_treatment']
+        child_underweight:
+            include: ['mam_treatment', 'sam_treatment']
