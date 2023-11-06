@@ -93,12 +93,6 @@ class WastingTreatment(Risk):
         is_mam_component = self.risk.name == "moderate_acute_malnutrition_treatment"
         coverage_to_exposure_map = {"none": "cat1", "full": "cat2"}
 
-        # simulants under 6 months should not be on treatment
-        if len(index) > 0:
-            # all simulants are the same age so just check the first simulant
-            if self.population_view.get(pd.Index([0]))["age"].squeeze() < 0.5:
-                return pd.Series("cat1", index=index)
-
         if is_mam_component:
             mam_coverage = self.scenario.mam_tx_coverage
             if mam_coverage == "baseline":  # return standard exposure if baseline
