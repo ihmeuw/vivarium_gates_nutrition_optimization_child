@@ -680,7 +680,9 @@ def load_underweight_exposure(key: str, location: str) -> pd.DataFrame:
     and wasting) from file and transform. This data looks like standard
     categorical exposure distribution data but with stunting and wasting
     parameter values in the index."""
+    location_id = utility_data.get_location_id(location)
     df = pd.read_csv(paths.UNDERWEIGHT_CONDITIONAL_DISTRIBUTIONS)
+    df = df.query("location_id==@location_id").drop("location_id", axis=1)
     # add early neonatal data by copying late neonatal
     early_neonatal = df[df["age_group_name"] == "late_neonatal"].copy()
     early_neonatal["age_group_name"] = "early_neonatal"
@@ -815,7 +817,8 @@ def load_gbd_2021_rr(key: str, location: str) -> pd.DataFrame:
 
 
 def load_cgf_paf(key: str, location: str) -> pd.DataFrame:
-    data = pd.read_csv(paths.CGF_PAFS, index_col=0)
+    location_id = utility_data.get_location_id(location)
+    data = pd.read_csv(paths.CGF_PAFS).query("location_id==@location_id")
 
     # add age start and age end data instead of age group name
     age_bins = get_data(data_keys.POPULATION.AGE_BINS, location).reset_index()
@@ -1141,6 +1144,7 @@ def load_lbwsg_paf(key: str, location: str) -> pd.DataFrame:
         "Ethiopia": "ethiopia",
         "Nigeria": "nigeria",
         "India": "india",
+        "Pakistan": "pakistan",
     }
 
     output_dir = paths.TEMPORARY_PAF_DIR / location_mapper[location]
@@ -1250,7 +1254,6 @@ def load_treatment_excess_shift(key: str, location: str) -> pd.DataFrame:
         distribution_data = {
             data_keys.IFA_SUPPLEMENTATION.EXCESS_SHIFT: data_values.MATERNAL_CHARACTERISTICS.IFA_BIRTH_WEIGHT_SHIFT,
             data_keys.MMN_SUPPLEMENTATION.EXCESS_SHIFT: data_values.MATERNAL_CHARACTERISTICS.MMN_BIRTH_WEIGHT_SHIFT,
-            data_keys.BEP_SUPPLEMENTATION.EXCESS_SHIFT: data_values.MATERNAL_CHARACTERISTICS.BEP_BIRTH_WEIGHT_SHIFT,
             data_keys.IV_IRON.EXCESS_SHIFT: data_values.MATERNAL_CHARACTERISTICS.IV_IRON_BIRTH_WEIGHT_SHIFT,
         }[key]
     except KeyError:
@@ -1403,33 +1406,20 @@ def load_risk_specific_shift(key: str, location: str) -> pd.DataFrame:
 def load_baseline_ifa_supplementation_coverage(location: str) -> pd.DataFrame:
     index = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index
     location_id = utility_data.get_location_id(location)
-    intervention_scenarios = pd.read_csv(paths.MATERNAL_INTERVENTION_COVERAGE_CSV)
+    data = pd.read_csv(paths.BASELINE_IFA_COVERAGE_CSV).drop("Unnamed: 0", axis=1)
+    data = (
+        data.query("location_id==@location_id")
+        .drop("location_id", axis=1)
+        .reset_index(drop=True)
+    )
 
-    df = intervention_scenarios.drop(
-        columns=[
-            "Unnamed: 0",
-            "scale_up",
-            "oral_iron_scenario",
-            "antenatal_iv_iron_scenario",
-            "postpartum_iv_iron_scenario",
-            "antenatal_and_postpartum_iv_iron_scenario",
-        ]
+    draw_values = pd.pivot_table(data, values="value", columns="draw")
+    coverage = pd.DataFrame(
+        np.repeat(draw_values.values, len(index), axis=0), columns=draw_values.columns
     )
-    df = df.query('intervention == "ifa" & baseline_scenario == 1')
-    df = (
-        df.set_index(["location_id", "year", "draw"])
-        .loc[location_id]
-        .drop(columns=["intervention", "baseline_scenario"])
-    )
-    df = df.value.unstack()
-    df.columns.name = None
-    df = df.reset_index().drop(columns=["year"])
-    df = df.iloc[[0]]
+    coverage.index = index
 
-    exposure = pd.DataFrame(
-        data=np.repeat(df.values, len(index), axis=0), columns=df.columns, index=index
-    )
-    return exposure
+    return coverage
 
 
 def load_maternal_bmi_anemia_distribution(key: str, location: str) -> pd.DataFrame:
@@ -1545,7 +1535,7 @@ def load_sqlns_risk_ratios(key: str, location: str) -> pd.DataFrame:
         raise ValueError(f"Unrecognized key {key}")
 
     # generate draws using distribution parameters for each row
-    risk_ratios = pd.read_csv(paths.SQLNS_RISK_RATIOS_DIR / f"{location.lower()}.csv")
+    risk_ratios = pd.read_csv(paths.SQLNS_RISK_RATIOS)
     distributions = get_lognorm_from_quantiles(
         risk_ratios["median"], risk_ratios["lower"], risk_ratios["upper"]
     )

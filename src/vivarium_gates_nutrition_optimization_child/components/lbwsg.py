@@ -12,6 +12,7 @@ from typing import Dict, List
 import numpy as np
 import pandas as pd
 from vivarium.framework.engine import Builder
+from vivarium.framework.lookup import LookupTable
 from vivarium.framework.population import PopulationView, SimulantData
 from vivarium.framework.time import get_time_stamp
 from vivarium.framework.values import Pipeline
@@ -20,6 +21,7 @@ from vivarium_public_health.risks.data_transformations import (
 )
 from vivarium_public_health.risks.implementations.low_birth_weight_and_short_gestation import (
     LBWSGRisk,
+    LBWSGRiskEffect,
 )
 
 
@@ -104,3 +106,10 @@ class LBWSGLineList(LBWSGRisk):
 
     def get_birth_exposure(self, axis: str, index: pd.Index) -> pd.Series:
         return self.new_births.loc[index, axis]
+
+
+class LBWSGPAFCalculationRiskEffect(LBWSGRiskEffect):
+    """Risk effect component for calculating PAFs for LBWSG."""
+
+    def get_population_attributable_fraction_source(self, builder: Builder) -> LookupTable:
+        return builder.lookup.build_table(0)
