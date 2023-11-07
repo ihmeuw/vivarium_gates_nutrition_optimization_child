@@ -7,6 +7,7 @@ from vivarium_gates_nutrition_optimization_child.components.fertility import (
 )
 from vivarium_gates_nutrition_optimization_child.components.lbwsg import (
     LBWSGLineList,
+    LBWSGPAFCalculationExposure,
     LBWSGPAFCalculationRiskEffect,
 )
 from vivarium_gates_nutrition_optimization_child.components.maternal_characteristics import (
@@ -25,6 +26,7 @@ from vivarium_gates_nutrition_optimization_child.components.observers import (
 )
 from vivarium_gates_nutrition_optimization_child.components.population import (
     PopulationLineList,
+    EvenlyDistributedPopulation,
 )
 from vivarium_gates_nutrition_optimization_child.components.risk import (
     CGFRiskEffect,
