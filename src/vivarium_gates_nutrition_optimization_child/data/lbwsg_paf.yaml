@@ -27,10 +27,10 @@ configuration:
             day: 31
         step_size: 0.5 # Days
     population:
-        population_size: 400_084
+        population_size: 400_200
         age_start: 0
-        age_end: 14
-        exit_age: 14
+        age_end: 0.03835616 # 14 days
+        exit_age: 0.03835616 # 14 days
 
     intervention:
         scenario: 'baseline'

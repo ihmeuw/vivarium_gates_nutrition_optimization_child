@@ -130,6 +130,7 @@ class LBWSGPAFCalculationExposure(LBWSGRisk):
     def setup(self, builder: Builder) -> None:
         super().setup(builder)
         self.lbwsg_categories = builder.data.load(data_keys.LBWSG.CATEGORIES)
+        self.age_bins = builder.data.load(data_keys.POPULATION.AGE_BINS)
 
     def get_birth_exposure_pipelines(self, builder: Builder) -> Dict[str, Pipeline]:
         def get_pipeline(axis_: str):
@@ -147,33 +148,39 @@ class LBWSGPAFCalculationExposure(LBWSGRisk):
     def get_birth_exposure(self, axis: str, index: pd.Index) -> pd.DataFrame:
         pop = self.population_view.subview(['age', 'sex']).get(index)
         pop = pop.sort_values(['sex', 'age'])
+        pop['age_bin'] = pd.cut(pop['age'], self.age_bins['age_start'])
 
         lbwsg_categories = self.lbwsg_categories.keys()
         num_repeats, remainder = divmod(len(pop), 2*len(lbwsg_categories))
         if remainder != 0:
             raise ValueError("Population size should be multiple of double the number of LBWSG categories."
-                             f"Population size is {len(pop)}, which should be a multiple of "
+                             f"Population size is {len(pop)}, but should be a multiple of "
                              f"{2*len(lbwsg_categories)}.")
 
         assigned_categories = list(lbwsg_categories) * (2*num_repeats)
         pop['lbwsg_category'] = assigned_categories
-        pop = pop.sort_values(['age', 'sex'])
-        num_values_in_interval = math.ceil(np.sqrt(len(pop) / len(lbwsg_categories)))
-        num_sims_in_category = int(len(pop) / len(lbwsg_categories))
-        for cat in lbwsg_categories:
+
+        num_simulants_in_category = int(len(pop) / len(lbwsg_categories))
+        num_points_in_birth_weight_interval = 92
+        num_points_in_gestational_age_interval = int(num_simulants_in_category / num_points_in_birth_weight_interval)
+
+        for age_bin, sex, cat in zip(pop['age_bin'].unique(), ['Male', 'Female'], lbwsg_categories):
             description = self.lbwsg_categories[cat]
 
             birthweight_endpoints = [float(val) for val in description.split(", [")[1].split(")")[0].split(", ")]
-            birthweight_interval_values = np.linspace(birthweight_endpoints[0], birthweight_endpoints[1], num=num_values_in_interval+2)[1:-1]
+            birthweight_interval_values = np.linspace(birthweight_endpoints[0],
+                                                      birthweight_endpoints[1],
+                                                      num=num_points_in_birth_weight_interval+2)[1:-1]
 
             gestational_age_endpoints = [float(val) for val in description.split("- [")[1].split(")")[0].split(", ")]
-            gestational_age_interval_values = np.linspace(gestational_age_endpoints[0], gestational_age_endpoints[1],
-                                             num=num_values_in_interval+2)[1:-1]
-            birthweight_values, gestational_age_values = np.meshgrid(birthweight_interval_values, gestational_age_interval_values)
-            lbwsg_exposures = pd.DataFrame({'birth_weight': birthweight_values.flatten(), 'gestational_age': gestational_age_values.flatten()})
-            lbwsg_exposures = lbwsg_exposures.loc[np.random.choice(lbwsg_exposures.index, size=num_sims_in_category, replace=False)]
-            pop.loc[pop['lbwsg_category'] == cat, 'birth_weight'] = lbwsg_exposures['birth_weight'].values
-            pop.loc[pop['lbwsg_category'] == cat, 'gestational_age'] = lbwsg_exposures['gestational_age'].values
+            gestational_age_interval_values = np.linspace(gestational_age_endpoints[0],
+                                                          gestational_age_endpoints[1],
+                                                          num=num_points_in_gestational_age_interval+2)[1:-1]
+
+            birthweight_points, gestational_age_points = np.meshgrid(birthweight_interval_values, gestational_age_interval_values)
+            lbwsg_exposures = pd.DataFrame({'birth_weight': birthweight_points.flatten(), 'gestational_age': gestational_age_points.flatten()})
+            pop.loc[(pop['lbwsg_category'] == cat), 'birth_weight'] = lbwsg_exposures['birth_weight'].values
+            pop.loc[(pop['lbwsg_category'] == cat), 'gestational_age'] = lbwsg_exposures['gestational_age'].values
 
         breakpoint()
         return 0
