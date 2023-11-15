@@ -120,7 +120,7 @@ class WastingTreatment(Risk):
                 exposures.loc[under_6_months] = "cat1"
                 return exposures
             else:  # except for simulants under 6 months who are untreated,
-                   # return either all or none covered otherwise
+                   # return either all or none covered
                 exposure_value = coverage_to_exposure_map[mam_coverage]
                 exposure = pd.Series(exposure_value, index=index)
                 age = self.population_view.get(index)["age"]
@@ -232,8 +232,6 @@ class ChildWastingModel(DiseaseModel):
             condition_column = pd.Series(
                 self.initial_state, index=population.index, name=self.state_column
             )
-        if len(condition_column) > 0:
-            condition_column['child_wasting'] = 'moderate_acute_malnutrition'
         self.population_view.update(pd.concat([condition_column, initial_propensity], axis=1))
 
     @staticmethod
