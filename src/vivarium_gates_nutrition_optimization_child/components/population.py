@@ -74,6 +74,7 @@ class PopulationLineList(BasePopulation):
 
         self.start_time = get_time_stamp(builder.configuration.time.start)
         self.location = self._get_location(builder)
+        builder.time.register_step_modifier(self.modify_step)
 
     def on_initialize_simulants(self, pop_data: SimulantData) -> None:
         """
@@ -100,3 +101,13 @@ class PopulationLineList(BasePopulation):
 
     def _get_location(self, builder: Builder) -> str:
         return builder.data.load("population.location")
+    
+    def modify_step(self, index: pd.Index) -> pd.Series:
+        """
+        Sets simlant step size to 0.5 for neonates and 4 for 1-5 months.
+        """
+        age = self.population_view.get(index, "age")
+        step_size = pd.Series(pd.Timedelta(days=1.0), index=index)
+        step_size[age < 0.5] = pd.Timedelta(days=0.5)
+        step_size[(age >= 0.5) & (age < 1.0)] = pd.Timedelta(days=4.0)
+        return step_size

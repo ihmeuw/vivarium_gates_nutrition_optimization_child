@@ -75,7 +75,8 @@ configuration:
             year: 2029
             month: 12
             day: 31
-        step_size: 4 # Days
+        step_size: 0.5 # Days
+        default_step_size: 8 # Days
     population:
         population_size: 0
         age_start: 0
