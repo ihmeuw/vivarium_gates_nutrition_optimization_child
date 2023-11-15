@@ -99,7 +99,7 @@ class WastingTreatment(Risk):
                 propensity = self.propensity(index)
                 return pd.Series(self.exposure_distribution.ppf(propensity), index=index)
             elif mam_coverage == "targeted":
-                # initialize exposures as cat1 using index
+                # initialize exposures as cat1 (untreated)
                 exposures = pd.Series("cat1", index=index)
 
                 # define relevant booleans
@@ -110,15 +110,22 @@ class WastingTreatment(Risk):
                 in_mam_state = wasting == "cat2"
                 in_age_range = (age >= 0.5) & (age < 2)
                 is_severely_underweight = underweight == "cat1"
+                under_6_months = age < 0.5
 
                 is_covered = (in_mam_state & in_age_range) | (
                     in_mam_state & is_severely_underweight
                 )
+
                 exposures.loc[is_covered] = "cat2"
+                exposures.loc[under_6_months] = "cat1"
                 return exposures
-            else:  # return either all or none covered otherwise
-                exposure = coverage_to_exposure_map[mam_coverage]
-                return pd.Series(exposure, index=index)
+            else:  # except for simulants under 6 months who are untreated,
+                   # return either all or none covered otherwise
+                exposure_value = coverage_to_exposure_map[mam_coverage]
+                exposure = pd.Series(exposure_value, index=index)
+                age = self.population_view.get(index)["age"]
+                exposure.loc[age < 0.5] = "cat1"
+                return exposure
 
         else:  # we're in the SAM treatment component
             sam_coverage = self.scenario.sam_tx_coverage
@@ -225,6 +232,8 @@ class ChildWastingModel(DiseaseModel):
             condition_column = pd.Series(
                 self.initial_state, index=population.index, name=self.state_column
             )
+        if len(condition_column) > 0:
+            condition_column['child_wasting'] = 'moderate_acute_malnutrition'
         self.population_view.update(pd.concat([condition_column, initial_propensity], axis=1))
 
     @staticmethod
@@ -299,7 +308,7 @@ def ChildWasting() -> ChildWastingModel:
     mild.add_rate_transition(
         tmrel,
         get_data_functions={
-            "remission_rate": load_wasting_rate,
+            "remission_rate": load_mild_remission_rate,
         },
     )
 
@@ -360,7 +369,6 @@ def load_wasting_rate(builder: Builder, *wasting_states) -> pd.DataFrame:
         ("mild_child_wasting",): "inc_rate_mild",
         ("mild_child_wasting", "moderate_acute_malnutrition"): "inc_rate_mam",
         ("moderate_acute_malnutrition", "severe_acute_malnutrition"): "inc_rate_sam",
-        ("susceptible_to_child_wasting",): "rem_rate_mild",
         ("moderate_acute_malnutrition", "mild_child_wasting"): "rem_rate_mam",
         ("severe_acute_malnutrition", "mild_child_wasting"): "tx_rem_rate_sam",
         ("severe_acute_malnutrition", "moderate_acute_malnutrition"): "ux_rem_rate_sam",
@@ -368,6 +376,10 @@ def load_wasting_rate(builder: Builder, *wasting_states) -> pd.DataFrame:
     transition = states_to_transition_map[wasting_states]
     data = get_transition_data(builder, transition)
     return data
+
+
+def load_mild_remission_rate(builder: Builder, input_state) -> pd.DataFrame:
+    return get_transition_data(builder, 'rem_rate_mild')
 
 
 def get_transition_data(builder: Builder, transition: str) -> pd.DataFrame:
