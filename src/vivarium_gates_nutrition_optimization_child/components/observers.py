@@ -69,6 +69,7 @@ class ResultsStratifier(ResultsStratifier_):
         builder.results.register_stratification(
             "underweight_state",
             [category.value for category in data_keys.CGFCategories],
+            self.child_growth_risk_factor_stratification_mapper,
             is_vectorized=True,
             requires_values=["child_underweight.exposure"],
         )
