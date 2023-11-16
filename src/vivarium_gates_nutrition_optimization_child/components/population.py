@@ -87,7 +87,7 @@ class PopulationLineList(BasePopulation):
             new_births.index = pop_data.index
 
             # Create columns for state table
-            new_simulants["age"] = 0.0
+            new_simulants["age"] = 0.1
             new_simulants["sex"] = new_births["sex"]
             new_simulants["alive"] = new_births["alive"]
             new_simulants["location"] = self.location
