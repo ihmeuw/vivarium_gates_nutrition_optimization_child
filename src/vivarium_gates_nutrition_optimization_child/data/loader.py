@@ -421,9 +421,13 @@ def load_wasting_birth_prevalence(key: str, location: str) -> pd.DataFrame:
 
     # calculate prevalences
     prev_cat1 = wasting_prevalence.query("parameter=='cat1'")
-    prev_cat2 = wasting_prevalence.query("parameter=='cat2'")
     prev_cat3 = wasting_prevalence.query("parameter=='cat3'")
     prev_cat4 = wasting_prevalence.query("parameter=='cat4'")
+    # sum cat2 and cat2.5 for MAM
+    prev_cat2 = wasting_prevalence.query("parameter=='cat2' or parameter=='cat2.5'")
+    prev_cat2 = prev_cat2.groupby(metadata.ARTIFACT_INDEX_COLUMNS).sum()
+    prev_cat2['parameter'] = 'cat2'
+    prev_cat2 = prev_cat2.set_index(['parameter'], append=True)
 
     adequate_birth_weight_cat1_probability = prev_cat1 / (
         (relative_risk * lbw_prevalence) + (1 - lbw_prevalence)
