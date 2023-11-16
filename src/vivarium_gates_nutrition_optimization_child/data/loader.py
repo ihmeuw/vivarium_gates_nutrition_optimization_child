@@ -882,16 +882,16 @@ def load_sam_treatment_rr(key: str, location: str) -> pd.DataFrame:
 
     rr = pd.concat([rr_sam_treated_remission, rr_sam_untreated_remission])
 
-    # no effect for simulants younger than 6 months
-    rr.loc[rr.query("age_start < .5").index] = 1
-
     rr["affected_measure"] = "transition_rate"
     rr = rr.set_index(["affected_entity", "affected_measure"], append=True)
     rr.index = rr.index.reorder_levels(
         [col for col in rr.index.names if col != "parameter"] + ["parameter"]
     )
-    rr.sort_index()
-    return rr
+
+    # no effect for simulants younger than 6 months
+    rr.loc[rr.query("age_start < .5").index] = 1
+
+    return rr.sort_index()
 
 
 def load_mam_treatment_rr(key: str, location: str) -> pd.DataFrame:
@@ -928,17 +928,17 @@ def load_mam_treatment_rr(key: str, location: str) -> pd.DataFrame:
         + (1 - mam_tx_efficacy_tmrel) * mam_tx_duration
     )
 
-    # no effect for simulants younger than 6 months
-    rr.loc[rr.query("age_start < .5").index] = 1
-
     rr["affected_entity"] = "moderate_acute_malnutrition_to_mild_child_wasting"
     rr["affected_measure"] = "transition_rate"
     rr = rr.set_index(["affected_entity", "affected_measure"], append=True)
     rr.index = rr.index.reorder_levels(
         [col for col in rr.index.names if col != "parameter"] + ["parameter"]
     )
-    rr.sort_index()
-    return rr
+
+    # no effect for simulants younger than 6 months
+    rr.loc[rr.query("age_start < .5").index] = 1
+
+    return rr.sort_index()
 
 
 def load_lbwsg_exposure(key: str, location: str) -> pd.DataFrame:
