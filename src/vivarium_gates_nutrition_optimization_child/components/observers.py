@@ -32,7 +32,6 @@ class ResultsStratifier(ResultsStratifier_):
     results production and have this component manage adjustments to the
     final column labels for the subgroups.
     """
-
     def register_stratifications(self, builder: Builder) -> None:
         """Register each desired stratification with calls to _setup_stratification"""
         super().register_stratifications(builder)
@@ -275,7 +274,6 @@ class ChildWastingObserver(DiseaseObserver):
             f"child_wasting_model.{self.disease}"
         )
 
-        # not needed in current output but keeping just in case we want to add it back
         for category in self.categories:
             builder.results.register_observation(
                 name=f"{self.risk}_{category}_person_time",

@@ -92,6 +92,7 @@ AGE_GROUPS = (
     "late_neonatal",
     "1-5_months",
     "6-11_months",
+    "12_to_23_months",
     "2_to_4",
 )
 DICHOTOMOUS_RISK_STATES = ("cat2", "cat1")
@@ -118,11 +119,13 @@ WASTING_STATES = ("cat1", "cat2", "cat2.5", "cat3", "cat4")
 LBWSG_SUB_RISKS = ("birth_weight", "gestational_age")
 MATERNAL_SUPPLEMENTATION_TYPES = ("uncovered", "ifa", "mms", "bep")
 DICHOTOMOUS_COVERAGE_STATES = ("uncovered", "covered")
-INCIDENT_WASTING_TRANSITIONS = (
-    "mild_child_wasting_to_better_moderate_acute_malnutrition",
-    "mild_child_wasting_to_worse_moderate_acute_malnutrition",
-    "better_moderate_acute_malnutrition_to_severe_acute_malnutrition",
-    "worse_moderate_acute_malnutrition_to_severe_acute_malnutrition",
+WASTING_TRANSITIONS = (
+    "susceptible_to_child_wasting_to_mild_child_wasting",
+    "mild_child_wasting_to_moderate_acute_malnutrition",
+    "moderate_acute_malnutrition_to_severe_acute_malnutrition",
+    "moderate_acute_malnutrition_to_mild_child_wasting",
+    "severe_acute_malnutrition_to_moderate_acute_malnutrition",
+    "severe_acute_malnutrition_to_mild_child_wasting",
 )
 SQLNS_COVERAGES = ("covered", "uncovered", "received")
 BIRTH_WEIGHT_STATUSES = ("low_birth_weight", "adequate_birth_weight")
@@ -154,7 +157,7 @@ TEMPLATE_FIELD_MAP = {
     "BMI_ANEMIA": TETRACHOTOMTOUS_RISK_STATES,
     "MAM_TREATMENT": DICHOTOMOUS_COVERAGE_STATES,
     "SAM_TREATMENT": DICHOTOMOUS_COVERAGE_STATES,
-    "WASTING_TRANSITION": INCIDENT_WASTING_TRANSITIONS,
+    "WASTING_TRANSITION": WASTING_TRANSITIONS,
     "SQLNS_COVERAGE": SQLNS_COVERAGES,
     "BIRTH_WEIGHT_STATUS": BIRTH_WEIGHT_STATUSES,
 }
