@@ -313,6 +313,38 @@ def load_categorical_paf(key: str, location: str) -> pd.DataFrame:
 
     if key == data_keys.SAM_TREATMENT.PAF or key == data_keys.MAM_TREATMENT.PAF:
         paf.loc[paf.query("age_start < .5").index] = 0
+
+    #  TODO: cleanup duplicated code
+    if key == data_keys.SAM_TREATMENT.PAF:
+        mam_rows = paf.query("affected_entity=='severe_acute_malnutrition_to_moderate_acute_malnutrition'")
+        other_rows = mam_rows = paf.query("affected_entity!='severe_acute_malnutrition_to_moderate_acute_malnutrition'")
+        index = paf.index.droplevel('affected_entity')
+        original_index_order = paf.index.names
+
+        better_mam_rows = mam_rows.copy().reset_index().drop('affected_entity', axis=1)
+        better_mam_rows['affected_entity'] = 'severe_acute_malnutrition_to_better_moderate_acute_malnutrition'
+        better_mam_rows = better_mam_rows.set_index(index).set_index('affected_entity', append=True)
+
+        worse_mam_rows = mam_rows.copy().reset_index().drop('affected_entity', axis=1)
+        worse_mam_rows['affected_entity'] = 'severe_acute_malnutrition_to_worse_moderate_acute_malnutrition'
+        worse_mam_rows = worse_mam_rows.set_index(index).set_index('affected_entity', append=True)
+        paf = pd.concat([other_rows, better_mam_rows, worse_mam_rows])
+        paf = paf.set_index(original_index_order).sort_index()
+
+    if key == data_keys.MAM_TREATMENT.PAF:
+        index = paf.index.droplevel('affected_entity')
+        original_index_order = paf.index.names
+
+        better_mam_rows = paf.copy().reset_index().drop('affected_entity', axis=1)
+        better_mam_rows['affected_entity'] = 'better_moderate_acute_malnutrition_to_mild_child_wasting'
+        better_mam_rows = better_mam_rows.set_index(index).set_index('affected_entity', append=True)
+
+        worse_mam_rows = paf.copy().reset_index().drop('affected_entity', axis=1)
+        worse_mam_rows['affected_entity'] = 'worse_moderate_acute_malnutrition_to_mild_child_wasting'
+        worse_mam_rows = worse_mam_rows.set_index(index).set_index('affected_entity', append=True)
+        
+        paf = pd.concat([better_mam_rows, worse_mam_rows])
+        paf = paf.set_index(original_index_order).sort_index()
     return paf
 
 
