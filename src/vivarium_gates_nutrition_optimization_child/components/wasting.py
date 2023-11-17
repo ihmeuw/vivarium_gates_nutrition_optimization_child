@@ -121,7 +121,7 @@ class WastingTreatment(Risk):
                 exposures.loc[under_6_months] = "cat1"
                 return exposures
             else:  # except for simulants under 6 months who are untreated,
-                   # return either all or none covered otherwise
+                # return either all or none covered
                 exposure_value = coverage_to_exposure_map[mam_coverage]
                 exposure = pd.Series(exposure_value, index=index)
                 age = self.population_view.get(index)["age"]
@@ -425,7 +425,7 @@ def load_wasting_rate(builder: Builder, *wasting_states) -> pd.DataFrame:
 
 
 def load_mild_remission_rate(builder: Builder, input_state) -> pd.DataFrame:
-    return get_transition_data(builder, 'rem_rate_mild')
+    return get_transition_data(builder, "rem_rate_mild")
 
 
 def get_transition_data(builder: Builder, transition: str) -> pd.DataFrame:
