@@ -978,9 +978,12 @@ def load_sam_treatment_rr(key: str, location: str) -> pd.DataFrame:
     #       = (1 - sam_tx_efficacy) * (r2_ux) / (1 - sam_tx_efficacy_tmrel) * (r2_ux)
     #       = (1 - sam_tx_efficacy) / (1 - sam_tx_efficacy_tmrel)
     rr_sam_untreated_remission = (1 - sam_tx_efficacy) / (1 - sam_tx_efficacy_tmrel)
-    rr_sam_untreated_remission[
-        "affected_entity"
-    ] = "severe_acute_malnutrition_to_moderate_acute_malnutrition"
+
+    better_mam_rows = rr_sam_untreated_remission.copy()
+    worse_mam_rows = rr_sam_untreated_remission.copy()
+    better_mam_rows["affected_entity"] = "severe_acute_malnutrition_to_better_moderate_acute_malnutrition"
+    worse_mam_rows["affected_entity"] = "severe_acute_malnutrition_to_worse_moderate_acute_malnutrition"
+    rr_sam_untreated_remission = pd.concat([better_mam_rows, worse_mam_rows])
 
     rr = pd.concat([rr_sam_treated_remission, rr_sam_untreated_remission])
 
@@ -1030,7 +1033,12 @@ def load_mam_treatment_rr(key: str, location: str) -> pd.DataFrame:
         + (1 - mam_tx_efficacy_tmrel) * mam_tx_duration
     )
 
-    rr["affected_entity"] = "moderate_acute_malnutrition_to_mild_child_wasting"
+    better_mam_rows = rr.copy()
+    worse_mam_rows = rr.copy()
+    better_mam_rows["affected_entity"] = "better_moderate_acute_malnutrition_to_mild_child_wasting"
+    worse_mam_rows["affected_entity"] = "worse_moderate_acute_malnutrition_to_mild_child_wasting"
+    rr = pd.concat([better_mam_rows, worse_mam_rows])
+
     rr["affected_measure"] = "transition_rate"
     rr = rr.set_index(["affected_entity", "affected_measure"], append=True)
     rr.index = rr.index.reorder_levels(
