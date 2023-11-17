@@ -330,7 +330,7 @@ def load_categorical_paf(key: str, location: str) -> pd.DataFrame:
         worse_mam_rows = worse_mam_rows.set_index(index).set_index('affected_entity', append=True)
 
         mam_rows = pd.concat([better_mam_rows, worse_mam_rows])
-        mam_rows = mam_rows.set_index(original_index_order).sort_index()
+        mam_rows = mam_rows.reorder_levels(original_index_order)
         paf = pd.concat([other_rows, mam_rows])
 
     if key == data_keys.MAM_TREATMENT.PAF:
@@ -346,7 +346,7 @@ def load_categorical_paf(key: str, location: str) -> pd.DataFrame:
         worse_mam_rows = worse_mam_rows.set_index(index).set_index('affected_entity', append=True)
 
         paf = pd.concat([better_mam_rows, worse_mam_rows])
-        paf = paf.set_index(original_index_order).sort_index()
+        paf = paf.reorder_levels(original_index_order)
     return paf
 
 
