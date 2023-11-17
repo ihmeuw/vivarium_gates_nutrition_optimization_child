@@ -954,6 +954,7 @@ def load_wasting_treatment_exposure(key: str, location: str) -> pd.DataFrame:
     under_6_months_exposed_idx = exposure.query("age_start < .5 & parameter!='cat1'").index
     exposure.loc[under_6_months_unexposed_idx] = 1
     exposure.loc[under_6_months_exposed_idx] = 0
+
     return exposure
 
 
