@@ -314,38 +314,6 @@ def load_categorical_paf(key: str, location: str) -> pd.DataFrame:
     if key == data_keys.SAM_TREATMENT.PAF or key == data_keys.MAM_TREATMENT.PAF:
         paf.loc[paf.query("age_start < .5").index] = 0
 
-    # if key == data_keys.SAM_TREATMENT.PAF:
-    #     mam_rows = paf.query("affected_entity=='severe_acute_malnutrition_to_moderate_acute_malnutrition'")
-    #     other_rows = mam_rows = paf.query("affected_entity!='severe_acute_malnutrition_to_moderate_acute_malnutrition'")
-    #     index_levels = list(mam_rows.index.levels)
-    #
-    #     better_mam_rows = mam_rows.copy()
-    #     better_mam_levels = index_levels.copy()
-    #     better_mam_levels[-2] = pd.Index(['severe_acute_malnutrition_to_better_moderate_acute_malnutrition'], name='affected_entity')
-    #     better_mam_rows = better_mam_rows.index.set_levels(better_mam_levels)
-    #
-    #     worse_mam_rows = mam_rows.copy()
-    #     worse_mam_levels = index_levels.copy()
-    #     worse_mam_levels[-2] = pd.Index(['severe_acute_malnutrition_to_worse_moderate_acute_malnutrition'],
-    #                                      name='affected_entity')
-    #     worse_mam_rows.index = worse_mam_rows.index.set_levels(worse_mam_levels)
-    #
-    #     paf = pd.concat([other_rows, better_mam_rows, worse_mam_rows]).sort_index()
-    #
-    # if key == data_keys.MAM_TREATMENT.PAF:
-    #     index_levels = paf.index.levels
-    #
-    #     better_mam_rows = paf.copy()
-    #     better_mam_levels = index_levels.copy()
-    #     better_mam_levels[-2] = pd.Index(['better_moderate_acute_malnutrition_to_mild_child_wasting'], name='affected_entity')
-    #     better_mam_rows = better_mam_rows.index.set_levels(better_mam_levels)
-    #
-    #     worse_mam_rows = paf.copy()
-    #     worse_mam_levels = index_levels.copy()
-    #     worse_mam_levels[-2] = pd.Index(['worse_moderate_acute_malnutrition_to_mild_child_wasting'], name='affected_entity')
-    #     worse_mam_rows = worse_mam_rows.index.set_levels(worse_mam_levels)
-    #
-    #     paf = pd.concat([better_mam_rows, worse_mam_rows])
     return paf
 
 
@@ -460,9 +428,9 @@ def load_wasting_birth_prevalence(key: str, location: str) -> pd.DataFrame:
     prev_cat4 = wasting_prevalence.query("parameter=='cat4'")
     # sum cat2 and cat2.5 for MAM
     prev_cat2 = wasting_prevalence.query("parameter=='cat2' or parameter=='cat2.5'")
-    prev_cat2 = prev_cat2.groupby(['sex', 'year_start', 'year_end']).sum()
-    prev_cat2['parameter'] = 'cat2'
-    prev_cat2 = prev_cat2.set_index(['parameter'], append=True)
+    prev_cat2 = prev_cat2.groupby(["sex", "year_start", "year_end"]).sum()
+    prev_cat2["parameter"] = "cat2"
+    prev_cat2 = prev_cat2.set_index(["parameter"], append=True)
 
     # relative risk of LBW on wasting
     relative_risk_draws = get_random_variable_draws(
@@ -1014,8 +982,12 @@ def load_sam_treatment_rr(key: str, location: str) -> pd.DataFrame:
 
     better_mam_rows = rr_sam_untreated_remission.copy()
     worse_mam_rows = rr_sam_untreated_remission.copy()
-    better_mam_rows["affected_entity"] = "severe_acute_malnutrition_to_better_moderate_acute_malnutrition"
-    worse_mam_rows["affected_entity"] = "severe_acute_malnutrition_to_worse_moderate_acute_malnutrition"
+    better_mam_rows[
+        "affected_entity"
+    ] = "severe_acute_malnutrition_to_better_moderate_acute_malnutrition"
+    worse_mam_rows[
+        "affected_entity"
+    ] = "severe_acute_malnutrition_to_worse_moderate_acute_malnutrition"
     rr_sam_untreated_remission = pd.concat([better_mam_rows, worse_mam_rows])
 
     rr = pd.concat([rr_sam_treated_remission, rr_sam_untreated_remission])
@@ -1068,8 +1040,12 @@ def load_mam_treatment_rr(key: str, location: str) -> pd.DataFrame:
 
     better_mam_rows = rr.copy()
     worse_mam_rows = rr.copy()
-    better_mam_rows["affected_entity"] = "better_moderate_acute_malnutrition_to_mild_child_wasting"
-    worse_mam_rows["affected_entity"] = "worse_moderate_acute_malnutrition_to_mild_child_wasting"
+    better_mam_rows[
+        "affected_entity"
+    ] = "better_moderate_acute_malnutrition_to_mild_child_wasting"
+    worse_mam_rows[
+        "affected_entity"
+    ] = "worse_moderate_acute_malnutrition_to_mild_child_wasting"
     rr = pd.concat([better_mam_rows, worse_mam_rows])
 
     rr["affected_measure"] = "transition_rate"
