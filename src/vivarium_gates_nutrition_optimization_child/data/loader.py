@@ -307,6 +307,9 @@ def load_categorical_paf(key: str, location: str) -> pd.DataFrame:
         .set_index(rr.index.names[:-1])
     )
     paf = (sum_exp_x_rr - 1) / sum_exp_x_rr
+
+    if key == data_keys.SAM_TREATMENT.PAF or key == data_keys.MAM_TREATMENT.PAF:
+        paf.loc[paf.query("age_start < .5").index] = 0
     return paf
 
 
