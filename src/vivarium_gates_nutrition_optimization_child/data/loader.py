@@ -314,39 +314,38 @@ def load_categorical_paf(key: str, location: str) -> pd.DataFrame:
     if key == data_keys.SAM_TREATMENT.PAF or key == data_keys.MAM_TREATMENT.PAF:
         paf.loc[paf.query("age_start < .5").index] = 0
 
-    #  TODO: cleanup duplicated code
-    if key == data_keys.SAM_TREATMENT.PAF:
-        mam_rows = paf.query("affected_entity=='severe_acute_malnutrition_to_moderate_acute_malnutrition'")
-        other_rows = mam_rows = paf.query("affected_entity!='severe_acute_malnutrition_to_moderate_acute_malnutrition'")
-        index_levels = list(mam_rows.index.levels)
-
-        better_mam_rows = mam_rows.copy()
-        better_mam_levels = index_levels.copy()
-        better_mam_levels[-2] = pd.Index(['severe_acute_malnutrition_to_better_moderate_acute_malnutrition'], name='affected_entity')
-        better_mam_rows = better_mam_rows.index.set_levels(better_mam_levels)
-
-        worse_mam_rows = mam_rows.copy()
-        worse_mam_levels = index_levels.copy()
-        worse_mam_levels[-2] = pd.Index(['severe_acute_malnutrition_to_worse_moderate_acute_malnutrition'],
-                                         name='affected_entity')
-        worse_mam_rows.index = worse_mam_rows.index.set_levels(worse_mam_levels)
-
-        paf = pd.concat([other_rows, better_mam_rows, worse_mam_rows]).sort_index()
-
-    if key == data_keys.MAM_TREATMENT.PAF:
-        index_levels = paf.index.levels
-
-        better_mam_rows = paf.copy()
-        better_mam_levels = index_levels.copy()
-        better_mam_levels[-2] = pd.Index(['better_moderate_acute_malnutrition_to_mild_child_wasting'], name='affected_entity')
-        better_mam_rows = better_mam_rows.index.set_levels(better_mam_levels)
-
-        worse_mam_rows = paf.copy()
-        worse_mam_levels = index_levels.copy()
-        worse_mam_levels[-2] = pd.Index(['worse_moderate_acute_malnutrition_to_mild_child_wasting'], name='affected_entity')
-        worse_mam_rows = worse_mam_rows.index.set_levels(worse_mam_levels)
-
-        paf = pd.concat([better_mam_rows, worse_mam_rows])
+    # if key == data_keys.SAM_TREATMENT.PAF:
+    #     mam_rows = paf.query("affected_entity=='severe_acute_malnutrition_to_moderate_acute_malnutrition'")
+    #     other_rows = mam_rows = paf.query("affected_entity!='severe_acute_malnutrition_to_moderate_acute_malnutrition'")
+    #     index_levels = list(mam_rows.index.levels)
+    #
+    #     better_mam_rows = mam_rows.copy()
+    #     better_mam_levels = index_levels.copy()
+    #     better_mam_levels[-2] = pd.Index(['severe_acute_malnutrition_to_better_moderate_acute_malnutrition'], name='affected_entity')
+    #     better_mam_rows = better_mam_rows.index.set_levels(better_mam_levels)
+    #
+    #     worse_mam_rows = mam_rows.copy()
+    #     worse_mam_levels = index_levels.copy()
+    #     worse_mam_levels[-2] = pd.Index(['severe_acute_malnutrition_to_worse_moderate_acute_malnutrition'],
+    #                                      name='affected_entity')
+    #     worse_mam_rows.index = worse_mam_rows.index.set_levels(worse_mam_levels)
+    #
+    #     paf = pd.concat([other_rows, better_mam_rows, worse_mam_rows]).sort_index()
+    #
+    # if key == data_keys.MAM_TREATMENT.PAF:
+    #     index_levels = paf.index.levels
+    #
+    #     better_mam_rows = paf.copy()
+    #     better_mam_levels = index_levels.copy()
+    #     better_mam_levels[-2] = pd.Index(['better_moderate_acute_malnutrition_to_mild_child_wasting'], name='affected_entity')
+    #     better_mam_rows = better_mam_rows.index.set_levels(better_mam_levels)
+    #
+    #     worse_mam_rows = paf.copy()
+    #     worse_mam_levels = index_levels.copy()
+    #     worse_mam_levels[-2] = pd.Index(['worse_moderate_acute_malnutrition_to_mild_child_wasting'], name='affected_entity')
+    #     worse_mam_rows = worse_mam_rows.index.set_levels(worse_mam_levels)
+    #
+    #     paf = pd.concat([better_mam_rows, worse_mam_rows])
     return paf
 
 
