@@ -310,6 +310,9 @@ def load_categorical_paf(key: str, location: str) -> pd.DataFrame:
         .set_index(rr.index.names[:-1])
     )
     paf = (sum_exp_x_rr - 1) / sum_exp_x_rr
+
+    if key == data_keys.SAM_TREATMENT.PAF or key == data_keys.MAM_TREATMENT.PAF:
+        paf.loc[paf.query("age_start < .5").index] = 0
     return paf
 
 
@@ -980,13 +983,17 @@ def load_sam_treatment_rr(key: str, location: str) -> pd.DataFrame:
     ] = "severe_acute_malnutrition_to_moderate_acute_malnutrition"
 
     rr = pd.concat([rr_sam_treated_remission, rr_sam_untreated_remission])
+
     rr["affected_measure"] = "transition_rate"
     rr = rr.set_index(["affected_entity", "affected_measure"], append=True)
     rr.index = rr.index.reorder_levels(
         [col for col in rr.index.names if col != "parameter"] + ["parameter"]
     )
-    rr.sort_index()
-    return rr
+
+    # no effect for simulants younger than 6 months
+    rr.loc[rr.query("age_start < .5").index] = 1
+
+    return rr.sort_index()
 
 
 def load_mam_treatment_rr(key: str, location: str) -> pd.DataFrame:
@@ -1029,8 +1036,11 @@ def load_mam_treatment_rr(key: str, location: str) -> pd.DataFrame:
     rr.index = rr.index.reorder_levels(
         [col for col in rr.index.names if col != "parameter"] + ["parameter"]
     )
-    rr.sort_index()
-    return rr
+
+    # no effect for simulants younger than 6 months
+    rr.loc[rr.query("age_start < .5").index] = 1
+
+    return rr.sort_index()
 
 
 def load_lbwsg_exposure(key: str, location: str) -> pd.DataFrame:
