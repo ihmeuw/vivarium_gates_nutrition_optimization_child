@@ -19,6 +19,7 @@ from vivarium_public_health.population.data_transformations import (
     assign_demographic_proportions,
     load_population_structure,
 )
+
 from vivarium_gates_nutrition_optimization_child.constants import data_keys
 
 

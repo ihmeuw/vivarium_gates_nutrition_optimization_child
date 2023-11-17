@@ -25,8 +25,8 @@ from vivarium_gates_nutrition_optimization_child.components.observers import (
     ResultsStratifier,
 )
 from vivarium_gates_nutrition_optimization_child.components.population import (
-    PopulationLineList,
     EvenlyDistributedPopulation,
+    PopulationLineList,
 )
 from vivarium_gates_nutrition_optimization_child.components.risk import (
     CGFRiskEffect,
