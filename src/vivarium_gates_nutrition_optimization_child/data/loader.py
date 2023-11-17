@@ -328,8 +328,10 @@ def load_categorical_paf(key: str, location: str) -> pd.DataFrame:
         worse_mam_rows = mam_rows.copy().reset_index().drop('affected_entity', axis=1)
         worse_mam_rows['affected_entity'] = 'severe_acute_malnutrition_to_worse_moderate_acute_malnutrition'
         worse_mam_rows = worse_mam_rows.set_index(index).set_index('affected_entity', append=True)
-        paf = pd.concat([other_rows, better_mam_rows, worse_mam_rows])
-        paf = paf.set_index(original_index_order).sort_index()
+
+        mam_rows = pd.concat([better_mam_rows, worse_mam_rows])
+        mam_rows = mam_rows.set_index(original_index_order).sort_index()
+        paf = pd.concat([other_rows, mam_rows])
 
     if key == data_keys.MAM_TREATMENT.PAF:
         index = paf.index.droplevel('affected_entity')
@@ -342,7 +344,7 @@ def load_categorical_paf(key: str, location: str) -> pd.DataFrame:
         worse_mam_rows = paf.copy().reset_index().drop('affected_entity', axis=1)
         worse_mam_rows['affected_entity'] = 'worse_moderate_acute_malnutrition_to_mild_child_wasting'
         worse_mam_rows = worse_mam_rows.set_index(index).set_index('affected_entity', append=True)
-        
+
         paf = pd.concat([better_mam_rows, worse_mam_rows])
         paf = paf.set_index(original_index_order).sort_index()
     return paf
