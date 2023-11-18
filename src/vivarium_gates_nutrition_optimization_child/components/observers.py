@@ -279,7 +279,6 @@ class ChildWastingObserver(DiseaseObserver):
             f"child_wasting_model.{self.disease}"
         )
 
-        # not needed in current output but keeping just in case we want to add it back
         for category in self.categories:
             builder.results.register_observation(
                 name=f"{self.risk}_{category}_person_time",
