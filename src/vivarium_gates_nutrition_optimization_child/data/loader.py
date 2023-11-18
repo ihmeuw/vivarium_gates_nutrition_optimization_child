@@ -310,6 +310,10 @@ def load_categorical_paf(key: str, location: str) -> pd.DataFrame:
         .set_index(rr.index.names[:-1])
     )
     paf = (sum_exp_x_rr - 1) / sum_exp_x_rr
+
+    if key == data_keys.SAM_TREATMENT.PAF or key == data_keys.MAM_TREATMENT.PAF:
+        paf.loc[paf.query("age_start < .5").index] = 0
+
     return paf
 
 
@@ -399,7 +403,6 @@ def load_wasting_birth_prevalence(key: str, location: str) -> pd.DataFrame:
         .query("age_end == 0.5")
         .droplevel(["age_start", "age_end"])
     )
-    relative_risk = 2  # placeholder value
 
     # read and process prevalence of low birth weight amongst infants who survive to 30 days
     lbwsg_exposure = get_data(data_keys.LBWSG.EXPOSURE, location)
@@ -421,9 +424,21 @@ def load_wasting_birth_prevalence(key: str, location: str) -> pd.DataFrame:
 
     # calculate prevalences
     prev_cat1 = wasting_prevalence.query("parameter=='cat1'")
-    prev_cat2 = wasting_prevalence.query("parameter=='cat2'")
     prev_cat3 = wasting_prevalence.query("parameter=='cat3'")
     prev_cat4 = wasting_prevalence.query("parameter=='cat4'")
+    # sum cat2 and cat2.5 for MAM
+    prev_cat2 = wasting_prevalence.query("parameter=='cat2' or parameter=='cat2.5'")
+    prev_cat2 = prev_cat2.groupby(["sex", "year_start", "year_end"]).sum()
+    prev_cat2["parameter"] = "cat2"
+    prev_cat2 = prev_cat2.set_index(["parameter"], append=True)
+
+    # relative risk of LBW on wasting
+    relative_risk_draws = get_random_variable_draws(
+        metadata.ARTIFACT_COLUMNS, *data_values.LBWSG.RR_ON_WASTING
+    )
+    relative_risk = pd.DataFrame(
+        [relative_risk_draws], columns=metadata.ARTIFACT_COLUMNS, index=lbw_prevalence.index
+    )
 
     adequate_birth_weight_cat1_probability = prev_cat1 / (
         (relative_risk * lbw_prevalence) + (1 - lbw_prevalence)
@@ -938,8 +953,10 @@ def load_wasting_treatment_exposure(key: str, location: str) -> pd.DataFrame:
     exposure = pd.concat([cat1, cat2, cat3]).set_index("parameter", append=True).sort_index()
 
     # infants under 6 months of age should not receive treatment
-    under_6_months_idx = exposure.query("age_start < .5").index
-    exposure.loc[under_6_months_idx] = 0
+    under_6_months_unexposed_idx = exposure.query("age_start < .5 & parameter=='cat1'").index
+    under_6_months_exposed_idx = exposure.query("age_start < .5 & parameter!='cat1'").index
+    exposure.loc[under_6_months_unexposed_idx] = 1
+    exposure.loc[under_6_months_exposed_idx] = 0
 
     return exposure
 
@@ -966,18 +983,29 @@ def load_sam_treatment_rr(key: str, location: str) -> pd.DataFrame:
     #       = (1 - sam_tx_efficacy) * (r2_ux) / (1 - sam_tx_efficacy_tmrel) * (r2_ux)
     #       = (1 - sam_tx_efficacy) / (1 - sam_tx_efficacy_tmrel)
     rr_sam_untreated_remission = (1 - sam_tx_efficacy) / (1 - sam_tx_efficacy_tmrel)
-    rr_sam_untreated_remission[
+
+    better_mam_rows = rr_sam_untreated_remission.copy()
+    worse_mam_rows = rr_sam_untreated_remission.copy()
+    better_mam_rows[
         "affected_entity"
-    ] = "severe_acute_malnutrition_to_moderate_acute_malnutrition"
+    ] = "severe_acute_malnutrition_to_better_moderate_acute_malnutrition"
+    worse_mam_rows[
+        "affected_entity"
+    ] = "severe_acute_malnutrition_to_worse_moderate_acute_malnutrition"
+    rr_sam_untreated_remission = pd.concat([better_mam_rows, worse_mam_rows])
 
     rr = pd.concat([rr_sam_treated_remission, rr_sam_untreated_remission])
+
     rr["affected_measure"] = "transition_rate"
     rr = rr.set_index(["affected_entity", "affected_measure"], append=True)
     rr.index = rr.index.reorder_levels(
         [col for col in rr.index.names if col != "parameter"] + ["parameter"]
     )
-    rr.sort_index()
-    return rr
+
+    # no effect for simulants younger than 6 months
+    rr.loc[rr.query("age_start < .5").index] = 1
+
+    return rr.sort_index()
 
 
 def load_mam_treatment_rr(key: str, location: str) -> pd.DataFrame:
@@ -1014,14 +1042,26 @@ def load_mam_treatment_rr(key: str, location: str) -> pd.DataFrame:
         + (1 - mam_tx_efficacy_tmrel) * mam_tx_duration
     )
 
-    rr["affected_entity"] = "moderate_acute_malnutrition_to_mild_child_wasting"
+    better_mam_rows = rr.copy()
+    worse_mam_rows = rr.copy()
+    better_mam_rows[
+        "affected_entity"
+    ] = "better_moderate_acute_malnutrition_to_mild_child_wasting"
+    worse_mam_rows[
+        "affected_entity"
+    ] = "worse_moderate_acute_malnutrition_to_mild_child_wasting"
+    rr = pd.concat([better_mam_rows, worse_mam_rows])
+
     rr["affected_measure"] = "transition_rate"
     rr = rr.set_index(["affected_entity", "affected_measure"], append=True)
     rr.index = rr.index.reorder_levels(
         [col for col in rr.index.names if col != "parameter"] + ["parameter"]
     )
-    rr.sort_index()
-    return rr
+
+    # no effect for simulants younger than 6 months
+    rr.loc[rr.query("age_start < .5").index] = 1
+
+    return rr.sort_index()
 
 
 def load_lbwsg_exposure(key: str, location: str) -> pd.DataFrame:
