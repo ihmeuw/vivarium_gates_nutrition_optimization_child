@@ -27,7 +27,7 @@ class FertilityLineList(Component):
 
     @property
     def columns_required(self) -> List[str]:
-        return ["alive", "cause_of_death"]
+        return ["alive", "tracked", "cause_of_death"]
 
     #################
     # Setup methods #
@@ -98,4 +98,5 @@ class FertilityLineList(Component):
         pop = self.population_view.get(event.index)
         is_stillborn = (pop["alive"] == "dead") & (pop["cause_of_death"] == "not_dead")
         pop.loc[is_stillborn, "cause_of_death"] = "stillborn"
+        pop.loc[is_stillborn, "tracked"] = False
         self.population_view.update(pop)

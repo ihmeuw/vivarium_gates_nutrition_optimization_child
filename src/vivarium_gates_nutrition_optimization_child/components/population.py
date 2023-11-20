@@ -11,6 +11,7 @@ from typing import List
 
 import numpy as np
 import pandas as pd
+import numpy as np
 from vivarium.framework.engine import Builder
 from vivarium.framework.population import SimulantData
 from vivarium.framework.time import get_time_stamp
@@ -39,7 +40,11 @@ class PopulationLineList(BasePopulation):
             "exit_time",
             "maternal_id",
         ]
-
+        
+    @property
+    def columns_required(self) -> List[str]:
+        return ["tracked"]
+    
     @property
     def time_step_priority(self) -> int:
         return 8
@@ -110,10 +115,10 @@ class PopulationLineList(BasePopulation):
         """
         Sets simlant step size to 0.5 for neonates and 4 for 1-5 months.
         """
-        age = self.population_view.get(index, "age")
-        step_size = pd.Series(pd.Timedelta(days=1.0), index=index)
-        step_size[age < 0.5] = pd.Timedelta(days=0.5)
-        step_size[(age >= 0.5) & (age < 1.0)] = pd.Timedelta(days=4.0)
+        neonates = self.population_view.get(index, "age < 0.5 and alive == 'alive' and tracked == True").index
+        early_infants = self.population_view.get(index, "age >= 0.5 and age < 1.0 and alive == 'alive' and tracked == True").index
+        step_size = pd.concat([pd.Series(pd.Timedelta(days=0.5), index=neonates),
+                              pd.Series(pd.Timedelta(days=4), index=early_infants)])
         return step_size
 
 

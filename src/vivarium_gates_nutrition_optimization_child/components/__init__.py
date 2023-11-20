@@ -1,6 +1,8 @@
 from vivarium_gates_nutrition_optimization_child.components.causes import (
     RiskAttributableDisease,
     SIS_with_birth_prevalence,
+    SIS_fixed_duration,
+    SIS,
 )
 from vivarium_gates_nutrition_optimization_child.components.fertility import (
     FertilityLineList,
