@@ -9,6 +9,7 @@ from vivarium_gates_nutrition_optimization_child.components.lbwsg import (
     LBWSGLineList,
     LBWSGPAFCalculationExposure,
     LBWSGPAFCalculationRiskEffect,
+    LBWSGPAFObserver,
 )
 from vivarium_gates_nutrition_optimization_child.components.maternal_characteristics import (
     AdditiveRiskEffect,

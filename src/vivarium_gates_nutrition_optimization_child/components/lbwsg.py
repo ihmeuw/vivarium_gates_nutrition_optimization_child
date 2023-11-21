@@ -25,6 +25,8 @@ from vivarium_public_health.risks.implementations.low_birth_weight_and_short_ges
     LBWSGRisk,
     LBWSGRiskEffect,
 )
+from vivarium_public_health.utilities import TargetString
+from vivarium.component import Component
 
 from vivarium_gates_nutrition_optimization_child.constants import data_keys
 
@@ -114,7 +116,6 @@ class LBWSGLineList(LBWSGRisk):
 
 class LBWSGPAFCalculationRiskEffect(LBWSGRiskEffect):
     """Risk effect component for calculating PAFs for LBWSG."""
-
     def get_population_attributable_fraction_source(self, builder: Builder) -> LookupTable:
         return builder.lookup.build_table(0)
 
@@ -126,7 +127,7 @@ class LBWSGPAFCalculationExposure(LBWSGRisk):
 
     @property
     def columns_created(self) -> List[str]:
-        return [self.exposure_column_name(axis) for axis in self.AXES]
+        return [self.exposure_column_name(axis) for axis in self.AXES] + ['lbwsg_category', 'age_bin']
 
     def setup(self, builder: Builder) -> None:
         super().setup(builder)
@@ -146,8 +147,12 @@ class LBWSGPAFCalculationExposure(LBWSGRisk):
             self.birth_exposure_pipeline_name(axis): get_pipeline(axis) for axis in self.AXES
         }
 
-    def get_birth_exposure(self, axis: str, index: pd.Index) -> pd.DataFrame:
-        pop = self.population_view.subview(["age", "sex"]).get(index)
+    ########################
+    # Event-driven methods #
+    ########################
+
+    def on_initialize_simulants(self, pop_data: SimulantData) -> None:
+        pop = self.population_view.subview(["age", "sex"]).get(pop_data.index)
         pop["age_bin"] = pd.cut(pop["age"], self.age_bins["age_start"])
         pop = pop.sort_values(["sex", "age"])
 
@@ -162,11 +167,28 @@ class LBWSGPAFCalculationExposure(LBWSGRisk):
 
         assigned_categories = list(lbwsg_categories) * (2 * num_repeats)
         pop["lbwsg_category"] = assigned_categories
+        self.population_view.update(pop[['age_bin', 'lbwsg_category']])
 
+        birth_exposures = {
+            self.exposure_column_name(axis): self.birth_exposures[
+                self.birth_exposure_pipeline_name(axis)
+            ](pop_data.index)
+            for axis in self.AXES
+        }
+        self.population_view.update(pd.DataFrame(birth_exposures))
+
+    ##################################
+    # Pipeline sources and modifiers #
+    ##################################
+
+    def get_birth_exposure(self, axis: str, index: pd.Index) -> pd.DataFrame:
+        pop = self.population_view.subview(['age_bin', 'sex', 'lbwsg_category']).get(index)
+        lbwsg_categories = self.lbwsg_categories.keys()
         num_simulants_in_category = int(len(pop) / (len(lbwsg_categories) * 4))
         num_points_in_interval = int(math.sqrt(num_simulants_in_category))
 
         exposure_values = pd.Series(name=axis, index=pop.index, dtype=float)
+
         for age_bin, sex, cat in itertools.product(
             pop["age_bin"].unique(), ["Male", "Female"], lbwsg_categories
         ):
@@ -208,49 +230,53 @@ class LBWSGPAFCalculationExposure(LBWSGRisk):
         return exposure_values
 
 
-class LBWSGPAFObserver:
-    def __init__(self, risk: str, target: str):
-        self.configuration_defaults = self.get_configuration_defaults()
-
-    def __repr__(self):
-        return f"PAFObserver({self.risk}, {self.target})"
+class LBWSGPAFObserver(Component):
+    CONFIGURATION_DEFAULTS = {
+        "stratification": {
+            "lbwsg_paf": {
+                "exclude": [],
+                "include": [],
+            }
+        }
+    }
 
     @property
-    def name(self):
-        return f"paf_observer.{self.risk}.{self.target}"
+    def columns_required(self) -> Optional[List[str]]:
+        return ["lbwsg_category"]
+
+    def __init__(self, target: str):
+        super().__init__()
+        self.target = TargetString(target)
 
     # noinspection PyAttributeOutsideInit
     def setup(self, builder: Builder) -> None:
+        self.lbwsg_exposure = builder.data.load(data_keys.LBWSG.EXPOSURE)
         self.risk_effect = builder.components.get_component(
-            f"paf_calculation_risk_effect.{self.risk}.{self.target}"
+            f"lbwsgpaf_calculation_risk_effect.{self.target}"
         )
-
-        config = builder.configuration.stratification[f"{self.risk.name}_paf"]
+        self.config = builder.configuration.stratification.lbwsg_paf
 
         builder.results.register_observation(
-            name=f"calculated_paf_{self.risk}_on_{self.target}",
+            name=f"calculated_lbwsg_paf_on_{self.target}",
             pop_filter='alive == "alive"',
             aggregator=self.calculate_paf,
             requires_columns=["alive"],
-            additional_stratifications=config.include,
-            excluded_stratifications=config.exclude,
+            additional_stratifications=self.config.include,
+            excluded_stratifications=self.config.exclude,
             when="time_step__prepare",
         )
 
     def calculate_paf(self, x: pd.DataFrame) -> float:
         relative_risk = self.risk_effect.target_modifier(x.index, pd.Series(1, index=x.index))
-        mean_rr = relative_risk.mean()
+        relative_risk.name = 'relative_risk'
+        lbwsg_category = self.population_view.get(x.index)['lbwsg_category']
+        lbwsg_prevalence = self.lbwsg_exposure.rename({'parameter': 'lbwsg_category', 'value': 'prevalence'}, axis=1)
+        lbwsg_prevalence = lbwsg_prevalence.groupby('lbwsg_category', as_index=False)['prevalence'].sum()
+
+        mean_rrs = pd.concat([lbwsg_category, relative_risk], axis=1).groupby('lbwsg_category', as_index=False).mean()
+        mean_rrs = mean_rrs.merge(lbwsg_prevalence, on='lbwsg_category')
+
+        mean_rr = np.average(mean_rrs['relative_risk'], weights=mean_rrs['prevalence'])
         paf = (mean_rr - 1) / mean_rr
 
         return paf
-
-    def get_configuration_defaults(self) -> Dict[str, Dict]:
-        return {
-            "stratification": {
-                f"{self.risk.name}_paf_on_{self.target.name}": PAFObserver.configuration_defaults[
-                    "stratification"
-                ][
-                    "paf"
-                ]
-            }
-        }
