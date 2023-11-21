@@ -98,5 +98,5 @@ class FertilityLineList(Component):
         pop = self.population_view.get(event.index)
         is_stillborn = (pop["alive"] == "dead") & (pop["cause_of_death"] == "not_dead")
         pop.loc[is_stillborn, "cause_of_death"] = "stillborn"
-        pop.loc[is_stillborn, "tracked"] = False
+        # pop.loc[is_stillborn, "tracked"] = False
         self.population_view.update(pop)

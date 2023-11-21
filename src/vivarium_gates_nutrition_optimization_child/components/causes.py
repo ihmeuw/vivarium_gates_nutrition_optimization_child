@@ -17,9 +17,9 @@ class DiseaseModel(DiseaseModel_):
     
     def setup(self, builder):
         super().setup(builder)
-        if "variable_step_sizes" in self._get_data_functions:
-            for state, step_size in self._get_data_functions["variable_step_sizes"].items():
-                builder.time.register_step_modifier(lambda index: self.modify_step(state, step_size, index))
+        # if "variable_step_sizes" in self._get_data_functions:
+        #     for state, step_size in self._get_data_functions["variable_step_sizes"].items():
+        #         builder.time.register_step_modifier(lambda index: self.modify_step(state, step_size, index))
 
     def modify_step(self, state, step_size, index):
         infected = self.population_view.get(index, f"{self.state_column} == '{state}' and alive == 'alive' and tracked == True").index
