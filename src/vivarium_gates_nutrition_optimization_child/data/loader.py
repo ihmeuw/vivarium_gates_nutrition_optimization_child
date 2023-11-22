@@ -1188,26 +1188,41 @@ def load_lbwsg_paf(key: str, location: str) -> pd.DataFrame:
     }
 
     output_dir = paths.TEMPORARY_PAF_DIR / location_mapper[location]
-    paf_files = output_dir.glob("*.hdf")
-    paf_data = pd.concat([pd.read_hdf(paf_file) for paf_file in paf_files]).sort_values(
-        metadata.ARTIFACT_INDEX_COLUMNS + ["draw"]
-    )
+    def get_age_and_sex(measure_str):
+        age = measure_str.split('AGE_GROUP_')[1].split('SEX')[0][:-1]
+        sex = measure_str.split('AGE_GROUP_')[1].split('SEX')[1][1:]
+    
+        return age + ',' + sex
 
-    paf_data["draw"] = paf_data["draw"].apply(lambda draw: f"draw_{draw}")
+    df = pd.read_hdf(output_dir / "output.hdf") # this is 4096_simulants.hdf for example
+    df = df[[col for col in df.columns if 'MEASURE' in col]].T
+    df.columns = [f"draw_{i}" for i in range(1000)]
+    df = df.reset_index()
+    df['demographics'] = df['index'].apply(get_age_and_sex)
+    df = df.drop('index', axis=1)
+    df[['age', 'sex']] = df['demographics'].str.split(',', expand=True)
+    df = df.drop('demographics', axis=1)
 
-    paf_data = paf_data.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ["draw"]).unstack()
+    age_start_dict = {'early_neonatal':0.0, 'late_neonatal':0.01917808}
+    age_end_dict = {'early_neonatal':0.01917808, 'late_neonatal':0.07671233}
+    df['age_start'] = df['age'].replace(age_start_dict)
+    df['age_end'] = df['age'].replace(age_end_dict)
+    df['year_start'] = 2019
+    df['year_end'] = 2020
+    df = df.drop('age', axis=1)
 
-    paf_data.columns = paf_data.columns.droplevel(0)
-    paf_data.columns.name = None
+    new_row_1 = [0]*1000 + ['Female', 0.07671233, 1.0, 2019, 2020]
+    new_row_2 = [0]*1000 + ['Male', 0.07671233, 1.0, 2019, 2020]
+    new_row_3 = [0]*1000 + ['Female', 1.0, 5.0, 2019, 2020]
+    new_row_4 = [0]*1000 + ['Male', 1.0, 5.0, 2019, 2020]
 
-    full_index = (
-        get_data(data_keys.LBWSG.RELATIVE_RISK, location)
-        .index.droplevel("parameter")
-        .drop_duplicates()
-    )
+    df.loc[len(df)] = new_row_1
+    df.loc[len(df)] = new_row_2
+    df.loc[len(df)] = new_row_3
+    df.loc[len(df)] = new_row_4
 
-    paf_data = paf_data.reindex(full_index).fillna(0.0)
-    return paf_data
+    df = df.set_index(['sex', 'age_start', 'age_end', 'year_start', 'year_end']).sort_index()
+    return df
 
 
 def load_sids_csmr(key: str, location: str) -> pd.DataFrame:

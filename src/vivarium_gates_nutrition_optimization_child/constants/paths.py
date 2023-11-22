@@ -21,5 +21,5 @@ UNDERWEIGHT_CONDITIONAL_DISTRIBUTIONS = RAW_DATA_DIR / "lookup.csv"
 CGF_PAFS = RAW_DATA_DIR / "cgf_pafs.csv"
 
 TEMPORARY_PAF_DIR = Path(
-    "/mnt/team/simulation_science/costeffectiveness/auxiliary_data/GBD_2019/01_original_data/population_attributable_fraction/risk_factor/lbwsg/data/"
+    "/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization_child/lbwsg_pafs/outputs"
 )
