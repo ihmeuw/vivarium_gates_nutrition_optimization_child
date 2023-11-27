@@ -19,6 +19,7 @@ from vivarium_public_health.population.data_transformations import (
     assign_demographic_proportions,
     load_population_structure,
 )
+from vivarium_gates_nutrition_optimization_child.constants.metadata import NEONATAL_END_AGE
 
 
 class PopulationLineList(BasePopulation):
@@ -79,7 +80,7 @@ class PopulationLineList(BasePopulation):
 
         self.start_time = get_time_stamp(builder.configuration.time.start)
         self.location = self._get_location(builder)
-        # builder.time.register_step_modifier(self.modify_step)
+        builder.time.register_step_modifier(self.modify_step)
 
     def on_initialize_simulants(self, pop_data: SimulantData) -> None:
         """
@@ -111,8 +112,8 @@ class PopulationLineList(BasePopulation):
         """
         Sets simlant step size to 0.5 for neonates and 4 for 1-5 months.
         """
-        neonates = self.population_view.get(index, "age < 0.5 and alive == 'alive' and tracked == True").index
-        early_infants = self.population_view.get(index, "age >= 0.5 and age < 1.0 and alive == 'alive' and tracked == True").index
+        neonates = self.population_view.get(index, f"age < {NEONATAL_END_AGE} and alive == 'alive' and tracked == True").index
+        early_infants = self.population_view.get(index, f"age >= {NEONATAL_END_AGE} and age < 0.416667 and alive == 'alive' and tracked == True").index
         step_size = pd.concat([pd.Series(pd.Timedelta(days=0.5), index=neonates),
                               pd.Series(pd.Timedelta(days=4), index=early_infants)])
         return step_size

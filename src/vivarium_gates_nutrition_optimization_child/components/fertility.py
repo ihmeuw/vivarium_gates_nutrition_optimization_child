@@ -53,7 +53,8 @@ class FertilityLineList(Component):
 
         file_path = data_directory / f"scenario_{scenario}_draw_{draw}_seed_{seed}.hdf"
         birth_records = pd.read_hdf(file_path)
-        birth_records["birth_date"] = pd.to_datetime(birth_records["birth_date"])
+        # birth_records["birth_date"] = pd.to_datetime(birth_records["birth_date"])
+        birth_records["birth_date"] = pd.to_datetime('2024-12-31 12:00:01')
         return birth_records
 
     def on_time_step(self, event: Event) -> None:
@@ -98,5 +99,5 @@ class FertilityLineList(Component):
         pop = self.population_view.get(event.index)
         is_stillborn = (pop["alive"] == "dead") & (pop["cause_of_death"] == "not_dead")
         pop.loc[is_stillborn, "cause_of_death"] = "stillborn"
-        # pop.loc[is_stillborn, "tracked"] = False
+        pop.loc[is_stillborn, "tracked"] = False
         self.population_view.update(pop)

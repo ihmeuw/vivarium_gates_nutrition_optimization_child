@@ -1,13 +1,9 @@
-# input_draw_count: 5
-# random_seed_count: 10
+input_draw_count: 5
+random_seed_count: 10
 
-# input_draws: [602, 357, 946, 829, 650]
-# random_seeds: [4344, 5616, 6810, 2787, 2284, 4369, 3254, 7359, 3541, 5020]
-input_draw_count: 1
-random_seed_count: 1
+input_draws: [602, 357, 946, 829, 650]
+random_seeds: [4344, 5616, 6810, 2787, 2284, 4369, 3254, 7359, 3541, 5020]
 
-input_draws: [602]
-random_seeds: [4344]
 branches:
   - intervention:
       child_scenario: ['baseline']
@@ -22,6 +18,7 @@ branches:
 #        - 'scenario_6_sam_and_sqlns'
 #        - 'scenario_7_mam_and_sqlns'
 #        - 'scenario_8_all'
+#        - 'scenario_13_targeted_mam'
 #      maternal_scenario:
 #        - 'zero_coverage'
 #        - 'mms'
