@@ -47,7 +47,7 @@ def make_measure_data(data: pd.DataFrame, disaggregate_seeds: bool):
         ),
         malaria_state_person_time=get_state_person_time_measure_data(
             data, "malaria_state_person_time", disaggregate_seeds
-               ),
+        ),
         #        moderate_pem_state_person_time=get_state_person_time_measure_data(
         #            data, "moderate_pem_state_person_time", disaggregate_seeds
         #        ),
@@ -91,7 +91,7 @@ def make_measure_data(data: pd.DataFrame, disaggregate_seeds: bool):
         #        low_weight_births_count=get_measure_data(
         #            data, "low_weight_births_count", disaggregate_seeds
         #        ),
-        )
+    )
     return measure_data
 
 
