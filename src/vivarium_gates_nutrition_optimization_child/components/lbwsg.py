@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 import numpy as np
 import pandas as pd
+from vivarium.component import Component
 from vivarium.framework.engine import Builder
 from vivarium.framework.lookup import LookupTable
 from vivarium.framework.population import PopulationView, SimulantData
@@ -26,7 +27,6 @@ from vivarium_public_health.risks.implementations.low_birth_weight_and_short_ges
     LBWSGRiskEffect,
 )
 from vivarium_public_health.utilities import TargetString
-from vivarium.component import Component
 
 from vivarium_gates_nutrition_optimization_child.constants import data_keys
 
@@ -116,6 +116,7 @@ class LBWSGLineList(LBWSGRisk):
 
 class LBWSGPAFCalculationRiskEffect(LBWSGRiskEffect):
     """Risk effect component for calculating PAFs for LBWSG."""
+
     def get_population_attributable_fraction_source(self, builder: Builder) -> LookupTable:
         return builder.lookup.build_table(0)
 
@@ -127,7 +128,10 @@ class LBWSGPAFCalculationExposure(LBWSGRisk):
 
     @property
     def columns_created(self) -> List[str]:
-        return [self.exposure_column_name(axis) for axis in self.AXES] + ['lbwsg_category', 'age_bin']
+        return [self.exposure_column_name(axis) for axis in self.AXES] + [
+            "lbwsg_category",
+            "age_bin",
+        ]
 
     def setup(self, builder: Builder) -> None:
         super().setup(builder)
@@ -167,7 +171,7 @@ class LBWSGPAFCalculationExposure(LBWSGRisk):
 
         assigned_categories = list(lbwsg_categories) * (2 * num_repeats)
         pop["lbwsg_category"] = assigned_categories
-        self.population_view.update(pop[['age_bin', 'lbwsg_category']])
+        self.population_view.update(pop[["age_bin", "lbwsg_category"]])
 
         birth_exposures = {
             self.exposure_column_name(axis): self.birth_exposures[
@@ -182,7 +186,7 @@ class LBWSGPAFCalculationExposure(LBWSGRisk):
     ##################################
 
     def get_birth_exposure(self, axis: str, index: pd.Index) -> pd.DataFrame:
-        pop = self.population_view.subview(['age_bin', 'sex', 'lbwsg_category']).get(index)
+        pop = self.population_view.subview(["age_bin", "sex", "lbwsg_category"]).get(index)
         lbwsg_categories = self.lbwsg_categories.keys()
         num_simulants_in_category = int(len(pop) / (len(lbwsg_categories) * 4))
         num_points_in_interval = int(math.sqrt(num_simulants_in_category))
@@ -268,15 +272,23 @@ class LBWSGPAFObserver(Component):
 
     def calculate_paf(self, x: pd.DataFrame) -> float:
         relative_risk = self.risk_effect.target_modifier(x.index, pd.Series(1, index=x.index))
-        relative_risk.name = 'relative_risk'
-        lbwsg_category = self.population_view.get(x.index)['lbwsg_category']
-        lbwsg_prevalence = self.lbwsg_exposure.rename({'parameter': 'lbwsg_category', 'value': 'prevalence'}, axis=1)
-        lbwsg_prevalence = lbwsg_prevalence.groupby('lbwsg_category', as_index=False)['prevalence'].sum()
+        relative_risk.name = "relative_risk"
+        lbwsg_category = self.population_view.get(x.index)["lbwsg_category"]
+        lbwsg_prevalence = self.lbwsg_exposure.rename(
+            {"parameter": "lbwsg_category", "value": "prevalence"}, axis=1
+        )
+        lbwsg_prevalence = lbwsg_prevalence.groupby("lbwsg_category", as_index=False)[
+            "prevalence"
+        ].sum()
 
-        mean_rrs = pd.concat([lbwsg_category, relative_risk], axis=1).groupby('lbwsg_category', as_index=False).mean()
-        mean_rrs = mean_rrs.merge(lbwsg_prevalence, on='lbwsg_category')
+        mean_rrs = (
+            pd.concat([lbwsg_category, relative_risk], axis=1)
+            .groupby("lbwsg_category", as_index=False)
+            .mean()
+        )
+        mean_rrs = mean_rrs.merge(lbwsg_prevalence, on="lbwsg_category")
 
-        mean_rr = np.average(mean_rrs['relative_risk'], weights=mean_rrs['prevalence'])
+        mean_rr = np.average(mean_rrs["relative_risk"], weights=mean_rrs["prevalence"])
         paf = (mean_rr - 1) / mean_rr
 
         return paf
