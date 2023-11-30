@@ -33,7 +33,7 @@ configuration:
             day: 2
         step_size: 3 # Days
     population:
-        population_size: 23_200
+        population_size: 122_728
         age_start: 0
         age_end: 0.03835616 # 14 days
         exit_age: 0.03835616 # 14 days
