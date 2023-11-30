@@ -30,8 +30,6 @@ from vivarium_public_health.utilities import TargetString
 
 from vivarium_gates_nutrition_optimization_child.constants import data_keys
 
-from vivarium_gates_nutrition_optimization_child.constants import data_keys
-
 
 class LBWSGLineList(LBWSGRisk):
     """
@@ -121,7 +119,6 @@ class LBWSGPAFCalculationRiskEffect(LBWSGRiskEffect):
 
     def get_population_attributable_fraction_source(self, builder: Builder) -> LookupTable:
         return builder.lookup.build_table(0)
-
 
 
 class LBWSGPAFCalculationExposure(LBWSGRisk):
