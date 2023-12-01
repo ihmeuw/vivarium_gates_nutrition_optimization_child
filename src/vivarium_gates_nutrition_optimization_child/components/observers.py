@@ -33,20 +33,20 @@ class ResultsStratifier(ResultsStratifier_):
     final column labels for the subgroups.
     """
 
-    def get_age_bins(self, builder: Builder) -> pd.DataFrame:
-        """Define final age groups for production runs."""
-        age_bins = super().get_age_bins(builder)
-        data_dict = {
-            "age_start": [0.0, 0.5, 1.5],
-            "age_end": [0.5, 1.5, 5],
-            "age_group_name": [
-                "0_to_6_months",
-                "6_to_18_months",
-                "18_to_59_months",
-            ],
-        }
-
-        return pd.DataFrame(data_dict)
+    #    def get_age_bins(self, builder: Builder) -> pd.DataFrame:
+    #        """Define final age groups for production runs."""
+    #        age_bins = super().get_age_bins(builder)
+    #        data_dict = {
+    #            "age_start": [0.0, 0.5, 1.5],
+    #            "age_end": [0.5, 1.5, 5],
+    #            "age_group_name": [
+    #                "0_to_6_months",
+    #                "6_to_18_months",
+    #                "18_to_59_months",
+    #            ],
+    #        }
+    #
+    #        return pd.DataFrame(data_dict)
 
     def register_stratifications(self, builder: Builder) -> None:
         """Register each desired stratification with calls to _setup_stratification"""
@@ -104,6 +104,12 @@ class ResultsStratifier(ResultsStratifier_):
             ["covered", "uncovered", "received"],
             is_vectorized=True,
             requires_values=[data_values.SQ_LNS.COVERAGE_PIPELINE],
+        )
+        builder.results.register_stratification(
+            "birth_weight_status",
+            ["low_birth_weight", "adequate_birth_weight"],
+            is_vectorized=True,
+            requires_columns=["birth_weight_status"],
         )
 
     ###########################
@@ -270,10 +276,9 @@ class ChildWastingObserver(DiseaseObserver):
         self.categories = builder.data.load(f"risk_factor.{self.risk}.categories")
 
         disease_model = builder.components.get_component(
-            f"dynamic_child_wasting_model.{self.disease}"
+            f"child_wasting_model.{self.disease}"
         )
 
-        # not needed in current output but keeping just in case we want to add it back
         for category in self.categories:
             builder.results.register_observation(
                 name=f"{self.risk}_{category}_person_time",
