@@ -1,14 +1,20 @@
 components:
+    vivarium_public_health:
+        metrics:
+            - ResultsStratifier()
     vivarium_gates_nutrition_optimization_child:
         components:
             - EvenlyDistributedPopulation()
             - LBWSGPAFCalculationExposure()
+            - SIS_with_birth_prevalence('diarrheal_diseases')
+            - LBWSGPAFCalculationRiskEffect('cause.diarrheal_diseases.excess_mortality_rate')
+            - LBWSGPAFObserver('cause.diarrheal_diseases.excess_mortality_rate')
 
 
 configuration:
     input_data:
         input_draw_number: 0
-        artifact_path: '/home/hussain-jafari/artifacts/nutrition/model11.0/ethiopia.hdf'
+        artifact_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization_child/artifacts/model11.1/ethiopia.hdf'
     interpolation:
         order: 0
         extrapolate: True
@@ -22,15 +28,20 @@ configuration:
             month: 1
             day: 1
         end:
-            year: 2026
-            month: 12
-            day: 31
-        step_size: 0.5 # Days
+            year: 2022
+            month: 1
+            day: 2
+        step_size: 3 # Days
     population:
-        population_size: 400_200
+        population_size: 122_728
         age_start: 0
         age_end: 0.03835616 # 14 days
         exit_age: 0.03835616 # 14 days
 
     intervention:
         scenario: 'baseline'
+
+    stratification:
+        default:
+            - 'age_group'
+            - 'sex'
