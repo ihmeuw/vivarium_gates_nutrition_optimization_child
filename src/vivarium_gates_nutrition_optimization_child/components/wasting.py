@@ -108,7 +108,7 @@ class WastingTreatment(Risk):
                 underweight = self.underweight_exposure(index)
 
                 in_mam_state = (wasting == "cat2") | (wasting == "cat2.5")
-                in_worse_mam_state = wasting == "cat2.5"
+                in_worse_mam_state = wasting == "cat2"
                 in_age_range = (age >= 0.5) & (age < 2)
                 is_severely_underweight = underweight == "cat1"
                 under_6_months = age < 0.5
