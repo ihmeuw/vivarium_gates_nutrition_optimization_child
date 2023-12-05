@@ -233,11 +233,6 @@ class ChildWastingModel(DiseaseModel):
             condition_column = pd.Series(
                 self.initial_state, index=population.index, name=self.state_column
             )
-        if len(condition_column) > 0:
-            length = int(len(condition_column)/3)
-            condition_column.loc[:length, 'child_wasting'] = 'better_moderate_acute_malnutrition'
-            condition_column.loc[length:(2*length), 'child_wasting'] = 'worse_moderate_acute_malnutrition'
-            condition_column.loc[(2*length):, 'child_wasting'] = 'severe_acute_malnutrition'
         self.population_view.update(pd.concat([condition_column, initial_propensity], axis=1))
 
     @staticmethod
