@@ -6,7 +6,7 @@ from vivarium import Component
 from vivarium.framework.engine import Builder
 from vivarium.framework.event import Event
 from vivarium.framework.lookup import LookupTable, LookupTableData
-from vivarium.framework.population import PopulationView
+from vivarium.framework.population import SimulantData
 from vivarium.framework.values import list_combiner, union_post_processor
 from vivarium_public_health.disease import DiseaseModel, DiseaseState, SusceptibleState
 from vivarium_public_health.risks import Risk
@@ -41,8 +41,12 @@ class WastingTreatment(Risk):
 
         self.previous_wasting_column = f"previous_{data_keys.WASTING.name}"
         self.wasting_column = data_keys.WASTING.name
-
         self.treated_state = self._get_treated_state()
+        self.previous_treatment_column = f"previous_{self.treated_state}_treatment"
+
+    @property
+    def columns_created(self) -> List[str]:
+        return [self.propensity_column_name, self.previous_treatment_column]
 
     @property
     def columns_required(self) -> Optional[List[str]]:
@@ -70,20 +74,39 @@ class WastingTreatment(Risk):
         self.underweight_exposure = builder.value.get_value(
             data_values.PIPELINES.UNDERWEIGHT_EXPOSURE
         )
+        self.treatment_exposure = builder.value.get_value(
+            f"{self.treated_state}_treatment.exposure"
+        )
 
     ########################
     # Event-driven methods #
     ########################
 
+    def on_initialize_simulants(self, pop_data: SimulantData) -> None:
+        # propensity
+        self.population_view.update(
+            pd.Series(
+                self.randomness.get_draw(pop_data.index), name=self.propensity_column_name
+            )
+        )
+        # previous treatment (initialize as uncovered)
+        self.population_view.update(
+            pd.Series("cat1", index=pop_data.index, name=self.previous_treatment_column)
+        )
+
     def on_time_step_prepare(self, event: Event):
-        """'redraw propensities upon transition to new wasting state"""
+        """define previous_treatment and redraw propensities upon transition to new wasting state"""
         pop = self.population_view.get(event.index)
+        # previous treatment column (for results stratification)
+        previous_treatment = self.treatment_exposure(pop.index)
+        previous_treatment.name = self.previous_treatment_column
+        # update propensity
         propensity = pop[self.propensity_column_name]
         remitted_mask = (pop[self.previous_wasting_column] == self.treated_state) & pop[
             self.wasting_column
         ] != self.treated_state
         propensity.loc[remitted_mask] = self.randomness.get_draw(remitted_mask.index)
-        self.population_view.update(propensity)
+        self.population_view.update(pd.concat([previous_treatment, propensity], axis=1))
 
     ##################################
     # Pipeline sources and modifiers #
@@ -108,7 +131,7 @@ class WastingTreatment(Risk):
                 underweight = self.underweight_exposure(index)
 
                 in_mam_state = (wasting == "cat2") | (wasting == "cat2.5")
-                in_worse_mam_state = wasting == "cat2.5"
+                in_worse_mam_state = wasting == "cat2"
                 in_age_range = (age >= 0.5) & (age < 2)
                 is_severely_underweight = underweight == "cat1"
                 under_6_months = age < 0.5
