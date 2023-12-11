@@ -32,7 +32,6 @@ class ResultsStratifier(ResultsStratifier_):
     results production and have this component manage adjustments to the
     final column labels for the subgroups.
     """
-
     def register_stratifications(self, builder: Builder) -> None:
         """Register each desired stratification with calls to _setup_stratification"""
         super().register_stratifications(builder)

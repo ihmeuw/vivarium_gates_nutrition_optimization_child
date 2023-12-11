@@ -7,7 +7,6 @@ from vivarium.framework.engine import Builder
 from vivarium.framework.event import Event
 from vivarium.framework.lookup import LookupTable, LookupTableData
 from vivarium.framework.population import SimulantData
-from vivarium.framework.values import list_combiner, union_post_processor
 from vivarium_public_health.disease import DiseaseModel, DiseaseState, SusceptibleState
 from vivarium_public_health.risks import Risk
 from vivarium_public_health.risks.data_transformations import (
