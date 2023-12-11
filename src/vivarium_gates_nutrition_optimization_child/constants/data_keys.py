@@ -251,6 +251,7 @@ class __Wasting(NamedTuple):
     # Useful keys not for the artifact - distinguished by not using the colon type declaration
     CAT4 = "cat4"
     CAT3 = "cat3"
+    CAT25 = "cat2.5"
     CAT2 = "cat2"
     CAT1 = "cat1"
 
@@ -464,6 +465,14 @@ class CGFCategories(Enum):
     UNEXPOSED = "unexposed"
     MILD = "mild"
     MODERATE = "moderate"
+    SEVERE = "severe"
+
+
+class ChildWastingCategories(Enum):
+    UNEXPOSED = "unexposed"
+    MILD = "mild"
+    BETTER_MODERATE = "better_moderate"
+    WORSE_MODERATE = "worse_moderate"
     SEVERE = "severe"
 
 

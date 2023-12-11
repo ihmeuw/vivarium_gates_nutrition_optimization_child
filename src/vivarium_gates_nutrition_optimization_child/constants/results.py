@@ -50,7 +50,7 @@ SEVERE_PEM_TRANSITION_COUNT_COLUMN_TEMPLATE = (
     "MEASURE_{SEVERE_PEM_TRANSITION}_event_count_AGE_GROUP_{AGE_GROUP}_SEX_{SEX}"
 )
 STUNTING_STATE_PERSON_TIME_COLUMN_TEMPLATE = "MEASURE_child_stunting_{CGF_RISK_STATE_NUMERIC}_person_time_AGE_GROUP_{AGE_GROUP}_SEX_{SEX}_UNDERWEIGHT_STATE_{CGF_RISK_STATE}"
-WASTING_STATE_PERSON_TIME_COLUMN_TEMPLATE = "MEASURE_child_wasting_{CGF_RISK_STATE_NUMERIC}_person_time_AGE_GROUP_{AGE_GROUP}_MAM_TREATMENT_{MAM_TREATMENT}_SAM_TREATMENT_{SAM_TREATMENT}_SEX_{SEX}_UNDERWEIGHT_STATE_{CGF_RISK_STATE}"
+WASTING_STATE_PERSON_TIME_COLUMN_TEMPLATE = "MEASURE_child_wasting_{WASTING_STATE_NUMERIC}_person_time_AGE_GROUP_{AGE_GROUP}_MAM_TREATMENT_{MAM_TREATMENT}_SAM_TREATMENT_{SAM_TREATMENT}_SEX_{SEX}_UNDERWEIGHT_STATE_{CGF_RISK_STATE}"
 WASTING_TRANSITION_COUNT_COLUMN_TEMPLATE = "MEASURE_{WASTING_TRANSITION}_event_count_AGE_GROUP_{AGE_GROUP}_MAM_TREATMENT_{MAM_TREATMENT}_SAM_TREATMENT_{SAM_TREATMENT}_SEX_{SEX}_UNDERWEIGHT_STATE_{CGF_RISK_STATE}"
 UNDERWEIGHT_STATE_PERSON_TIME_COLUMN_TEMPLATE = "MEASURE_child_underweight_{CGF_RISK_STATE_NUMERIC}_person_time_AGE_GROUP_{AGE_GROUP}_MAM_TREATMENT_{MAM_TREATMENT}_SAM_TREATMENT_{SAM_TREATMENT}_SEX_{SEX}_UNDERWEIGHT_STATE_{CGF_RISK_STATE}"
 LOW_BIRTH_WEIGHT_SHORT_GESTATION_SUB_RISK_SUM_COLUM_TEMPLATE = "MEASURE_{LBWSG_SUB_RISK}_sum_BMI_ANEMIA_{BMI_ANEMIA}_MATERNAL_SUPPLEMENTATION_{SUPPLEMENTATION}_SEX_{SEX}"
@@ -115,16 +115,21 @@ CAUSES_OF_DISABILITY = (
 )
 CGF_RISK_STATES = tuple([category.value for category in data_keys.CGFCategories])
 TETRACHOTOMTOUS_RISK_STATES = ("cat1", "cat2", "cat3", "cat4")
+WASTING_STATES = ("cat1", "cat2", "cat2.5", "cat3", "cat4")
 LBWSG_SUB_RISKS = ("birth_weight", "gestational_age")
 MATERNAL_SUPPLEMENTATION_TYPES = ("uncovered", "ifa", "mms", "bep")
 DICHOTOMOUS_COVERAGE_STATES = ("uncovered", "covered")
 WASTING_TRANSITIONS = (
     "susceptible_to_child_wasting_to_mild_child_wasting",
-    "mild_child_wasting_to_moderate_acute_malnutrition",
+    "mild_child_wasting_to_worse_moderate_acute_malnutrition",
+    "mild_child_wasting_to_better_moderate_acute_malnutrition",
     "mild_child_wasting_to_susceptible_to_child_wasting",
-    "moderate_acute_malnutrition_to_severe_acute_malnutrition",
-    "moderate_acute_malnutrition_to_mild_child_wasting",
-    "severe_acute_malnutrition_to_moderate_acute_malnutrition",
+    "better_moderate_acute_malnutrition_to_severe_acute_malnutrition",
+    "worse_moderate_acute_malnutrition_to_severe_acute_malnutrition",
+    "better_moderate_acute_malnutrition_to_mild_child_wasting",
+    "worse_moderate_acute_malnutrition_to_mild_child_wasting",
+    "severe_acute_malnutrition_to_better_moderate_acute_malnutrition",
+    "severe_acute_malnutrition_to_worse_moderate_acute_malnutrition",
     "severe_acute_malnutrition_to_mild_child_wasting",
 )
 SQLNS_COVERAGES = ("covered", "uncovered", "received")
@@ -150,6 +155,7 @@ TEMPLATE_FIELD_MAP = {
     "SEVERE_PEM_TRANSITION": models.SEVERE_PEM.TRANSITIONS,
     "CGF_RISK_STATE": CGF_RISK_STATES,
     "CGF_RISK_STATE_NUMERIC": TETRACHOTOMTOUS_RISK_STATES,
+    "WASTING_STATE_NUMERIC": WASTING_STATES,
     "LBWSG_SUB_RISK": LBWSG_SUB_RISKS,
     "SUPPLEMENTATION": MATERNAL_SUPPLEMENTATION_TYPES,
     "IV_IRON": DICHOTOMOUS_COVERAGE_STATES,

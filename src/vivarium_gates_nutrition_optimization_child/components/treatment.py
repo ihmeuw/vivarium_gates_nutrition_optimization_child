@@ -80,13 +80,25 @@ class SQLNSTreatment(Component):
         )
 
         builder.value.register_value_modifier(
-            f"{models.WASTING.MILD_STATE_NAME}_to_{models.WASTING.MODERATE_STATE_NAME}.transition_rate",
+            f"{models.WASTING.MILD_STATE_NAME}_to_{models.WASTING.BETTER_MODERATE_STATE_NAME}.transition_rate",
             modifier=self.apply_mild_to_mam_wasting_treatment,
             requires_values=[self.coverage_pipeline_name],
         )
 
         builder.value.register_value_modifier(
-            f"{models.WASTING.MODERATE_STATE_NAME}_to_{models.WASTING.SEVERE_STATE_NAME}.transition_rate",
+            f"{models.WASTING.MILD_STATE_NAME}_to_{models.WASTING.WORSE_MODERATE_STATE_NAME}.transition_rate",
+            modifier=self.apply_mild_to_mam_wasting_treatment,
+            requires_values=[self.coverage_pipeline_name],
+        )
+
+        builder.value.register_value_modifier(
+            f"{models.WASTING.BETTER_MODERATE_STATE_NAME}_to_{models.WASTING.SEVERE_STATE_NAME}.transition_rate",
+            modifier=self.apply_mam_to_sam_wasting_treatment,
+            requires_values=[self.coverage_pipeline_name],
+        )
+
+        builder.value.register_value_modifier(
+            f"{models.WASTING.WORSE_MODERATE_STATE_NAME}_to_{models.WASTING.SEVERE_STATE_NAME}.transition_rate",
             modifier=self.apply_mam_to_sam_wasting_treatment,
             requires_values=[self.coverage_pipeline_name],
         )
