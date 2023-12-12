@@ -114,13 +114,13 @@ class PopulationLineList(BasePopulation):
         Sets simlant step size to 0.5 for neonates and 4 for 1-5 months.
         """
         neonates = self.population_view.get(index, f"age < {NEONATAL_END_AGE}").index
-        early_infants = self.population_view.get(
+        one_to_five_mos = self.population_view.get(
             index, f"age >= {NEONATAL_END_AGE} and age < 0.416667"
         ).index
         step_size = pd.concat(
             [
                 pd.Series(pd.Timedelta(days=0.5), index=neonates),
-                pd.Series(pd.Timedelta(days=4), index=early_infants),
+                pd.Series(pd.Timedelta(days=4), index=one_to_five_mos),
             ]
         )
         return step_size
