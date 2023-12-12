@@ -40,6 +40,7 @@ class FertilityLineList(Component):
 
         # Requirements for input data
         self.birth_records = self._get_birth_records(builder)
+        self.move_simulants_to_end = builder.time.move_simulants_to_end()
 
     @staticmethod
     def _get_birth_records(builder: Builder) -> pd.DataFrame:
@@ -53,7 +54,8 @@ class FertilityLineList(Component):
 
         file_path = data_directory / f"scenario_{scenario}_draw_{draw}_seed_{seed}.hdf"
         birth_records = pd.read_hdf(file_path)
-        birth_records["birth_date"] = pd.to_datetime(birth_records["birth_date"])
+        # birth_records["birth_date"] = pd.to_datetime(birth_records["birth_date"])
+        birth_records["birth_date"] = pd.to_datetime("2024-12-31 12:00:01")
         return birth_records
 
     def on_time_step(self, event: Event) -> None:
@@ -98,5 +100,5 @@ class FertilityLineList(Component):
         pop = self.population_view.get(event.index)
         is_stillborn = (pop["alive"] == "dead") & (pop["cause_of_death"] == "not_dead")
         pop.loc[is_stillborn, "cause_of_death"] = "stillborn"
-        pop.loc[is_stillborn, "tracked"] = False
         self.population_view.update(pop)
+        self.move_simulants_to_end(is_stillborn)

@@ -11,7 +11,6 @@ from typing import List
 
 import numpy as np
 import pandas as pd
-import numpy as np
 from vivarium.framework.engine import Builder
 from vivarium.framework.population import SimulantData
 from vivarium.framework.time import get_time_stamp
@@ -20,8 +19,12 @@ from vivarium_public_health.population.data_transformations import (
     assign_demographic_proportions,
     load_population_structure,
 )
+from vivarium_public_health.population.mortality import Mortality as _Mortality
 
 from vivarium_gates_nutrition_optimization_child.constants import data_keys
+from vivarium_gates_nutrition_optimization_child.constants.metadata import (
+    NEONATAL_END_AGE,
+)
 
 
 class PopulationLineList(BasePopulation):
@@ -40,11 +43,7 @@ class PopulationLineList(BasePopulation):
             "exit_time",
             "maternal_id",
         ]
-        
-    @property
-    def columns_required(self) -> List[str]:
-        return ["tracked"]
-    
+
     @property
     def time_step_priority(self) -> int:
         return 8
@@ -109,16 +108,21 @@ class PopulationLineList(BasePopulation):
 
     def _get_location(self, builder: Builder) -> str:
         return builder.data.load("population.location")
-    
-        
+
     def modify_step(self, index: pd.Index) -> pd.Series:
         """
         Sets simlant step size to 0.5 for neonates and 4 for 1-5 months.
         """
-        neonates = self.population_view.get(index, "age < 0.5 and alive == 'alive' and tracked == True").index
-        early_infants = self.population_view.get(index, "age >= 0.5 and age < 1.0 and alive == 'alive' and tracked == True").index
-        step_size = pd.concat([pd.Series(pd.Timedelta(days=0.5), index=neonates),
-                              pd.Series(pd.Timedelta(days=4), index=early_infants)])
+        neonates = self.population_view.get(index, f"age < {NEONATAL_END_AGE}").index
+        early_infants = self.population_view.get(
+            index, f"age >= {NEONATAL_END_AGE} and age < 0.416667"
+        ).index
+        step_size = pd.concat(
+            [
+                pd.Series(pd.Timedelta(days=0.5), index=neonates),
+                pd.Series(pd.Timedelta(days=4), index=early_infants),
+            ]
+        )
         return step_size
 
 
@@ -150,3 +154,15 @@ class EvenlyDistributedPopulation(BasePopulation):
         population.loc[population.index % 2 == 1, "sex"] = "Male"
         self.register_simulants(population[list(self.key_columns)])
         self.population_view.update(population)
+
+
+class Mortality(_Mortality):
+    def setup(self, builder):
+        super().setup(builder)
+        self.move_simulants_to_end = builder.time.move_simulants_to_end()
+
+    def on_time_step(self, event):
+        super().on_time_step(event)
+        self.move_simulants_to_end(
+            self.population_view.get(event.index, "alive == 'dead'").index
+        )
