@@ -464,16 +464,7 @@ AFFECTED_UNMODELED_CAUSES = __AffectedUnmodeledCauses()
 class CGFCategories(Enum):
     UNEXPOSED = "unexposed"
     MILD = "mild"
-    BETTER_MODERATE = "better_moderate"
-    WORSE_MODERATE = "worse_moderate"
-    SEVERE = "severe"
-
-
-class ChildWastingCategories(Enum):
-    UNEXPOSED = "unexposed"
-    MILD = "mild"
-    BETTER_MODERATE = "better_moderate"
-    WORSE_MODERATE = "worse_moderate"
+    MODERATE = "moderate"
     SEVERE = "severe"
 
 
