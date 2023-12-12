@@ -27,7 +27,7 @@ class FertilityLineList(Component):
 
     @property
     def columns_required(self) -> List[str]:
-        return ["alive", "tracked", "cause_of_death"]
+        return ["alive", "cause_of_death"]
 
     #################
     # Setup methods #
