@@ -1,11 +1,5 @@
 components:
     vivarium_public_health:
-        population:
-            - Mortality()
-        disease:
-            - SIS_fixed_duration('measles', '10.0')
-            - SIS('lower_respiratory_infections')
-            - SIS('malaria')
         risks:
             - Risk('risk_factor.child_stunting')
 
@@ -54,25 +48,29 @@ components:
             - AdditiveRiskEffect('risk_factor.iron_folic_acid_supplementation', 'risk_factor.gestational_age.birth_exposure')
             - MMSEffectOnGestationalAge()
             - BirthWeightShiftEffect()
-            - SIS_with_birth_prevalence('diarrheal_diseases')
+            - SIS_with_birth_prevalence('diarrheal_diseases', '4.0')
+            - SIS_fixed_duration('measles', '10.0', '4.0')
+            - SIS('lower_respiratory_infections', '4.0')
+            - SIS('malaria', '4.0')
             - RiskAttributableDisease('cause.moderate_protein_energy_malnutrition', 'risk_factor.child_wasting')
             - RiskAttributableDisease('cause.severe_protein_energy_malnutrition', 'risk_factor.child_wasting')
+            - Mortality()
             - MortalityObserver()
             - ResultsStratifier()
 
 configuration:
     input_data:
-        input_draw_number: 0
+        input_draw_number: 602
         # Artifact can also be defined at runtime using -i flag
-        artifact_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization_child/artifacts/model11.1/ethiopia.hdf'
-        fertility_input_data_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization/results/model9.1/ethiopia/2023_09_14_15_12_50/child_data'
+        artifact_path: '/mnt/team/simulation_science/pub/models/in-development/vivarium_gates_nutrition_optimization_child/artifacts/model12.0-calc-paf/pakistan.hdf'
+        fertility_input_data_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization/results/model10.0/pakistan/2023_10_02_13_58_35/child_data'
     interpolation:
         order: 0
         extrapolate: True
     randomness:
         map_size: 1_000_000
         key_columns: ['entrance_time', 'age', 'maternal_id']
-        random_seed: 0
+        random_seed: 4344
     time:
         start:
             year: 2025
@@ -83,7 +81,7 @@ configuration:
             month: 12
             day: 31
         step_size: 0.5 # Days
-        default_step_size: 8 # Days
+        standard_step_size: 8 # Days
     population:
         population_size: 0
         age_start: 0
