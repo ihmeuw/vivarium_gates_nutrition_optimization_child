@@ -794,8 +794,8 @@ def load_gbd_2021_rr(key: str, location: str) -> pd.DataFrame:
         data['sex'] = data['sex'].str.capitalize()
         # get age start and end from age group ID
         age_bins = get_data(data_keys.POPULATION.AGE_BINS, location).reset_index()
-        age_bins = age_bins.drop('age_group_name')
-        data = data.merge(age_bins, on='age_group_id').drop('age_group_id')
+        age_bins = age_bins.drop('age_group_name', axis=1)
+        data = data.merge(age_bins, on='age_group_id').drop('age_group_id', axis=1)
         data = expand_data(data, 'year_start', list(np.arange(1990, 2023)))
         data['year_end'] = data['year_start'] + 1
         data = pd.pivot_table(data,
