@@ -786,6 +786,25 @@ def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
 
 
 def load_gbd_2021_rr(key: str, location: str) -> pd.DataFrame:
+    # read from data if wasting relative risk
+    if key == data_keys.WASTING.RELATIVE_RISK:
+        location_id = utility_data.get_location_id(location)
+        data = pd.read_csv(paths.WASTING_RELATIVE_RISKS)
+        data = data.query("location_id==@location_id").drop(['Unnamed: 0', 'location_id'], axis=1)
+        data['sex'] = data['sex'].str.capitalize()
+        # get age start and end from age group ID
+        age_bins = get_data(data_keys.POPULATION.AGE_BINS, location).reset_index()
+        age_bins = age_bins.drop('age_group_name')
+        data = data.merge(age_bins, on='age_group_id').drop('age_group_id')
+        data = expand_data(data, 'year_start', list(np.arange(1990, 2023)))
+        data['year_end'] = data['year_start'] + 1
+        data = pd.pivot_table(data,
+                              values='value',
+                              index=metadata.ARTIFACT_INDEX_COLUMNS + ['affected_entity', 'affected_measure', 'parameter'],
+                              columns='draw')
+        return data.sort_index()
+
+
     entity_key = EntityKey(key)
     entity = utilities.get_gbd_2021_entity(entity_key)
 
@@ -819,15 +838,7 @@ def load_gbd_2021_rr(key: str, location: str) -> pd.DataFrame:
         # Remove neonatal relative risks
         neonatal_age_ends = data.index.get_level_values("age_end").unique()[:2]
         data.loc[data.index.get_level_values("age_end").isin(neonatal_age_ends)] = 1.0
-    if key == data_keys.WASTING.RELATIVE_RISK:
-        # add wasting cat2.5 data by duplicating wasting cat2 data
-        cat2_rows = data.query("parameter=='cat2'").copy()
-        new_cat_rows = (
-            cat2_rows.reset_index()
-            .replace({"parameter": {"cat2": "cat2.5"}})
-            .set_index(data.index.names)
-        )
-        data = pd.concat([data, new_cat_rows]).sort_index()
+
     return data
 
 
