@@ -778,23 +778,24 @@ def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
         probabilities = probabilities.merge(age_bins, on='age_group_id').drop('age_group_id', axis=1)
         probabilities = expand_data(probabilities, 'year_start', list(np.arange(1990, 2023)))
         probabilities['year_end'] = probabilities['year_start'] + 1
+        probabilities = pd.pivot_table(probabilities,
+                                       values='exposure',
+                                       index=metadata.ARTIFACT_INDEX_COLUMNS,
+                                       columns='draw').sort_index().reset_index()
         # distribute probability of entering MAM state amongst worse MAM (cat2) and better MAM (cat2.5)
         rows_to_keep = data.query("parameter != 'cat2' | age_start == 0.0") # probabilities don't have early neonatal data
-        cat2_rows = data.query("parameter=='cat2' & age_start > 0").copy()
+        cat2_rows = data.query("parameter=='cat2' & age_start > 0").copy().sort_index().reset_index()
+        assert(probabilities[metadata.ARTIFACT_INDEX_COLUMNS].equals(cat2_rows[metadata.ARTIFACT_INDEX_COLUMNS]))
+        new_cat2_rows = cat2_rows.copy()
+        cat25_rows = cat2_rows.copy()
+        cat25_rows['parameter'] = 'cat2.5'
+        new_cat2_rows[metadata.ARTIFACT_COLUMNS] = cat2_rows[metadata.ARTIFACT_COLUMNS] * probabilities[metadata.ARTIFACT_COLUMNS]
+        cat25_rows[metadata.ARTIFACT_COLUMNS] = cat2_rows[metadata.ARTIFACT_COLUMNS] * (1 - probabilities[
+            metadata.ARTIFACT_COLUMNS])
+        cat2_rows = cat2_rows.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ['parameter']).sort_index()
+        cat25_rows = cat2_rows.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ['parameter']).sort_index()
         breakpoint()
-        # update cat2 rows
-        data.loc[data.query("parameter=='cat2'").index] = (
-            cat2_rows * data_values.WASTING.PROBABILITY_OF_CAT2
-        )
-        # create cat2.5 rows
-        cat25_rows = cat2_rows * (1 - data_values.WASTING.PROBABILITY_OF_CAT2)
-        cat25_rows = (
-            cat25_rows.reset_index()
-            .replace({"parameter": {"cat2": "cat2.5"}})
-            .set_index(data.index.names)
-        )
-
-        data = pd.concat([data, cat25_rows]).sort_index()
+        data = pd.concat([rows_to_keep, new_cat2_rows, cat25_rows]).sort_index()
     return data
 
 
