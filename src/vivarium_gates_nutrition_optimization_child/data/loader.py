@@ -770,7 +770,7 @@ def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
     if entity_key == data_keys.WASTING.EXPOSURE:
         # format probabilities of entering worse MAM state
         probabilities = pd.read_csv(paths.PROBABILITIES_OF_WORSE_MAM_EXPOSURE)
-        enn_rows = data.query("age_group_id==3").copy()
+        enn_rows = probabilities.query("age_group_id==3").copy()
         enn_rows['age_group_id'] = 2
         probabilities = pd.concat([probabilities, enn_rows])
         probabilities = probabilities.query("location_id==@location_id").drop(['Unnamed: 0', 'location_id'], axis=1)
@@ -798,7 +798,6 @@ def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
         new_cat2_rows = new_cat2_rows.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ['parameter']).sort_index()
         cat25_rows = cat25_rows.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ['parameter']).sort_index()
         data = pd.concat([rows_to_keep, new_cat2_rows, cat25_rows]).sort_index()
-        breakpoint()
     return data
 
 
