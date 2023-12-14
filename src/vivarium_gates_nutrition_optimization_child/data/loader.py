@@ -737,6 +737,7 @@ def load_underweight_exposure(key: str, location: str) -> pd.DataFrame:
 
 
 def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
+    location_id = utility_data.get_location_id(location)
     entity_key = EntityKey(key)
     entity = utilities.get_gbd_2021_entity(entity_key)
 
@@ -767,8 +768,20 @@ def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
             & (data.index.get_level_values("parameter") == data_keys.STUNTING.CAT4)
         ] = 1.0
     if entity_key == data_keys.WASTING.EXPOSURE:
+        # format probabilities of entering worse MAM state
+        probabilities = pd.read_csv(paths.PROBABILITIES_OF_WORSE_MAM_EXPOSURE)
+        probabilities = probabilities.query("location_id==@location_id").drop(['Unnamed: 0', 'location_id'], axis=1)
+        probabilities['sex'] = probabilities['sex'].str.capitalize()
+        # get age start and end from age group ID
+        age_bins = get_data(data_keys.POPULATION.AGE_BINS, location).reset_index()
+        age_bins = age_bins.drop('age_group_name', axis=1)
+        probabilities = probabilities.merge(age_bins, on='age_group_id').drop('age_group_id', axis=1)
+        probabilities = expand_data(probabilities, 'year_start', list(np.arange(1990, 2023)))
+        probabilities['year_end'] = probabilities['year_start'] + 1
         # distribute probability of entering MAM state amongst worse MAM (cat2) and better MAM (cat2.5)
-        cat2_rows = data.query("parameter=='cat2'").copy()
+        rows_to_keep = data.query("parameter != 'cat2' | age_start == 0.0") # probabilities don't have early neonatal data
+        cat2_rows = data.query("parameter=='cat2' & age_start > 0").copy()
+        breakpoint()
         # update cat2 rows
         data.loc[data.query("parameter=='cat2'").index] = (
             cat2_rows * data_values.WASTING.PROBABILITY_OF_CAT2
