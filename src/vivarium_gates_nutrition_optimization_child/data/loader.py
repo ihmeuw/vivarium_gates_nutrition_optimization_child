@@ -770,6 +770,7 @@ def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
     if entity_key == data_keys.WASTING.EXPOSURE:
         # format probabilities of entering worse MAM state
         probabilities = pd.read_csv(paths.PROBABILITIES_OF_WORSE_MAM_EXPOSURE)
+        # add early neonatal rows by duplicating late neonatal data
         enn_rows = probabilities.query("age_group_id==3").copy()
         enn_rows['age_group_id'] = 2
         probabilities = pd.concat([probabilities, enn_rows])
@@ -779,25 +780,33 @@ def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
         age_bins = get_data(data_keys.POPULATION.AGE_BINS, location).reset_index()
         age_bins = age_bins.drop('age_group_name', axis=1)
         probabilities = probabilities.merge(age_bins, on='age_group_id').drop('age_group_id', axis=1)
+        # add year data
         probabilities = expand_data(probabilities, 'year_start', list(np.arange(1990, 2023)))
         probabilities['year_end'] = probabilities['year_start'] + 1
+
         probabilities = pd.pivot_table(probabilities,
                                        values='exposure',
                                        index=metadata.ARTIFACT_INDEX_COLUMNS,
                                        columns='draw').sort_index().reset_index()
+
         # distribute probability of entering MAM state amongst worse MAM (cat2) and better MAM (cat2.5)
-        rows_to_keep = data.query("parameter != 'cat2'") # probabilities don't have early neonatal data
+        rows_to_keep = data.query("parameter != 'cat2'")
         cat2_rows = data.query("parameter=='cat2'").copy().sort_index().reset_index()
         assert(probabilities[metadata.ARTIFACT_INDEX_COLUMNS].equals(cat2_rows[metadata.ARTIFACT_INDEX_COLUMNS]))
+
         new_cat2_rows = cat2_rows.copy()
+        new_cat2_rows[metadata.ARTIFACT_COLUMNS] = cat2_rows[metadata.ARTIFACT_COLUMNS] * probabilities[
+            metadata.ARTIFACT_COLUMNS]
+        new_cat2_rows = new_cat2_rows.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ['parameter']).sort_index()
+
         cat25_rows = cat2_rows.copy()
         cat25_rows['parameter'] = 'cat2.5'
-        new_cat2_rows[metadata.ARTIFACT_COLUMNS] = cat2_rows[metadata.ARTIFACT_COLUMNS] * probabilities[metadata.ARTIFACT_COLUMNS]
         cat25_rows[metadata.ARTIFACT_COLUMNS] = cat2_rows[metadata.ARTIFACT_COLUMNS] * (1 - probabilities[
             metadata.ARTIFACT_COLUMNS])
-        new_cat2_rows = new_cat2_rows.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ['parameter']).sort_index()
         cat25_rows = cat25_rows.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ['parameter']).sort_index()
+
         data = pd.concat([rows_to_keep, new_cat2_rows, cat25_rows]).sort_index()
+        
     return data
 
 
@@ -817,18 +826,19 @@ def load_gbd_2021_rr(key: str, location: str) -> pd.DataFrame:
         data['year_end'] = data['year_start'] + 1
 
         # add neonatal data with relative risks of 1
-        neonatal_data = get_data(data_keys.STUNTING.RELATIVE_RISK, location).query("age_start < .05") # use stunting to get neonatal index
+        # use stunting to get neonatal data
+        neonatal_data = get_data(data_keys.STUNTING.RELATIVE_RISK, location).query("age_start < .05")
         cat25_rows = neonatal_data.query("parameter=='cat2'").copy().reset_index('parameter')
         cat25_rows['parameter'] = 'cat2.5'
         cat25_rows = cat25_rows.set_index('parameter', append=True)
         neonatal_data = pd.concat([neonatal_data, cat25_rows]).sort_index()
-        data = pd.concat([data, neonatal_data]).sort_index()
 
         data = pd.pivot_table(data,
                               values='value',
                               index=metadata.ARTIFACT_INDEX_COLUMNS + ['affected_entity', 'affected_measure', 'parameter'],
                               columns='draw')
-        return data.sort_index()
+        data = pd.concat([data, neonatal_data]).sort_index()
+        return data
 
 
     entity_key = EntityKey(key)
