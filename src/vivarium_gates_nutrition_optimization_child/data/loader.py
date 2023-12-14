@@ -770,6 +770,9 @@ def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
     if entity_key == data_keys.WASTING.EXPOSURE:
         # format probabilities of entering worse MAM state
         probabilities = pd.read_csv(paths.PROBABILITIES_OF_WORSE_MAM_EXPOSURE)
+        enn_rows = data.query("age_group_id==3").copy()
+        enn_rows['age_group_id'] = 2
+        probabilities = pd.concat([probabilities, enn_rows])
         probabilities = probabilities.query("location_id==@location_id").drop(['Unnamed: 0', 'location_id'], axis=1)
         probabilities['sex'] = probabilities['sex'].str.capitalize()
         # get age start and end from age group ID
@@ -783,8 +786,8 @@ def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
                                        index=metadata.ARTIFACT_INDEX_COLUMNS,
                                        columns='draw').sort_index().reset_index()
         # distribute probability of entering MAM state amongst worse MAM (cat2) and better MAM (cat2.5)
-        rows_to_keep = data.query("parameter != 'cat2' | age_start == 0.0") # probabilities don't have early neonatal data
-        cat2_rows = data.query("parameter=='cat2' & age_start > 0").copy().sort_index().reset_index()
+        rows_to_keep = data.query("parameter != 'cat2'") # probabilities don't have early neonatal data
+        cat2_rows = data.query("parameter=='cat2'").copy().sort_index().reset_index()
         assert(probabilities[metadata.ARTIFACT_INDEX_COLUMNS].equals(cat2_rows[metadata.ARTIFACT_INDEX_COLUMNS]))
         new_cat2_rows = cat2_rows.copy()
         cat25_rows = cat2_rows.copy()
