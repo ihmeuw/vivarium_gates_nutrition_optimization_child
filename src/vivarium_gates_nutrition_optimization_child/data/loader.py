@@ -797,8 +797,8 @@ def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
             metadata.ARTIFACT_COLUMNS])
         new_cat2_rows = new_cat2_rows.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ['parameter']).sort_index()
         cat25_rows = cat25_rows.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ['parameter']).sort_index()
-        breakpoint()
         data = pd.concat([rows_to_keep, new_cat2_rows, cat25_rows]).sort_index()
+        breakpoint()
     return data
 
 
