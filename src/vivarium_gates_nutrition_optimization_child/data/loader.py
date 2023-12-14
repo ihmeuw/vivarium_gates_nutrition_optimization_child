@@ -809,12 +809,22 @@ def load_gbd_2021_rr(key: str, location: str) -> pd.DataFrame:
         data = pd.read_csv(paths.WASTING_RELATIVE_RISKS)
         data = data.query("location_id==@location_id").drop(['Unnamed: 0', 'location_id'], axis=1)
         data['sex'] = data['sex'].str.capitalize()
+
         # get age start and end from age group ID
         age_bins = get_data(data_keys.POPULATION.AGE_BINS, location).reset_index()
         age_bins = age_bins.drop('age_group_name', axis=1)
         data = data.merge(age_bins, on='age_group_id').drop('age_group_id', axis=1)
         data = expand_data(data, 'year_start', list(np.arange(1990, 2023)))
         data['year_end'] = data['year_start'] + 1
+
+        # add neonatal data with relative risks of 1
+        neonatal_data = get_data(data_keys.STUNTING.RELATIVE_RISK, location) # use stunting to get index
+        cat25_rows = neonatal_data.query("parameter=='cat2'").copy().reset_index('parameter')
+        cat25_rows['parameter'] = 'cat2.5'
+        cat25_rows = cat25_rows.set_index('parameter', append=True)
+        neonatal_data = pd.concat([neonatal_data, cat25_rows]).sort_index()
+        data = pd.concat([data, neonatal_data]).sort_index()
+
         data = pd.pivot_table(data,
                               values='value',
                               index=metadata.ARTIFACT_INDEX_COLUMNS + ['affected_entity', 'affected_measure', 'parameter'],
