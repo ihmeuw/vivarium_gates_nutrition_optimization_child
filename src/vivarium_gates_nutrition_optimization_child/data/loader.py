@@ -817,7 +817,7 @@ def load_gbd_2021_rr(key: str, location: str) -> pd.DataFrame:
         data['year_end'] = data['year_start'] + 1
 
         # add neonatal data with relative risks of 1
-        neonatal_data = get_data(data_keys.STUNTING.RELATIVE_RISK, location) # use stunting to get index
+        neonatal_data = get_data(data_keys.STUNTING.RELATIVE_RISK, location).query("age_start < .05") # use stunting to get neonatal index
         cat25_rows = neonatal_data.query("parameter=='cat2'").copy().reset_index('parameter')
         cat25_rows['parameter'] = 'cat2.5'
         cat25_rows = cat25_rows.set_index('parameter', append=True)
