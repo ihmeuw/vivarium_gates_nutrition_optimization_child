@@ -772,61 +772,82 @@ def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
         probabilities = pd.read_csv(paths.PROBABILITIES_OF_WORSE_MAM_EXPOSURE)
         # add early neonatal rows by duplicating late neonatal data
         enn_rows = probabilities.query("age_group_id==3").copy()
-        enn_rows['age_group_id'] = 2
+        enn_rows["age_group_id"] = 2
         probabilities = pd.concat([probabilities, enn_rows])
-        probabilities = probabilities.query("location_id==@location_id").drop(['Unnamed: 0', 'location_id'], axis=1)
-        probabilities['sex'] = probabilities['sex'].str.capitalize()
+        probabilities = probabilities.query("location_id==@location_id").drop(
+            ["Unnamed: 0", "location_id"], axis=1
+        )
+        probabilities["sex"] = probabilities["sex"].str.capitalize()
         # get age start and end from age group ID
         age_bins = get_data(data_keys.POPULATION.AGE_BINS, location).reset_index()
-        age_bins = age_bins.drop('age_group_name', axis=1)
-        probabilities = probabilities.merge(age_bins, on='age_group_id').drop('age_group_id', axis=1)
+        age_bins = age_bins.drop("age_group_name", axis=1)
+        probabilities = probabilities.merge(age_bins, on="age_group_id").drop(
+            "age_group_id", axis=1
+        )
         # add year data
-        probabilities = expand_data(probabilities, 'year_start', list(np.arange(1990, 2023)))
-        probabilities['year_end'] = probabilities['year_start'] + 1
+        probabilities = expand_data(probabilities, "year_start", list(np.arange(1990, 2023)))
+        probabilities["year_end"] = probabilities["year_start"] + 1
 
-        probabilities = pd.pivot_table(probabilities,
-                                       values='exposure',
-                                       index=metadata.ARTIFACT_INDEX_COLUMNS,
-                                       columns='draw').sort_index().reset_index()
+        probabilities = (
+            pd.pivot_table(
+                probabilities,
+                values="exposure",
+                index=metadata.ARTIFACT_INDEX_COLUMNS,
+                columns="draw",
+            )
+            .sort_index()
+            .reset_index()
+        )
 
         # distribute probability of entering MAM state amongst worse MAM (cat2) and better MAM (cat2.5)
         rows_to_keep = data.query("parameter != 'cat2'")
         cat2_rows = data.query("parameter=='cat2'").copy().sort_index().reset_index()
-        assert(probabilities[metadata.ARTIFACT_INDEX_COLUMNS].equals(cat2_rows[metadata.ARTIFACT_INDEX_COLUMNS]))
+        assert probabilities[metadata.ARTIFACT_INDEX_COLUMNS].equals(
+            cat2_rows[metadata.ARTIFACT_INDEX_COLUMNS]
+        )
 
         new_cat2_rows = cat2_rows.copy()
-        new_cat2_rows[metadata.ARTIFACT_COLUMNS] = cat2_rows[metadata.ARTIFACT_COLUMNS] * probabilities[
-            metadata.ARTIFACT_COLUMNS]
-        new_cat2_rows = new_cat2_rows.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ['parameter']).sort_index()
+        new_cat2_rows[metadata.ARTIFACT_COLUMNS] = (
+            cat2_rows[metadata.ARTIFACT_COLUMNS] * probabilities[metadata.ARTIFACT_COLUMNS]
+        )
+        new_cat2_rows = new_cat2_rows.set_index(
+            metadata.ARTIFACT_INDEX_COLUMNS + ["parameter"]
+        ).sort_index()
 
         cat25_rows = cat2_rows.copy()
-        cat25_rows['parameter'] = 'cat2.5'
-        cat25_rows[metadata.ARTIFACT_COLUMNS] = cat2_rows[metadata.ARTIFACT_COLUMNS] * (1 - probabilities[
-            metadata.ARTIFACT_COLUMNS])
-        cat25_rows = cat25_rows.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ['parameter']).sort_index()
+        cat25_rows["parameter"] = "cat2.5"
+        cat25_rows[metadata.ARTIFACT_COLUMNS] = cat2_rows[metadata.ARTIFACT_COLUMNS] * (
+            1 - probabilities[metadata.ARTIFACT_COLUMNS]
+        )
+        cat25_rows = cat25_rows.set_index(
+            metadata.ARTIFACT_INDEX_COLUMNS + ["parameter"]
+        ).sort_index()
 
         data = pd.concat([rows_to_keep, new_cat2_rows, cat25_rows]).sort_index()
-        
+
     return data
 
 
 def load_wasting_rr(key: str, location: str) -> pd.DataFrame:
     location_id = utility_data.get_location_id(location)
     data = pd.read_csv(paths.WASTING_RELATIVE_RISKS)
-    data = data.query("location_id==@location_id").drop(['Unnamed: 0', 'location_id'], axis=1)
-    data['sex'] = data['sex'].str.capitalize()
+    data = data.query("location_id==@location_id").drop(["Unnamed: 0", "location_id"], axis=1)
+    data["sex"] = data["sex"].str.capitalize()
 
     # get age start and end from age group ID
     age_bins = get_data(data_keys.POPULATION.AGE_BINS, location).reset_index()
-    age_bins = age_bins.drop('age_group_name', axis=1)
-    data = data.merge(age_bins, on='age_group_id').drop('age_group_id', axis=1)
-    data = expand_data(data, 'year_start', list(np.arange(1990, 2023)))
-    data['year_end'] = data['year_start'] + 1
+    age_bins = age_bins.drop("age_group_name", axis=1)
+    data = data.merge(age_bins, on="age_group_id").drop("age_group_id", axis=1)
+    data = expand_data(data, "year_start", list(np.arange(1990, 2023)))
+    data["year_end"] = data["year_start"] + 1
 
-    data = pd.pivot_table(data,
-                          values='value',
-                          index=metadata.ARTIFACT_INDEX_COLUMNS + ['affected_entity', 'affected_measure', 'parameter'],
-                          columns='draw')
+    data = pd.pivot_table(
+        data,
+        values="value",
+        index=metadata.ARTIFACT_INDEX_COLUMNS
+        + ["affected_entity", "affected_measure", "parameter"],
+        columns="draw",
+    )
 
     inc = data.query('affected_measure == "incidence_rate"')
     csmr = data.query('affected_measure == "cause_specific_mortality_rate"')
@@ -838,10 +859,12 @@ def load_wasting_rr(key: str, location: str) -> pd.DataFrame:
 
     # add neonatal data with relative risks of 1
     # use stunting to get neonatal data
-    neonatal_data = get_data(data_keys.STUNTING.RELATIVE_RISK, location).query("age_start < .05")
-    cat25_rows = neonatal_data.query("parameter=='cat2'").copy().reset_index('parameter')
-    cat25_rows['parameter'] = 'cat2.5'
-    cat25_rows = cat25_rows.set_index('parameter', append=True)
+    neonatal_data = get_data(data_keys.STUNTING.RELATIVE_RISK, location).query(
+        "age_start < .05"
+    )
+    cat25_rows = neonatal_data.query("parameter=='cat2'").copy().reset_index("parameter")
+    cat25_rows["parameter"] = "cat2.5"
+    cat25_rows = cat25_rows.set_index("parameter", append=True)
     neonatal_data = pd.concat([neonatal_data, cat25_rows]).sort_index()
     data = pd.concat([data, neonatal_data]).sort_index()
 
