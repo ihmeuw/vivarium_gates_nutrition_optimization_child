@@ -830,10 +830,11 @@ def load_wasting_rr(key: str, location: str) -> pd.DataFrame:
 
     inc = data.query('affected_measure == "incidence_rate"')
     csmr = data.query('affected_measure == "cause_specific_mortality_rate"')
-    breakpoint()
     emr = csmr.droplevel("affected_measure") / inc.droplevel("affected_measure")
     emr["affected_measure"] = "excess_mortality_rate"
     emr = emr.set_index("affected_measure", append=True).reorder_levels(inc.index.names)
+
+    data = pd.concat([inc, emr])
 
     # add neonatal data with relative risks of 1
     # use stunting to get neonatal data
@@ -842,7 +843,9 @@ def load_wasting_rr(key: str, location: str) -> pd.DataFrame:
     cat25_rows['parameter'] = 'cat2.5'
     cat25_rows = cat25_rows.set_index('parameter', append=True)
     neonatal_data = pd.concat([neonatal_data, cat25_rows]).sort_index()
-    raw_data = pd.concat([data, neonatal_data]).sort_index()
+    data = pd.concat([data, neonatal_data]).sort_index()
+
+    return data
 
 
 def load_gbd_2021_rr(key: str, location: str) -> pd.DataFrame:
