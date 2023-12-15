@@ -837,31 +837,29 @@ def load_gbd_2021_rr(key: str, location: str) -> pd.DataFrame:
                               values='value',
                               index=metadata.ARTIFACT_INDEX_COLUMNS + ['affected_entity', 'affected_measure', 'parameter'],
                               columns='draw')
-        data = pd.concat([data, neonatal_data]).sort_index()
-        return data
+        raw_data = pd.concat([data, neonatal_data]).sort_index()
+    else:
+        entity_key = EntityKey(key)
+        entity = utilities.get_gbd_2021_entity(entity_key)
 
-
-    entity_key = EntityKey(key)
-    entity = utilities.get_gbd_2021_entity(entity_key)
-
-    raw_data = utilities.get_data(
-        entity_key,
-        entity,
-        location,
-        gbd_constants.SOURCES.RR,
-        "rei_id",
-        metadata.AGE_GROUP.GBD_2021,
-        metadata.GBD_2021_ROUND_ID,
-    )
-    raw_data = utilities.process_gbd_2021_relative_risk(
-        raw_data,
-        entity_key,
-        entity,
-        location,
-        metadata.GBD_2021_ROUND_ID,
-        metadata.AGE_GROUP.GBD_2021,
-    )
-
+        raw_data = utilities.get_data(
+            entity_key,
+            entity,
+            location,
+            gbd_constants.SOURCES.RR,
+            "rei_id",
+            metadata.AGE_GROUP.GBD_2021,
+            metadata.GBD_2021_ROUND_ID,
+        )
+        raw_data = utilities.process_gbd_2021_relative_risk(
+            raw_data,
+            entity_key,
+            entity,
+            location,
+            metadata.GBD_2021_ROUND_ID,
+            metadata.AGE_GROUP.GBD_2021,
+        )
+    breakpoint()
     inc = raw_data.query('affected_measure == "incidence_rate"')
     csmr = raw_data.query('affected_measure == "cause_specific_mortality_rate"')
     emr = csmr.droplevel("affected_measure") / inc.droplevel("affected_measure")
