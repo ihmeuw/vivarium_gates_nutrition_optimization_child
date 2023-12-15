@@ -107,7 +107,7 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.WASTING.ALT_DISTRIBUTION: load_metadata,
         data_keys.WASTING.CATEGORIES: load_metadata,
         data_keys.WASTING.EXPOSURE: load_gbd_2021_exposure,
-        data_keys.WASTING.RELATIVE_RISK: load_gbd_2021_rr,
+        data_keys.WASTING.RELATIVE_RISK: load_wasting_rr,
         data_keys.WASTING.PAF: load_categorical_paf,
         data_keys.WASTING.TRANSITION_RATES: load_wasting_transition_rates,
         data_keys.WASTING.BIRTH_PREVALENCE: load_wasting_birth_prevalence,
@@ -810,56 +810,63 @@ def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
     return data
 
 
-def load_gbd_2021_rr(key: str, location: str) -> pd.DataFrame:
-    # read from data if wasting relative risk
-    if key == data_keys.WASTING.RELATIVE_RISK:
-        location_id = utility_data.get_location_id(location)
-        data = pd.read_csv(paths.WASTING_RELATIVE_RISKS)
-        data = data.query("location_id==@location_id").drop(['Unnamed: 0', 'location_id'], axis=1)
-        data['sex'] = data['sex'].str.capitalize()
+def load_wasting_rr(key: str, location: str) -> pd.DataFrame:
+    location_id = utility_data.get_location_id(location)
+    data = pd.read_csv(paths.WASTING_RELATIVE_RISKS)
+    data = data.query("location_id==@location_id").drop(['Unnamed: 0', 'location_id'], axis=1)
+    data['sex'] = data['sex'].str.capitalize()
 
-        # get age start and end from age group ID
-        age_bins = get_data(data_keys.POPULATION.AGE_BINS, location).reset_index()
-        age_bins = age_bins.drop('age_group_name', axis=1)
-        data = data.merge(age_bins, on='age_group_id').drop('age_group_id', axis=1)
-        data = expand_data(data, 'year_start', list(np.arange(1990, 2023)))
-        data['year_end'] = data['year_start'] + 1
+    # get age start and end from age group ID
+    age_bins = get_data(data_keys.POPULATION.AGE_BINS, location).reset_index()
+    age_bins = age_bins.drop('age_group_name', axis=1)
+    data = data.merge(age_bins, on='age_group_id').drop('age_group_id', axis=1)
+    data = expand_data(data, 'year_start', list(np.arange(1990, 2023)))
+    data['year_end'] = data['year_start'] + 1
 
-        # add neonatal data with relative risks of 1
-        # use stunting to get neonatal data
-        neonatal_data = get_data(data_keys.STUNTING.RELATIVE_RISK, location).query("age_start < .05")
-        cat25_rows = neonatal_data.query("parameter=='cat2'").copy().reset_index('parameter')
-        cat25_rows['parameter'] = 'cat2.5'
-        cat25_rows = cat25_rows.set_index('parameter', append=True)
-        neonatal_data = pd.concat([neonatal_data, cat25_rows]).sort_index()
+    data = pd.pivot_table(data,
+                          values='value',
+                          index=metadata.ARTIFACT_INDEX_COLUMNS + ['affected_entity', 'affected_measure', 'parameter'],
+                          columns='draw')
 
-        data = pd.pivot_table(data,
-                              values='value',
-                              index=metadata.ARTIFACT_INDEX_COLUMNS + ['affected_entity', 'affected_measure', 'parameter'],
-                              columns='draw')
-        raw_data = pd.concat([data, neonatal_data]).sort_index()
-    else:
-        entity_key = EntityKey(key)
-        entity = utilities.get_gbd_2021_entity(entity_key)
-
-        raw_data = utilities.get_data(
-            entity_key,
-            entity,
-            location,
-            gbd_constants.SOURCES.RR,
-            "rei_id",
-            metadata.AGE_GROUP.GBD_2021,
-            metadata.GBD_2021_ROUND_ID,
-        )
-        raw_data = utilities.process_gbd_2021_relative_risk(
-            raw_data,
-            entity_key,
-            entity,
-            location,
-            metadata.GBD_2021_ROUND_ID,
-            metadata.AGE_GROUP.GBD_2021,
-        )
+    inc = data.query('affected_measure == "incidence_rate"')
+    csmr = data.query('affected_measure == "cause_specific_mortality_rate"')
     breakpoint()
+    emr = csmr.droplevel("affected_measure") / inc.droplevel("affected_measure")
+    emr["affected_measure"] = "excess_mortality_rate"
+    emr = emr.set_index("affected_measure", append=True).reorder_levels(inc.index.names)
+
+    # add neonatal data with relative risks of 1
+    # use stunting to get neonatal data
+    neonatal_data = get_data(data_keys.STUNTING.RELATIVE_RISK, location).query("age_start < .05")
+    cat25_rows = neonatal_data.query("parameter=='cat2'").copy().reset_index('parameter')
+    cat25_rows['parameter'] = 'cat2.5'
+    cat25_rows = cat25_rows.set_index('parameter', append=True)
+    neonatal_data = pd.concat([neonatal_data, cat25_rows]).sort_index()
+    raw_data = pd.concat([data, neonatal_data]).sort_index()
+
+
+def load_gbd_2021_rr(key: str, location: str) -> pd.DataFrame:
+    entity_key = EntityKey(key)
+    entity = utilities.get_gbd_2021_entity(entity_key)
+
+    raw_data = utilities.get_data(
+        entity_key,
+        entity,
+        location,
+        gbd_constants.SOURCES.RR,
+        "rei_id",
+        metadata.AGE_GROUP.GBD_2021,
+        metadata.GBD_2021_ROUND_ID,
+    )
+    raw_data = utilities.process_gbd_2021_relative_risk(
+        raw_data,
+        entity_key,
+        entity,
+        location,
+        metadata.GBD_2021_ROUND_ID,
+        metadata.AGE_GROUP.GBD_2021,
+    )
+
     inc = raw_data.query('affected_measure == "incidence_rate"')
     csmr = raw_data.query('affected_measure == "cause_specific_mortality_rate"')
     emr = csmr.droplevel("affected_measure") / inc.droplevel("affected_measure")
