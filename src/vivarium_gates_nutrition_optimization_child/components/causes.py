@@ -16,12 +16,12 @@ from vivarium_public_health.disease.transition import TransitionString
 class DiseaseModel(DiseaseModel_):
     @property
     def columns_required(self):
-        return super.columns_required + ["alive", "tracked"]
+        return super().columns_required + ["alive", "tracked"]
 
     def setup(self, builder):
         super().setup(builder)
         if "variable_step_sizes" in self._get_data_functions:
-            for state, step_size in self._get_data_functions["variable_step_sizes"].items():
+            for state, step_size in self._get_data_functions["variable_step_sizes"]().items():
                 builder.time.register_step_modifier(
                     lambda index: self.modify_step(state, step_size, index)
                 )
@@ -42,9 +42,9 @@ def SIS(cause: str, step_size_days: str = None) -> DiseaseModel:
     infected.add_rate_transition(healthy)
 
     infected_step_size_function = (
-        {"variable_step_sizes": {infected.state_id: float(step_size_days)}}
+        {"variable_step_sizes": lambda: {infected.state_id: float(step_size_days)}}
         if step_size_days
-        else {}
+        else None
     )
 
     return DiseaseModel(
@@ -66,9 +66,9 @@ def SIS_fixed_duration(cause: str, duration: str, step_size_days: str = None) ->
     infected.add_dwell_time_transition(healthy)
 
     infected_step_size_function = (
-        {"variable_step_sizes": {infected.state_id: float(step_size_days)}}
+        {"variable_step_sizes": lambda: {infected.state_id: float(step_size_days)}}
         if step_size_days
-        else {}
+        else None
     )
 
     return DiseaseModel(
@@ -91,9 +91,9 @@ def SIS_with_birth_prevalence(cause: str, step_size_days: str = None) -> Disease
     infected.allow_self_transitions()
     infected.add_rate_transition(healthy)
     infected_step_size_function = (
-        {"variable_step_sizes": {infected.state_id: float(step_size_days)}}
+        {"variable_step_sizes": lambda: {infected.state_id: float(step_size_days)}}
         if step_size_days
-        else {}
+        else None
     )
 
     return DiseaseModel(
