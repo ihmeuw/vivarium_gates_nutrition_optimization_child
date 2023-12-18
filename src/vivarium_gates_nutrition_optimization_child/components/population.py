@@ -24,7 +24,8 @@ from vivarium_public_health.utilities import to_years
 
 from vivarium_gates_nutrition_optimization_child.constants import data_keys
 from vivarium_gates_nutrition_optimization_child.constants.metadata import (
-    NEONATAL_END_AGE, FIVE_MONTHS
+    FIVE_MONTHS,
+    NEONATAL_END_AGE,
 )
 
 

@@ -1,6 +1,7 @@
 from typing import NamedTuple
 
 import pandas as pd
+from vivarium_public_health.utilities import to_years
 
 ####################
 # Project metadata #

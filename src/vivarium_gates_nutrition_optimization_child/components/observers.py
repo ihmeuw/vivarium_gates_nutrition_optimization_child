@@ -14,7 +14,9 @@ from vivarium_public_health.metrics.disease import DiseaseObserver as DiseaseObs
 from vivarium_public_health.metrics.mortality import (
     MortalityObserver as MortalityObserver_,
 )
-from vivarium_public_health.metrics.risk import CategoricalRiskObserver as CategoricalRiskObserver_
+from vivarium_public_health.metrics.risk import (
+    CategoricalRiskObserver as CategoricalRiskObserver_,
+)
 from vivarium_public_health.metrics.stratification import (
     ResultsStratifier as ResultsStratifier_,
 )
@@ -251,7 +253,8 @@ class BirthObserver(Component):
 
 class MortalityObserver(MortalityObserver_):
     """This is a class to make component ordering work in the model spec."""
-    
+
+
 class DiseaseObserver(DiseaseObserver_):
     def setup(self, builder: Builder) -> None:
         super().setup(builder)
@@ -260,11 +263,12 @@ class DiseaseObserver(DiseaseObserver_):
     def aggregate_state_person_time(self, x: pd.DataFrame) -> float:
         return to_years(self.simulant_step_sizes(x.index)).sum()
 
+
 class DisabilityObserver(DisabilityObserver_):
     def setup(self, builder: Builder) -> None:
         super().setup(builder)
         self.simulant_step_sizes = builder.time.simulant_step_sizes()
-    
+
     def disability_weight_aggregator(self, dw: pd.DataFrame) -> float:
         return dw.mul(to_years(self.simulant_step_sizes(dw.index)), axis=0).sum().squeeze()
 
