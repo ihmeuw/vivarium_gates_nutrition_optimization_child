@@ -19,11 +19,12 @@ from vivarium_public_health.population.data_transformations import (
     assign_demographic_proportions,
     load_population_structure,
 )
-from vivarium_public_health.population.mortality import Mortality as _Mortality
+from vivarium_public_health.population.mortality import Mortality as Mortality_
+from vivarium_public_health.utilities import to_years
 
 from vivarium_gates_nutrition_optimization_child.constants import data_keys
 from vivarium_gates_nutrition_optimization_child.constants.metadata import (
-    NEONATAL_END_AGE,
+    NEONATAL_END_AGE, FIVE_MONTHS
 )
 
 
@@ -111,11 +112,11 @@ class PopulationLineList(BasePopulation):
 
     def modify_step(self, index: pd.Index) -> pd.Series:
         """
-        Sets simlant step size to 0.5 for neonates and 4 for 1-5 months.
+        Sets simulant step size to 0.5 for neonates and 4 for 1-5 months.
         """
         neonates = self.population_view.get(index, f"age < {NEONATAL_END_AGE}").index
         one_to_five_mos = self.population_view.get(
-            index, f"age >= {NEONATAL_END_AGE} and age < 0.416667"
+            index, f"age >= {NEONATAL_END_AGE} and age < {FIVE_MONTHS}"
         ).index
         step_size = pd.concat(
             [
@@ -156,12 +157,12 @@ class EvenlyDistributedPopulation(BasePopulation):
         self.population_view.update(population)
 
 
-class Mortality(_Mortality):
-    def setup(self, builder):
+class Mortality(Mortality_):
+    def setup(self, builder) -> None:
         super().setup(builder)
         self.move_simulants_to_end = builder.time.move_simulants_to_end()
 
-    def on_time_step(self, event):
+    def on_time_step(self, event) -> None:
         super().on_time_step(event)
         self.move_simulants_to_end(
             self.population_view.get(event.index, "alive == 'dead'").index

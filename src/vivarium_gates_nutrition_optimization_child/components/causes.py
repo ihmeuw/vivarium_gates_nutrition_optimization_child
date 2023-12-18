@@ -15,7 +15,7 @@ from vivarium_public_health.disease.transition import TransitionString
 class DiseaseModel(DiseaseModel_):
     @property
     def columns_required(self):
-        return ["age", "sex", "alive", "tracked"]
+        return super.columns_required() + ["alive", "tracked"]
 
     def setup(self, builder):
         super().setup(builder)
