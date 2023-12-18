@@ -78,7 +78,7 @@ class WastingTreatment(Risk):
     def on_time_step_prepare(self, event: Event):
         """'redraw propensities upon transition to new wasting state"""
         pop = self.population_view.get(event.index)
-        propensity = pop[self.propensity_column_name]
+        propensity = pop[self.propensity_column_name].copy()
         remitted_mask = (pop[self.previous_wasting_column] == self.treated_state) & pop[
             self.wasting_column
         ] != self.treated_state

@@ -10,13 +10,15 @@ from vivarium_public_health.disease.transition import TransitionString
 from vivarium_public_health.metrics.disability import (
     DisabilityObserver as DisabilityObserver_,
 )
-from vivarium_public_health.metrics.disease import DiseaseObserver
+from vivarium_public_health.metrics.disease import DiseaseObserver as DiseaseObserver_
 from vivarium_public_health.metrics.mortality import (
     MortalityObserver as MortalityObserver_,
 )
+from vivarium_public_health.metrics.risk import CategoricalRiskObserver as CategoricalRiskObserver_
 from vivarium_public_health.metrics.stratification import (
     ResultsStratifier as ResultsStratifier_,
 )
+from vivarium_public_health.utilities import to_years
 
 from vivarium_gates_nutrition_optimization_child.constants import (
     data_keys,
@@ -249,6 +251,31 @@ class BirthObserver(Component):
 
 class MortalityObserver(MortalityObserver_):
     """This is a class to make component ordering work in the model spec."""
+    
+class DiseaseObserver(DiseaseObserver_):
+    def setup(self, builder: Builder) -> None:
+        super().setup(builder)
+        self.simulant_step_sizes = builder.time.simulant_step_sizes()
+
+    def aggregate_state_person_time(self, x: pd.DataFrame) -> float:
+        return to_years(self.simulant_step_sizes(x.index)).sum()
+
+class DisabilityObserver(DisabilityObserver_):
+    def setup(self, builder: Builder) -> None:
+        super().setup(builder)
+        self.simulant_step_sizes = builder.time.simulant_step_sizes()
+    
+    def disability_weight_aggregator(self, dw: pd.DataFrame) -> float:
+        return dw.mul(to_years(self.simulant_step_sizes(dw.index)), axis=0).sum().squeeze()
+
+
+class CategoricalRiskObserver(CategoricalRiskObserver_):
+    def setup(self, builder: Builder) -> None:
+        super().setup(builder)
+        self.simulant_step_sizes = builder.time.simulant_step_sizes()
+
+    def aggregate_state_person_time(self, x: pd.DataFrame) -> float:
+        return to_years(self.simulant_step_sizes(x.index)).sum()
 
 
 class ChildWastingObserver(DiseaseObserver):
@@ -267,7 +294,7 @@ class ChildWastingObserver(DiseaseObserver):
 
     # noinspection PyAttributeOutsideInit
     def setup(self, builder: Builder) -> None:
-        self.step_size = builder.time.step_size()
+        self.simulant_step_sizes = builder.time.simulant_step_sizes()
         self.config = builder.configuration.stratification[self.disease]
         self.categories = builder.data.load(f"risk_factor.{self.risk}.categories")
 
