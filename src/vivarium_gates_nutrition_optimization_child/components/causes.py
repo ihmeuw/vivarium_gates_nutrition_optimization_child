@@ -1,5 +1,6 @@
 """
-Component to include birth prevalence in SIS model.
+Specific Disease Model Implementations. We include a DiseaseModel subclass
+for a basic variable clock modification, as well as SIS models that make use of it.
 """
 import pandas as pd
 from vivarium.framework.state_machine import State
