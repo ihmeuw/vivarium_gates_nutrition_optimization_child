@@ -281,7 +281,6 @@ class MMSEffectOnGestationalAge(AdditiveRiskEffect):
 
     # noinspection PyAttributeOutsideInit
     def setup(self, builder: Builder) -> None:
-        super().setup(builder)
         self.ifa_on_gestational_age = builder.components.get_component(
             f"additive_risk_effect.risk_factor.iron_folic_acid_supplementation.{self.target}"
         )
