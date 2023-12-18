@@ -79,14 +79,14 @@ class ResultsStratifier(ResultsStratifier_):
             ["covered", "uncovered"],
             self.map_wasting_treatment,
             is_vectorized=True,
-            requires_values=[f"{data_keys.SAM_TREATMENT.name}.exposure"],
+            requires_columns=[f"previous_{data_keys.SAM_TREATMENT.name}"],
         )
         builder.results.register_stratification(
             "mam_treatment",
             ["covered", "uncovered"],
             self.map_wasting_treatment,
             is_vectorized=True,
-            requires_values=[f"{data_keys.MAM_TREATMENT.name}.exposure"],
+            requires_columns=[f"previous_{data_keys.MAM_TREATMENT.name}"],
         )
         builder.results.register_stratification(
             "sqlns_coverage",
