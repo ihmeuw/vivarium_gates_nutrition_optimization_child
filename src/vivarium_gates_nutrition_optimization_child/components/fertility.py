@@ -14,6 +14,7 @@ import pandas as pd
 from vivarium import Component
 from vivarium.framework.engine import Builder
 from vivarium.framework.event import Event
+from vivarium.framework.time import get_time_stamp
 from vivarium_public_health import utilities
 
 PREGNANCY_DURATION = pd.Timedelta(days=9 * utilities.DAYS_PER_MONTH)
@@ -54,8 +55,11 @@ class FertilityLineList(Component):
 
         file_path = data_directory / f"scenario_{scenario}_draw_{draw}_seed_{seed}.hdf"
         birth_records = pd.read_hdf(file_path)
-        # birth_records["birth_date"] = pd.to_datetime(birth_records["birth_date"])
-        birth_records["birth_date"] = pd.to_datetime("2024-12-31 12:00:01")
+        birth_records["birth_date"] = (
+            get_time_stamp(builder.configuration.time.start)
+            - pd.Timedelta(days=builder.configuration.time.step_size)
+            + pd.Timedelta(1, "s")
+        )
         return birth_records
 
     def on_time_step(self, event: Event) -> None:
