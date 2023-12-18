@@ -733,6 +733,32 @@ def load_underweight_exposure(key: str, location: str) -> pd.DataFrame:
         .set_index(df.index.names)
     )
     df = pd.concat([df, new_cat_rows]).sort_index()
+    index_names = df.index.names
+
+    # create missing rows and fill with 0
+    def cartesian_product(elements: Dict) -> pd.DataFrame:
+        '''Create DataFrame with cartesian product of dictionary values as index'''
+        index = pd.MultiIndex.from_product(elements.values(), names=elements.keys())
+        return pd.DataFrame(index=index).reset_index()
+
+    age_bins = get_data(data_keys.POPULATION.AGE_BINS, location).reset_index()[['age_start', 'age_end']]
+    index_elements = {'sex': ['Male', 'Female'],
+            'age_start': age_bins['age_start'],
+            'year_start': list(range(1990, 2020)),
+            'stunting_parameter': ['cat1', 'cat2', 'cat3', 'cat4'],
+            'wasting_parameter': ['cat1', 'cat2', 'cat2.5', 'cat3', 'cat4'],
+            'parameter': ['cat1', 'cat2', 'cat3', 'cat4'],
+            }
+    complete_index = cartesian_product(index_elements)
+    complete_index = complete_index.merge(age_bins, on=['age_start'])
+    complete_index['year_end'] = complete_index['year_start'] + 1
+    df_index = df.reset_index()[
+        metadata.ARTIFACT_INDEX_COLUMNS + ['stunting_parameter', 'wasting_parameter', 'parameter']]
+    merge_df = complete_index.merge(df_index, how='left', indicator=True)
+    empty_missing_rows = merge_df.loc[merge_df['_merge'] == 'left_only'].set_index(index_names)
+    missing_rows = pd.DataFrame(0.0, columns=metadata.ARTIFACT_COLUMNS, index=empty_missing_rows.index)
+    df = pd.concat([df, missing_rows]).sort_index()
+    breakpoint()
     return df
 
 
