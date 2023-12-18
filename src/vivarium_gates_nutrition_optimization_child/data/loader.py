@@ -758,7 +758,6 @@ def load_underweight_exposure(key: str, location: str) -> pd.DataFrame:
     empty_missing_rows = merge_df.loc[merge_df['_merge'] == 'left_only'].set_index(index_names)
     missing_rows = pd.DataFrame(0.0, columns=metadata.ARTIFACT_COLUMNS, index=empty_missing_rows.index)
     df = pd.concat([df, missing_rows]).sort_index()
-    breakpoint()
     return df
 
 
