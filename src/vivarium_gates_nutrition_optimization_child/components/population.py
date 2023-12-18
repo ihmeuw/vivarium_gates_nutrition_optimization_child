@@ -20,7 +20,6 @@ from vivarium_public_health.population.data_transformations import (
     load_population_structure,
 )
 from vivarium_public_health.population.mortality import Mortality as Mortality_
-from vivarium_public_health.utilities import to_years
 
 from vivarium_gates_nutrition_optimization_child.constants import data_keys
 from vivarium_gates_nutrition_optimization_child.constants.metadata import (
