@@ -82,7 +82,7 @@ class PopulationLineList(BasePopulation):
 
         self.start_time = get_time_stamp(builder.configuration.time.start)
         self.location = self._get_location(builder)
-        builder.time.register_step_modifier(self.modify_step)
+        builder.time.register_step_size_modifier(self.modify_step)
 
     def on_initialize_simulants(self, pop_data: SimulantData) -> None:
         """

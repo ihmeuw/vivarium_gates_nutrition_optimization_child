@@ -22,7 +22,7 @@ class DiseaseModel(DiseaseModel_):
         super().setup(builder)
         if "variable_step_sizes" in self._get_data_functions:
             for state, step_size in self._get_data_functions["variable_step_sizes"]().items():
-                builder.time.register_step_modifier(
+                builder.time.register_step_size_modifier(
                     lambda index: self.modify_step(state, step_size, index)
                 )
 
