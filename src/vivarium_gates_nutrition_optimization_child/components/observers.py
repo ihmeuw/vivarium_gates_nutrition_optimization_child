@@ -32,6 +32,7 @@ class ResultsStratifier(ResultsStratifier_):
     results production and have this component manage adjustments to the
     final column labels for the subgroups.
     """
+
     def get_age_bins(self, builder: Builder) -> pd.DataFrame:
         """Define final age groups for production runs."""
         age_bins = super().get_age_bins(builder)
