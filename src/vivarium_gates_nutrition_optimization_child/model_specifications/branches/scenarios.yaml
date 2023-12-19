@@ -1,28 +1,94 @@
-input_draw_count: 5
-random_seed_count: 10
+input_draw_count: 4
+random_seed_count: 20
 
-input_draws: [602, 357, 946, 829, 650]
-random_seeds: [4344, 5616, 6810, 2787, 2284, 4369, 3254, 7359, 3541, 5020]
+input_draws: [602, 357, 946, 829]
+random_seeds: [4344, 5616, 6810, 2787, 2284, 4369, 3254, 7359, 3541, 5020, 9672, 8869, 3167, 6817, 4507, 9901, 5949, 6545, 1362, 781]
 
 branches:
   - intervention:
       child_scenario: ['baseline']
       maternal_scenario: ['baseline']
-#  - intervention:
-#      child_scenario:
-#        - 'scenario_0_zero_coverage'
-#        - 'scenario_1_sam_tx'
-#        - 'scenario_2_mam_tx'
-#        - 'scenario_3_sqlns'
-#        - 'scenario_5_sam_and_mam'
-#        - 'scenario_6_sam_and_sqlns'
-#        - 'scenario_7_mam_and_sqlns'
-#        - 'scenario_8_all'
-#        - 'scenario_13_targeted_mam'
-#      maternal_scenario:
-#        - 'zero_coverage'
-#        - 'mms'
-#        - 'universal_bep'
-#        - 'targeted_bep_mms'
-#        - 'targeted_bep_no_mms'
-
+    input_data:
+      artifact_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization_child/artifacts/model12.1.1/ethiopia.hdf'
+      fertility_input_data_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization/results/model10.2_production_runs/ethiopia/2023_12_19_08_17_50/child_data'
+  - intervention:
+      child_scenario:
+        - 'scenario_0_zero_coverage'
+        - 'scenario_1_sam_tx'
+        - 'scenario_2_mam_tx'
+        - 'scenario_3_sqlns'
+        - 'scenario_5_sam_and_mam'
+        - 'scenario_6_sam_and_sqlns'
+        - 'scenario_7_mam_and_sqlns'
+        - 'scenario_8_all'
+        - 'scenario_13_targeted_mam'
+        - "scenario_14_sam_and_targeted_mam",
+        - "scenario_15_sqlns_and_targeted_mam"
+        - "scenario_16_sqlns_and_sam_targeted_mam"
+      maternal_scenario:
+        - 'zero_coverage'
+        - 'mms'
+        - 'ifa'
+        - 'targeted_bep_ifa'
+        - 'targeted_bep_mms'
+    input_data:
+      artifact_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization_child/artifacts/model12.1.1/ethiopia.hdf'
+      fertility_input_data_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization/results/model10.2_production_runs/ethiopia/2023_12_19_08_17_50/child_data'
+  - intervention:
+      child_scenario: ['baseline']
+      maternal_scenario: ['baseline']
+    input_data:
+      artifact_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization_child/artifacts/model12.1.1/nigeria.hdf'
+      fertility_input_data_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization/results/model10.2_production_runs/nigeria/2023_12_19_10_04_46/child_data'
+  - intervention:
+      child_scenario:
+        - 'scenario_0_zero_coverage'
+        - 'scenario_1_sam_tx'
+        - 'scenario_2_mam_tx'
+        - 'scenario_3_sqlns'
+        - 'scenario_5_sam_and_mam'
+        - 'scenario_6_sam_and_sqlns'
+        - 'scenario_7_mam_and_sqlns'
+        - 'scenario_8_all'
+        - 'scenario_13_targeted_mam'
+        - "scenario_14_sam_and_targeted_mam",
+        - "scenario_15_sqlns_and_targeted_mam"
+        - "scenario_16_sqlns_and_sam_targeted_mam"
+      maternal_scenario:
+        - 'zero_coverage'
+        - 'mms'
+        - 'ifa'
+        - 'targeted_bep_ifa'
+        - 'targeted_bep_mms'
+    input_data:
+      artifact_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization_child/artifacts/model12.1.1/nigeria.hdf'
+      fertility_input_data_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization/results/model10.2_production_runs/nigeria/2023_12_19_10_04_46/child_data'
+  - intervention:
+      child_scenario: [ 'baseline' ]
+      maternal_scenario: [ 'baseline' ]
+    input_data:
+      artifact_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization_child/artifacts/model12.1.1/pakistan.hdf'
+      fertility_input_data_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization/results/model10.2_production_runs/pakistan/2023_12_19_11_01_18/child_data'
+  - intervention:
+      child_scenario:
+        - 'scenario_0_zero_coverage'
+        - 'scenario_1_sam_tx'
+        - 'scenario_2_mam_tx'
+        - 'scenario_3_sqlns'
+        - 'scenario_5_sam_and_mam'
+        - 'scenario_6_sam_and_sqlns'
+        - 'scenario_7_mam_and_sqlns'
+        - 'scenario_8_all'
+        - 'scenario_13_targeted_mam'
+        - "scenario_14_sam_and_targeted_mam",
+        - "scenario_15_sqlns_and_targeted_mam"
+        - "scenario_16_sqlns_and_sam_targeted_mam"
+      maternal_scenario:
+        - 'zero_coverage'
+        - 'mms'
+        - 'ifa'
+        - 'targeted_bep_ifa'
+        - 'targeted_bep_mms'
+    input_data:
+      artifact_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization_child/artifacts/model12.1.1/pakistan.hdf'
+      fertility_input_data_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization/results/model10.2_production_runs/pakistan/2023_12_19_11_01_18/child_data'
