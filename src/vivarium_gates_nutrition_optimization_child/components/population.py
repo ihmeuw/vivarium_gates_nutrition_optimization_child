@@ -19,8 +19,13 @@ from vivarium_public_health.population.data_transformations import (
     assign_demographic_proportions,
     load_population_structure,
 )
+from vivarium_public_health.population.mortality import Mortality as Mortality_
 
 from vivarium_gates_nutrition_optimization_child.constants import data_keys
+from vivarium_gates_nutrition_optimization_child.constants.metadata import (
+    FIVE_MONTHS,
+    NEONATAL_END_AGE,
+)
 
 
 class PopulationLineList(BasePopulation):
@@ -77,6 +82,7 @@ class PopulationLineList(BasePopulation):
 
         self.start_time = get_time_stamp(builder.configuration.time.start)
         self.location = self._get_location(builder)
+        builder.time.register_step_size_modifier(self.modify_step)
 
     def on_initialize_simulants(self, pop_data: SimulantData) -> None:
         """
@@ -103,6 +109,22 @@ class PopulationLineList(BasePopulation):
 
     def _get_location(self, builder: Builder) -> str:
         return builder.data.load("population.location")
+
+    def modify_step(self, index: pd.Index) -> pd.Series:
+        """
+        Sets simulant step size to 0.5 for neonates and 4 for 1-5 months.
+        """
+        neonates = self.population_view.get(index, f"age < {NEONATAL_END_AGE}").index
+        one_to_five_mos = self.population_view.get(
+            index, f"age >= {NEONATAL_END_AGE} and age < {FIVE_MONTHS}"
+        ).index
+        step_size = pd.concat(
+            [
+                pd.Series(pd.Timedelta(days=0.5), index=neonates),
+                pd.Series(pd.Timedelta(days=4), index=one_to_five_mos),
+            ]
+        )
+        return step_size
 
 
 class EvenlyDistributedPopulation(BasePopulation):
@@ -133,3 +155,15 @@ class EvenlyDistributedPopulation(BasePopulation):
         population.loc[population.index % 2 == 1, "sex"] = "Male"
         self.register_simulants(population[list(self.key_columns)])
         self.population_view.update(population)
+
+
+class Mortality(Mortality_):
+    def setup(self, builder) -> None:
+        super().setup(builder)
+        self.move_simulants_to_end = builder.time.move_simulants_to_end()
+
+    def on_time_step(self, event) -> None:
+        super().on_time_step(event)
+        self.move_simulants_to_end(
+            self.population_view.get(event.index, "alive == 'dead'").index
+        )

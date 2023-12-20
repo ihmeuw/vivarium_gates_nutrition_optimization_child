@@ -466,6 +466,7 @@ class CGFCategories(Enum):
     MILD = "mild"
     BETTER_MODERATE = "better_moderate"
     WORSE_MODERATE = "worse_moderate"
+    # MODERATE = "moderate"
     SEVERE = "severe"
 
 

@@ -1,6 +1,7 @@
 from typing import NamedTuple
 
 import pandas as pd
+from vivarium_public_health.utilities import to_years
 
 ####################
 # Project metadata #
@@ -84,3 +85,4 @@ class __AgeGroup(NamedTuple):
 AGE_GROUP = __AgeGroup()
 
 NEONATAL_END_AGE = 0.076712
+FIVE_MONTHS = to_years(pd.Timedelta(days=151))

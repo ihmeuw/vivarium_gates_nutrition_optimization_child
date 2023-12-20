@@ -14,6 +14,7 @@ import pandas as pd
 from vivarium import Component
 from vivarium.framework.engine import Builder
 from vivarium.framework.event import Event
+from vivarium.framework.time import get_time_stamp
 from vivarium_public_health import utilities
 
 PREGNANCY_DURATION = pd.Timedelta(days=9 * utilities.DAYS_PER_MONTH)
@@ -40,6 +41,7 @@ class FertilityLineList(Component):
 
         # Requirements for input data
         self.birth_records = self._get_birth_records(builder)
+        self.move_simulants_to_end = builder.time.move_simulants_to_end()
 
     @staticmethod
     def _get_birth_records(builder: Builder) -> pd.DataFrame:
@@ -53,7 +55,11 @@ class FertilityLineList(Component):
 
         file_path = data_directory / f"scenario_{scenario}_draw_{draw}_seed_{seed}.hdf"
         birth_records = pd.read_hdf(file_path)
-        birth_records["birth_date"] = pd.to_datetime(birth_records["birth_date"])
+        birth_records["birth_date"] = (
+            get_time_stamp(builder.configuration.time.start)
+            - pd.Timedelta(days=builder.configuration.time.step_size)
+            + pd.Timedelta(1, "s")
+        )
         return birth_records
 
     def on_time_step(self, event: Event) -> None:
@@ -99,3 +105,4 @@ class FertilityLineList(Component):
         is_stillborn = (pop["alive"] == "dead") & (pop["cause_of_death"] == "not_dead")
         pop.loc[is_stillborn, "cause_of_death"] = "stillborn"
         self.population_view.update(pop)
+        self.move_simulants_to_end(is_stillborn)
