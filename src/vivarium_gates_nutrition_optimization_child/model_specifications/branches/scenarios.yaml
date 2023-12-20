@@ -22,7 +22,7 @@ branches:
         - 'scenario_7_mam_and_sqlns'
         - 'scenario_8_all'
         - 'scenario_13_targeted_mam'
-        - "scenario_14_sam_and_targeted_mam",
+        - "scenario_14_sam_and_targeted_mam"
         - "scenario_15_sqlns_and_targeted_mam"
         - "scenario_16_sqlns_and_sam_targeted_mam"
       maternal_scenario:
@@ -51,7 +51,7 @@ branches:
         - 'scenario_7_mam_and_sqlns'
         - 'scenario_8_all'
         - 'scenario_13_targeted_mam'
-        - "scenario_14_sam_and_targeted_mam",
+        - "scenario_14_sam_and_targeted_mam"
         - "scenario_15_sqlns_and_targeted_mam"
         - "scenario_16_sqlns_and_sam_targeted_mam"
       maternal_scenario:
@@ -80,7 +80,7 @@ branches:
         - 'scenario_7_mam_and_sqlns'
         - 'scenario_8_all'
         - 'scenario_13_targeted_mam'
-        - "scenario_14_sam_and_targeted_mam",
+        - "scenario_14_sam_and_targeted_mam"
         - "scenario_15_sqlns_and_targeted_mam"
         - "scenario_16_sqlns_and_sam_targeted_mam"
       maternal_scenario:
