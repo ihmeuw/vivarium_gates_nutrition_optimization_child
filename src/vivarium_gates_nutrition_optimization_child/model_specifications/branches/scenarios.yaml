@@ -29,7 +29,7 @@ branches:
         - 'zero_coverage'
         - 'mms'
         - 'ifa'
-        - 'targeted_bep_ifa'
+        #- 'targeted_bep_ifa'
         - 'targeted_bep_mms'
     input_data:
       artifact_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization_child/artifacts/model12.1.1/ethiopia.hdf'
@@ -58,7 +58,7 @@ branches:
         - 'zero_coverage'
         - 'mms'
         - 'ifa'
-        - 'targeted_bep_ifa'
+        #- 'targeted_bep_ifa'
         - 'targeted_bep_mms'
     input_data:
       artifact_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization_child/artifacts/model12.1.1/nigeria.hdf'
@@ -87,7 +87,7 @@ branches:
         - 'zero_coverage'
         - 'mms'
         - 'ifa'
-        - 'targeted_bep_ifa'
+        #- 'targeted_bep_ifa'
         - 'targeted_bep_mms'
     input_data:
       artifact_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization_child/artifacts/model12.1.1/pakistan.hdf'
