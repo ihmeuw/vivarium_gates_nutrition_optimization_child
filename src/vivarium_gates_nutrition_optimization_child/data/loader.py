@@ -107,7 +107,7 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.WASTING.ALT_DISTRIBUTION: load_metadata,
         data_keys.WASTING.CATEGORIES: load_metadata,
         data_keys.WASTING.EXPOSURE: load_gbd_2021_exposure,
-        data_keys.WASTING.RELATIVE_RISK: load_gbd_2021_rr,
+        data_keys.WASTING.RELATIVE_RISK: load_wasting_rr,
         data_keys.WASTING.PAF: load_categorical_paf,
         data_keys.WASTING.TRANSITION_RATES: load_wasting_transition_rates,
         data_keys.WASTING.BIRTH_PREVALENCE: load_wasting_birth_prevalence,
@@ -695,7 +695,9 @@ def load_underweight_exposure(key: str, location: str) -> pd.DataFrame:
     and wasting) from file and transform. This data looks like standard
     categorical exposure distribution data but with stunting and wasting
     parameter values in the index."""
+    location_id = utility_data.get_location_id(location)
     df = pd.read_csv(paths.UNDERWEIGHT_CONDITIONAL_DISTRIBUTIONS)
+    df = df.query("location_id==@location_id").drop("location_id", axis=1)
     # add early neonatal data by copying late neonatal
     early_neonatal = df[df["age_group_name"] == "late_neonatal"].copy()
     early_neonatal["age_group_name"] = "early_neonatal"
@@ -731,10 +733,45 @@ def load_underweight_exposure(key: str, location: str) -> pd.DataFrame:
         .set_index(df.index.names)
     )
     df = pd.concat([df, new_cat_rows]).sort_index()
+    index_names = df.index.names
+
+    # create missing rows and fill with 0
+    def cartesian_product(elements: Dict) -> pd.DataFrame:
+        """Create DataFrame with cartesian product of dictionary values as index"""
+        index = pd.MultiIndex.from_product(elements.values(), names=elements.keys())
+        return pd.DataFrame(index=index).reset_index()
+
+    age_bins = get_data(data_keys.POPULATION.AGE_BINS, location).reset_index()[
+        ["age_start", "age_end"]
+    ]
+    index_elements = {
+        "sex": ["Male", "Female"],
+        "age_start": age_bins["age_start"],
+        "year_start": list(range(1990, 2020)),
+        "stunting_parameter": ["cat1", "cat2", "cat3", "cat4"],
+        "wasting_parameter": ["cat1", "cat2", "cat2.5", "cat3", "cat4"],
+        "parameter": ["cat1", "cat2", "cat3", "cat4"],
+    }
+    complete_index = cartesian_product(index_elements)
+    complete_index = complete_index.merge(age_bins, on=["age_start"])
+    complete_index["year_end"] = complete_index["year_start"] + 1
+    df_index = df.reset_index()[
+        metadata.ARTIFACT_INDEX_COLUMNS
+        + ["stunting_parameter", "wasting_parameter", "parameter"]
+    ]
+    merge_df = complete_index.merge(df_index, how="left", indicator=True)
+    empty_missing_rows = merge_df.loc[merge_df["_merge"] == "left_only"].set_index(
+        index_names
+    )
+    missing_rows = pd.DataFrame(
+        0.0, columns=metadata.ARTIFACT_COLUMNS, index=empty_missing_rows.index
+    )
+    df = pd.concat([df, missing_rows]).sort_index()
     return df
 
 
 def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
+    location_id = utility_data.get_location_id(location)
     entity_key = EntityKey(key)
     entity = utilities.get_gbd_2021_entity(entity_key)
 
@@ -765,21 +802,106 @@ def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
             & (data.index.get_level_values("parameter") == data_keys.STUNTING.CAT4)
         ] = 1.0
     if entity_key == data_keys.WASTING.EXPOSURE:
-        # distribute probability of entering MAM state amongst worse MAM (cat2) and better MAM (cat2.5)
-        cat2_rows = data.query("parameter=='cat2'").copy()
-        # update cat2 rows
-        data.loc[data.query("parameter=='cat2'").index] = (
-            cat2_rows * data_values.WASTING.PROBABILITY_OF_CAT2
+        # format probabilities of entering worse MAM state
+        probabilities = pd.read_csv(paths.PROBABILITIES_OF_WORSE_MAM_EXPOSURE)
+        # add early neonatal rows by duplicating late neonatal data
+        enn_rows = probabilities.query("age_group_id==3").copy()
+        enn_rows["age_group_id"] = 2
+        probabilities = pd.concat([probabilities, enn_rows])
+        probabilities = probabilities.query("location_id==@location_id").drop(
+            ["Unnamed: 0", "location_id"], axis=1
         )
-        # create cat2.5 rows
-        cat25_rows = cat2_rows * (1 - data_values.WASTING.PROBABILITY_OF_CAT2)
-        cat25_rows = (
-            cat25_rows.reset_index()
-            .replace({"parameter": {"cat2": "cat2.5"}})
-            .set_index(data.index.names)
+        probabilities["sex"] = probabilities["sex"].str.capitalize()
+        # get age start and end from age group ID
+        age_bins = get_data(data_keys.POPULATION.AGE_BINS, location).reset_index()
+        age_bins = age_bins.drop("age_group_name", axis=1)
+        probabilities = probabilities.merge(age_bins, on="age_group_id").drop(
+            "age_group_id", axis=1
+        )
+        # add year data
+        probabilities = expand_data(probabilities, "year_start", list(np.arange(1990, 2023)))
+        probabilities["year_end"] = probabilities["year_start"] + 1
+
+        probabilities = (
+            pd.pivot_table(
+                probabilities,
+                values="exposure",
+                index=metadata.ARTIFACT_INDEX_COLUMNS,
+                columns="draw",
+            )
+            .sort_index()
+            .reset_index()
         )
 
-        data = pd.concat([data, cat25_rows]).sort_index()
+        # distribute probability of entering MAM state amongst worse MAM (cat2) and better MAM (cat2.5)
+        rows_to_keep = data.query("parameter != 'cat2'")
+        cat2_rows = data.query("parameter=='cat2'").copy().sort_index().reset_index()
+        assert probabilities[metadata.ARTIFACT_INDEX_COLUMNS].equals(
+            cat2_rows[metadata.ARTIFACT_INDEX_COLUMNS]
+        )
+
+        new_cat2_rows = cat2_rows.copy()
+        new_cat2_rows[metadata.ARTIFACT_COLUMNS] = (
+            cat2_rows[metadata.ARTIFACT_COLUMNS] * probabilities[metadata.ARTIFACT_COLUMNS]
+        )
+        new_cat2_rows = new_cat2_rows.set_index(
+            metadata.ARTIFACT_INDEX_COLUMNS + ["parameter"]
+        ).sort_index()
+
+        cat25_rows = cat2_rows.copy()
+        cat25_rows["parameter"] = "cat2.5"
+        cat25_rows[metadata.ARTIFACT_COLUMNS] = cat2_rows[metadata.ARTIFACT_COLUMNS] * (
+            1 - probabilities[metadata.ARTIFACT_COLUMNS]
+        )
+        cat25_rows = cat25_rows.set_index(
+            metadata.ARTIFACT_INDEX_COLUMNS + ["parameter"]
+        ).sort_index()
+
+        data = pd.concat([rows_to_keep, new_cat2_rows, cat25_rows]).sort_index()
+
+    return data
+
+
+def load_wasting_rr(key: str, location: str) -> pd.DataFrame:
+    location_id = utility_data.get_location_id(location)
+    data = pd.read_csv(paths.WASTING_RELATIVE_RISKS)
+    data = data.query("location_id==@location_id").drop(["Unnamed: 0", "location_id"], axis=1)
+    data["sex"] = data["sex"].str.capitalize()
+
+    # get age start and end from age group ID
+    age_bins = get_data(data_keys.POPULATION.AGE_BINS, location).reset_index()
+    age_bins = age_bins.drop("age_group_name", axis=1)
+    data = data.merge(age_bins, on="age_group_id").drop("age_group_id", axis=1)
+    data = expand_data(data, "year_start", list(np.arange(1990, 2023)))
+    data["year_end"] = data["year_start"] + 1
+
+    data = pd.pivot_table(
+        data,
+        values="value",
+        index=metadata.ARTIFACT_INDEX_COLUMNS
+        + ["affected_entity", "affected_measure", "parameter"],
+        columns="draw",
+    )
+
+    inc = data.query('affected_measure == "incidence_rate"')
+    csmr = data.query('affected_measure == "cause_specific_mortality_rate"')
+    emr = csmr.droplevel("affected_measure") / inc.droplevel("affected_measure")
+    emr["affected_measure"] = "excess_mortality_rate"
+    emr = emr.set_index("affected_measure", append=True).reorder_levels(inc.index.names)
+
+    data = pd.concat([inc, emr])
+
+    # add neonatal data with relative risks of 1
+    # use stunting to get neonatal data
+    neonatal_data = get_data(data_keys.STUNTING.RELATIVE_RISK, location).query(
+        "age_start < .05"
+    )
+    cat25_rows = neonatal_data.query("parameter=='cat2'").copy().reset_index("parameter")
+    cat25_rows["parameter"] = "cat2.5"
+    cat25_rows = cat25_rows.set_index("parameter", append=True)
+    neonatal_data = pd.concat([neonatal_data, cat25_rows]).sort_index()
+    data = pd.concat([data, neonatal_data]).sort_index()
+
     return data
 
 
@@ -817,20 +939,13 @@ def load_gbd_2021_rr(key: str, location: str) -> pd.DataFrame:
         # Remove neonatal relative risks
         neonatal_age_ends = data.index.get_level_values("age_end").unique()[:2]
         data.loc[data.index.get_level_values("age_end").isin(neonatal_age_ends)] = 1.0
-    if key == data_keys.WASTING.RELATIVE_RISK:
-        # add wasting cat2.5 data by duplicating wasting cat2 data
-        cat2_rows = data.query("parameter=='cat2'").copy()
-        new_cat_rows = (
-            cat2_rows.reset_index()
-            .replace({"parameter": {"cat2": "cat2.5"}})
-            .set_index(data.index.names)
-        )
-        data = pd.concat([data, new_cat_rows]).sort_index()
+
     return data
 
 
 def load_cgf_paf(key: str, location: str) -> pd.DataFrame:
-    data = pd.read_csv(paths.CGF_PAFS, index_col=0)
+    location_id = utility_data.get_location_id(location)
+    data = pd.read_csv(paths.CGF_PAFS).query("location_id==@location_id")
 
     # add age start and age end data instead of age group name
     age_bins = get_data(data_keys.POPULATION.AGE_BINS, location).reset_index()
@@ -1181,29 +1296,46 @@ def load_lbwsg_paf(key: str, location: str) -> pd.DataFrame:
         "Ethiopia": "ethiopia",
         "Nigeria": "nigeria",
         "India": "india",
+        "Pakistan": "pakistan",
     }
 
     output_dir = paths.TEMPORARY_PAF_DIR / location_mapper[location]
-    paf_files = output_dir.glob("*.hdf")
-    paf_data = pd.concat([pd.read_hdf(paf_file) for paf_file in paf_files]).sort_values(
-        metadata.ARTIFACT_INDEX_COLUMNS + ["draw"]
-    )
 
-    paf_data["draw"] = paf_data["draw"].apply(lambda draw: f"draw_{draw}")
+    def get_age_and_sex(measure_str):
+        age = measure_str.split("AGE_GROUP_")[1].split("SEX")[0][:-1]
+        sex = measure_str.split("AGE_GROUP_")[1].split("SEX")[1][1:]
 
-    paf_data = paf_data.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ["draw"]).unstack()
+        return age + "," + sex
 
-    paf_data.columns = paf_data.columns.droplevel(0)
-    paf_data.columns.name = None
+    df = pd.read_hdf(output_dir / "output.hdf")  # this is 4096_simulants.hdf for example
+    df = df[[col for col in df.columns if "MEASURE" in col]].T
+    df.columns = [f"draw_{i}" for i in range(1000)]
+    df = df.reset_index()
+    df["demographics"] = df["index"].apply(get_age_and_sex)
+    df = df.drop("index", axis=1)
+    df[["age", "sex"]] = df["demographics"].str.split(",", expand=True)
+    df = df.drop("demographics", axis=1)
 
-    full_index = (
-        get_data(data_keys.LBWSG.RELATIVE_RISK, location)
-        .index.droplevel("parameter")
-        .drop_duplicates()
-    )
+    age_start_dict = {"early_neonatal": 0.0, "late_neonatal": 0.01917808}
+    age_end_dict = {"early_neonatal": 0.01917808, "late_neonatal": 0.07671233}
+    df["age_start"] = df["age"].replace(age_start_dict)
+    df["age_end"] = df["age"].replace(age_end_dict)
+    df["year_start"] = 2019
+    df["year_end"] = 2020
+    df = df.drop("age", axis=1)
 
-    paf_data = paf_data.reindex(full_index).fillna(0.0)
-    return paf_data
+    new_row_1 = [0] * 1000 + ["Female", 0.07671233, 1.0, 2019, 2020]
+    new_row_2 = [0] * 1000 + ["Male", 0.07671233, 1.0, 2019, 2020]
+    new_row_3 = [0] * 1000 + ["Female", 1.0, 5.0, 2019, 2020]
+    new_row_4 = [0] * 1000 + ["Male", 1.0, 5.0, 2019, 2020]
+
+    df.loc[len(df)] = new_row_1
+    df.loc[len(df)] = new_row_2
+    df.loc[len(df)] = new_row_3
+    df.loc[len(df)] = new_row_4
+
+    df = df.set_index(["sex", "age_start", "age_end", "year_start", "year_end"]).sort_index()
+    return df
 
 
 def load_sids_csmr(key: str, location: str) -> pd.DataFrame:
@@ -1290,7 +1422,6 @@ def load_treatment_excess_shift(key: str, location: str) -> pd.DataFrame:
         distribution_data = {
             data_keys.IFA_SUPPLEMENTATION.EXCESS_SHIFT: data_values.MATERNAL_CHARACTERISTICS.IFA_BIRTH_WEIGHT_SHIFT,
             data_keys.MMN_SUPPLEMENTATION.EXCESS_SHIFT: data_values.MATERNAL_CHARACTERISTICS.MMN_BIRTH_WEIGHT_SHIFT,
-            data_keys.BEP_SUPPLEMENTATION.EXCESS_SHIFT: data_values.MATERNAL_CHARACTERISTICS.BEP_BIRTH_WEIGHT_SHIFT,
             data_keys.IV_IRON.EXCESS_SHIFT: data_values.MATERNAL_CHARACTERISTICS.IV_IRON_BIRTH_WEIGHT_SHIFT,
         }[key]
     except KeyError:
@@ -1443,33 +1574,20 @@ def load_risk_specific_shift(key: str, location: str) -> pd.DataFrame:
 def load_baseline_ifa_supplementation_coverage(location: str) -> pd.DataFrame:
     index = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index
     location_id = utility_data.get_location_id(location)
-    intervention_scenarios = pd.read_csv(paths.MATERNAL_INTERVENTION_COVERAGE_CSV)
+    data = pd.read_csv(paths.BASELINE_IFA_COVERAGE_CSV).drop("Unnamed: 0", axis=1)
+    data = (
+        data.query("location_id==@location_id")
+        .drop("location_id", axis=1)
+        .reset_index(drop=True)
+    )
 
-    df = intervention_scenarios.drop(
-        columns=[
-            "Unnamed: 0",
-            "scale_up",
-            "oral_iron_scenario",
-            "antenatal_iv_iron_scenario",
-            "postpartum_iv_iron_scenario",
-            "antenatal_and_postpartum_iv_iron_scenario",
-        ]
+    draw_values = pd.pivot_table(data, values="value", columns="draw")
+    coverage = pd.DataFrame(
+        np.repeat(draw_values.values, len(index), axis=0), columns=draw_values.columns
     )
-    df = df.query('intervention == "ifa" & baseline_scenario == 1')
-    df = (
-        df.set_index(["location_id", "year", "draw"])
-        .loc[location_id]
-        .drop(columns=["intervention", "baseline_scenario"])
-    )
-    df = df.value.unstack()
-    df.columns.name = None
-    df = df.reset_index().drop(columns=["year"])
-    df = df.iloc[[0]]
+    coverage.index = index
 
-    exposure = pd.DataFrame(
-        data=np.repeat(df.values, len(index), axis=0), columns=df.columns, index=index
-    )
-    return exposure
+    return coverage
 
 
 def load_maternal_bmi_anemia_distribution(key: str, location: str) -> pd.DataFrame:
@@ -1585,7 +1703,7 @@ def load_sqlns_risk_ratios(key: str, location: str) -> pd.DataFrame:
         raise ValueError(f"Unrecognized key {key}")
 
     # generate draws using distribution parameters for each row
-    risk_ratios = pd.read_csv(paths.SQLNS_RISK_RATIOS_DIR / f"{location.lower()}.csv")
+    risk_ratios = pd.read_csv(paths.SQLNS_RISK_RATIOS)
     distributions = get_lognorm_from_quantiles(
         risk_ratios["median"], risk_ratios["lower"], risk_ratios["upper"]
     )

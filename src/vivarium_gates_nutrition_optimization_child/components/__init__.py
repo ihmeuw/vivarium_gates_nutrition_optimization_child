@@ -5,7 +5,12 @@ from vivarium_gates_nutrition_optimization_child.components.causes import (
 from vivarium_gates_nutrition_optimization_child.components.fertility import (
     FertilityLineList,
 )
-from vivarium_gates_nutrition_optimization_child.components.lbwsg import LBWSGLineList
+from vivarium_gates_nutrition_optimization_child.components.lbwsg import (
+    LBWSGLineList,
+    LBWSGPAFCalculationExposure,
+    LBWSGPAFCalculationRiskEffect,
+    LBWSGPAFObserver,
+)
 from vivarium_gates_nutrition_optimization_child.components.maternal_characteristics import (
     AdditiveRiskEffect,
     BEPEffectOnBirthweight,
@@ -21,6 +26,7 @@ from vivarium_gates_nutrition_optimization_child.components.observers import (
     ResultsStratifier,
 )
 from vivarium_gates_nutrition_optimization_child.components.population import (
+    EvenlyDistributedPopulation,
     PopulationLineList,
 )
 from vivarium_gates_nutrition_optimization_child.components.risk import (

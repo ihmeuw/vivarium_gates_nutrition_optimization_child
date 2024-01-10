@@ -1,3 +1,10 @@
+**v0.12.0 - 01/09/24**
+
+ - Wasting transitions among 1-5 months, including LBWSG-dependent initialization
+ - MAM treatment also targeted to "worse" MAM category
+ - Replicate model for Nigeria and Pakistan
+ - MMS shift and wasting transition rate data updates
+
 **v0.9.0 - 10/12/23**
 
  - Add MAM targeting scenario
