@@ -33,6 +33,21 @@ class ResultsStratifier(ResultsStratifier_):
     final column labels for the subgroups.
     """
 
+    def get_age_bins(self, builder: Builder) -> pd.DataFrame:
+        """Define final age groups for production runs."""
+        age_bins = super().get_age_bins(builder)
+        data_dict = {
+            "age_start": [0.0, 0.5, 1.5],
+            "age_end": [0.5, 1.5, 5],
+            "age_group_name": [
+                "0_to_6_months",
+                "6_to_18_months",
+                "18_to_59_months",
+            ],
+        }
+
+        return pd.DataFrame(data_dict)
+
     def register_stratifications(self, builder: Builder) -> None:
         """Register each desired stratification with calls to _setup_stratification"""
         super().register_stratifications(builder)
@@ -275,17 +290,18 @@ class ChildWastingObserver(DiseaseObserver):
             f"child_wasting_model.{self.disease}"
         )
 
-        for category in self.categories:
-            builder.results.register_observation(
-                name=f"{self.risk}_{category}_person_time",
-                pop_filter=f'alive == "alive" and `{self.exposure_pipeline_name}`=="{category}" and tracked==True',
-                aggregator=self.aggregate_state_person_time,
-                requires_columns=["alive"],
-                requires_values=[self.exposure_pipeline_name],
-                additional_stratifications=self.config.include,
-                excluded_stratifications=self.config.exclude,
-                when="time_step__prepare",
-            )
+        # not needed for final runs
+        # for category in self.categories:
+        #     builder.results.register_observation(
+        #         name=f"{self.risk}_{category}_person_time",
+        #         pop_filter=f'alive == "alive" and `{self.exposure_pipeline_name}`=="{category}" and tracked==True',
+        #         aggregator=self.aggregate_state_person_time,
+        #         requires_columns=["alive"],
+        #         requires_values=[self.exposure_pipeline_name],
+        #         additional_stratifications=self.config.include,
+        #         excluded_stratifications=self.config.exclude,
+        #         when="time_step__prepare",
+        #     )
 
         for transition in disease_model.transition_names:
             filter_string = (
