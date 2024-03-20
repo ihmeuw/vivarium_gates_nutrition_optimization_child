@@ -35,9 +35,9 @@ ARTIFACT_INDEX_COLUMNS = [
     "year_end",
 ]
 
-DRAW_COUNT = 1000
+DRAW_COUNT = 500
 ARTIFACT_COLUMNS = pd.Index([f"draw_{i}" for i in range(DRAW_COUNT)])
-GBD_2019_ROUND_ID = 6
+#GBD_2019_ROUND_ID = 6
 GBD_2021_ROUND_ID = 7
 
 
@@ -60,17 +60,12 @@ class __AgeGroup(NamedTuple):
     MONTHS_12_TO_23 = 238
     YEARS_2_TO_4 = 34
 
+## Keep these but should be 2021 not 2019. Post-neonatal changed. These are all correct, can just update title to 2021. 
     GBD_2019_LBWSG_EXPOSURE = {BIRTH_ID, EARLY_NEONATAL_ID, LATE_NEONATAL_ID}
     GBD_2019_LBWSG_RELATIVE_RISK = {EARLY_NEONATAL_ID, LATE_NEONATAL_ID}
     GBD_2019_SIDS = {LATE_NEONATAL_ID}
 
-    GBD_2019 = {
-        EARLY_NEONATAL_ID,
-        LATE_NEONATAL_ID,
-        POST_NEONATAL,
-        YEARS_1_TO_4,
-    }
-
+## Could make this through vivarium_inputs instead of defining it here 
     GBD_2021 = {
         EARLY_NEONATAL_ID,
         LATE_NEONATAL_ID,

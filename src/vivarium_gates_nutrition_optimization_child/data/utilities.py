@@ -13,6 +13,7 @@ from gbd_mapping import (
     covariates,
     risk_factors,
 )
+from vivarium_gbd_access import constants as gbd_constants
 from vivarium.framework.artifact import EntityKey
 from vivarium_gbd_access import constants as gbd_constants
 from vivarium_gbd_access import gbd
@@ -35,7 +36,7 @@ from vivarium_gates_nutrition_optimization_child.constants.metadata import (
     AGE_GROUP,
     ARTIFACT_COLUMNS,
     ARTIFACT_INDEX_COLUMNS,
-    GBD_2019_ROUND_ID,
+#    GBD_2019_ROUND_ID,
     GBD_2021_ROUND_ID,
     NEONATAL_END_AGE,
 )
@@ -51,7 +52,7 @@ def get_data(
     source: str,
     gbd_id_type: str,
     age_group_ids: Set[int],
-    gbd_round_id: int,
+    gbd_release_id: int,
     decomp_step: str = "iterative",
 ) -> pd.DataFrame:
     age_group_ids = list(age_group_ids)
@@ -75,8 +76,7 @@ def get_data(
         location_id=location_id,
         sex_id=gbd_constants.SEX.MALE + gbd_constants.SEX.FEMALE,
         age_group_id=age_group_ids,
-        gbd_round_id=gbd_round_id,
-        decomp_step=decomp_step,
+        release_id = gbd_constants.RELEASE_IDS.GBD_2021,
         status="best",
     )
     return data
@@ -99,7 +99,7 @@ def process_exposure(
     key: str,
     entity: Union[RiskFactor, AlternativeRiskFactor],
     location: str,
-    gbd_round_id: int,
+    gbd_release_id: int,
     age_group_ids: List[int] = None,
 ) -> pd.DataFrame:
     data["rei_id"] = entity.gbd_id
@@ -137,8 +137,8 @@ def process_exposure(
         #  FIXME: We fill 1 as exposure of tmrel category, which is not correct.
         data = pd.concat(
             [
-                normalize_age_and_years(exposed, fill_value=0, gbd_round_id=gbd_round_id),
-                normalize_age_and_years(unexposed, fill_value=1, gbd_round_id=gbd_round_id),
+                normalize_age_and_years(exposed, fill_value=0, gbd_release_id=gbd_release_id),
+                normalize_age_and_years(unexposed, fill_value=1, gbd_release_id=gbd_release_id),
             ],
             ignore_index=True,
         )
@@ -155,7 +155,7 @@ def process_exposure(
         vi_globals.DEMOGRAPHIC_COLUMNS + vi_globals.DRAW_COLUMNS + ["parameter"]
     )
     data = validate_and_reshape_gbd_data(
-        data, entity, key, location, gbd_round_id, age_group_ids
+        data, entity, key, location, gbd_release_id, age_group_ids
     )
     return data
 
@@ -165,7 +165,7 @@ def process_gbd_2021_relative_risk(
     key: str,
     entity: Union[RiskFactor, AlternativeRiskFactor],
     location: str,
-    gbd_round_id: int,
+    gbd_release_id: int,
     age_group_ids: List[int] = None,
     whitelist_sids: bool = False,
 ) -> pd.DataFrame:
@@ -205,7 +205,7 @@ def process_gbd_2021_relative_risk(
         .apply(
             normalize_age_and_years,
             fill_value=1,
-            gbd_round_id=gbd_round_id,
+            gbd_release_id=gbd_release_id,
             age_group_ids=age_group_ids,
         )
         .reset_index(drop=True)
@@ -219,7 +219,7 @@ def process_gbd_2021_relative_risk(
         ].mask(np.isclose(data.loc[tmrel_mask, vi_globals.DRAW_COLUMNS], 1.0), 1.0)
 
     data = validate_and_reshape_gbd_data(
-        data, entity, key, location, gbd_round_id, age_group_ids
+        data, entity, key, location, gbd_release_id, age_group_ids
     )
     return data
 
@@ -229,7 +229,7 @@ def process_relative_risk(
     key: str,
     entity: Union[RiskFactor, AlternativeRiskFactor],
     location: str,
-    gbd_round_id: int,
+    gbd_release_id: int,
     age_group_ids: List[int] = None,
     whitelist_sids: bool = False,
 ) -> pd.DataFrame:
@@ -268,7 +268,7 @@ def process_relative_risk(
         .apply(
             normalize_age_and_years,
             fill_value=1,
-            gbd_round_id=gbd_round_id,
+            gbd_release_id=gbd_release_id,
             age_group_ids=age_group_ids,
         )
         .reset_index(drop=True)
@@ -282,7 +282,7 @@ def process_relative_risk(
         ].mask(np.isclose(data.loc[tmrel_mask, vi_globals.DRAW_COLUMNS], 1.0), 1.0)
 
     data = validate_and_reshape_gbd_data(
-        data, entity, key, location, gbd_round_id, age_group_ids
+        data, entity, key, location, gbd_release_id, age_group_ids
     )
     return data
 
@@ -291,13 +291,13 @@ def normalize_age_and_years(
     data: pd.DataFrame,
     fill_value: Real = None,
     cols_to_fill: List[str] = vi_globals.DRAW_COLUMNS,
-    gbd_round_id: int = GBD_2019_ROUND_ID,
+    gbd_release_id: int = gbd_constants.RELEASE_IDS.GBD_2021,
     age_group_ids: List[int] = AGE_GROUP.GBD_2019,
 ) -> pd.DataFrame:
     data = vi_utils.normalize_sex(data, fill_value, cols_to_fill)
 
     # vi_inputs.normalize_year(data)
-    binned_years = get_gbd_estimation_years(gbd_round_id)
+    binned_years = get_gbd_estimation_years(gbd_release_id)
     years = {
         "annual": list(range(min(binned_years), max(binned_years) + 1)),
         "binned": binned_years,
@@ -323,13 +323,13 @@ def normalize_age_and_years(
     return data
 
 
-def get_gbd_estimation_years(gbd_round_id: int) -> List[int]:
+def get_gbd_estimation_years(gbd_release_id: int) -> List[int]:
     """Gets the estimation years for a particular gbd round."""
     from db_queries import get_demographics
 
     warnings.filterwarnings("default", module="db_queries")
 
-    return get_demographics(gbd_constants.CONN_DEFS.EPI, gbd_round_id=gbd_round_id)["year_id"]
+    return get_demographics(gbd_constants.CONN_DEFS.EPI, gbd_release_id=gbd_release_id)["year_id"]
 
 
 def _normalize_age(
@@ -378,7 +378,7 @@ def validate_and_reshape_gbd_data(
     entity: ModelableEntity,
     key: EntityKey,
     location: str,
-    gbd_round_id: int,
+    gbd_release_id: int,
     age_group_ids: List[int] = None,
 ) -> pd.DataFrame:
     # from vivarium_inputs.core.get_data
@@ -387,7 +387,7 @@ def validate_and_reshape_gbd_data(
     # from interface.get_measure
     data = _scrub_gbd_conventions(data, location, age_group_ids)
 
-    estimation_years = get_gbd_estimation_years(gbd_round_id)
+    estimation_years = get_gbd_estimation_years(gbd_release_id)
     validation_years = pd.DataFrame(
         {"year_start": range(min(estimation_years), max(estimation_years) + 1)}
     )
@@ -547,8 +547,7 @@ def load_lbwsg_exposure(location: str):
         location_id=location_id,
         sex_id=gbd_constants.SEX.MALE + gbd_constants.SEX.FEMALE,
         age_group_id=[2, 3],
-        gbd_round_id=gbd_constants.ROUND_IDS.GBD_2019,
-        decomp_step=gbd_constants.DECOMP_STEP.STEP_4,
+        release_id = gbd_constants.RELEASE_IDS.GBD_2021,
     )
     # This data set is big, so let's reduce it by a factor of ~40
     data = data[data["year_id"] == 2019]

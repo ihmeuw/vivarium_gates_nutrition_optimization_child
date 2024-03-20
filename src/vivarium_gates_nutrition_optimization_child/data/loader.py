@@ -69,36 +69,38 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.POPULATION.AGE_BINS: load_age_bins,
         data_keys.POPULATION.DEMOGRAPHY: load_demographic_dimensions,
         data_keys.POPULATION.TMRLE: load_theoretical_minimum_risk_life_expectancy,
-        data_keys.POPULATION.ACMR: load_standard_gbd_2019_data_as_gbd_2021_data,
+        data_keys.POPULATION.ACMR: load_standard_data,
+## Hussain looking into this key 
         data_keys.POPULATION.CRUDE_BIRTH_RATE: load_standard_data,
         data_keys.DIARRHEA.DURATION: load_duration,
         data_keys.DIARRHEA.PREVALENCE: load_prevalence_from_incidence_and_duration,
-        data_keys.DIARRHEA.INCIDENCE_RATE: load_standard_gbd_2019_data_as_gbd_2021_data,
+        data_keys.DIARRHEA.INCIDENCE_RATE: load_standard_data,
         data_keys.DIARRHEA.REMISSION_RATE: load_neonatal_deleted_remission_from_duration,
-        data_keys.DIARRHEA.DISABILITY_WEIGHT: load_standard_gbd_2019_data_as_gbd_2021_data,
+        data_keys.DIARRHEA.DISABILITY_WEIGHT: load_standard_data,
         data_keys.DIARRHEA.EMR: load_emr_from_csmr_and_prevalence,
         data_keys.DIARRHEA.CSMR: load_neonatal_deleted_csmr,
         data_keys.DIARRHEA.RESTRICTIONS: load_metadata,
         data_keys.DIARRHEA.BIRTH_PREVALENCE: load_post_neonatal_birth_prevalence,
-        data_keys.MEASLES.PREVALENCE: load_standard_gbd_2019_data_as_gbd_2021_data,
-        data_keys.MEASLES.INCIDENCE_RATE: load_standard_gbd_2019_data_as_gbd_2021_data,
-        data_keys.MEASLES.DISABILITY_WEIGHT: load_standard_gbd_2019_data_as_gbd_2021_data,
-        data_keys.MEASLES.EMR: load_standard_gbd_2019_data_as_gbd_2021_data,
-        data_keys.MEASLES.CSMR: load_standard_gbd_2019_data_as_gbd_2021_data,
+'''
+        data_keys.MEASLES.PREVALENCE: load_standard_data,
+        data_keys.MEASLES.INCIDENCE_RATE: load_standard_data,
+        data_keys.MEASLES.DISABILITY_WEIGHT: load_standard_data,
+        data_keys.MEASLES.EMR: load_standard_data,
+        data_keys.MEASLES.CSMR: load_standard_data,
         data_keys.MEASLES.RESTRICTIONS: load_metadata,
         data_keys.LRI.DURATION: load_duration,
         data_keys.LRI.PREVALENCE: load_prevalence_from_incidence_and_duration,
-        data_keys.LRI.INCIDENCE_RATE: load_standard_gbd_2019_data_as_gbd_2021_data,
+        data_keys.LRI.INCIDENCE_RATE: load_standard_data,
         data_keys.LRI.REMISSION_RATE: load_neonatal_deleted_remission_from_duration,
-        data_keys.LRI.DISABILITY_WEIGHT: load_standard_gbd_2019_data_as_gbd_2021_data,
+        data_keys.LRI.DISABILITY_WEIGHT: load_standard_data,
         data_keys.LRI.EMR: load_emr_from_csmr_and_prevalence,
         data_keys.LRI.CSMR: load_neonatal_deleted_csmr,
         data_keys.LRI.RESTRICTIONS: load_metadata,
         data_keys.MALARIA.DURATION: load_duration,
         data_keys.MALARIA.PREVALENCE: load_prevalence_from_incidence_and_duration,
-        data_keys.MALARIA.INCIDENCE_RATE: load_standard_gbd_2019_data_as_gbd_2021_data,
+        data_keys.MALARIA.INCIDENCE_RATE: load_standard_data,
         data_keys.MALARIA.REMISSION_RATE: load_neonatal_deleted_malaria_remission_from_duration,
-        data_keys.MALARIA.DISABILITY_WEIGHT: load_standard_gbd_2019_data_as_gbd_2021_data,
+        data_keys.MALARIA.DISABILITY_WEIGHT: load_standard_data,
         data_keys.MALARIA.EMR: load_emr_from_csmr_and_prevalence,
         data_keys.MALARIA.CSMR: load_neonatal_deleted_csmr,
         data_keys.MALARIA.RESTRICTIONS: load_metadata,
@@ -149,15 +151,15 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.LBWSG.RELATIVE_RISK: load_lbwsg_rr,  ## Still 2019 age bins, but doesn't have effect past NN
         data_keys.LBWSG.RELATIVE_RISK_INTERPOLATOR: load_lbwsg_interpolated_rr,  ## Still 2019 age bins, but doesn't have effect past NN
         data_keys.LBWSG.PAF: load_lbwsg_paf,  ## Still 2019 age bins, but doesn't have effect past NN
-        data_keys.AFFECTED_UNMODELED_CAUSES.URI_CSMR: load_standard_gbd_2019_data_as_gbd_2021_data,
-        data_keys.AFFECTED_UNMODELED_CAUSES.OTITIS_MEDIA_CSMR: load_standard_gbd_2019_data_as_gbd_2021_data,
-        data_keys.AFFECTED_UNMODELED_CAUSES.MENINGITIS_CSMR: load_standard_gbd_2019_data_as_gbd_2021_data,
-        data_keys.AFFECTED_UNMODELED_CAUSES.ENCEPHALITIS_CSMR: load_standard_gbd_2019_data_as_gbd_2021_data,
-        data_keys.AFFECTED_UNMODELED_CAUSES.NEONATAL_PRETERM_BIRTH_CSMR: load_standard_gbd_2019_data_as_gbd_2021_data,
-        data_keys.AFFECTED_UNMODELED_CAUSES.NEONATAL_ENCEPHALOPATHY_CSMR: load_standard_gbd_2019_data_as_gbd_2021_data,
-        data_keys.AFFECTED_UNMODELED_CAUSES.NEONATAL_SEPSIS_CSMR: load_standard_gbd_2019_data_as_gbd_2021_data,
-        data_keys.AFFECTED_UNMODELED_CAUSES.NEONATAL_JAUNDICE_CSMR: load_standard_gbd_2019_data_as_gbd_2021_data,
-        data_keys.AFFECTED_UNMODELED_CAUSES.OTHER_NEONATAL_DISORDERS_CSMR: load_standard_gbd_2019_data_as_gbd_2021_data,
+        data_keys.AFFECTED_UNMODELED_CAUSES.URI_CSMR: load_standard_data,
+        data_keys.AFFECTED_UNMODELED_CAUSES.OTITIS_MEDIA_CSMR: load_standard_data,
+        data_keys.AFFECTED_UNMODELED_CAUSES.MENINGITIS_CSMR: load_standard_data,
+        data_keys.AFFECTED_UNMODELED_CAUSES.ENCEPHALITIS_CSMR: load_standard_data,
+        data_keys.AFFECTED_UNMODELED_CAUSES.NEONATAL_PRETERM_BIRTH_CSMR: load_standard_data,
+        data_keys.AFFECTED_UNMODELED_CAUSES.NEONATAL_ENCEPHALOPATHY_CSMR: load_standard_data,
+        data_keys.AFFECTED_UNMODELED_CAUSES.NEONATAL_SEPSIS_CSMR: load_standard_data,
+        data_keys.AFFECTED_UNMODELED_CAUSES.NEONATAL_JAUNDICE_CSMR: load_standard_data,
+        data_keys.AFFECTED_UNMODELED_CAUSES.OTHER_NEONATAL_DISORDERS_CSMR: load_standard_data,
         data_keys.AFFECTED_UNMODELED_CAUSES.SIDS_CSMR: load_sids_csmr,
         data_keys.AFFECTED_UNMODELED_CAUSES.NEONATAL_LRI_CSMR: load_neonatal_lri_csmr,
         data_keys.AFFECTED_UNMODELED_CAUSES.NEONATAL_DIARRHEAL_DISEASES_CSMR: load_neonatal_diarrhea_csmr,
@@ -189,6 +191,7 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.MATERNAL_BMI_ANEMIA.EXCESS_SHIFT: load_maternal_bmi_anemia_excess_shift,
         data_keys.MATERNAL_BMI_ANEMIA.RISK_SPECIFIC_SHIFT: load_risk_specific_shift,
         data_keys.SQLNS_TREATMENT.RISK_RATIOS: load_sqlns_risk_ratios,
+'''
     }
     return mapping[lookup_key](lookup_key, location)
 
@@ -247,6 +250,7 @@ def load_standard_data(key: str, location: str) -> pd.DataFrame:
     return interface.get_measure(entity, key.measure, location).droplevel("location")
 
 
+'''
 def load_standard_gbd_2019_data_as_gbd_2021_data(key: str, location: str) -> pd.DataFrame:
     """Read in GBD 2019 data with GBD 2021 ages and years. Zero out neonatal age group data if necessary."""
     gbd_2019_data = load_standard_data(key, location)
@@ -265,7 +269,7 @@ def load_standard_gbd_2019_data_as_gbd_2021_data(key: str, location: str) -> pd.
         data.loc[data.reset_index()["age_start"] < metadata.NEONATAL_END_AGE, :] = 0
 
     return data
-
+'''
 
 def load_metadata(key: str, location: str):
     key = EntityKey(key)
@@ -665,7 +669,7 @@ def load_neonatal_deleted_csmr(key: str, location: str) -> pd.DataFrame:
     if key not in allowed_keys:
         raise ValueError(f"Unrecognized key {key}")
 
-    data = load_standard_gbd_2019_data_as_gbd_2021_data(key, location)
+    data = load_standard_data(key, location)
     data.loc[data.reset_index()["age_start"] < metadata.NEONATAL_END_AGE, :] = 0
     return data
 
@@ -1005,12 +1009,12 @@ def load_pem_disability_weight(key: str, location: str) -> pd.DataFrame:
 
 
 def load_pem_emr(key: str, location: str) -> pd.DataFrame:
-    emr = load_standard_gbd_2019_data_as_gbd_2021_data(data_keys.PEM.EMR, location)
+    emr = load_standard_data(data_keys.PEM.EMR, location)
     return emr
 
 
 def load_pem_csmr(key: str, location: str) -> pd.DataFrame:
-    csmr = load_standard_gbd_2019_data_as_gbd_2021_data(data_keys.PEM.CSMR, location)
+    csmr = load_standard_data(data_keys.PEM.CSMR, location)
     return csmr
 
 
@@ -1215,7 +1219,7 @@ def load_lbwsg_rr(key: str, location: str) -> pd.DataFrame:
         metadata.GBD_2019_ROUND_ID,
         "step4",
     )
-    data = data[data["year_id"] == 2019].drop(columns="year_id")
+    data = data[data["year_id"] == 2021].drop(columns="year_id")
     data = utilities.process_relative_risk(
         data,
         key,
@@ -1358,7 +1362,7 @@ def load_neonatal_lri_csmr(key: str, location: str) -> pd.DataFrame:
     if key != data_keys.AFFECTED_UNMODELED_CAUSES.NEONATAL_LRI_CSMR:
         raise ValueError(f"Unrecognized key {key}")
 
-    data = load_standard_gbd_2019_data_as_gbd_2021_data(data_keys.LRI.CSMR, location)
+    data = load_standard_data(data_keys.LRI.CSMR, location)
     data.loc[data.index.get_level_values("age_start") >= metadata.NEONATAL_END_AGE, :] = 0
     return data
 
@@ -1367,7 +1371,7 @@ def load_neonatal_diarrhea_csmr(key: str, location: str) -> pd.DataFrame:
     if key != data_keys.AFFECTED_UNMODELED_CAUSES.NEONATAL_DIARRHEAL_DISEASES_CSMR:
         raise ValueError(f"Unrecognized key {key}")
 
-    data = load_standard_gbd_2019_data_as_gbd_2021_data(data_keys.DIARRHEA.CSMR, location)
+    data = load_standard_data(data_keys.DIARRHEA.CSMR, location)
     data.loc[data.index.get_level_values("age_start") >= metadata.NEONATAL_END_AGE, :] = 0
     return data
 
