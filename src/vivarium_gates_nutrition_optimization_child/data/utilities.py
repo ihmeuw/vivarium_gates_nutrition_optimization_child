@@ -514,7 +514,7 @@ def parse_short_gestation_description(description: str) -> pd.Interval:
     )
     return endpoints
 
-
+'''
 def scrub_neonatal_age_groups(data: pd.DataFrame) -> pd.DataFrame:
     # set early and late neonatal age groups to post-neonatal age group
     # split df to have age specific indices
@@ -534,7 +534,7 @@ def scrub_neonatal_age_groups(data: pd.DataFrame) -> pd.DataFrame:
     return pd.concat(
         [new_early_neonatal, new_late_neonatal, post_neonatal, non_neonatal]
     ).sort_index()
-
+'''
 
 @gbd.memory.cache
 def load_lbwsg_exposure(location: str):
