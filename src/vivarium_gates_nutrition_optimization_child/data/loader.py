@@ -243,10 +243,27 @@ def load_theoretical_minimum_risk_life_expectancy(key: str, location: str) -> pd
     return interface.get_theoretical_minimum_risk_life_expectancy()
 
 
+
 def load_standard_data(key: str, location: str) -> pd.DataFrame:
     key = EntityKey(key)
     entity = utilities.get_entity(key)
-    data = interface.get_measure(entity, key.measure, location).droplevel("location")
+
+    use_2019_data_keys = [
+        data_keys.MEASLES.PREVALENCE,
+        data_keys.MEASLES.INCIDENCE_RATE,
+        data_keys.MEASLES.DISABILITY_WEIGHT,
+        data_keys.MEASLES.EMR,
+        data_keys.MEASLES.CSMR,
+        data_keys.LRI.INCIDENCE_RATE,
+        data_keys.LRI.DISABILITY_WEIGHT,
+    ]
+
+    if key in use_2019_data_keys: 
+        data = interface.get_measure(entity, key.measure, location, get_all_years==True).droplevel("location")
+        data = data.loc[data.year_start == 2019]
+    else: 
+        data = interface.get_measure(entity, key.measure, location).droplevel("location")
+
 
     neonatal_deleted_keys = [
         data_keys.DIARRHEA.INCIDENCE_RATE,
@@ -255,6 +272,7 @@ def load_standard_data(key: str, location: str) -> pd.DataFrame:
         data_keys.LRI.DISABILITY_WEIGHT,
         data_keys.MALARIA.INCIDENCE_RATE,
         data_keys.MALARIA.DISABILITY_WEIGHT,]
+    
 
     if key in neonatal_deleted_keys:
         data.loc[data.reset_index()["age_start"] < metadata.NEONATAL_END_AGE, :] = 0
