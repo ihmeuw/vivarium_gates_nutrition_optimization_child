@@ -765,27 +765,11 @@ def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
     entity_key = EntityKey(key)
     entity = utilities.get_gbd_2021_entity(entity_key)
 
-    data = utilities.get_data(
-        entity_key,
-        entity,
-        location,
-        gbd_constants.SOURCES.EXPOSURE,
-        "rei_id",
-        metadata.AGE_GROUP.GBD_2021,
-        metadata.GBD_2021_ROUND_ID,
-    )
-    data = utilities.process_exposure(
-        data,
-        entity_key,
-        entity,
-        location,
-        metadata.GBD_2021_ROUND_ID,
-        metadata.AGE_GROUP.GBD_2021,
-    )
+    data = load_standard_data(entity, location)
 
     if entity_key == data_keys.STUNTING.EXPOSURE:
         # Remove neonatal exposure
-        neonatal_age_ends = data.index.get_level_values("age_end").unique()[:2]
+        neonatal_age_ends = data.index.get_level_values("age_end").unique().sort_values()[:2]
         data.loc[data.index.get_level_values("age_end").isin(neonatal_age_ends)] = 0.0
         data.loc[
             data.index.get_level_values("age_end").isin(neonatal_age_ends)
@@ -898,23 +882,7 @@ def load_gbd_2021_rr(key: str, location: str) -> pd.DataFrame:
     entity_key = EntityKey(key)
     entity = utilities.get_gbd_2021_entity(entity_key)
 
-    raw_data = utilities.get_data(
-        entity_key,
-        entity,
-        location,
-        gbd_constants.SOURCES.RR,
-        "rei_id",
-        metadata.AGE_GROUP.GBD_2021,
-        metadata.GBD_2021_ROUND_ID,
-    )
-    raw_data = utilities.process_gbd_2021_relative_risk(
-        raw_data,
-        entity_key,
-        entity,
-        location,
-        metadata.GBD_2021_ROUND_ID,
-        metadata.AGE_GROUP.GBD_2021,
-    )
+    raw_data = load_standard_data(entity, location)
 
     inc = raw_data.query('affected_measure == "incidence_rate"')
     csmr = raw_data.query('affected_measure == "cause_specific_mortality_rate"')
@@ -926,7 +894,7 @@ def load_gbd_2021_rr(key: str, location: str) -> pd.DataFrame:
 
     if key == data_keys.STUNTING.RELATIVE_RISK:
         # Remove neonatal relative risks
-        neonatal_age_ends = data.index.get_level_values("age_end").unique()[:2]
+        neonatal_age_ends = data.index.get_level_values("age_end").unique().sort_values()[:2]
         data.loc[data.index.get_level_values("age_end").isin(neonatal_age_ends)] = 1.0
 
     return data
@@ -1189,27 +1157,9 @@ def load_lbwsg_rr(key: str, location: str) -> pd.DataFrame:
 
     key = EntityKey(key)
     entity = utilities.get_entity(key)
-    data = utilities.get_data(
-        key,
-        entity,
-        location,
-        gbd_constants.SOURCES.RR,
-        "rei_id",
-        metadata.AGE_GROUP.GBD_2019_LBWSG_RELATIVE_RISK,
-        metadata.GBD_2019_ROUND_ID,
-        "step4",
-    )
-    data = data[data["year_id"] == 2021].drop(columns="year_id")
-    data = utilities.process_relative_risk(
-        data,
-        key,
-        entity,
-        location,
-        metadata.GBD_2019_ROUND_ID,
-        metadata.AGE_GROUP.GBD_2019,
-        whitelist_sids=True,
-    )
-    data = data.query("year_start == 2019").droplevel(["affected_entity", "affected_measure"])
+
+    data = load_standard_data(entity, location)
+    data = data.query("year_start == 2021").droplevel(["affected_entity", "affected_measure"])
     data = data[~data.index.duplicated()]
     return data
 
@@ -1329,11 +1279,11 @@ def load_sids_csmr(key: str, location: str) -> pd.DataFrame:
 
         # get around the validation rejecting yll only causes
         entity.restrictions.yll_only = False
-        entity.restrictions.yld_age_group_id_start = min(metadata.AGE_GROUP.GBD_2019_SIDS)
-        entity.restrictions.yld_age_group_id_end = max(metadata.AGE_GROUP.GBD_2019_SIDS)
+        entity.restrictions.yld_age_group_id_start = min(metadata.AGE_GROUP.LATE_NEONATAL_ID)
+        entity.restrictions.yld_age_group_id_end = max(metadata.AGE_GROUP.LATE_NEONATAL_ID)
 
         data = interface.get_measure(entity, key.measure, location).droplevel("location")
-        return utilities.reshape_gbd_2019_data_as_gbd_2021_data(data)
+        return data
     else:
         raise ValueError(f"Unrecognized key {key}")
 
