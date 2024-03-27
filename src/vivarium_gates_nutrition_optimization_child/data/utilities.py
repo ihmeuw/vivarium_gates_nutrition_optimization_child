@@ -292,7 +292,7 @@ def normalize_age_and_years(
     fill_value: Real = None,
     cols_to_fill: List[str] = vi_globals.DRAW_COLUMNS,
     gbd_release_id: int = gbd_constants.RELEASE_IDS.GBD_2021,
-    age_group_ids: List[int] = AGE_GROUP.GBD_2019,
+    age_group_ids: List[int] = AGE_GROUP.GBD_2021,
 ) -> pd.DataFrame:
     data = vi_utils.normalize_sex(data, fill_value, cols_to_fill)
 

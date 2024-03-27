@@ -87,8 +87,8 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.MEASLES.CSMR: load_standard_data,
         data_keys.MEASLES.RESTRICTIONS: load_metadata,
         data_keys.LRI.DURATION: load_duration,
-        data_keys.LRI.PREVALENCE: load_prevalence_from_incidence_and_duration,
         data_keys.LRI.INCIDENCE_RATE: load_standard_data,
+        data_keys.LRI.PREVALENCE: load_prevalence_from_incidence_and_duration,
         data_keys.LRI.REMISSION_RATE: load_neonatal_deleted_remission_from_duration,
         data_keys.LRI.DISABILITY_WEIGHT: load_standard_data,
         data_keys.LRI.EMR: load_emr_from_csmr_and_prevalence,
@@ -103,7 +103,6 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.MALARIA.CSMR: load_neonatal_deleted_csmr,
         data_keys.MALARIA.RESTRICTIONS: load_metadata,
         data_keys.MALARIA.BIRTH_PREVALENCE: load_post_neonatal_birth_prevalence,
-    '''
         data_keys.WASTING.DISTRIBUTION: load_metadata,
         data_keys.WASTING.ALT_DISTRIBUTION: load_metadata,
         data_keys.WASTING.CATEGORIES: load_metadata,
@@ -149,7 +148,7 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.LBWSG.EXPOSURE: load_lbwsg_exposure,  ## Still 2019 age bins, but doesn't have effect past NN
         data_keys.LBWSG.RELATIVE_RISK: load_lbwsg_rr,  ## Still 2019 age bins, but doesn't have effect past NN
         data_keys.LBWSG.RELATIVE_RISK_INTERPOLATOR: load_lbwsg_interpolated_rr,  ## Still 2019 age bins, but doesn't have effect past NN
-        data_keys.LBWSG.PAF: load_lbwsg_paf,  ## Still 2019 age bins, but doesn't have effect past NN
+        #data_keys.LBWSG.PAF: load_lbwsg_paf,  ## Still 2019 age bins, but doesn't have effect past NN
         data_keys.AFFECTED_UNMODELED_CAUSES.URI_CSMR: load_standard_data,
         data_keys.AFFECTED_UNMODELED_CAUSES.OTITIS_MEDIA_CSMR: load_standard_data,
         data_keys.AFFECTED_UNMODELED_CAUSES.MENINGITIS_CSMR: load_standard_data,
@@ -190,7 +189,6 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.MATERNAL_BMI_ANEMIA.EXCESS_SHIFT: load_maternal_bmi_anemia_excess_shift,
         data_keys.MATERNAL_BMI_ANEMIA.RISK_SPECIFIC_SHIFT: load_risk_specific_shift,
         data_keys.SQLNS_TREATMENT.RISK_RATIOS: load_sqlns_risk_ratios,
-'''
     }
     return mapping[lookup_key](lookup_key, location)
 
@@ -225,7 +223,7 @@ def filter_population(unfiltered: pd.DataFrame) -> pd.DataFrame:
 
 
 def load_age_bins(key: str, location: str) -> pd.DataFrame:
-    all_age_bins = interface.get_age_bins()
+    all_age_bins = interface.get_age_bins().reset_index()
     return (
         all_age_bins[all_age_bins.age_start < 5]
         .set_index(["age_start", "age_end", "age_group_name"])
@@ -259,7 +257,7 @@ def load_standard_data(key: str, location: str) -> pd.DataFrame:
     ]
 
     if key in use_2019_data_keys: 
-        data = interface.get_measure(entity, key.measure, location, get_all_years==True).droplevel("location")
+        data = interface.get_measure(entity, key.measure, location, True).droplevel("location").reset_index()
         data = data.loc[data.year_start == 2019]
     else: 
         data = interface.get_measure(entity, key.measure, location).droplevel("location")
@@ -275,6 +273,7 @@ def load_standard_data(key: str, location: str) -> pd.DataFrame:
     
 
     if key in neonatal_deleted_keys:
+        data = interface.get_measure(entity, key.measure, location, True).droplevel("location")
         data.loc[data.reset_index()["age_start"] < metadata.NEONATAL_END_AGE, :] = 0
 
     return data
