@@ -46,7 +46,7 @@ from vivarium_gates_nutrition_optimization_child.utilities import (
 def get_data(
     key: EntityKey,
     entity: ModelableEntity,
-    location: str,
+    location: Union[str, List[int]],
     source: str,
     gbd_id_type: str,
     age_group_ids: Set[int],
@@ -399,7 +399,7 @@ def validate_and_reshape_gbd_data(
     #                         age_bins=get_gbd_age_bins(age_group_ids))
     data = vi_utils.split_interval(data, interval_column="age", split_column_prefix="age")
     data = vi_utils.split_interval(data, interval_column="year", split_column_prefix="year")
-    data = vi_utils.sort_hierarchical_data(data).droplevel("location")
+    data = vi_utils.sort_hierarchical_data(data)
     return data
 
 
@@ -541,9 +541,11 @@ def scrub_neonatal_age_groups(data: pd.DataFrame) -> pd.DataFrame:
 
 
 @gbd.memory.cache
-def load_lbwsg_exposure(location: str):
+def load_lbwsg_exposure(location: Union[str, List[int]]):
     entity = get_entity(data_keys.LBWSG.EXPOSURE)
-    location_id = utility_data.get_location_id(location)
+    location_id = (
+        utility_data.get_location_id(location) if isinstance(location, str) else location
+    )
     data = get_draws(
         gbd_id_type="rei_id",
         gbd_id=entity.gbd_id,
@@ -647,7 +649,7 @@ def apply_artifact_index(data: pd.DataFrame) -> pd.DataFrame:
 
 
 def get_treatment_efficacy(
-    demography: pd.DataFrame, treatment_type: str, location: str
+    demography: pd.DataFrame, treatment_type: str, location: Union[str, List[int]]
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
     baseline_efficacy = {
         data_keys.WASTING.CAT1: get_wasting_treatment_parameter_data("e_sam", location),
