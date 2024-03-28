@@ -102,12 +102,12 @@ class __LowerRespiratoryInfections(NamedTuple):
     DISABILITY_WEIGHT: TargetString = TargetString(
         "cause.lower_respiratory_infections.disability_weight"
     )
-    EMR: TargetString = TargetString(
-        "cause.lower_respiratory_infections.excess_mortality_rate"
-    )
-    CSMR: TargetString = TargetString(
-        "cause.lower_respiratory_infections.cause_specific_mortality_rate"
-    )
+#    EMR: TargetString = TargetString(
+#        "cause.lower_respiratory_infections.excess_mortality_rate"
+#    )
+#    CSMR: TargetString = TargetString(
+#        "cause.lower_respiratory_infections.cause_specific_mortality_rate"
+#    )
     RESTRICTIONS: TargetString = TargetString(
         "cause.lower_respiratory_infections.restrictions"
     )
@@ -152,12 +152,12 @@ MALARIA = __Malaria()
 
 class __ProteinEnergyMalnutrition(NamedTuple):
     # Keys that will be loaded into the artifact. must have a colon type declaration
-    EMR: TargetString = TargetString(
-        "cause.protein_energy_malnutrition.excess_mortality_rate"
-    )
-    CSMR: TargetString = TargetString(
-        "cause.protein_energy_malnutrition.cause_specific_mortality_rate"
-    )
+    #EMR: TargetString = TargetString(
+    #    "cause.protein_energy_malnutrition.excess_mortality_rate"
+    #)
+    #CSMR: TargetString = TargetString(
+    #    "cause.protein_energy_malnutrition.cause_specific_mortality_rate"
+    #)
     RESTRICTIONS: TargetString = TargetString(
         "cause.protein_energy_malnutrition.restrictions"
     )
@@ -179,12 +179,12 @@ class __ModerateProteinEnergyMalnutrition(NamedTuple):
     DISABILITY_WEIGHT: TargetString = TargetString(
         "cause.moderate_protein_energy_malnutrition.disability_weight"
     )
-    EMR: TargetString = TargetString(
-        "cause.moderate_protein_energy_malnutrition.excess_mortality_rate"
-    )
-    CSMR: TargetString = TargetString(
-        "cause.moderate_protein_energy_malnutrition.cause_specific_mortality_rate"
-    )
+    #EMR: TargetString = TargetString(
+    #    "cause.moderate_protein_energy_malnutrition.excess_mortality_rate"
+    #)
+    #CSMR: TargetString = TargetString(
+    #    "cause.moderate_protein_energy_malnutrition.cause_specific_mortality_rate"
+    #)
     RESTRICTIONS: TargetString = TargetString(
         "cause.moderate_protein_energy_malnutrition.restrictions"
     )
@@ -208,12 +208,12 @@ class __SevereProteinEnergyMalnutrition(NamedTuple):
     DISABILITY_WEIGHT: TargetString = TargetString(
         "cause.severe_protein_energy_malnutrition.disability_weight"
     )
-    EMR: TargetString = TargetString(
-        "cause.severe_protein_energy_malnutrition.excess_mortality_rate"
-    )
-    CSMR: TargetString = TargetString(
-        "cause.severe_protein_energy_malnutrition.cause_specific_mortality_rate"
-    )
+    #EMR: TargetString = TargetString(
+    #    "cause.severe_protein_energy_malnutrition.excess_mortality_rate"
+    #)
+    #CSMR: TargetString = TargetString(
+    #    "cause.severe_protein_energy_malnutrition.cause_specific_mortality_rate"
+    #)
     RESTRICTIONS: TargetString = TargetString(
         "cause.severe_protein_energy_malnutrition.restrictions"
     )
@@ -242,11 +242,11 @@ class __Wasting(NamedTuple):
     DISTRIBUTION: TargetString = "risk_factor.child_wasting.distribution"
     ALT_DISTRIBUTION: TargetString = "alternative_risk_factor.child_wasting.distribution"
     CATEGORIES: TargetString = "risk_factor.child_wasting.categories"
-    EXPOSURE: TargetString = "risk_factor.child_wasting.exposure"
-    RELATIVE_RISK: TargetString = "risk_factor.child_wasting.relative_risk"
-    PAF: TargetString = "risk_factor.child_wasting.population_attributable_fraction"
-    TRANSITION_RATES: TargetString = "risk_factor.child_wasting.transition_rates"
-    BIRTH_PREVALENCE: TargetString = "risk_factor.child_wasting.birth_prevalence"
+    #EXPOSURE: TargetString = "risk_factor.child_wasting.exposure"
+    #RELATIVE_RISK: TargetString = "risk_factor.child_wasting.relative_risk"
+    #PAF: TargetString = "risk_factor.child_wasting.population_attributable_fraction"
+    #TRANSITION_RATES: TargetString = "risk_factor.child_wasting.transition_rates"
+    #BIRTH_PREVALENCE: TargetString = "risk_factor.child_wasting.birth_prevalence"
 
     # Useful keys not for the artifact - distinguished by not using the colon type declaration
     CAT4 = "cat4"
@@ -273,8 +273,8 @@ class __Stunting(NamedTuple):
     ALT_DISTRIBUTION: TargetString = "alternative_risk_factor.child_stunting.distribution"
     CATEGORIES: TargetString = "risk_factor.child_stunting.categories"
     EXPOSURE: TargetString = "risk_factor.child_stunting.exposure"
-    RELATIVE_RISK: TargetString = "risk_factor.child_stunting.relative_risk"
-    PAF: TargetString = "risk_factor.child_stunting.population_attributable_fraction"
+    #RELATIVE_RISK: TargetString = "risk_factor.child_stunting.relative_risk"
+    #PAF: TargetString = "risk_factor.child_stunting.population_attributable_fraction"
 
     # Useful keys not for the artifact - distinguished by not using the colon type declaration
     CAT4 = "cat4"
@@ -299,7 +299,7 @@ class __Underweight(NamedTuple):
     DISTRIBUTION: TargetString = "risk_factor.child_underweight.distribution"
     EXPOSURE: TargetString = "risk_factor.child_underweight.exposure"
     CATEGORIES: TargetString = "risk_factor.child_underweight.categories"
-    RELATIVE_RISK: TargetString = "risk_factor.child_underweight.relative_risk"
+    #RELATIVE_RISK: TargetString = "risk_factor.child_underweight.relative_risk"
 
     # Useful keys not for the artifact - distinguished by not using the colon type declaration
     CAT4 = "cat4"
@@ -340,7 +340,7 @@ class __WastingTreatment(NamedTuple):
     DISTRIBUTION: TargetString
     CATEGORIES: TargetString
     RELATIVE_RISK: TargetString
-    PAF: TargetString
+    #PAF: TargetString
 
     # Useful keys not for the artifact - distinguished by not using the colon type declaration
     UNCOVERED = "cat1"
@@ -366,7 +366,7 @@ def _get_wasting_treatment_keys(treatment_type: str) -> __WastingTreatment:
         DISTRIBUTION=TargetString(f"risk_factor.{treatment_type}.distribution"),
         CATEGORIES=TargetString(f"risk_factor.{treatment_type}.categories"),
         RELATIVE_RISK=TargetString(f"risk_factor.{treatment_type}.relative_risk"),
-        PAF=TargetString(f"risk_factor.{treatment_type}.population_attributable_fraction"),
+        #PAF=TargetString(f"risk_factor.{treatment_type}.population_attributable_fraction"),
     )
 
 
@@ -585,13 +585,13 @@ MAKE_ARTIFACT_KEY_GROUPS = [
     MODERATE_PEM,
     SEVERE_PEM,
     SAM_TREATMENT,
-    MAM_TREATMENT,
-    LBWSG,
-    AFFECTED_UNMODELED_CAUSES,
+    #MAM_TREATMENT,
+    #LBWSG,
+    #AFFECTED_UNMODELED_CAUSES,
     IFA_SUPPLEMENTATION,
     MMN_SUPPLEMENTATION,
     BEP_SUPPLEMENTATION,
     IV_IRON,
     MATERNAL_BMI_ANEMIA,
-    SQLNS_TREATMENT,
+    #SQLNS_TREATMENT,
 ]
