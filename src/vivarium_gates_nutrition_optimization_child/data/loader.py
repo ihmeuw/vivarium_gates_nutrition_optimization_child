@@ -1043,7 +1043,7 @@ def load_pem_emr(key: str, location: str) -> pd.DataFrame:
     return emr
 
 
-def load_pem_csmr(key: str, location: str) -> pd.DataFrame:
+def load_pem_csmr(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
     csmr = load_standard_data(data_keys.PEM.CSMR, location)
     return csmr
 
