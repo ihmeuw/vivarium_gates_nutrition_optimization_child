@@ -84,15 +84,15 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.MEASLES.INCIDENCE_RATE: load_standard_data,
         data_keys.MEASLES.DISABILITY_WEIGHT: load_standard_data,
         data_keys.MEASLES.EMR: load_standard_data,
-        data_keys.MEASLES.CSMR: load_standard_data,
+        #data_keys.MEASLES.CSMR: load_standard_data,
         data_keys.MEASLES.RESTRICTIONS: load_metadata,
         data_keys.LRI.DURATION: load_duration,
         data_keys.LRI.INCIDENCE_RATE: load_standard_data,
         data_keys.LRI.PREVALENCE: load_prevalence_from_incidence_and_duration,
         data_keys.LRI.REMISSION_RATE: load_neonatal_deleted_remission_from_duration,
         data_keys.LRI.DISABILITY_WEIGHT: load_standard_data,
-#        data_keys.LRI.EMR: load_emr_from_csmr_and_prevalence,
-#        data_keys.LRI.CSMR: load_neonatal_deleted_csmr,
+        #data_keys.LRI.EMR: load_emr_from_csmr_and_prevalence,
+        #data_keys.LRI.CSMR: load_neonatal_deleted_csmr,
         data_keys.LRI.RESTRICTIONS: load_metadata,
         data_keys.MALARIA.DURATION: load_duration,
         data_keys.MALARIA.PREVALENCE: load_prevalence_from_incidence_and_duration,
@@ -106,38 +106,38 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.WASTING.DISTRIBUTION: load_metadata,
         data_keys.WASTING.ALT_DISTRIBUTION: load_metadata,
         data_keys.WASTING.CATEGORIES: load_metadata,
-        #data_keys.WASTING.EXPOSURE: load_gbd_2021_exposure,
-        #data_keys.WASTING.RELATIVE_RISK: load_wasting_rr,
-        #data_keys.WASTING.PAF: load_categorical_paf,
-        #data_keys.WASTING.TRANSITION_RATES: load_wasting_transition_rates,
-        #data_keys.WASTING.BIRTH_PREVALENCE: load_wasting_birth_prevalence,
-        data_keys.STUNTING.DISTRIBUTION: load_metadata,
-        data_keys.STUNTING.ALT_DISTRIBUTION: load_metadata,
-        data_keys.STUNTING.CATEGORIES: load_metadata,
-        data_keys.STUNTING.EXPOSURE: load_gbd_2021_exposure,
-        #data_keys.STUNTING.RELATIVE_RISK: load_gbd_2021_rr,
-        #data_keys.STUNTING.PAF: load_categorical_paf,
+        data_keys.WASTING.EXPOSURE: load_gbd_2021_exposure,
+        data_keys.WASTING.RELATIVE_RISK: load_wasting_rr,
+        data_keys.WASTING.PAF: load_categorical_paf,
+        data_keys.WASTING.TRANSITION_RATES: load_wasting_transition_rates,
+        data_keys.WASTING.BIRTH_PREVALENCE: load_wasting_birth_prevalence,
+        # data_keys.STUNTING.DISTRIBUTION: load_metadata,
+        # data_keys.STUNTING.ALT_DISTRIBUTION: load_metadata,
+        # data_keys.STUNTING.CATEGORIES: load_metadata,
+        # data_keys.STUNTING.EXPOSURE: load_gbd_2021_exposure,
+        # data_keys.STUNTING.RELATIVE_RISK: load_gbd_2021_rr,
+        # data_keys.STUNTING.PAF: load_categorical_paf,
         data_keys.UNDERWEIGHT.DISTRIBUTION: load_metadata,
         data_keys.UNDERWEIGHT.EXPOSURE: load_underweight_exposure,
         data_keys.UNDERWEIGHT.CATEGORIES: load_metadata,
-        #data_keys.UNDERWEIGHT.RELATIVE_RISK: load_gbd_2021_rr,
+        data_keys.UNDERWEIGHT.RELATIVE_RISK: load_gbd_2021_rr,
         data_keys.CHILD_GROWTH_FAILURE.PAF: load_cgf_paf,
-        #data_keys.PEM.EMR: load_pem_emr,
-        #data_keys.PEM.CSMR: load_pem_csmr,
+        data_keys.PEM.EMR: load_pem_emr,
+        data_keys.PEM.CSMR: load_pem_csmr,
         data_keys.PEM.RESTRICTIONS: load_pem_restrictions,
         data_keys.MODERATE_PEM.DISABILITY_WEIGHT: load_pem_disability_weight,
-        #data_keys.MODERATE_PEM.EMR: load_pem_emr,
-        #data_keys.MODERATE_PEM.CSMR: load_pem_csmr,
+        data_keys.MODERATE_PEM.EMR: load_pem_emr,
+        data_keys.MODERATE_PEM.CSMR: load_pem_csmr,
         data_keys.MODERATE_PEM.RESTRICTIONS: load_pem_restrictions,
         data_keys.SEVERE_PEM.DISABILITY_WEIGHT: load_pem_disability_weight,
-        #data_keys.SEVERE_PEM.EMR: load_pem_emr,
-        #data_keys.SEVERE_PEM.CSMR: load_pem_csmr,
+        data_keys.SEVERE_PEM.EMR: load_pem_emr,
+        data_keys.SEVERE_PEM.CSMR: load_pem_csmr,
         data_keys.SEVERE_PEM.RESTRICTIONS: load_pem_restrictions,
         data_keys.SAM_TREATMENT.EXPOSURE: load_wasting_treatment_exposure,
         data_keys.SAM_TREATMENT.DISTRIBUTION: load_wasting_treatment_distribution,
         data_keys.SAM_TREATMENT.CATEGORIES: load_wasting_treatment_categories,
         data_keys.SAM_TREATMENT.RELATIVE_RISK: load_sam_treatment_rr,
-        #data_keys.SAM_TREATMENT.PAF: load_categorical_paf,
+        data_keys.SAM_TREATMENT.PAF: load_categorical_paf,
         data_keys.MAM_TREATMENT.EXPOSURE: load_wasting_treatment_exposure,
         data_keys.MAM_TREATMENT.DISTRIBUTION: load_wasting_treatment_distribution,
         data_keys.MAM_TREATMENT.CATEGORIES: load_wasting_treatment_categories,
@@ -148,7 +148,7 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.LBWSG.EXPOSURE: load_lbwsg_exposure,  ## Still 2019 age bins, but doesn't have effect past NN
         data_keys.LBWSG.RELATIVE_RISK: load_lbwsg_rr,  ## Still 2019 age bins, but doesn't have effect past NN
         data_keys.LBWSG.RELATIVE_RISK_INTERPOLATOR: load_lbwsg_interpolated_rr,  ## Still 2019 age bins, but doesn't have effect past NN
-        #data_keys.LBWSG.PAF: load_lbwsg_paf,  ## Still 2019 age bins, but doesn't have effect past NN
+        data_keys.LBWSG.PAF: load_lbwsg_paf,  ## Still 2019 age bins, but doesn't have effect past NN
         data_keys.AFFECTED_UNMODELED_CAUSES.URI_CSMR: load_standard_data,
         data_keys.AFFECTED_UNMODELED_CAUSES.OTITIS_MEDIA_CSMR: load_standard_data,
         data_keys.AFFECTED_UNMODELED_CAUSES.MENINGITIS_CSMR: load_standard_data,
@@ -251,10 +251,10 @@ def load_standard_data(key: str, location: str) -> pd.DataFrame:
         data_keys.MEASLES.INCIDENCE_RATE,
         data_keys.MEASLES.DISABILITY_WEIGHT,
         data_keys.MEASLES.EMR,
-        data_keys.MEASLES.CSMR,
+        #data_keys.MEASLES.CSMR,
         data_keys.LRI.INCIDENCE_RATE,
         data_keys.LRI.DISABILITY_WEIGHT,
-        data_keys.LRI.CSMR,
+        #data_keys.LRI.CSMR,
     ]
 
     if key in use_2019_data_keys: 
@@ -639,7 +639,7 @@ def load_emr_from_csmr_and_prevalence(key: str, location: str) -> pd.DataFrame:
     try:
         cause = {
             data_keys.DIARRHEA.EMR: data_keys.DIARRHEA,
-            data_keys.LRI.EMR: data_keys.LRI,
+            #data_keys.LRI.EMR: data_keys.LRI,
             data_keys.MALARIA.EMR: data_keys.MALARIA,
         }[key]
     except KeyError:
@@ -657,7 +657,9 @@ def load_emr_from_csmr_and_prevalence(key: str, location: str) -> pd.DataFrame:
 
 def load_neonatal_deleted_csmr(key: str, location: str) -> pd.DataFrame:
     """Get GBD 2019 CSMR data with 2021 age groups and zero out neonatal age groups."""
-    allowed_keys = [data_keys.DIARRHEA.CSMR, data_keys.LRI.CSMR, data_keys.MALARIA.CSMR]
+    allowed_keys = [data_keys.DIARRHEA.CSMR, 
+                    #data_keys.LRI.CSMR, 
+                    data_keys.MALARIA.CSMR]
     if key not in allowed_keys:
         raise ValueError(f"Unrecognized key {key}")
 
@@ -883,7 +885,7 @@ def load_wasting_rr(key: str, location: str) -> pd.DataFrame:
 
 def load_gbd_2021_rr(key: str, location: str) -> pd.DataFrame:
     entity_key = EntityKey(key)
-    entity = utilities.get_gbd_2021_entity(entity_key)
+    entity = utilities.get_entity(entity_key)
 
     raw_data = load_standard_data(key, location)
 
