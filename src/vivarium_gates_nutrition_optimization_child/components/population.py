@@ -34,6 +34,8 @@ class PopulationLineList(BasePopulation):
             "age",
             "sex",
             "alive",
+            # TODO: add subnational location
+            "parent_location",
             "location",
             "entrance_time",
             "exit_time",
@@ -76,7 +78,7 @@ class PopulationLineList(BasePopulation):
         self.register_simulants = builder.randomness.register_simulants
 
         self.start_time = get_time_stamp(builder.configuration.time.start)
-        self.location = self._get_location(builder)
+        self.parent_location = self._get_parent_location(builder)
 
     def on_initialize_simulants(self, pop_data: SimulantData) -> None:
         """
@@ -93,7 +95,9 @@ class PopulationLineList(BasePopulation):
             new_simulants["age"] = 0.0
             new_simulants["sex"] = new_births["sex"]
             new_simulants["alive"] = new_births["alive"]
-            new_simulants["location"] = self.location
+            new_simulants["parent_location"] = self.parent_location
+            # TODO: update method to get subnational locations
+            new_simulants["location"] = self._choose_subnational_location(self, new_simulants)
             new_simulants["entrance_time"] = pop_data.creation_time
             new_simulants["exit_time"] = new_births["exit_time"]
             new_simulants["maternal_id"] = new_births["maternal_id"]
@@ -101,8 +105,13 @@ class PopulationLineList(BasePopulation):
         self.register_simulants(new_simulants[self.key_columns])
         self.population_view.update(new_simulants)
 
-    def _get_location(self, builder: Builder) -> str:
+    def _get_parent_location(self, builder: Builder) -> str:
         return builder.data.load("population.location")
+    
+    def _choose_subnational_location(self, new_simulants: pd.DataFrame) -> str:
+        # TODO: add csv file for subnational locations to repo
+        # TODO: use randomness stream to select random subnational based on csv
+        return new_simulants
 
 
 class EvenlyDistributedPopulation(BasePopulation):
