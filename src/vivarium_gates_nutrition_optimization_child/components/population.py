@@ -37,7 +37,6 @@ class PopulationLineList(BasePopulation):
             "age",
             "sex",
             "alive",
-            "parent_location",
             "location",
             "entrance_time",
             "exit_time",
@@ -97,13 +96,14 @@ class PopulationLineList(BasePopulation):
             new_simulants["age"] = 0.0
             new_simulants["sex"] = new_births["sex"]
             new_simulants["alive"] = new_births["alive"]
-            new_simulants["parent_location"] = self.parent_location
-            new_simulants = self._choose_subnational_location(new_simulants)
             new_simulants["entrance_time"] = pop_data.creation_time
             new_simulants["exit_time"] = new_births["exit_time"]
             new_simulants["maternal_id"] = new_births["maternal_id"]
 
         self.register_simulants(new_simulants[self.key_columns])
+        # TODO: is there a better way to do this than the same if statement from above?
+        if pop_data.creation_time >= self.start_time
+            new_simulants = self._choose_subnational_location(new_simulants)
         self.population_view.update(new_simulants)
 
     def _get_parent_location(self, builder: Builder) -> str:
