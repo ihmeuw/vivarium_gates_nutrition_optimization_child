@@ -102,7 +102,7 @@ class PopulationLineList(BasePopulation):
 
         self.register_simulants(new_simulants[self.key_columns])
         # TODO: is there a better way to do this than the same if statement from above?
-        if pop_data.creation_time >= self.start_time
+        if pop_data.creation_time >= self.start_time:
             new_simulants = self._choose_subnational_location(new_simulants)
         self.population_view.update(new_simulants)
 
