@@ -118,7 +118,9 @@ class PopulationLineList(BasePopulation):
                 (subnational_data["sex_id"] == sexes[sex])
                 & (subnational_data["parent_location"] == self.parent_location)
             ]
-            new_simulants["location"] = self.randomness["general_purpose"].choice(
+            new_simulants.loc[sex_idx, "location"] = self.randomness[
+                "general_purpose"
+            ].choice(
                 index=sex_idx,
                 choices=subnational_percents["location"],
                 p=subnational_percents["percent_in_location"],
