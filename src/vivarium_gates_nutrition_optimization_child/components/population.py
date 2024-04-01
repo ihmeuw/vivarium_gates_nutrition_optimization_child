@@ -98,7 +98,7 @@ class PopulationLineList(BasePopulation):
             new_simulants["sex"] = new_births["sex"]
             new_simulants["alive"] = new_births["alive"]
             new_simulants["parent_location"] = self.parent_location
-            new_simulants = self._choose_subnational_location(self, new_simulants)
+            new_simulants = self._choose_subnational_location(new_simulants)
             new_simulants["entrance_time"] = pop_data.creation_time
             new_simulants["exit_time"] = new_births["exit_time"]
             new_simulants["maternal_id"] = new_births["maternal_id"]
