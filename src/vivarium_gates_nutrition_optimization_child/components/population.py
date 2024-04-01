@@ -21,6 +21,9 @@ from vivarium_public_health.population.data_transformations import (
 )
 
 from vivarium_gates_nutrition_optimization_child.constants import data_keys
+from vivarium_gates_nutrition_optimization_child.constants.paths import (
+    SUBNATIONAL_LOCATION_DATA,
+)
 
 
 class PopulationLineList(BasePopulation):
@@ -34,7 +37,6 @@ class PopulationLineList(BasePopulation):
             "age",
             "sex",
             "alive",
-            # TODO: add subnational location
             "parent_location",
             "location",
             "entrance_time",
@@ -96,8 +98,7 @@ class PopulationLineList(BasePopulation):
             new_simulants["sex"] = new_births["sex"]
             new_simulants["alive"] = new_births["alive"]
             new_simulants["parent_location"] = self.parent_location
-            # TODO: update method to get subnational locations
-            new_simulants["location"] = self._choose_subnational_location(self, new_simulants)
+            new_simulants = self._choose_subnational_location(self, new_simulants)
             new_simulants["entrance_time"] = pop_data.creation_time
             new_simulants["exit_time"] = new_births["exit_time"]
             new_simulants["maternal_id"] = new_births["maternal_id"]
@@ -107,10 +108,22 @@ class PopulationLineList(BasePopulation):
 
     def _get_parent_location(self, builder: Builder) -> str:
         return builder.data.load("population.location")
-    
-    def _choose_subnational_location(self, new_simulants: pd.DataFrame) -> str:
-        # TODO: add csv file for subnational locations to repo
-        # TODO: use randomness stream to select random subnational based on csv
+
+    def _choose_subnational_location(self, new_simulants: pd.DataFrame) -> pd.DataFrame:
+        subnational_data = pd.read_csv(SUBNATIONAL_LOCATION_DATA)
+        sexes = {"Male": 1, "Female": 2}
+        for sex in sexes.keys():
+            sex_idx = new_simulants.index[new_simulants["sex"] == sex]
+            subnational_percents = subnational_data.loc[
+                subnational_data["sex_id"] == sexes[sex]
+            ]
+            new_simulants["location"] = self.randomness["general_purpose"].choice(
+                index=sex_idx,
+                choices=subnational_percents["location"],
+                p=subnational_percents["percent_in_location"],
+                additional_key=f"{sex}_subnational_location_choice",
+            )
+
         return new_simulants
 
 

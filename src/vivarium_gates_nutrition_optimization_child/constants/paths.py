@@ -21,6 +21,7 @@ WASTING_RELATIVE_RISKS = RAW_DATA_DIR / "wasting_rrs_with_subcategories.csv"
 PROBABILITIES_OF_WORSE_MAM_EXPOSURE = RAW_DATA_DIR / "worse_exp_frac.csv"
 UNDERWEIGHT_CONDITIONAL_DISTRIBUTIONS = RAW_DATA_DIR / "lookup.csv"
 CGF_PAFS = RAW_DATA_DIR / "cgf_pafs.csv"
+SUBNATIONAL_LOCATION_DATA = RAW_DATA_DIR / "subnational_percents.csv"
 
 TEMPORARY_PAF_DIR = Path(
     "/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization_child/lbwsg_pafs/outputs"
