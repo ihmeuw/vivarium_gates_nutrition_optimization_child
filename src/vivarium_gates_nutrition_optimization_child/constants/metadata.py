@@ -59,12 +59,12 @@ class __AgeGroup(NamedTuple):
     MONTHS_12_TO_23 = 238
     YEARS_2_TO_4 = 34
 
-## Keep these but should be 2021 not 2019. Post-neonatal changed. These are all correct, can just update title to 2021. 
+    ## Keep these but should be 2021 not 2019. Post-neonatal changed. These are all correct, can just update title to 2021.
     GBD_2019_LBWSG_EXPOSURE = {BIRTH_ID, EARLY_NEONATAL_ID, LATE_NEONATAL_ID}
     GBD_2019_LBWSG_RELATIVE_RISK = {EARLY_NEONATAL_ID, LATE_NEONATAL_ID}
     GBD_2019_SIDS = {LATE_NEONATAL_ID}
 
-## Could make this through vivarium_inputs instead of defining it here 
+    ## Could make this through vivarium_inputs instead of defining it here
     GBD_2021 = {
         EARLY_NEONATAL_ID,
         LATE_NEONATAL_ID,

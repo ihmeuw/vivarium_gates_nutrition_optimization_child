@@ -13,7 +13,6 @@ from gbd_mapping import (
     covariates,
     risk_factors,
 )
-from vivarium_gbd_access import constants as gbd_constants
 from vivarium.framework.artifact import EntityKey
 from vivarium_gbd_access import constants as gbd_constants
 from vivarium_gbd_access import gbd
@@ -32,11 +31,10 @@ from vivarium_gates_nutrition_optimization_child.constants import (
     data_values,
     paths,
 )
-from vivarium_gates_nutrition_optimization_child.constants.metadata import (
+from vivarium_gates_nutrition_optimization_child.constants.metadata import (  # GBD_2019_ROUND_ID,
     AGE_GROUP,
     ARTIFACT_COLUMNS,
     ARTIFACT_INDEX_COLUMNS,
-#    GBD_2019_ROUND_ID,
     GBD_2021_ROUND_ID,
     NEONATAL_END_AGE,
 )
@@ -76,7 +74,7 @@ def get_data(
         location_id=location_id,
         sex_id=gbd_constants.SEX.MALE + gbd_constants.SEX.FEMALE,
         age_group_id=age_group_ids,
-        release_id = gbd_constants.RELEASE_IDS.GBD_2021,
+        release_id=gbd_constants.RELEASE_IDS.GBD_2021,
         status="best",
     )
     return data
@@ -138,7 +136,9 @@ def process_exposure(
         data = pd.concat(
             [
                 normalize_age_and_years(exposed, fill_value=0, gbd_release_id=gbd_release_id),
-                normalize_age_and_years(unexposed, fill_value=1, gbd_release_id=gbd_release_id),
+                normalize_age_and_years(
+                    unexposed, fill_value=1, gbd_release_id=gbd_release_id
+                ),
             ],
             ignore_index=True,
         )
@@ -329,7 +329,9 @@ def get_gbd_estimation_years(gbd_release_id: int) -> List[int]:
 
     warnings.filterwarnings("default", module="db_queries")
 
-    return get_demographics(gbd_constants.CONN_DEFS.EPI, gbd_release_id=gbd_release_id)["year_id"]
+    return get_demographics(gbd_constants.CONN_DEFS.EPI, gbd_release_id=gbd_release_id)[
+        "year_id"
+    ]
 
 
 def _normalize_age(
@@ -514,7 +516,8 @@ def parse_short_gestation_description(description: str) -> pd.Interval:
     )
     return endpoints
 
-'''
+
+"""
 def scrub_neonatal_age_groups(data: pd.DataFrame) -> pd.DataFrame:
     # set early and late neonatal age groups to post-neonatal age group
     # split df to have age specific indices
@@ -534,7 +537,8 @@ def scrub_neonatal_age_groups(data: pd.DataFrame) -> pd.DataFrame:
     return pd.concat(
         [new_early_neonatal, new_late_neonatal, post_neonatal, non_neonatal]
     ).sort_index()
-'''
+"""
+
 
 @gbd.memory.cache
 def load_lbwsg_exposure(location: str):
@@ -547,7 +551,7 @@ def load_lbwsg_exposure(location: str):
         location_id=location_id,
         sex_id=gbd_constants.SEX.MALE + gbd_constants.SEX.FEMALE,
         age_group_id=[2, 3],
-        release_id = gbd_constants.RELEASE_IDS.GBD_2021,
+        release_id=gbd_constants.RELEASE_IDS.GBD_2021,
     )
     # This data set is big, so let's reduce it by a factor of ~40
     data = data[data["year_id"] == 2019]

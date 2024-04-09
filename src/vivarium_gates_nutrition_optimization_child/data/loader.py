@@ -12,6 +12,7 @@ for an example.
 
    No logging is done here. Logging is done in vivarium inputs itself and forwarded.
 """
+
 import pickle
 from typing import Dict, List, Tuple, Union
 
@@ -241,7 +242,6 @@ def load_theoretical_minimum_risk_life_expectancy(key: str, location: str) -> pd
     return interface.get_theoretical_minimum_risk_life_expectancy()
 
 
-
 def load_standard_data(key: str, location: str) -> pd.DataFrame:
     key = EntityKey(key)
     entity = utilities.get_entity(key)
@@ -252,40 +252,48 @@ def load_standard_data(key: str, location: str) -> pd.DataFrame:
         data_keys.MEASLES.DISABILITY_WEIGHT,
         data_keys.MEASLES.EMR,
         data_keys.MEASLES.CSMR,
-        data_keys.LRI.CSMR,]
+        data_keys.LRI.CSMR,
+    ]
 
     neonatal_deleted_keys = [
-    data_keys.DIARRHEA.INCIDENCE_RATE,
-    data_keys.DIARRHEA.DISABILITY_WEIGHT,
-    data_keys.MALARIA.INCIDENCE_RATE,
-    data_keys.MALARIA.DISABILITY_WEIGHT,]
+        data_keys.DIARRHEA.INCIDENCE_RATE,
+        data_keys.DIARRHEA.DISABILITY_WEIGHT,
+        data_keys.MALARIA.INCIDENCE_RATE,
+        data_keys.MALARIA.DISABILITY_WEIGHT,
+    ]
 
     both_2019_and_neonatal_deleted = [
-    data_keys.LRI.INCIDENCE_RATE,
-    data_keys.LRI.DISABILITY_WEIGHT,]
+        data_keys.LRI.INCIDENCE_RATE,
+        data_keys.LRI.DISABILITY_WEIGHT,
+    ]
 
     no_age = [
-    data_keys.POPULATION.CRUDE_BIRTH_RATE,]
+        data_keys.POPULATION.CRUDE_BIRTH_RATE,
+    ]
 
-    if key in use_2019_data_keys: 
-        data = interface.get_measure(entity, key.measure, location, True).droplevel("location")
-        data = data.query('year_start == 2019')
+    if key in use_2019_data_keys:
+        data = interface.get_measure(entity, key.measure, location, True).droplevel(
+            "location"
+        )
+        data = data.query("year_start == 2019")
 
     elif key in neonatal_deleted_keys:
         data = interface.get_measure(entity, key.measure, location).droplevel("location")
         data.loc[data.reset_index()["age_start"] < metadata.NEONATAL_END_AGE, :] = 0
-     
-    elif key in both_2019_and_neonatal_deleted:
-        data = interface.get_measure(entity, key.measure, location, True).droplevel("location")
-        data = data.query('year_start == 2019')
-        data.loc[data.reset_index()["age_start"] < metadata.NEONATAL_END_AGE, :] = 0  
 
-    else: 
+    elif key in both_2019_and_neonatal_deleted:
+        data = interface.get_measure(entity, key.measure, location, True).droplevel(
+            "location"
+        )
+        data = data.query("year_start == 2019")
+        data.loc[data.reset_index()["age_start"] < metadata.NEONATAL_END_AGE, :] = 0
+
+    else:
         data = interface.get_measure(entity, key.measure, location).droplevel("location")
-    
+
     if key not in no_age:
-        data = data.query('age_start < 5')
-    
+        data = data.query("age_start < 5")
+
     return data
 
 
@@ -355,9 +363,9 @@ def load_wasting_transition_rates(key: str, location: str) -> pd.DataFrame:
     transitions = rates.reset_index()["transition"].unique()
     youngest_ages_data = expand_data(youngest_ages_data, "transition", transitions)
 
-    youngest_ages_data = youngest_ages_data.drop(columns=['location'])
-    rates['year_start'] = 2021
-    rates['year_end'] = 2022
+    youngest_ages_data = youngest_ages_data.drop(columns=["location"])
+    rates["year_start"] = 2021
+    rates["year_end"] = 2022
     rates = rates[youngest_ages_data.columns]
     rates = pd.concat([youngest_ages_data, rates])
 
@@ -585,10 +593,12 @@ def load_duration(key: str, location: str) -> pd.DataFrame:
 
     if key == data_keys.LRI.DURATION:
         duration = duration.reset_index()
-        duration['year_start'] = 2019
-        duration['year_end'] = 2020
-        duration = duration.set_index(['location', 'sex', 'age_start', 'age_end', 'year_start', 'year_end'])
-    
+        duration["year_start"] = 2019
+        duration["year_end"] = 2020
+        duration = duration.set_index(
+            ["location", "sex", "age_start", "age_end", "year_start", "year_end"]
+        )
+
     duration = duration.droplevel("location")
 
     return duration
@@ -677,14 +687,12 @@ def load_emr_from_csmr_and_prevalence(key: str, location: str) -> pd.DataFrame:
 
 def load_neonatal_deleted_csmr(key: str, location: str) -> pd.DataFrame:
     """Get GBD 2019 CSMR data with 2021 age groups and zero out neonatal age groups."""
-    allowed_keys = [data_keys.DIARRHEA.CSMR, 
-                    data_keys.LRI.CSMR, 
-                    data_keys.MALARIA.CSMR]
+    allowed_keys = [data_keys.DIARRHEA.CSMR, data_keys.LRI.CSMR, data_keys.MALARIA.CSMR]
     if key not in allowed_keys:
         raise ValueError(f"Unrecognized key {key}")
 
     data = load_standard_data(key, location)
-    #data.loc[data.age_start < metadata.NEONATAL_END_AGE, :] = 0
+    # data.loc[data.age_start < metadata.NEONATAL_END_AGE, :] = 0
     data.loc[data.reset_index()["age_start"] < metadata.NEONATAL_END_AGE, :] = 0
     return data
 
@@ -814,7 +822,7 @@ def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
         probabilities["sex"] = probabilities["sex"].str.capitalize()
         # get age start and end from age group ID
         age_bins = get_data(data_keys.POPULATION.AGE_BINS, location).reset_index()
-        age_bins['age_group_id'] = list(metadata.AGE_GROUP.GBD_2021)
+        age_bins["age_group_id"] = list(metadata.AGE_GROUP.GBD_2021)
         age_bins = age_bins.drop("age_group_name", axis=1)
         probabilities = probabilities.merge(age_bins, on="age_group_id").drop(
             "age_group_id", axis=1
@@ -873,9 +881,9 @@ def load_wasting_rr(key: str, location: str) -> pd.DataFrame:
     # get age start and end from age group ID
     age_bins = get_data(data_keys.POPULATION.AGE_BINS, location).reset_index()
     age_bins = age_bins.drop("age_group_name", axis=1)
-    age_bins['age_group_id'] = list(metadata.AGE_GROUP.GBD_2021)
+    age_bins["age_group_id"] = list(metadata.AGE_GROUP.GBD_2021)
     data = data.merge(age_bins, on="age_group_id").drop("age_group_id", axis=1)
-    data['year_start'] = 2021
+    data["year_start"] = 2021
     data["year_end"] = data["year_start"] + 1
 
     data = pd.pivot_table(
@@ -1072,9 +1080,9 @@ def load_sam_treatment_rr(key: str, location: str) -> pd.DataFrame:
     #       = (sam_tx_efficacy / sam_tx_duration) / (sam_tx_efficacy_tmrel / sam_tx_duration)
     #       = sam_tx_efficacy / sam_tx_efficacy_tmrel
     rr_sam_treated_remission = sam_tx_efficacy / sam_tx_efficacy_tmrel
-    rr_sam_treated_remission[
-        "affected_entity"
-    ] = "severe_acute_malnutrition_to_mild_child_wasting"
+    rr_sam_treated_remission["affected_entity"] = (
+        "severe_acute_malnutrition_to_mild_child_wasting"
+    )
 
     # rr_r2 = r2 / r2_tmrel
     #       = (1 - sam_tx_efficacy) * (r2_ux) / (1 - sam_tx_efficacy_tmrel) * (r2_ux)
@@ -1083,12 +1091,12 @@ def load_sam_treatment_rr(key: str, location: str) -> pd.DataFrame:
 
     better_mam_rows = rr_sam_untreated_remission.copy()
     worse_mam_rows = rr_sam_untreated_remission.copy()
-    better_mam_rows[
-        "affected_entity"
-    ] = "severe_acute_malnutrition_to_better_moderate_acute_malnutrition"
-    worse_mam_rows[
-        "affected_entity"
-    ] = "severe_acute_malnutrition_to_worse_moderate_acute_malnutrition"
+    better_mam_rows["affected_entity"] = (
+        "severe_acute_malnutrition_to_better_moderate_acute_malnutrition"
+    )
+    worse_mam_rows["affected_entity"] = (
+        "severe_acute_malnutrition_to_worse_moderate_acute_malnutrition"
+    )
     rr_sam_untreated_remission = pd.concat([better_mam_rows, worse_mam_rows])
 
     rr = pd.concat([rr_sam_treated_remission, rr_sam_untreated_remission])
@@ -1118,9 +1126,9 @@ def load_mam_treatment_rr(key: str, location: str) -> pd.DataFrame:
 
     mam_ux_duration = data_values.WASTING.MAM_UX_RECOVERY_TIME_OVER_6MO
     mam_tx_duration = pd.Series(index=index)
-    mam_tx_duration[
-        index.get_level_values("age_start") < 0.5
-    ] = data_values.WASTING.MAM_TX_RECOVERY_TIME_UNDER_6MO
+    mam_tx_duration[index.get_level_values("age_start") < 0.5] = (
+        data_values.WASTING.MAM_TX_RECOVERY_TIME_UNDER_6MO
+    )
     mam_tx_duration[0.5 <= index.get_level_values("age_start")] = get_random_variable_draws(
         mam_tx_duration[0.5 <= index.get_level_values("age_start")].index,
         *data_values.WASTING.MAM_TX_RECOVERY_TIME_OVER_6MO,
@@ -1141,12 +1149,12 @@ def load_mam_treatment_rr(key: str, location: str) -> pd.DataFrame:
 
     better_mam_rows = rr.copy()
     worse_mam_rows = rr.copy()
-    better_mam_rows[
-        "affected_entity"
-    ] = "better_moderate_acute_malnutrition_to_mild_child_wasting"
-    worse_mam_rows[
-        "affected_entity"
-    ] = "worse_moderate_acute_malnutrition_to_mild_child_wasting"
+    better_mam_rows["affected_entity"] = (
+        "better_moderate_acute_malnutrition_to_mild_child_wasting"
+    )
+    worse_mam_rows["affected_entity"] = (
+        "worse_moderate_acute_malnutrition_to_mild_child_wasting"
+    )
     rr = pd.concat([better_mam_rows, worse_mam_rows])
 
     rr["affected_measure"] = "transition_rate"
@@ -1263,7 +1271,7 @@ def load_lbwsg_paf(key: str, location: str) -> pd.DataFrame:
         "Pakistan": "pakistan",
     }
 
-    output_dir = paths.TEMPORARY_PAF_DIR #/ location_mapper[location]
+    output_dir = paths.TEMPORARY_PAF_DIR  # / location_mapper[location]
 
     def get_age_and_sex(measure_str):
         age = measure_str.split("AGE_GROUP_")[1].split("SEX")[0][:-1]
