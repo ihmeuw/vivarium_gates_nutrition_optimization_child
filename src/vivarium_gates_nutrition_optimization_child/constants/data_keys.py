@@ -72,7 +72,7 @@ class __Measles(NamedTuple):
     INCIDENCE_RATE: TargetString = TargetString("cause.measles.incidence_rate")
     DISABILITY_WEIGHT: TargetString = TargetString("cause.measles.disability_weight")
     EMR: TargetString = TargetString("cause.measles.excess_mortality_rate")
-    #CSMR: TargetString = TargetString("cause.measles.cause_specific_mortality_rate")
+    CSMR: TargetString = TargetString("cause.measles.cause_specific_mortality_rate")
     RESTRICTIONS: TargetString = TargetString("cause.measles.restrictions")
 
     # Useful keys not for the artifact - distinguished by not using the colon type declaration
@@ -102,12 +102,12 @@ class __LowerRespiratoryInfections(NamedTuple):
     DISABILITY_WEIGHT: TargetString = TargetString(
         "cause.lower_respiratory_infections.disability_weight"
     )
-    #EMR: TargetString = TargetString(
-    #    "cause.lower_respiratory_infections.excess_mortality_rate"
-    #)
-    #CSMR: TargetString = TargetString(
-    #    "cause.lower_respiratory_infections.cause_specific_mortality_rate"
-    #)
+    EMR: TargetString = TargetString(
+        "cause.lower_respiratory_infections.excess_mortality_rate"
+    )
+    CSMR: TargetString = TargetString(
+        "cause.lower_respiratory_infections.cause_specific_mortality_rate"
+    )
     RESTRICTIONS: TargetString = TargetString(
         "cause.lower_respiratory_infections.restrictions"
     )
@@ -388,9 +388,9 @@ class __LowBirthWeightShortGestation(NamedTuple):
         "risk_factor.low_birth_weight_and_short_gestation.relative_risk_interpolator"
     )
 
-#    PAF: TargetString = (
-#        "risk_factor.low_birth_weight_and_short_gestation.population_attributable_fraction"
-#    )
+    PAF: TargetString = (
+        "risk_factor.low_birth_weight_and_short_gestation.population_attributable_fraction"
+    )
 
     # Useful keys not for the artifact - distinguished by not using the colon type declaration
     BIRTH_WEIGHT_EXPOSURE = TargetString("risk_factor.birth_weight.birth_exposure")
@@ -577,7 +577,7 @@ MAKE_ARTIFACT_KEY_GROUPS = [
     MEASLES,
     LRI,
     MALARIA,
-#    STUNTING,
+    STUNTING,
     WASTING,
     UNDERWEIGHT,
     CHILD_GROWTH_FAILURE,

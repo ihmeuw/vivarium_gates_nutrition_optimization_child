@@ -14,7 +14,7 @@ components:
 configuration:
     input_data:
         input_draw_number: 0
-        artifact_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization_child/artifacts/model11.1/ethiopia.hdf'
+        artifact_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization_child/artifacts/model13.0/ethiopia.hdf'
     interpolation:
         order: 0
         extrapolate: True
@@ -34,9 +34,9 @@ configuration:
         step_size: 3 # Days
     population:
         population_size: 122_728
-        age_start: 0
-        age_end: 0.03835616 # 14 days
-        exit_age: 0.03835616 # 14 days
+        initialization_age_min: 0
+        initialization_age_max: 0.03835616 # 14 days
+        untracking_age: 0.03835616 # 14 days
 
     intervention:
         scenario: 'baseline'

@@ -118,8 +118,8 @@ class EvenlyDistributedPopulation(BasePopulation):
         self.location = builder.data.load(data_keys.POPULATION.LOCATION)
 
     def on_initialize_simulants(self, pop_data: SimulantData) -> None:
-        age_start = pop_data.user_data.get("age_start", self.config.age_start)
-        age_end = pop_data.user_data.get("age_end", self.config.age_end)
+        age_start = pop_data.user_data.get("age_start", self.config.initialization_age_min)
+        age_end = pop_data.user_data.get("age_end", self.config.initialization_age_max)
 
         population = pd.DataFrame(index=pop_data.index)
         population["entrance_time"] = pop_data.creation_time
