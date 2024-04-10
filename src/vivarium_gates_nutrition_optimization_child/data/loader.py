@@ -1462,7 +1462,7 @@ def load_dichotomous_excess_shift(
     index = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index
     shift = get_random_variable_draws(metadata.ARTIFACT_COLUMNS, *distribution_data)
     excess_shift = reshape_shift_data(shift, index, data_keys.LBWSG.BIRTH_WEIGHT_EXPOSURE)
-    return excess_shift.droplevel('location')
+    return excess_shift.droplevel("location")
 
 
 def load_excess_gestational_age_shift(key: str, location: str) -> pd.DataFrame:
@@ -1497,7 +1497,7 @@ def load_excess_gestational_age_shift(key: str, location: str) -> pd.DataFrame:
     excess_shift = reshape_shift_data(
         summed_shifts, index, data_keys.LBWSG.GESTATIONAL_AGE_EXPOSURE
     )
-    return excess_shift.droplevel('location')
+    return excess_shift.droplevel("location")
 
 
 def reshape_shift_data(
@@ -1628,7 +1628,7 @@ def load_maternal_bmi_anemia_exposure(key: str, location: str) -> pd.DataFrame:
 
     exposure = exposure.set_index(["parameter"], append=True).sort_index()
 
-    return exposure.droplevel('location')
+    return exposure.droplevel("location")
 
 
 def load_maternal_bmi_anemia_excess_shift(key: str, location: str) -> pd.DataFrame:
@@ -1668,7 +1668,7 @@ def load_maternal_bmi_anemia_excess_shift(key: str, location: str) -> pd.DataFra
     excess_shift = excess_shift.set_index(
         ["affected_entity", "affected_measure", "parameter"], append=True
     ).sort_index()
-    return excess_shift.droplevel('location')
+    return excess_shift.droplevel("location")
 
 
 def load_sqlns_risk_ratios(key: str, location: str) -> pd.DataFrame:
