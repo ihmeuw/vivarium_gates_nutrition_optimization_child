@@ -272,29 +272,25 @@ def load_standard_data(key: str, location: str) -> pd.DataFrame:
     ]
 
     if key in use_2019_data_keys:
-        data = interface.get_measure(entity, key.measure, location, True).droplevel(
-            "location"
-        )
+        data = interface.get_measure(entity, key.measure, location, True)
         data = data.query("year_start == 2019")
 
     elif key in neonatal_deleted_keys:
-        data = interface.get_measure(entity, key.measure, location).droplevel("location")
+        data = interface.get_measure(entity, key.measure, location)
         data.loc[data.reset_index()["age_start"] < metadata.NEONATAL_END_AGE, :] = 0
 
     elif key in both_2019_and_neonatal_deleted:
-        data = interface.get_measure(entity, key.measure, location, True).droplevel(
-            "location"
-        )
+        data = interface.get_measure(entity, key.measure, location, True)
         data = data.query("year_start == 2019")
         data.loc[data.reset_index()["age_start"] < metadata.NEONATAL_END_AGE, :] = 0
 
     else:
-        data = interface.get_measure(entity, key.measure, location).droplevel("location")
+        data = interface.get_measure(entity, key.measure, location)
 
     if key not in no_age:
         data = data.query("age_start < 5")
 
-    return data
+    return data.droplevel("location")
 
 
 def load_metadata(key: str, location: str):
@@ -821,8 +817,7 @@ def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
         )
         probabilities["sex"] = probabilities["sex"].str.capitalize()
         # get age start and end from age group ID
-        age_bins = get_data(data_keys.POPULATION.AGE_BINS, location).reset_index()
-        age_bins["age_group_id"] = list(metadata.AGE_GROUP.GBD_2021)
+        age_bins = utilities.get_gbd_age_bins()
         age_bins = age_bins.drop("age_group_name", axis=1)
         probabilities = probabilities.merge(age_bins, on="age_group_id").drop(
             "age_group_id", axis=1
@@ -879,9 +874,8 @@ def load_wasting_rr(key: str, location: str) -> pd.DataFrame:
     data["sex"] = data["sex"].str.capitalize()
 
     # get age start and end from age group ID
-    age_bins = get_data(data_keys.POPULATION.AGE_BINS, location).reset_index()
+    age_bins = utilities.get_gbd_age_bins()
     age_bins = age_bins.drop("age_group_name", axis=1)
-    age_bins["age_group_id"] = list(metadata.AGE_GROUP.GBD_2021)
     data = data.merge(age_bins, on="age_group_id").drop("age_group_id", axis=1)
     data["year_start"] = 2021
     data["year_end"] = data["year_start"] + 1
@@ -1044,9 +1038,9 @@ def load_wasting_treatment_exposure(key: str, location: str) -> pd.DataFrame:
     treatment_coverage = utilities.get_wasting_treatment_parameter_data(parameter, location)
 
     idx = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index
-    cat3 = pd.DataFrame({f"draw_{i}": 0.0 for i in range(0, 500)}, index=idx)
+    cat3 = pd.DataFrame({f"draw_{i}": 0.0 for i in range(0, metadata.DRAW_COUNT)}, index=idx)
     cat2 = (
-        pd.DataFrame({f"draw_{i}": 1.0 for i in range(0, 500)}, index=idx)
+        pd.DataFrame({f"draw_{i}": 1.0 for i in range(0, metadata.DRAW_COUNT)}, index=idx)
         * treatment_coverage
     )
     cat1 = 1 - cat2
@@ -1134,7 +1128,7 @@ def load_mam_treatment_rr(key: str, location: str) -> pd.DataFrame:
         *data_values.WASTING.MAM_TX_RECOVERY_TIME_OVER_6MO,
     )
     mam_tx_duration = pd.DataFrame(
-        {f"draw_{i}": 1 for i in range(0, 500)}, index=index
+        {f"draw_{i}": 1 for i in range(0, metadata.DRAW_COUNT)}, index=index
     ).multiply(mam_tx_duration, axis="index")
 
     # rr_r3 = r3 / r3_tmrel
@@ -1207,7 +1201,9 @@ def load_lbwsg_interpolated_rr(key: str, location: str) -> pd.DataFrame:
         raise ValueError(f"Unrecognized key {key}")
 
     rr = get_data(data_keys.LBWSG.RELATIVE_RISK, location).reset_index()
-    rr["parameter"] = pd.Categorical(rr["parameter"], [f"cat{i}" for i in range(500)])
+    rr["parameter"] = pd.Categorical(
+        rr["parameter"], [f"cat{i}" for i in range(metadata.DRAW_COUNT)]
+    )
     rr = (
         rr.sort_values("parameter")
         .set_index(metadata.ARTIFACT_INDEX_COLUMNS + ["parameter"])
@@ -1281,7 +1277,7 @@ def load_lbwsg_paf(key: str, location: str) -> pd.DataFrame:
 
     df = pd.read_hdf(output_dir / "output.hdf")  # this is 4096_simulants.hdf for example
     df = df[[col for col in df.columns if "MEASURE" in col]].T
-    df.columns = [f"draw_{i}" for i in range(500)]
+    df.columns = [f"draw_{i}" for i in range(metadata.DRAW_COUNT)]
     df = df.reset_index()
     df["demographics"] = df["index"].apply(get_age_and_sex)
     df = df.drop("index", axis=1)
@@ -1296,10 +1292,10 @@ def load_lbwsg_paf(key: str, location: str) -> pd.DataFrame:
     df["year_end"] = 2022
     df = df.drop("age", axis=1)
 
-    new_row_1 = [0] * 500 + ["Female", 0.07671233, 1.0, 2021, 2022]
-    new_row_2 = [0] * 500 + ["Male", 0.07671233, 1.0, 2021, 2022]
-    new_row_3 = [0] * 500 + ["Female", 1.0, 5.0, 2021, 2022]
-    new_row_4 = [0] * 500 + ["Male", 1.0, 5.0, 2021, 2022]
+    new_row_1 = [0] * metadata.DRAW_COUNT + ["Female", 0.07671233, 1.0, 2021, 2022]
+    new_row_2 = [0] * metadata.DRAW_COUNT + ["Male", 0.07671233, 1.0, 2021, 2022]
+    new_row_3 = [0] * metadata.DRAW_COUNT + ["Female", 1.0, 5.0, 2021, 2022]
+    new_row_4 = [0] * metadata.DRAW_COUNT + ["Male", 1.0, 5.0, 2021, 2022]
 
     df.loc[len(df)] = new_row_1
     df.loc[len(df)] = new_row_2
@@ -1440,7 +1436,9 @@ def load_dichotomous_exposure(
     index = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index
     if type(distribution_data) == float:
         base_exposure = pd.Series(distribution_data, index=index)
-        exposed = pd.DataFrame({f"draw_{i}": base_exposure for i in range(500)})
+        exposed = pd.DataFrame(
+            {f"draw_{i}": base_exposure for i in range(metadata.DRAW_COUNT)}
+        )
     else:
         exposed = distribution_data
 
