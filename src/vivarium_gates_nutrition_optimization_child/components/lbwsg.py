@@ -226,9 +226,11 @@ class LBWSGPAFCalculationExposure(LBWSGRisk):
                 }
             )
 
-            subset_index = pop.query(
-                "lbwsg_category==@cat and age_bin==@age_bin and sex==@sex"
-            ).index
+            subset_index = pop[
+                (pop["lbwsg_category"] == cat)
+                & (pop["age_bin"] == age_bin)
+                & (pop["sex"] == sex)
+            ].index
             exposure_values.loc[subset_index] = lbwsg_exposures[axis].values
 
         return exposure_values
