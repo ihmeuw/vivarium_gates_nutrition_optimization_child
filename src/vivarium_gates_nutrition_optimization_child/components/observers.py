@@ -37,8 +37,8 @@ class ResultsStratifier(ResultsStratifier_):
         """Define final age groups for production runs."""
         age_bins = super().get_age_bins(builder)
         data_dict = {
-            "age_start": [0.0, 0.019178, 0.076712, 0.5, 1.0, 2.0], #[0.0, 0.5, 1.5],
-            "age_end": [0.019178, 0.076712, 0.5, 1.0, 2.0, 5.0], #[0.5, 1.5, 5],
+            "age_start": [0.0, 0.019178, 0.076712, 0.5, 1.0, 2.0],  # [0.0, 0.5, 1.5],
+            "age_end": [0.019178, 0.076712, 0.5, 1.0, 2.0, 5.0],  # [0.5, 1.5, 5],
             "age_group_name": [
                 "early_neonatal",
                 "late_neonatal",
@@ -46,7 +46,6 @@ class ResultsStratifier(ResultsStratifier_):
                 "6-11_months",
                 "12_to_23_months",
                 "2_to_4",
-
                 # "0_to_6_months",
                 # "6_to_18_months",
                 # "18_to_59_months",
