@@ -213,6 +213,7 @@ def get_data(
 
 
 def load_population_location(key: str, location: Union[str, List[int]]) -> str:
+    # TODO: do we want this to be the subnational key?
     if key != data_keys.POPULATION.LOCATION:
         raise ValueError(f"Unrecognized key {key}")
 
@@ -310,7 +311,7 @@ def load_standard_data(key: str, location: Union[str, List[int]]) -> pd.DataFram
     if key not in no_age:
         data = data.query("age_start < 5")
 
-    return data.droplevel("location")
+    return data
 
 
 def load_metadata(key: str, location: Union[str, List[int]]):
@@ -616,8 +617,6 @@ def load_duration(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
         duration = duration.set_index(
             ["location", "sex", "age_start", "age_end", "year_start", "year_end"]
         )
-
-    duration = duration.droplevel("location")
 
     return duration
 
@@ -1030,11 +1029,7 @@ def load_pem_disability_weight(key: str, location: Union[str, List[int]]) -> pd.
         prevalence_disability_weight += [sequela_prevalence * sequela_disability_weight]
         state_prevalence += [sequela_prevalence]
 
-    disability_weight = (
-        (sum(prevalence_disability_weight) / sum(state_prevalence))
-        .fillna(0)
-        .droplevel("location")
-    )
+    disability_weight = (sum(prevalence_disability_weight) / sum(state_prevalence)).fillna(0)
     return disability_weight
 
 
@@ -1106,7 +1101,7 @@ def load_wasting_treatment_exposure(
     exposure.loc[under_6_months_unexposed_idx] = 1
     exposure.loc[under_6_months_exposed_idx] = 0
 
-    return exposure.droplevel("location")
+    return exposure
 
 
 def load_sam_treatment_rr(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
@@ -1153,7 +1148,7 @@ def load_sam_treatment_rr(key: str, location: Union[str, List[int]]) -> pd.DataF
     # no effect for simulants younger than 6 months
     rr.loc[rr.query("age_start < .5").index] = 1
 
-    return rr.droplevel("location").sort_index()
+    return rr.sort_index()
 
 
 def load_mam_treatment_rr(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
@@ -1209,10 +1204,13 @@ def load_mam_treatment_rr(key: str, location: Union[str, List[int]]) -> pd.DataF
     # no effect for simulants younger than 6 months
     rr.loc[rr.query("age_start < .5").index] = 1
 
-    return rr.droplevel("location").sort_index()
+    return rr.sort_index()
 
 
-def load_lbwsg_exposure(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
+def load_lbwsg_exposure(
+    key: str,
+    location: str,
+) -> pd.DataFrame:
     if key != data_keys.LBWSG.EXPOSURE:
         raise ValueError(f"Unrecognized key {key}")
 
@@ -1365,7 +1363,7 @@ def load_sids_csmr(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
         entity.restrictions.yld_age_group_id_start = metadata.AGE_GROUP.LATE_NEONATAL_ID
         entity.restrictions.yld_age_group_id_end = metadata.AGE_GROUP.LATE_NEONATAL_ID
 
-        data = interface.get_measure(entity, key.measure, location).droplevel("location")
+        data = interface.get_measure(entity, key.measure, location)
         return data
     else:
         raise ValueError(f"Unrecognized key {key}")
@@ -1500,7 +1498,7 @@ def load_dichotomous_exposure(
     exposure = (
         pd.concat([exposed, unexposed]).set_index("parameter", append=True).sort_index()
     )
-    return exposure.droplevel("location")
+    return exposure
 
 
 def load_dichotomous_excess_shift(
@@ -1511,7 +1509,7 @@ def load_dichotomous_excess_shift(
     index = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index
     shift = get_random_variable_draws(metadata.ARTIFACT_COLUMNS, *distribution_data)
     excess_shift = reshape_shift_data(shift, index, data_keys.LBWSG.BIRTH_WEIGHT_EXPOSURE)
-    return excess_shift.droplevel("location")
+    return excess_shift
 
 
 def load_excess_gestational_age_shift(
@@ -1548,7 +1546,7 @@ def load_excess_gestational_age_shift(
     excess_shift = reshape_shift_data(
         summed_shifts, index, data_keys.LBWSG.GESTATIONAL_AGE_EXPOSURE
     )
-    return excess_shift.droplevel("location")
+    return excess_shift
 
 
 def reshape_shift_data(
@@ -1687,7 +1685,7 @@ def load_maternal_bmi_anemia_exposure(
 
     exposure = exposure.set_index(["parameter"], append=True).sort_index()
 
-    return exposure.droplevel("location")
+    return exposure
 
 
 def load_maternal_bmi_anemia_excess_shift(
@@ -1729,7 +1727,7 @@ def load_maternal_bmi_anemia_excess_shift(
     excess_shift = excess_shift.set_index(
         ["affected_entity", "affected_measure", "parameter"], append=True
     ).sort_index()
-    return excess_shift.droplevel("location")
+    return excess_shift
 
 
 def load_sqlns_risk_ratios(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
