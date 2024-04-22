@@ -209,7 +209,7 @@ def get_data(
         subnational_ids = fetch_subnational_ids(location)
         data = mapping[lookup_key](lookup_key, subnational_ids)
 
-    return mapping[lookup_key](lookup_key, location)
+    return data
 
 
 def load_population_location(key: str, location: str) -> str:
