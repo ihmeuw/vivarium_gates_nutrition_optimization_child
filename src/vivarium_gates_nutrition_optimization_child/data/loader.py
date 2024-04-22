@@ -47,8 +47,19 @@ from vivarium_gates_nutrition_optimization_child.utilities import (
     get_random_variable_draws,
 )
 
+NATIONAL_LEVEL_DATA_KEYS = [
+    data_keys.LBWSG.DISTRIBUTION,
+    data_keys.LBWSG.CATEGORIES,
+    data_keys.LBWSG.EXPOSURE,
+    data_keys.LBWSG.RELATIVE_RISK,
+    data_keys.LBWSG.RELATIVE_RISK_INTERPOLATOR,
+    data_keys.LBWSG.PAF,
+]
 
-def get_data(lookup_key: str, location: str) -> pd.DataFrame:
+
+def get_data(
+    lookup_key: str, location: Union[str, List[int]], fetch_subnationals: bool = False
+) -> pd.DataFrame:
     """Retrieves data from an appropriate source.
 
     Parameters
@@ -191,6 +202,13 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.MATERNAL_BMI_ANEMIA.RISK_SPECIFIC_SHIFT: load_risk_specific_shift,
         data_keys.SQLNS_TREATMENT.RISK_RATIOS: load_sqlns_risk_ratios,
     }
+
+    if lookup_key in NATIONAL_LEVEL_DATA_KEYS or not fetch_subnationals:
+        data = mapping[lookup_key](lookup_key, location)
+    else:
+        subnational_ids = fetch_subnational_ids(location)
+        data = mapping[lookup_key](lookup_key, subnational_ids)
+
     return mapping[lookup_key](lookup_key, location)
 
 
@@ -201,7 +219,7 @@ def load_population_location(key: str, location: str) -> str:
     return location
 
 
-def load_population_structure(key: str, location: str) -> pd.DataFrame:
+def load_population_structure(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
     if location == "LMICs":
         world_bank_1 = filter_population(
             interface.get_population_structure("World Bank Low Income")
@@ -289,8 +307,9 @@ def load_standard_data(key: str, location: str) -> pd.DataFrame:
 
     if key not in no_age:
         data = data.query("age_start < 5")
-
-    return data.droplevel("location")
+    # TODO: delete me
+    # return data.droplevel("location")
+    return data
 
 
 def load_metadata(key: str, location: str):
@@ -594,8 +613,8 @@ def load_duration(key: str, location: str) -> pd.DataFrame:
         duration = duration.set_index(
             ["location", "sex", "age_start", "age_end", "year_start", "year_end"]
         )
-
-    duration = duration.droplevel("location")
+    # TODO: delete me
+    # duration = duration.droplevel("location")
 
     return duration
 
@@ -982,12 +1001,13 @@ def load_pem_disability_weight(key: str, location: str) -> pd.DataFrame:
 
         prevalence_disability_weight += [sequela_prevalence * sequela_disability_weight]
         state_prevalence += [sequela_prevalence]
-
-    disability_weight = (
-        (sum(prevalence_disability_weight) / sum(state_prevalence))
-        .fillna(0)
-        .droplevel("location")
-    )
+    # TODO: delete me
+    # disability_weight = (
+    #     (sum(prevalence_disability_weight) / sum(state_prevalence))
+    #     .fillna(0)
+    #     .droplevel("location")
+    # )
+    disability_weight = (sum(prevalence_disability_weight) / sum(state_prevalence)).fillna(0)
     return disability_weight
 
 
@@ -1056,8 +1076,9 @@ def load_wasting_treatment_exposure(key: str, location: str) -> pd.DataFrame:
     under_6_months_exposed_idx = exposure.query("age_start < .5 & parameter!='cat1'").index
     exposure.loc[under_6_months_unexposed_idx] = 1
     exposure.loc[under_6_months_exposed_idx] = 0
-
-    return exposure.droplevel("location")
+    # TODO: delete me
+    # return exposure.droplevel("location")
+    return exposure
 
 
 def load_sam_treatment_rr(key: str, location: str) -> pd.DataFrame:
@@ -1103,8 +1124,9 @@ def load_sam_treatment_rr(key: str, location: str) -> pd.DataFrame:
 
     # no effect for simulants younger than 6 months
     rr.loc[rr.query("age_start < .5").index] = 1
-
-    return rr.droplevel("location").sort_index()
+    # TODO: delete me
+    # return rr.droplevel("location").sort_index()
+    return rr.sort_index()
 
 
 def load_mam_treatment_rr(key: str, location: str) -> pd.DataFrame:
@@ -1159,8 +1181,9 @@ def load_mam_treatment_rr(key: str, location: str) -> pd.DataFrame:
 
     # no effect for simulants younger than 6 months
     rr.loc[rr.query("age_start < .5").index] = 1
-
-    return rr.droplevel("location").sort_index()
+    # TODO: delete me
+    # return rr.droplevel("location").sort_index()
+    return rr.sort_index()
 
 
 def load_lbwsg_exposure(key: str, location: str) -> pd.DataFrame:
@@ -1315,8 +1338,9 @@ def load_sids_csmr(key: str, location: str) -> pd.DataFrame:
         entity.restrictions.yll_only = False
         entity.restrictions.yld_age_group_id_start = metadata.AGE_GROUP.LATE_NEONATAL_ID
         entity.restrictions.yld_age_group_id_end = metadata.AGE_GROUP.LATE_NEONATAL_ID
-
-        data = interface.get_measure(entity, key.measure, location).droplevel("location")
+        # TODO: delete me
+        # data = interface.get_measure(entity, key.measure, location).droplevel("location")
+        data = interface.get_measure(entity, key.measure, location)
         return data
     else:
         raise ValueError(f"Unrecognized key {key}")
@@ -1449,7 +1473,9 @@ def load_dichotomous_exposure(
     exposure = (
         pd.concat([exposed, unexposed]).set_index("parameter", append=True).sort_index()
     )
-    return exposure.droplevel("location")
+    # TODO: delete me
+    # return exposure.droplevel("location")
+    return exposure
 
 
 def load_dichotomous_excess_shift(
@@ -1460,7 +1486,9 @@ def load_dichotomous_excess_shift(
     index = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index
     shift = get_random_variable_draws(metadata.ARTIFACT_COLUMNS, *distribution_data)
     excess_shift = reshape_shift_data(shift, index, data_keys.LBWSG.BIRTH_WEIGHT_EXPOSURE)
-    return excess_shift.droplevel("location")
+    # TODO: delete me
+    # return excess_shift.droplevel("location")
+    return excess_shift
 
 
 def load_excess_gestational_age_shift(key: str, location: str) -> pd.DataFrame:
@@ -1495,7 +1523,9 @@ def load_excess_gestational_age_shift(key: str, location: str) -> pd.DataFrame:
     excess_shift = reshape_shift_data(
         summed_shifts, index, data_keys.LBWSG.GESTATIONAL_AGE_EXPOSURE
     )
-    return excess_shift.droplevel("location")
+    # TODO: delete me
+    # return excess_shift.droplevel("location")
+    return excess_shift
 
 
 def reshape_shift_data(
@@ -1625,8 +1655,9 @@ def load_maternal_bmi_anemia_exposure(key: str, location: str) -> pd.DataFrame:
     exposure = pd.concat([cat4_exposure, cat3_exposure, cat2_exposure, cat1_exposure])
 
     exposure = exposure.set_index(["parameter"], append=True).sort_index()
-
-    return exposure.droplevel("location")
+    # TODO: delete me
+    # return exposure.droplevel("location")
+    return exposure
 
 
 def load_maternal_bmi_anemia_excess_shift(key: str, location: str) -> pd.DataFrame:
@@ -1666,7 +1697,9 @@ def load_maternal_bmi_anemia_excess_shift(key: str, location: str) -> pd.DataFra
     excess_shift = excess_shift.set_index(
         ["affected_entity", "affected_measure", "parameter"], append=True
     ).sort_index()
-    return excess_shift.droplevel("location")
+    # TODO: delete me
+    # return excess_shift.droplevel("location")
+    return excess_shift
 
 
 def load_sqlns_risk_ratios(key: str, location: str) -> pd.DataFrame:
@@ -1698,5 +1731,17 @@ def reshape_to_vivarium_format(df, location):
     df = vi_utils.split_interval(df, interval_column="age", split_column_prefix="age")
     df = vi_utils.split_interval(df, interval_column="year", split_column_prefix="year")
     df = vi_utils.sort_hierarchical_data(df)
-    df.index = df.index.droplevel("location")
+    # TODO: delete me
+    # df.index = df.index.droplevel("location")
     return df
+
+
+def fetch_subnational_ids(location: str) -> List[int]:
+    location_id = utility_data.get_location_id(location)
+    location_metadata = gbd.get_location_path_to_global()
+    subnational_location_metadata = location_metadata.loc[
+        (location_metadata["path_to_top_parent"].apply(lambda x: str(location_id) in x))
+        & (location_metadata["location_id"] != location_id)
+    ]
+    subnational_location_ids = subnational_location_metadata["location_id"].tolist()
+    return subnational_location_ids
