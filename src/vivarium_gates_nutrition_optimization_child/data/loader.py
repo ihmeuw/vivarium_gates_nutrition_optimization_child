@@ -952,7 +952,7 @@ def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
             cat2_rows[metadata.ARTIFACT_COLUMNS] * probabilities[metadata.ARTIFACT_COLUMNS]
         )
         new_cat2_rows = new_cat2_rows.set_index(
-            metadata.ARTIFACT_INDEX_COLUMNS + ["location", "parameter"]
+            metadata.ARTIFACT_INDEX_COLUMNS + ["parameter"]
         ).sort_index()
 
         cat25_rows = cat2_rows.copy()
@@ -961,7 +961,7 @@ def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
             1 - probabilities[metadata.ARTIFACT_COLUMNS]
         )
         cat25_rows = cat25_rows.set_index(
-            metadata.ARTIFACT_INDEX_COLUMNS + ["location", "parameter"]
+            metadata.ARTIFACT_INDEX_COLUMNS + ["parameter"]
         ).sort_index()
 
         data = pd.concat([rows_to_keep, new_cat2_rows, cat25_rows]).sort_index()
