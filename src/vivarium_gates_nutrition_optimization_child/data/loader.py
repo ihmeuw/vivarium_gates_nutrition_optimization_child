@@ -981,15 +981,15 @@ def load_wasting_rr(key: str, location: str) -> pd.DataFrame:
     data = data.merge(age_bins, on="age_group_id").drop("age_group_id", axis=1)
     data["year_start"] = 2021
     data["year_end"] = data["year_start"] + 1
-    data["location"] = location
 
     data = pd.pivot_table(
         data,
         values="value",
-        index=metadata.ARTIFACT_COLUMNS
+        index=metadata.DEMOGRAPHIC_COLUMNS
         + ["affected_entity", "affected_measure", "parameter"],
         columns="draw",
     )
+    data["location"] = location
     data = data[metadata.ARTIFACT_COLUMNS]
 
     inc = data.query('affected_measure == "incidence_rate"')
