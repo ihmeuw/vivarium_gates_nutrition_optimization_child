@@ -80,6 +80,7 @@ NATIONAL_LEVEL_DATA_KEYS = [
     data_keys.UNDERWEIGHT.RELATIVE_RISK,
     data_keys.UNDERWEIGHT.DISTRIBUTION,
     data_keys.UNDERWEIGHT.CATEGORIES,
+    data_keys.CHILD_GROWTH_FAILURE.PAF,
     data_keys.PEM.RESTRICTIONS,
     data_keys.MODERATE_PEM.RESTRICTIONS,
     data_keys.SEVERE_PEM.RESTRICTIONS,
@@ -1053,7 +1054,7 @@ def load_cgf_paf(key: str, location: str) -> pd.DataFrame:
     data = data.drop(["age_group_name", "location_id"], axis=1)
     data["year_start"] = 2021
     data["year_end"] = data["year_start"] + 1
-
+    data["location"] = location
     # Capitalize Sex
     data["sex"] = data["sex"].str.capitalize()
 
