@@ -63,12 +63,16 @@ NATIONAL_LEVEL_DATA_KEYS = [
     data_keys.MALARIA.DURATION,
     data_keys.MALARIA.REMISSION_RATE,
     data_keys.MALARIA.RESTRICTIONS,
+    data_keys.WASTING.EXPOSURE,
     data_keys.WASTING.DISTRIBUTION,
     data_keys.WASTING.ALT_DISTRIBUTION,
     data_keys.WASTING.CATEGORIES,
+    data_keys.WASTING.RELATIVE_RISK,
     data_keys.STUNTING.DISTRIBUTION,
     data_keys.STUNTING.ALT_DISTRIBUTION,
     data_keys.STUNTING.CATEGORIES,
+    data_keys.STUNTING.RELATIVE_RISK,
+    data_keys.UNDERWEIGHT.RELATIVE_RISK,
     data_keys.UNDERWEIGHT.DISTRIBUTION,
     data_keys.UNDERWEIGHT.CATEGORIES,
     data_keys.PEM.RESTRICTIONS,
@@ -885,6 +889,7 @@ def load_underweight_exposure(key: str, location: str) -> pd.DataFrame:
 
 
 def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
+    # Get national location id to use national data probabilities
     location_id = utility_data.get_location_id(location)
     entity_key = EntityKey(key)
     entity = utilities.get_entity(entity_key)
@@ -1820,3 +1825,12 @@ def fetch_subnational_ids(location: str) -> List[int]:
     ]
     subnational_location_ids = subnational_location_metadata["location_id"].tolist()
     return subnational_location_ids
+
+
+def get_national_location_id(location_id: int) -> int:
+    location_metadata = gbd.get_location_metadata(location_id)
+    path_to_parent = location_metadata.loc[location_metadata.location_id == location_id][
+        "path_to_top_parent"
+    ].to_list()
+    national_location_id = int([loc_id.split(",")[3] for loc_id in path_to_parent][0])
+    return national_location_id
