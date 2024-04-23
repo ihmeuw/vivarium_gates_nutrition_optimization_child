@@ -76,6 +76,7 @@ NATIONAL_LEVEL_DATA_KEYS = [
     data_keys.STUNTING.ALT_DISTRIBUTION,
     data_keys.STUNTING.CATEGORIES,
     data_keys.STUNTING.RELATIVE_RISK,
+    data_keys.UNDERWEIGHT.EXPOSURE,
     data_keys.UNDERWEIGHT.RELATIVE_RISK,
     data_keys.UNDERWEIGHT.DISTRIBUTION,
     data_keys.UNDERWEIGHT.CATEGORIES,
@@ -823,6 +824,7 @@ def load_underweight_exposure(key: str, location: str) -> pd.DataFrame:
     location_id = utility_data.get_location_id(location)
     df = pd.read_csv(paths.UNDERWEIGHT_CONDITIONAL_DISTRIBUTIONS)
     df = df.query("location_id==@location_id").drop("location_id", axis=1)
+    df["location"] = location
     # add early neonatal data by copying late neonatal
     early_neonatal = df[df["age_group_name"] == "late_neonatal"].copy()
     early_neonatal["age_group_name"] = "early_neonatal"
