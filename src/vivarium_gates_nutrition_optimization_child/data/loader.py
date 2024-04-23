@@ -69,6 +69,7 @@ NATIONAL_LEVEL_DATA_KEYS = [
     data_keys.WASTING.CATEGORIES,
     data_keys.WASTING.RELATIVE_RISK,
     data_keys.WASTING.PAF,
+    data_keys.WASTING.TRANSITION_RATES,
     data_keys.STUNTING.PAF,
     data_keys.STUNTING.EXPOSURE,
     data_keys.STUNTING.DISTRIBUTION,
