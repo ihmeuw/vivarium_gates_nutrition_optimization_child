@@ -932,13 +932,7 @@ def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
             pd.pivot_table(
                 probabilities,
                 values="exposure",
-                index=[
-                    "sex",
-                    "age_start",
-                    "age_end",
-                    "year_start",
-                    "year_end",
-                ],
+                index=metadata.DEMOGRAPHIC_COLUMNS,
                 columns="draw",
             )
             .sort_index()
@@ -949,8 +943,8 @@ def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
         rows_to_keep = data.query("parameter != 'cat2'")
         cat2_rows = data.query("age_start.isin([0., 0.01917808, 0.07671233, 0.5, 1.,2.])")
         cat2_rows = cat2_rows.query("parameter=='cat2'").copy().sort_index().reset_index()
-        assert probabilities[metadata.ARTIFACT_INDEX_COLUMNS].equals(
-            cat2_rows[metadata.ARTIFACT_INDEX_COLUMNS]
+        assert probabilities[metadata.DEMOGRAPHIC_COLUMNS].equals(
+            cat2_rows[metadata.DEMOGRAPHIC_COLUMNS]
         )
 
         new_cat2_rows = cat2_rows.copy()
@@ -991,13 +985,7 @@ def load_wasting_rr(key: str, location: str) -> pd.DataFrame:
     data = pd.pivot_table(
         data,
         values="value",
-        index=[
-            "sex",
-            "age_start",
-            "age_end",
-            "year_start",
-            "year_end",
-        ]
+        index=metadata.DEMOGRAPHIC_COLUMNS
         + ["affected_entity", "affected_measure", "parameter"],
         columns="draw",
     )

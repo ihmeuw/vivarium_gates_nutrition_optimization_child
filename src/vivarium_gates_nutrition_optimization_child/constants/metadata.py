@@ -35,6 +35,14 @@ ARTIFACT_INDEX_COLUMNS = [
     "year_start",
     "year_end",
 ]
+# Placeholder for index columns except location
+DEMOGRAPHIC_COLUMNS = [
+    "sex",
+    "age_start",
+    "age_end",
+    "year_start",
+    "year_end",
+]
 
 DRAW_COUNT = 500
 ARTIFACT_COLUMNS = pd.Index([f"draw_{i}" for i in range(DRAW_COUNT)])
