@@ -1369,7 +1369,7 @@ def load_lbwsg_paf(key: str, location: str) -> pd.DataFrame:
         "Pakistan": "pakistan",
     }
 
-    output_dir = paths.TEMPORARY_PAF_DIR  # / location_mapper[location]
+    output_dir = paths.TEMPORARY_PAF_DIR / location_mapper[location]
 
     def get_age_and_sex(measure_str):
         age = measure_str.split("AGE_GROUP_")[1].split("SEX")[0][:-1]
