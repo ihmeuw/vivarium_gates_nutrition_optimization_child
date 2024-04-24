@@ -70,6 +70,7 @@ NATIONAL_LEVEL_DATA_KEYS = [
     data_keys.WASTING.RELATIVE_RISK,
     data_keys.WASTING.PAF,
     data_keys.WASTING.TRANSITION_RATES,
+    data_keys.WASTING.BIRTH_PREVALENCE,
     data_keys.STUNTING.PAF,
     data_keys.STUNTING.EXPOSURE,
     data_keys.STUNTING.DISTRIBUTION,
@@ -548,7 +549,7 @@ def load_wasting_birth_prevalence(key: str, location: str) -> pd.DataFrame:
     prev_cat4 = wasting_prevalence.query("parameter=='cat4'")
     # sum cat2 and cat2.5 for MAM
     prev_cat2 = wasting_prevalence.query("parameter=='cat2' or parameter=='cat2.5'")
-    prev_cat2 = prev_cat2.groupby(["sex", "year_start", "year_end"]).sum()
+    prev_cat2 = prev_cat2.groupby(["location", "sex", "year_start", "year_end"]).sum()
     prev_cat2["parameter"] = "cat2"
     prev_cat2 = prev_cat2.set_index(["parameter"], append=True)
 
