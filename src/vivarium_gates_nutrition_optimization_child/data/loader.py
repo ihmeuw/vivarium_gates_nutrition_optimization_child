@@ -47,8 +47,105 @@ from vivarium_gates_nutrition_optimization_child.utilities import (
     get_random_variable_draws,
 )
 
+NATIONAL_LEVEL_DATA_KEYS = [
+    data_keys.POPULATION.LOCATION,
+    data_keys.POPULATION.STRUCTURE,
+    data_keys.POPULATION.AGE_BINS,
+    data_keys.POPULATION.DEMOGRAPHY,
+    data_keys.POPULATION.TMRLE,
+    data_keys.DIARRHEA.DURATION,
+    data_keys.DIARRHEA.REMISSION_RATE,
+    data_keys.DIARRHEA.RESTRICTIONS,
+    data_keys.MEASLES.RESTRICTIONS,
+    data_keys.LRI.DURATION,
+    data_keys.LRI.REMISSION_RATE,
+    data_keys.LRI.RESTRICTIONS,
+    data_keys.MALARIA.DURATION,
+    data_keys.MALARIA.REMISSION_RATE,
+    data_keys.MALARIA.RESTRICTIONS,
+    data_keys.WASTING.EXPOSURE,
+    data_keys.WASTING.DISTRIBUTION,
+    data_keys.WASTING.ALT_DISTRIBUTION,
+    data_keys.WASTING.CATEGORIES,
+    data_keys.WASTING.RELATIVE_RISK,
+    data_keys.WASTING.PAF,
+    data_keys.WASTING.TRANSITION_RATES,
+    data_keys.WASTING.BIRTH_PREVALENCE,
+    data_keys.STUNTING.PAF,
+    data_keys.STUNTING.EXPOSURE,
+    data_keys.STUNTING.DISTRIBUTION,
+    data_keys.STUNTING.ALT_DISTRIBUTION,
+    data_keys.STUNTING.CATEGORIES,
+    data_keys.STUNTING.RELATIVE_RISK,
+    data_keys.UNDERWEIGHT.EXPOSURE,
+    data_keys.UNDERWEIGHT.RELATIVE_RISK,
+    data_keys.UNDERWEIGHT.DISTRIBUTION,
+    data_keys.UNDERWEIGHT.CATEGORIES,
+    data_keys.CHILD_GROWTH_FAILURE.PAF,
+    data_keys.PEM.RESTRICTIONS,
+    data_keys.MODERATE_PEM.RESTRICTIONS,
+    data_keys.SEVERE_PEM.RESTRICTIONS,
+    data_keys.SAM_TREATMENT.EXPOSURE,
+    data_keys.SAM_TREATMENT.DISTRIBUTION,
+    data_keys.SAM_TREATMENT.CATEGORIES,
+    data_keys.SAM_TREATMENT.RELATIVE_RISK,
+    data_keys.SAM_TREATMENT.PAF,
+    data_keys.MAM_TREATMENT.EXPOSURE,
+    data_keys.MAM_TREATMENT.DISTRIBUTION,
+    data_keys.MAM_TREATMENT.CATEGORIES,
+    data_keys.MAM_TREATMENT.RELATIVE_RISK,
+    data_keys.MAM_TREATMENT.PAF,
+    data_keys.LBWSG.DISTRIBUTION,
+    data_keys.LBWSG.CATEGORIES,
+    data_keys.LBWSG.EXPOSURE,
+    data_keys.LBWSG.RELATIVE_RISK,
+    data_keys.LBWSG.RELATIVE_RISK_INTERPOLATOR,
+    data_keys.LBWSG.PAF,
+    data_keys.AFFECTED_UNMODELED_CAUSES.URI_CSMR,
+    data_keys.AFFECTED_UNMODELED_CAUSES.OTITIS_MEDIA_CSMR,
+    data_keys.AFFECTED_UNMODELED_CAUSES.MENINGITIS_CSMR,
+    data_keys.AFFECTED_UNMODELED_CAUSES.ENCEPHALITIS_CSMR,
+    data_keys.AFFECTED_UNMODELED_CAUSES.NEONATAL_PRETERM_BIRTH_CSMR,
+    data_keys.AFFECTED_UNMODELED_CAUSES.NEONATAL_ENCEPHALOPATHY_CSMR,
+    data_keys.AFFECTED_UNMODELED_CAUSES.NEONATAL_SEPSIS_CSMR,
+    data_keys.AFFECTED_UNMODELED_CAUSES.NEONATAL_JAUNDICE_CSMR,
+    data_keys.AFFECTED_UNMODELED_CAUSES.OTHER_NEONATAL_DISORDERS_CSMR,
+    data_keys.AFFECTED_UNMODELED_CAUSES.SIDS_CSMR,
+    data_keys.AFFECTED_UNMODELED_CAUSES.NEONATAL_LRI_CSMR,
+    data_keys.AFFECTED_UNMODELED_CAUSES.NEONATAL_DIARRHEAL_DISEASES_CSMR,
+    data_keys.IFA_SUPPLEMENTATION.DISTRIBUTION,
+    data_keys.IFA_SUPPLEMENTATION.CATEGORIES,
+    data_keys.IFA_SUPPLEMENTATION.EXPOSURE,
+    data_keys.IFA_SUPPLEMENTATION.EXCESS_SHIFT,
+    data_keys.IFA_SUPPLEMENTATION.RISK_SPECIFIC_SHIFT,
+    data_keys.MMN_SUPPLEMENTATION.DISTRIBUTION,
+    data_keys.MMN_SUPPLEMENTATION.CATEGORIES,
+    data_keys.MMN_SUPPLEMENTATION.EXPOSURE,
+    data_keys.MMN_SUPPLEMENTATION.EXCESS_SHIFT,
+    data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_1,
+    data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_2,
+    data_keys.MMN_SUPPLEMENTATION.RISK_SPECIFIC_SHIFT,
+    data_keys.BEP_SUPPLEMENTATION.DISTRIBUTION,
+    data_keys.BEP_SUPPLEMENTATION.CATEGORIES,
+    data_keys.BEP_SUPPLEMENTATION.EXPOSURE,
+    data_keys.BEP_SUPPLEMENTATION.EXCESS_SHIFT,
+    data_keys.BEP_SUPPLEMENTATION.RISK_SPECIFIC_SHIFT,
+    data_keys.IV_IRON.DISTRIBUTION,
+    data_keys.IV_IRON.CATEGORIES,
+    data_keys.IV_IRON.EXPOSURE,
+    data_keys.IV_IRON.EXCESS_SHIFT,
+    data_keys.IV_IRON.RISK_SPECIFIC_SHIFT,
+    data_keys.MATERNAL_BMI_ANEMIA.DISTRIBUTION,
+    data_keys.MATERNAL_BMI_ANEMIA.CATEGORIES,
+    data_keys.MATERNAL_BMI_ANEMIA.EXPOSURE,
+    data_keys.MATERNAL_BMI_ANEMIA.EXCESS_SHIFT,
+    data_keys.MATERNAL_BMI_ANEMIA.RISK_SPECIFIC_SHIFT,
+]
 
-def get_data(lookup_key: str, location: str) -> pd.DataFrame:
+
+def get_data(
+    lookup_key: str, location: Union[str, List[int]], fetch_subnationals: bool = False
+) -> pd.DataFrame:
     """Retrieves data from an appropriate source.
 
     Parameters
@@ -191,7 +288,14 @@ def get_data(lookup_key: str, location: str) -> pd.DataFrame:
         data_keys.MATERNAL_BMI_ANEMIA.RISK_SPECIFIC_SHIFT: load_risk_specific_shift,
         data_keys.SQLNS_TREATMENT.RISK_RATIOS: load_sqlns_risk_ratios,
     }
-    return mapping[lookup_key](lookup_key, location)
+
+    if lookup_key in NATIONAL_LEVEL_DATA_KEYS or not fetch_subnationals:
+        data = mapping[lookup_key](lookup_key, location)
+    else:
+        subnational_ids = fetch_subnational_ids(location)
+        data = mapping[lookup_key](lookup_key, subnational_ids)
+
+    return data
 
 
 def load_population_location(key: str, location: str) -> str:
@@ -201,7 +305,7 @@ def load_population_location(key: str, location: str) -> str:
     return location
 
 
-def load_population_structure(key: str, location: str) -> pd.DataFrame:
+def load_population_structure(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
     if location == "LMICs":
         world_bank_1 = filter_population(
             interface.get_population_structure("World Bank Low Income")
@@ -290,7 +394,7 @@ def load_standard_data(key: str, location: str) -> pd.DataFrame:
     if key not in no_age:
         data = data.query("age_start < 5")
 
-    return data.droplevel("location")
+    return data
 
 
 def load_metadata(key: str, location: str):
@@ -375,6 +479,7 @@ def load_wasting_transition_rates(key: str, location: str) -> pd.DataFrame:
     rates = rates.replace({"transition": {"inc_rate_mam": "inc_rate_better_mam"}})
     rates = pd.concat([rates, worse_mam_incidence_rates])
     # update incidence transition values
+    rates["location"] = location
     rates = rates.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ["transition"]).sort_index()
     worse_mam_idx = rates.query("transition == 'inc_rate_worse_mam'").index
     better_mam_idx = rates.query("transition == 'inc_rate_better_mam'").index
@@ -444,7 +549,7 @@ def load_wasting_birth_prevalence(key: str, location: str) -> pd.DataFrame:
     prev_cat4 = wasting_prevalence.query("parameter=='cat4'")
     # sum cat2 and cat2.5 for MAM
     prev_cat2 = wasting_prevalence.query("parameter=='cat2' or parameter=='cat2.5'")
-    prev_cat2 = prev_cat2.groupby(["sex", "year_start", "year_end"]).sum()
+    prev_cat2 = prev_cat2.groupby(["location", "sex", "year_start", "year_end"]).sum()
     prev_cat2["parameter"] = "cat2"
     prev_cat2 = prev_cat2.set_index(["parameter"], append=True)
 
@@ -595,8 +700,6 @@ def load_duration(key: str, location: str) -> pd.DataFrame:
             ["location", "sex", "age_start", "age_end", "year_start", "year_end"]
         )
 
-    duration = duration.droplevel("location")
-
     return duration
 
 
@@ -721,6 +824,7 @@ def load_underweight_exposure(key: str, location: str) -> pd.DataFrame:
     location_id = utility_data.get_location_id(location)
     df = pd.read_csv(paths.UNDERWEIGHT_CONDITIONAL_DISTRIBUTIONS)
     df = df.query("location_id==@location_id").drop("location_id", axis=1)
+    df["location"] = location
     # add early neonatal data by copying late neonatal
     early_neonatal = df[df["age_group_name"] == "late_neonatal"].copy()
     early_neonatal["age_group_name"] = "early_neonatal"
@@ -791,6 +895,7 @@ def load_underweight_exposure(key: str, location: str) -> pd.DataFrame:
 
 
 def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
+    # Get national location id to use national data probabilities
     location_id = utility_data.get_location_id(location)
     entity_key = EntityKey(key)
     entity = utilities.get_entity(entity_key)
@@ -830,7 +935,7 @@ def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
             pd.pivot_table(
                 probabilities,
                 values="exposure",
-                index=metadata.ARTIFACT_INDEX_COLUMNS,
+                index=metadata.DEMOGRAPHIC_COLUMNS,
                 columns="draw",
             )
             .sort_index()
@@ -841,8 +946,8 @@ def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
         rows_to_keep = data.query("parameter != 'cat2'")
         cat2_rows = data.query("age_start.isin([0., 0.01917808, 0.07671233, 0.5, 1.,2.])")
         cat2_rows = cat2_rows.query("parameter=='cat2'").copy().sort_index().reset_index()
-        assert probabilities[metadata.ARTIFACT_INDEX_COLUMNS].equals(
-            cat2_rows[metadata.ARTIFACT_INDEX_COLUMNS]
+        assert probabilities[metadata.DEMOGRAPHIC_COLUMNS].equals(
+            cat2_rows[metadata.DEMOGRAPHIC_COLUMNS]
         )
 
         new_cat2_rows = cat2_rows.copy()
@@ -879,7 +984,7 @@ def load_wasting_rr(key: str, location: str) -> pd.DataFrame:
     data = data.merge(age_bins, on="age_group_id").drop("age_group_id", axis=1)
     data["year_start"] = 2021
     data["year_end"] = data["year_start"] + 1
-
+    data["location"] = location
     data = pd.pivot_table(
         data,
         values="value",
@@ -887,6 +992,7 @@ def load_wasting_rr(key: str, location: str) -> pd.DataFrame:
         + ["affected_entity", "affected_measure", "parameter"],
         columns="draw",
     )
+
     data = data[metadata.ARTIFACT_COLUMNS]
 
     inc = data.query('affected_measure == "incidence_rate"')
@@ -947,7 +1053,7 @@ def load_cgf_paf(key: str, location: str) -> pd.DataFrame:
     data = data.drop(["age_group_name", "location_id"], axis=1)
     data["year_start"] = 2021
     data["year_end"] = data["year_start"] + 1
-
+    data["location"] = location
     # Capitalize Sex
     data["sex"] = data["sex"].str.capitalize()
 
@@ -983,11 +1089,7 @@ def load_pem_disability_weight(key: str, location: str) -> pd.DataFrame:
         prevalence_disability_weight += [sequela_prevalence * sequela_disability_weight]
         state_prevalence += [sequela_prevalence]
 
-    disability_weight = (
-        (sum(prevalence_disability_weight) / sum(state_prevalence))
-        .fillna(0)
-        .droplevel("location")
-    )
+    disability_weight = (sum(prevalence_disability_weight) / sum(state_prevalence)).fillna(0)
     return disability_weight
 
 
@@ -1057,7 +1159,7 @@ def load_wasting_treatment_exposure(key: str, location: str) -> pd.DataFrame:
     exposure.loc[under_6_months_unexposed_idx] = 1
     exposure.loc[under_6_months_exposed_idx] = 0
 
-    return exposure.droplevel("location")
+    return exposure
 
 
 def load_sam_treatment_rr(key: str, location: str) -> pd.DataFrame:
@@ -1104,7 +1206,7 @@ def load_sam_treatment_rr(key: str, location: str) -> pd.DataFrame:
     # no effect for simulants younger than 6 months
     rr.loc[rr.query("age_start < .5").index] = 1
 
-    return rr.droplevel("location").sort_index()
+    return rr.sort_index()
 
 
 def load_mam_treatment_rr(key: str, location: str) -> pd.DataFrame:
@@ -1160,7 +1262,7 @@ def load_mam_treatment_rr(key: str, location: str) -> pd.DataFrame:
     # no effect for simulants younger than 6 months
     rr.loc[rr.query("age_start < .5").index] = 1
 
-    return rr.droplevel("location").sort_index()
+    return rr.sort_index()
 
 
 def load_lbwsg_exposure(key: str, location: str) -> pd.DataFrame:
@@ -1267,7 +1369,7 @@ def load_lbwsg_paf(key: str, location: str) -> pd.DataFrame:
         "Pakistan": "pakistan",
     }
 
-    output_dir = paths.TEMPORARY_PAF_DIR  # / location_mapper[location]
+    output_dir = paths.TEMPORARY_PAF_DIR / location_mapper[location]
 
     def get_age_and_sex(measure_str):
         age = measure_str.split("AGE_GROUP_")[1].split("SEX")[0][:-1]
@@ -1315,8 +1417,7 @@ def load_sids_csmr(key: str, location: str) -> pd.DataFrame:
         entity.restrictions.yll_only = False
         entity.restrictions.yld_age_group_id_start = metadata.AGE_GROUP.LATE_NEONATAL_ID
         entity.restrictions.yld_age_group_id_end = metadata.AGE_GROUP.LATE_NEONATAL_ID
-
-        data = interface.get_measure(entity, key.measure, location).droplevel("location")
+        data = interface.get_measure(entity, key.measure, location)
         return data
     else:
         raise ValueError(f"Unrecognized key {key}")
@@ -1445,11 +1546,11 @@ def load_dichotomous_exposure(
     unexposed = 1 - exposed
     exposed["parameter"] = "cat1" if is_risk else "cat2"
     unexposed["parameter"] = "cat2" if is_risk else "cat1"
-
     exposure = (
         pd.concat([exposed, unexposed]).set_index("parameter", append=True).sort_index()
     )
-    return exposure.droplevel("location")
+
+    return exposure
 
 
 def load_dichotomous_excess_shift(
@@ -1460,7 +1561,8 @@ def load_dichotomous_excess_shift(
     index = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index
     shift = get_random_variable_draws(metadata.ARTIFACT_COLUMNS, *distribution_data)
     excess_shift = reshape_shift_data(shift, index, data_keys.LBWSG.BIRTH_WEIGHT_EXPOSURE)
-    return excess_shift.droplevel("location")
+
+    return excess_shift
 
 
 def load_excess_gestational_age_shift(key: str, location: str) -> pd.DataFrame:
@@ -1495,7 +1597,8 @@ def load_excess_gestational_age_shift(key: str, location: str) -> pd.DataFrame:
     excess_shift = reshape_shift_data(
         summed_shifts, index, data_keys.LBWSG.GESTATIONAL_AGE_EXPOSURE
     )
-    return excess_shift.droplevel("location")
+
+    return excess_shift
 
 
 def reshape_shift_data(
@@ -1623,10 +1726,9 @@ def load_maternal_bmi_anemia_exposure(key: str, location: str) -> pd.DataFrame:
     cat1_exposure["parameter"] = "cat1"
 
     exposure = pd.concat([cat4_exposure, cat3_exposure, cat2_exposure, cat1_exposure])
-
     exposure = exposure.set_index(["parameter"], append=True).sort_index()
 
-    return exposure.droplevel("location")
+    return exposure
 
 
 def load_maternal_bmi_anemia_excess_shift(key: str, location: str) -> pd.DataFrame:
@@ -1666,7 +1768,8 @@ def load_maternal_bmi_anemia_excess_shift(key: str, location: str) -> pd.DataFra
     excess_shift = excess_shift.set_index(
         ["affected_entity", "affected_measure", "parameter"], append=True
     ).sort_index()
-    return excess_shift.droplevel("location")
+
+    return excess_shift
 
 
 def load_sqlns_risk_ratios(key: str, location: str) -> pd.DataFrame:
@@ -1698,5 +1801,25 @@ def reshape_to_vivarium_format(df, location):
     df = vi_utils.split_interval(df, interval_column="age", split_column_prefix="age")
     df = vi_utils.split_interval(df, interval_column="year", split_column_prefix="year")
     df = vi_utils.sort_hierarchical_data(df)
-    df.index = df.index.droplevel("location")
+
     return df
+
+
+def fetch_subnational_ids(location: str) -> List[int]:
+    location_id = utility_data.get_location_id(location)
+    location_metadata = gbd.get_location_path_to_global()
+    subnational_location_metadata = location_metadata.loc[
+        (location_metadata["path_to_top_parent"].apply(lambda x: str(location_id) in x))
+        & (location_metadata["location_id"] != location_id)
+    ]
+    subnational_location_ids = subnational_location_metadata["location_id"].tolist()
+    return subnational_location_ids
+
+
+def get_national_location_id(location_id: int) -> int:
+    location_metadata = gbd.get_location_metadata(location_id)
+    path_to_parent = location_metadata.loc[location_metadata.location_id == location_id][
+        "path_to_top_parent"
+    ].to_list()
+    national_location_id = int([loc_id.split(",")[3] for loc_id in path_to_parent][0])
+    return national_location_id
