@@ -393,8 +393,7 @@ def load_standard_data(key: str, location: str) -> pd.DataFrame:
 
     if key not in no_age:
         data = data.query("age_start < 5")
-    # TODO: delete me
-    # return data.droplevel("location")
+
     return data
 
 
@@ -699,8 +698,6 @@ def load_duration(key: str, location: str) -> pd.DataFrame:
         duration = duration.set_index(
             ["location", "sex", "age_start", "age_end", "year_start", "year_end"]
         )
-    # TODO: delete me
-    # duration = duration.droplevel("location")
 
     return duration
 
@@ -1090,12 +1087,7 @@ def load_pem_disability_weight(key: str, location: str) -> pd.DataFrame:
 
         prevalence_disability_weight += [sequela_prevalence * sequela_disability_weight]
         state_prevalence += [sequela_prevalence]
-    # TODO: delete me
-    # disability_weight = (
-    #     (sum(prevalence_disability_weight) / sum(state_prevalence))
-    #     .fillna(0)
-    #     .droplevel("location")
-    # )
+
     disability_weight = (sum(prevalence_disability_weight) / sum(state_prevalence)).fillna(0)
     return disability_weight
 
@@ -1165,8 +1157,7 @@ def load_wasting_treatment_exposure(key: str, location: str) -> pd.DataFrame:
     under_6_months_exposed_idx = exposure.query("age_start < .5 & parameter!='cat1'").index
     exposure.loc[under_6_months_unexposed_idx] = 1
     exposure.loc[under_6_months_exposed_idx] = 0
-    # TODO: delete me
-    # return exposure.droplevel("location")
+
     return exposure
 
 
@@ -1213,8 +1204,7 @@ def load_sam_treatment_rr(key: str, location: str) -> pd.DataFrame:
 
     # no effect for simulants younger than 6 months
     rr.loc[rr.query("age_start < .5").index] = 1
-    # TODO: delete me
-    # return rr.droplevel("location").sort_index()
+
     return rr.sort_index()
 
 
@@ -1270,8 +1260,7 @@ def load_mam_treatment_rr(key: str, location: str) -> pd.DataFrame:
 
     # no effect for simulants younger than 6 months
     rr.loc[rr.query("age_start < .5").index] = 1
-    # TODO: delete me
-    # return rr.droplevel("location").sort_index()
+
     return rr.sort_index()
 
 
@@ -1427,8 +1416,6 @@ def load_sids_csmr(key: str, location: str) -> pd.DataFrame:
         entity.restrictions.yll_only = False
         entity.restrictions.yld_age_group_id_start = metadata.AGE_GROUP.LATE_NEONATAL_ID
         entity.restrictions.yld_age_group_id_end = metadata.AGE_GROUP.LATE_NEONATAL_ID
-        # TODO: delete me
-        # data = interface.get_measure(entity, key.measure, location).droplevel("location")
         data = interface.get_measure(entity, key.measure, location)
         return data
     else:
@@ -1558,12 +1545,10 @@ def load_dichotomous_exposure(
     unexposed = 1 - exposed
     exposed["parameter"] = "cat1" if is_risk else "cat2"
     unexposed["parameter"] = "cat2" if is_risk else "cat1"
-
     exposure = (
         pd.concat([exposed, unexposed]).set_index("parameter", append=True).sort_index()
     )
-    # TODO: delete me
-    # return exposure.droplevel("location")
+
     return exposure
 
 
@@ -1575,8 +1560,7 @@ def load_dichotomous_excess_shift(
     index = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index
     shift = get_random_variable_draws(metadata.ARTIFACT_COLUMNS, *distribution_data)
     excess_shift = reshape_shift_data(shift, index, data_keys.LBWSG.BIRTH_WEIGHT_EXPOSURE)
-    # TODO: delete me
-    # return excess_shift.droplevel("location")
+
     return excess_shift
 
 
@@ -1612,8 +1596,7 @@ def load_excess_gestational_age_shift(key: str, location: str) -> pd.DataFrame:
     excess_shift = reshape_shift_data(
         summed_shifts, index, data_keys.LBWSG.GESTATIONAL_AGE_EXPOSURE
     )
-    # TODO: delete me
-    # return excess_shift.droplevel("location")
+
     return excess_shift
 
 
@@ -1742,10 +1725,8 @@ def load_maternal_bmi_anemia_exposure(key: str, location: str) -> pd.DataFrame:
     cat1_exposure["parameter"] = "cat1"
 
     exposure = pd.concat([cat4_exposure, cat3_exposure, cat2_exposure, cat1_exposure])
-
     exposure = exposure.set_index(["parameter"], append=True).sort_index()
-    # TODO: delete me
-    # return exposure.droplevel("location")
+
     return exposure
 
 
@@ -1786,8 +1767,7 @@ def load_maternal_bmi_anemia_excess_shift(key: str, location: str) -> pd.DataFra
     excess_shift = excess_shift.set_index(
         ["affected_entity", "affected_measure", "parameter"], append=True
     ).sort_index()
-    # TODO: delete me
-    # return excess_shift.droplevel("location")
+
     return excess_shift
 
 
@@ -1820,8 +1800,7 @@ def reshape_to_vivarium_format(df, location):
     df = vi_utils.split_interval(df, interval_column="age", split_column_prefix="age")
     df = vi_utils.split_interval(df, interval_column="year", split_column_prefix="year")
     df = vi_utils.sort_hierarchical_data(df)
-    # TODO: delete me
-    # df.index = df.index.droplevel("location")
+
     return df
 
 
