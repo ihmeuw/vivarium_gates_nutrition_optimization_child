@@ -498,6 +498,7 @@ def load_wasting_transition_rates(key: str, location: str) -> pd.DataFrame:
     rates = rates.replace({"transition": {"ux_rem_rate_sam": "sam_to_better_mam"}})
     rates = pd.concat([rates, worse_mam_remission_rates])
     # update incidence transition values
+    rates["location"] = location
     rates = rates.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ["transition"]).sort_index()
     worse_mam_idx = rates.query("transition == 'sam_to_worse_mam'").index
     better_mam_idx = rates.query("transition == 'sam_to_better_mam'").index
