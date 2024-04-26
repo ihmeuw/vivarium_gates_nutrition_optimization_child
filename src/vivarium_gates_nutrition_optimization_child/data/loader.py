@@ -816,8 +816,8 @@ def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
         enn_rows = probabilities.query("age_group_id==3").copy()
         enn_rows["age_group_id"] = 2
         probabilities = pd.concat([probabilities, enn_rows])
-        probabilities = probabilities.query("location_id==@location_id").drop(
-            ["Unnamed: 0", "location_id"], axis=1
+        probabilities = probabilities.drop(
+            ["Unnamed: 0"], axis=1  # .query("location_id==@location_id") & ,"location_id"
         )
         probabilities["sex"] = probabilities["sex"].str.capitalize()
         # get age start and end from age group ID
@@ -875,7 +875,9 @@ def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
 def load_wasting_rr(key: str, location: str) -> pd.DataFrame:
     location_id = utility_data.get_location_id(location)
     data = pd.read_csv(paths.WASTING_RELATIVE_RISKS)
-    data = data.query("location_id==@location_id").drop(["Unnamed: 0", "location_id"], axis=1)
+    data = data.drop(
+        ["Unnamed: 0"], axis=1
+    )  ##.query("location_id==@location_id") & , "location_id"
     data["sex"] = data["sex"].str.capitalize()
 
     # get age start and end from age group ID
