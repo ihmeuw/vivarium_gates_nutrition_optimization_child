@@ -19,13 +19,13 @@ components:
             - LBWSGRiskEffect('cause.lower_respiratory_infections.excess_mortality_rate')
             - LBWSGRiskEffect('cause.affected_unmodeled.cause_specific_mortality_rate')
         metrics:
-#            - DiseaseObserver('diarrheal_diseases')
-#            - DiseaseObserver('measles')
-#            - DiseaseObserver('lower_respiratory_infections')
-#            - DiseaseObserver('malaria')
+            - DiseaseObserver('diarrheal_diseases')
+            - DiseaseObserver('measles')
+            - DiseaseObserver('lower_respiratory_infections')
+            - DiseaseObserver('malaria')
             - DisabilityObserver()
             - CategoricalRiskObserver('child_stunting')
-#            - CategoricalRiskObserver('child_underweight')
+            - CategoricalRiskObserver('child_underweight')
 
     vivarium_gates_nutrition_optimization_child:
         components:
@@ -62,17 +62,17 @@ components:
 
 configuration:
     input_data:
-        input_draw_number: 0
+        input_draw_number: 457
         # Artifact can also be defined at runtime using -i flag
-        artifact_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization_child/artifacts/model12.1.1/ethiopia.hdf'
-        fertility_input_data_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization/results/model9.1/ethiopia/2023_09_14_15_12_50/child_data'
+        artifact_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization_child/artifacts/model13.0/ethiopia.hdf'
+        fertility_input_data_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization/results/model12.0/ethiopia/2024_04_08_10_17_27/child_data'
     interpolation:
         order: 0
         extrapolate: True
     randomness:
         map_size: 1_000_000
         key_columns: ['entrance_time', 'age', 'maternal_id']
-        random_seed: 0
+        random_seed: 4344
     time:
         start:
             year: 2025
@@ -108,7 +108,7 @@ configuration:
         - "neonatal_diarrheal_diseases"
 
     moderate_protein_energy_malnutrition:
-        threshold: ['cat2']
+        threshold: ['cat2','cat2.5']
         mortality: True
         recoverable: True
     severe_protein_energy_malnutrition:
@@ -119,6 +119,7 @@ configuration:
     stratification:
         default:
             - 'age_group'
+            - 'sex'
         child_wasting:
             include: ['sam_treatment', 'mam_treatment']
         child_stunting:
