@@ -914,15 +914,23 @@ def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
         # format probabilities of entering worse MAM state
         probabilities = pd.read_csv(paths.PROBABILITIES_OF_WORSE_MAM_EXPOSURE)
         # add early neonatal rows by duplicating late neonatal data
+        probabilities = probabilities.query("location_id==@location_id").drop(
+            ["Unnamed: 0", "location_id"], axis=1
+        )
+        sex_list = ["Female", "Male"]
+        probabilities = expand_data(probabilities, "sex", sex_list)
+        # probabilities["sex"] = probabilities["sex"].str.capitalize()
+
+        # get age start and end from age group ID
+        probabilities = expand_data(
+            probabilities, "age_group_id", list(metadata.AGE_GROUP.GBD_2021)
+        )
         enn_rows = probabilities.query("age_group_id==3").copy()
         enn_rows["age_group_id"] = 2
         probabilities = pd.concat([probabilities, enn_rows])
-        probabilities = probabilities.drop(
-            ["Unnamed: 0"], axis=1  # .query("location_id==@location_id") & ,"location_id"
-        )
-        probabilities["sex"] = probabilities["sex"].str.capitalize()
-        # get age start and end from age group ID
-        age_bins = utilities.get_gbd_age_bins()
+
+        age_bins = get_data(data_keys.POPULATION.AGE_BINS, location).reset_index()
+        age_bins["age_group_id"] = list(metadata.AGE_GROUP.GBD_2021)
         age_bins = age_bins.drop("age_group_name", axis=1)
         probabilities = probabilities.merge(age_bins, on="age_group_id").drop(
             "age_group_id", axis=1
@@ -975,13 +983,13 @@ def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
 def load_wasting_rr(key: str, location: str) -> pd.DataFrame:
     location_id = utility_data.get_location_id(location)
     data = pd.read_csv(paths.WASTING_RELATIVE_RISKS)
-    data = data.drop(
-        ["Unnamed: 0"], axis=1
-    )  ##.query("location_id==@location_id") & , "location_id"
-    data["sex"] = data["sex"].str.capitalize()
+    data = data.query("location_id==@location_id").drop(["Unnamed: 0", "location_id"], axis=1)
+    sex_list = ["Female", "Male"]
+    data = expand_data(data, "sex", sex_list)
 
     # get age start and end from age group ID
-    age_bins = utilities.get_gbd_age_bins()
+    data = expand_data(data, "age_group_id", list(metadata.AGE_GROUP.GBD_2021))
+    age_bins = get_data(data_keys.POPULATION.AGE_BINS, location).reset_index()
     age_bins = age_bins.drop("age_group_name", axis=1)
     data = data.merge(age_bins, on="age_group_id").drop("age_group_id", axis=1)
     data["year_start"] = 2021
