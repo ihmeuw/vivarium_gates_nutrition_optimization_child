@@ -25,6 +25,12 @@ from vivarium_gates_nutrition_optimization_child.tools import (
     ),
 )
 @click.option(
+    "--national",
+    "build_national",
+    is_flag=True,
+    help="Build artifacts at national level data instead of at the default subnational level.",
+)
+@click.option(
     "-o",
     "--output-dir",
     default=str(paths.ARTIFACT_ROOT),
@@ -50,9 +56,17 @@ def make_artifacts(
     replace_keys: Tuple[str, ...],
     verbose: int,
     with_debugger: bool,
+    national: bool,
 ) -> None:
+    # This is a flag for national level data but we want default to be to write subnational data
+    fetch_subnationals = not national
     configure_logging_to_terminal(verbose)
-    main = handle_exceptions(build_artifacts, logger, with_debugger=with_debugger)
+    main = handle_exceptions(
+        build_artifacts,
+        logger,
+        with_debugger=with_debugger,
+        fetch_subnationals=fetch_subnationals,
+    )
     main(location, output_dir, append or replace_keys, replace_keys, verbose)
 
 
