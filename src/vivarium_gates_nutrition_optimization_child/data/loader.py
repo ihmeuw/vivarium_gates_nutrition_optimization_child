@@ -882,12 +882,11 @@ def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
 def load_wasting_rr(key: str, location: str) -> pd.DataFrame:
     location_id = utility_data.get_location_id(location)
     data = pd.read_csv(paths.WASTING_RELATIVE_RISKS)
-    data = data.query("location_id==@location_id").drop(["Unnamed: 0", "location_id"], axis=1)
-    sex_list = ["Female", "Male"]
-    data = expand_data(data, "sex", sex_list)
+    data = data.query("location_id==@location_id").drop(
+        ["Unnamed: 0", "index", "location_id"], axis=1
+    )
 
     # get age start and end from age group ID
-    data = expand_data(data, "age_group_id", list(metadata.AGE_GROUP.GBD_2021))
     age_bins = get_data(data_keys.POPULATION.AGE_BINS, location).reset_index()
     age_bins = age_bins.drop("age_group_name", axis=1)
     age_bins["age_group_id"] = list(metadata.AGE_GROUP.GBD_2021)
