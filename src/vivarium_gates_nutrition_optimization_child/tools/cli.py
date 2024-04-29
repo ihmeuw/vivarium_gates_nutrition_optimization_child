@@ -65,9 +65,15 @@ def make_artifacts(
         build_artifacts,
         logger,
         with_debugger=with_debugger,
-        fetch_subnationals=fetch_subnationals,
     )
-    main(location, output_dir, append or replace_keys, replace_keys, verbose)
+    main(
+        location,
+        output_dir,
+        append or replace_keys,
+        replace_keys,
+        verbose,
+        fetch_subnationals,
+    )
 
 
 @click.command()
