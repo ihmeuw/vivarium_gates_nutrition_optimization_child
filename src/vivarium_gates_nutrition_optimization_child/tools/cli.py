@@ -56,10 +56,10 @@ def make_artifacts(
     replace_keys: Tuple[str, ...],
     verbose: int,
     with_debugger: bool,
-    national: bool,
+    build_national: bool,
 ) -> None:
     # This is a flag for national level data but we want default to be to write subnational data
-    fetch_subnationals = not national
+    fetch_subnationals = not build_national
     configure_logging_to_terminal(verbose)
     main = handle_exceptions(
         build_artifacts,
