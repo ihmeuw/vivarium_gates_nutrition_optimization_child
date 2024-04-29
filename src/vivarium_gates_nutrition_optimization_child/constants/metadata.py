@@ -28,6 +28,15 @@ LOCATIONS = [
 ]
 
 ARTIFACT_INDEX_COLUMNS = [
+    "location",
+    "sex",
+    "age_start",
+    "age_end",
+    "year_start",
+    "year_end",
+]
+# Placeholder for index columns except location
+DEMOGRAPHIC_COLUMNS = [
     "sex",
     "age_start",
     "age_end",

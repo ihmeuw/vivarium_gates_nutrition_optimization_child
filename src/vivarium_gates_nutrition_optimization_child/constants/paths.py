@@ -17,11 +17,11 @@ MMS_GA_SHIFT_2_DATA_DIR = RAW_DATA_DIR / "mms_gestational_age_shifts/shift2"
 SQLNS_RISK_RATIOS = RAW_DATA_DIR / "2021_sqlns_effects_by_location.csv"
 WASTING_TRANSITIONS_DATA_DIR = RAW_DATA_DIR / "wasting_transition_rates/2021"
 WASTING_TREATMENT_PARAMETERS_DIR = RAW_DATA_DIR / "wasting_treatment_parameters"
-WASTING_RELATIVE_RISKS = RAW_DATA_DIR / "wasting_rrs_with_subcategories_only_locations.csv"
+WASTING_RELATIVE_RISKS = "/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization_child/raw_data/wasting_rrs_with_subcategories_only_locations.csv"
 PROBABILITIES_OF_WORSE_MAM_EXPOSURE = RAW_DATA_DIR / "worse_exp_frac_only_loc.csv"
 UNDERWEIGHT_CONDITIONAL_DISTRIBUTIONS = RAW_DATA_DIR / "lookup.csv"
 CGF_PAFS = RAW_DATA_DIR / "cgf_pafs.csv"
 
 TEMPORARY_PAF_DIR = Path(
-    "/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization_child/lbwsg_pafs/outputs/ethiopia/2024_04_09_11_14_11"
+    "/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization_child/lbwsg_pafs/outputs/"
 )
