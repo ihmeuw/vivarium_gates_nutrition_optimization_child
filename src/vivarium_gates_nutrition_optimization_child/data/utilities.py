@@ -543,7 +543,10 @@ def scrub_neonatal_age_groups(data: pd.DataFrame) -> pd.DataFrame:
 @gbd.memory.cache
 def load_lbwsg_exposure(location: str):
     entity = get_entity(data_keys.LBWSG.EXPOSURE)
-    location_id = utility_data.get_location_id(location)
+    if type(location) == int:
+        location_id = location
+    else:
+        location_id = utility_data.get_location_id(location)
     data = get_draws(
         gbd_id_type="rei_id",
         gbd_id=entity.gbd_id,
