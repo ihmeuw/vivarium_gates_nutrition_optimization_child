@@ -79,10 +79,10 @@ COLUMN_TEMPLATES = {
     "stunting_state_person_time": STUNTING_STATE_PERSON_TIME_COLUMN_TEMPLATE,
     "wasting_state_person_time": WASTING_STATE_PERSON_TIME_COLUMN_TEMPLATE,
     "wasting_transition_count": WASTING_TRANSITION_COUNT_COLUMN_TEMPLATE,
-    "underweight_state_person_time": UNDERWEIGHT_STATE_PERSON_TIME_COLUMN_TEMPLATE,
-    "low_birth_weight_and_short_gestation_sum": LOW_BIRTH_WEIGHT_SHORT_GESTATION_SUB_RISK_SUM_COLUM_TEMPLATE,
-    "live_births_count": LIVE_BIRTHS_COLUMN_TEMPLATE,
-    "low_weight_births_count": LOW_WEIGHT_BIRTHS_COLUMN_TEMPLATE,
+    # "underweight_state_person_time": UNDERWEIGHT_STATE_PERSON_TIME_COLUMN_TEMPLATE,
+    # "low_birth_weight_and_short_gestation_sum": LOW_BIRTH_WEIGHT_SHORT_GESTATION_SUB_RISK_SUM_COLUM_TEMPLATE,
+    # "live_births_count": LIVE_BIRTHS_COLUMN_TEMPLATE,
+    # "low_weight_births_count": LOW_WEIGHT_BIRTHS_COLUMN_TEMPLATE,
 }
 
 NON_COUNT_TEMPLATES = []

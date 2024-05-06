@@ -81,16 +81,16 @@ def make_measure_data(data: pd.DataFrame, disaggregate_seeds: bool):
         wasting_transition_count=get_transition_count_measure_data(
             data, "wasting_transition_count", disaggregate_seeds
         ),
-        underweight_state_person_time=get_state_person_time_measure_data(
-            data, "underweight_state_person_time", disaggregate_seeds
-        ),
-        low_birth_weight_and_short_gestation_sum=get_measure_data(
-            data, "low_birth_weight_and_short_gestation_sum", disaggregate_seeds
-        ),
-        live_births_count=get_measure_data(data, "live_births_count", disaggregate_seeds),
-        low_weight_births_count=get_measure_data(
-            data, "low_weight_births_count", disaggregate_seeds
-        ),
+        # underweight_state_person_time=get_state_person_time_measure_data(
+        #     data, "underweight_state_person_time", disaggregate_seeds
+        # ),
+        # low_birth_weight_and_short_gestation_sum=get_measure_data(
+        #     data, "low_birth_weight_and_short_gestation_sum", disaggregate_seeds
+        # ),
+        # live_births_count=get_measure_data(data, "live_births_count", disaggregate_seeds),
+        # low_weight_births_count=get_measure_data(
+        #     data, "low_weight_births_count", disaggregate_seeds
+        # ),
     )
     return measure_data
 
@@ -114,10 +114,10 @@ class MeasureData(NamedTuple):
     stunting_state_person_time: pd.DataFrame
     wasting_state_person_time: pd.DataFrame
     wasting_transition_count: pd.DataFrame
-    underweight_state_person_time: pd.DataFrame
-    low_birth_weight_and_short_gestation_sum: pd.DataFrame
-    live_births_count: pd.DataFrame
-    low_weight_births_count: pd.DataFrame
+    # underweight_state_person_time: pd.DataFrame
+    # low_birth_weight_and_short_gestation_sum: pd.DataFrame
+    # live_births_count: pd.DataFrame
+    # low_weight_births_count: pd.DataFrame
 
     def dump(self, output_dir: Path):
         for key, df in self._asdict().items():
