@@ -9,10 +9,10 @@ components:
         risks:
             # - Risk('risk_factor.child_stunting')
 
-            - RiskEffect('risk_factor.severe_acute_malnutrition_treatment', 'risk_factor.severe_acute_malnutrition_to_mild_child_wasting.transition_rate')
+            # - RiskEffect('risk_factor.severe_acute_malnutrition_treatment', 'risk_factor.severe_acute_malnutrition_to_mild_child_wasting.transition_rate')
             # - RiskEffect('risk_factor.severe_acute_malnutrition_treatment', 'risk_factor.severe_acute_malnutrition_to_better_moderate_acute_malnutrition.transition_rate')
             # - RiskEffect('risk_factor.severe_acute_malnutrition_treatment', 'risk_factor.severe_acute_malnutrition_to_worse_moderate_acute_malnutrition.transition_rate')
-            # - RiskEffect('risk_factor.moderate_acute_malnutrition_treatment', 'risk_factor.better_moderate_acute_malnutrition_to_mild_child_wasting.transition_rate')
+            - RiskEffect('risk_factor.moderate_acute_malnutrition_treatment', 'risk_factor.better_moderate_acute_malnutrition_to_mild_child_wasting.transition_rate')
             # - RiskEffect('risk_factor.moderate_acute_malnutrition_treatment', 'risk_factor.worse_moderate_acute_malnutrition_to_mild_child_wasting.transition_rate')
 
             # - LBWSGRiskEffect('cause.diarrheal_diseases.excess_mortality_rate')
@@ -111,10 +111,10 @@ configuration:
     #     threshold: ['cat2','cat2.5']
     #     mortality: True
     #     recoverable: True
-    severe_protein_energy_malnutrition:
-        threshold: ['cat1']
-        mortality: True
-        recoverable: True
+    # severe_protein_energy_malnutrition:
+    #     threshold: ['cat1']
+    #     mortality: True
+    #     recoverable: True
 
     stratification:
         default:
