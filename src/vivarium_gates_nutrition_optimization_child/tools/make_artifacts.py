@@ -72,13 +72,20 @@ def check_for_existing(
             )
 
 
-def build_single(location: str, output_dir: str, replace_keys: Tuple) -> None:
+def build_single(
+    location: str, output_dir: str, replace_keys: Tuple, fetch_subnationals: bool
+) -> None:
     path = Path(output_dir) / f"{sanitize_location(location)}.hdf"
-    build_single_location_artifact(path, location, replace_keys)
+    build_single_location_artifact(path, location, replace_keys, fetch_subnationals)
 
 
 def build_artifacts(
-    location: str, output_dir: str, append: bool, replace_keys: Tuple, verbose: int
+    location: str,
+    output_dir: str,
+    append: bool,
+    replace_keys: Tuple,
+    verbose: int,
+    fetch_subnationals: bool,
 ) -> None:
     """Main application function for building artifacts.
     Parameters
@@ -97,6 +104,8 @@ def build_artifacts(
     replace_keys
         A list of keys to replace in the artifact. Is ignored if append is
         False or if there is no existing artifact at the output location
+    fetch_subnationals
+        Whether to fetch subnational data.  If False, only national data.
     verbose
         How noisy the logger should be.
     """
@@ -109,15 +118,15 @@ def build_artifacts(
     check_for_existing(output_dir, location, append, replace_keys)
 
     if location in metadata.LOCATIONS:
-        build_single(location, output_dir, replace_keys)
+        build_single(location, output_dir, replace_keys, fetch_subnationals)
     elif location == "all":
         if running_from_cluster():
             # parallel build when on cluster
-            build_all_artifacts(output_dir, verbose)
+            build_all_artifacts(output_dir, verbose, fetch_subnationals)
         else:
             # serial build when not on cluster
             for loc in metadata.LOCATIONS:
-                build_single(loc, output_dir, replace_keys)
+                build_single(loc, output_dir, replace_keys, fetch_subnationals)
     else:
         raise ValueError(
             f'Location must be one of {metadata.LOCATIONS} or the string "all". '
@@ -125,7 +134,7 @@ def build_artifacts(
         )
 
 
-def build_all_artifacts(output_dir: Path, verbose: int) -> None:
+def build_all_artifacts(output_dir: Path, verbose: int, fetch_subnationals: bool) -> None:
     """Builds artifacts for all locations in parallel.
     Parameters
     ----------
@@ -150,7 +159,7 @@ def build_all_artifacts(output_dir: Path, verbose: int) -> None:
 
             job_template = session.createJobTemplate()
             job_template.remoteCommand = shutil.which("python")
-            job_template.args = [__file__, str(path), f'"{location}"']
+            job_template.args = [__file__, str(path), f'"{location}"', fetch_subnationals]
             job_template.nativeSpecification = (
                 f"-V "  # Export all environment variables
                 f"-b y "  # Command is a binary (python)
@@ -194,7 +203,11 @@ def build_all_artifacts(output_dir: Path, verbose: int) -> None:
 
 
 def build_single_location_artifact(
-    path: Union[str, Path], location: str, replace_keys: Tuple = (), log_to_file: bool = False
+    path: Union[str, Path],
+    location: str,
+    replace_keys: Tuple = (),
+    fetch_subnationals: bool = True,
+    log_to_file: bool = False,
 ) -> None:
     """Builds an artifact for a single location.
     Parameters
@@ -230,7 +243,9 @@ def build_single_location_artifact(
         logger.info(f"Loading and writing {key_group.log_name} data")
         for key in key_group:
             logger.info(f"   - Loading and writing {key} data")
-            builder.load_and_write_data(artifact, key, location, key in replace_keys)
+            builder.load_and_write_data(
+                artifact, key, location, key in replace_keys, fetch_subnationals
+            )
 
     logger.info(f"**Done building -- {location}**")
 
@@ -238,4 +253,7 @@ def build_single_location_artifact(
 if __name__ == "__main__":
     artifact_path = sys.argv[1]
     artifact_location = sys.argv[2]
-    build_single_location_artifact(artifact_path, artifact_location, log_to_file=True)
+    fetch_subnationals = sys.argv[3]
+    build_single_location_artifact(
+        artifact_path, artifact_location, fetch_subnationals, log_to_file=True
+    )
