@@ -115,10 +115,8 @@ class CGFRiskEffect(RiskEffect):
         def get_config_by_risk(risk):
             return {
                 f"effect_of_{risk.name}_on_{self.target.name}": {
-                    self.target.measure: RiskEffect.CONFIGURATION_DEFAULTS[
-                        "effect_of_risk_on_target"
-                    ]["measure"]
-                }
+                    self.target.measure: RiskEffect.CONFIGURATION_DEFAULTS
+                }[self.name]
             }
 
         config = get_config_by_risk(self.risk)
@@ -175,9 +173,7 @@ class CGFRiskEffect(RiskEffect):
         paf_data = paf_data[correct_target].drop(
             columns=["affected_entity", "affected_measure"]
         )
-        return builder.lookup.build_table(
-            paf_data, key_columns=["sex"], parameter_columns=["age", "year"]
-        )
+        return self.build_lookup_table(builder, paf_data)
 
     def get_target_modifier(
         self, builder: Builder
