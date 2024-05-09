@@ -121,9 +121,9 @@ class MaternalCharacteristics(Component):
 
             maternal_supplementation = new_births["maternal_intervention"].copy()
             maternal_supplementation[maternal_supplementation == "invalid"] = "uncovered"
-            new_simulants[
-                self.supplementation_exposure_column_name
-            ] = maternal_supplementation
+            new_simulants[self.supplementation_exposure_column_name] = (
+                maternal_supplementation
+            )
 
             new_simulants[self.maternal_bmi_anemia_exposure_column_name] = new_births[
                 "joint_bmi_anemia_category"

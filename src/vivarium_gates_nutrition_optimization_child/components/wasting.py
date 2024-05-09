@@ -160,11 +160,11 @@ class WastingTreatment(Risk):
 
 class WastingDiseaseState(DiseaseState):
     """DiseaseState where birth prevalence LookupTables is parametrized by birthweight status."""
-    
+
     # @property
     # def columns_required(self) -> List[str]:
     #     return super().columns_required + ["birth_weight_status"]
-    
+
     # @property
     # def initialization_requirements(self) -> Dict[str, List[str]]:
     #     requirements = super().initialization_requirements
@@ -174,7 +174,7 @@ class WastingDiseaseState(DiseaseState):
 
 
 class ChildWastingModel(DiseaseModel):
-    
+
     @property
     def configuration_defaults(self) -> Dict[str, Any]:
         disease_config = super().configuration_defaults
@@ -182,7 +182,7 @@ class ChildWastingModel(DiseaseModel):
             "risk_factor.child_wasting": {
                 "data_sources": {
                     "exposure": "risk_factor.child_wasting.exposure",
-                    },
+                },
                 "rebinned_exposed": [],
                 "category_thresholds": [],
             }
@@ -419,8 +419,10 @@ def load_mild_wasting_birth_prevalence(builder: Builder, cause: str) -> pd.DataF
 
 # noinspection PyUnusedLocal
 def load_mild_wasting_exposure(builder: Builder, cause: str) -> pd.DataFrame:
-    return load_child_wasting_exposures(builder)[WASTING.CAT3].reset_index().rename(
-        columns={WASTING.CAT3: "value"}
+    return (
+        load_child_wasting_exposures(builder)[WASTING.CAT3]
+        .reset_index()
+        .rename(columns={WASTING.CAT3: "value"})
     )
 
 
@@ -473,15 +475,19 @@ def load_worse_mam_birth_prevalence(builder: Builder, cause: str) -> pd.DataFram
 
 # noinspection PyUnusedLocal
 def load_better_mam_exposure(builder: Builder, cause: str) -> pd.DataFrame:
-    return load_child_wasting_exposures(builder)[WASTING.CAT25].reset_index().rename(
-        columns={WASTING.CAT25: "value"}
+    return (
+        load_child_wasting_exposures(builder)[WASTING.CAT25]
+        .reset_index()
+        .rename(columns={WASTING.CAT25: "value"})
     )
 
 
 # noinspection PyUnusedLocal
 def load_worse_mam_exposure(builder: Builder, cause: str) -> pd.DataFrame:
-    return load_child_wasting_exposures(builder)[WASTING.CAT2].reset_index().rename(
-        columns={WASTING.CAT2: "value"}
+    return (
+        load_child_wasting_exposures(builder)[WASTING.CAT2]
+        .reset_index()
+        .rename(columns={WASTING.CAT2: "value"})
     )
 
 
@@ -492,8 +498,10 @@ def load_sam_birth_prevalence(builder: Builder, cause: str) -> pd.DataFrame:
 
 # noinspection PyUnusedLocal
 def load_sam_exposure(builder: Builder, cause: str) -> pd.DataFrame:
-    return load_child_wasting_exposures(builder)[WASTING.CAT1].reset_index().rename(
-        columns={WASTING.CAT1: "value"}
+    return (
+        load_child_wasting_exposures(builder)[WASTING.CAT1]
+        .reset_index()
+        .rename(columns={WASTING.CAT1: "value"})
     )
 
 
@@ -528,5 +536,5 @@ def load_child_wasting_birth_prevalence(
         .drop(["parameter", "index"], axis=1)
         .rename(columns={wasting_category: "value"})
     )
-    
+
     return birth_prevalence

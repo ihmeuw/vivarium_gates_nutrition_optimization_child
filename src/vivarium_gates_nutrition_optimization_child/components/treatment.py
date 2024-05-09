@@ -1,4 +1,5 @@
 """Prevention and treatment models"""
+
 from typing import Dict, List, Optional
 
 import pandas as pd

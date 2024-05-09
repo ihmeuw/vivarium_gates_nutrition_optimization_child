@@ -7,6 +7,7 @@ This is a module to subclass the LBWSG component in Vivrium Public Health to use
 simulants who are initialized from line list data.
 
 """
+
 import itertools
 import math
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
