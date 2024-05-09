@@ -319,7 +319,7 @@ def filter_population(unfiltered: pd.DataFrame) -> pd.DataFrame:
     return filtered_pop
 
 
-def load_age_bins(key: str, location: str) -> pd.DataFrame:
+def load_age_bins(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
     all_age_bins = interface.get_age_bins().reset_index()
     return (
         all_age_bins[all_age_bins.age_start < 5]
@@ -328,17 +328,19 @@ def load_age_bins(key: str, location: str) -> pd.DataFrame:
     )
 
 
-def load_demographic_dimensions(key: str, location: str) -> pd.DataFrame:
+def load_demographic_dimensions(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
     demographic_dimensions = interface.get_demographic_dimensions(location)
     is_under_five = demographic_dimensions.index.get_level_values("age_end") <= 5
     return demographic_dimensions[is_under_five]
 
 
-def load_theoretical_minimum_risk_life_expectancy(key: str, location: str) -> pd.DataFrame:
+def load_theoretical_minimum_risk_life_expectancy(
+    key: str, location: Union[str, List[int]]
+) -> pd.DataFrame:
     return interface.get_theoretical_minimum_risk_life_expectancy()
 
 
-def load_standard_data(key: str, location: str) -> pd.DataFrame:
+def load_standard_data(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
     key = EntityKey(key)
     entity = utilities.get_entity(key)
 
@@ -389,7 +391,7 @@ def load_standard_data(key: str, location: str) -> pd.DataFrame:
     return data
 
 
-def load_metadata(key: str, location: str):
+def load_metadata(key: str, location: Union[str, List[int]]):
     key = EntityKey(key)
     entity = utilities.get_entity(key)
     entity_metadata = entity[key.measure]
@@ -401,7 +403,7 @@ def load_metadata(key: str, location: str):
     return entity_metadata
 
 
-def load_categorical_paf(key: str, location: str) -> pd.DataFrame:
+def load_categorical_paf(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
     try:
         risk = {
             data_keys.WASTING.PAF: data_keys.WASTING,
@@ -448,7 +450,7 @@ def load_categorical_paf(key: str, location: str) -> pd.DataFrame:
     return paf
 
 
-def load_wasting_transition_rates(key: str, location: str) -> pd.DataFrame:
+def load_wasting_transition_rates(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
     """Read in wasting transition rates from flat file and expand to include all years."""
     national_location_id = get_national_location_id(location[0])
     demography = get_data(data_keys.POPULATION.DEMOGRAPHY, national_location_id)
@@ -525,7 +527,7 @@ def expand_data(data: pd.DataFrame, column_name: str, column_values: List) -> pd
     return data
 
 
-def load_wasting_birth_prevalence(key: str, location: str) -> pd.DataFrame:
+def load_wasting_birth_prevalence(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
     ## Returns something subnational
     wasting_prevalence = (
         get_data(data_keys.WASTING.EXPOSURE, location)
@@ -715,7 +717,9 @@ def load_duration(key: str, location: str) -> pd.DataFrame:
     return duration
 
 
-def load_prevalence_from_incidence_and_duration(key: str, location: str) -> pd.DataFrame:
+def load_prevalence_from_incidence_and_duration(
+    key: str, location: Union[str, List[int]]
+) -> pd.DataFrame:
     try:
         cause = {
             data_keys.DIARRHEA.PREVALENCE: data_keys.DIARRHEA,
@@ -776,7 +780,9 @@ def load_neonatal_deleted_malaria_remission_from_duration(
     return data
 
 
-def load_emr_from_csmr_and_prevalence(key: str, location: str) -> pd.DataFrame:
+def load_emr_from_csmr_and_prevalence(
+    key: str, location: Union[str, List[int]]
+) -> pd.DataFrame:
     try:
         cause = {
             data_keys.DIARRHEA.EMR: data_keys.DIARRHEA,
@@ -796,7 +802,7 @@ def load_emr_from_csmr_and_prevalence(key: str, location: str) -> pd.DataFrame:
     return data
 
 
-def load_neonatal_deleted_csmr(key: str, location: str) -> pd.DataFrame:
+def load_neonatal_deleted_csmr(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
     """Get GBD 2019 CSMR data with 2021 age groups and zero out neonatal age groups."""
     allowed_keys = [data_keys.DIARRHEA.CSMR, data_keys.LRI.CSMR, data_keys.MALARIA.CSMR]
     if key not in allowed_keys:
@@ -808,7 +814,9 @@ def load_neonatal_deleted_csmr(key: str, location: str) -> pd.DataFrame:
     return data
 
 
-def load_post_neonatal_birth_prevalence(key: str, location: str) -> pd.DataFrame:
+def load_post_neonatal_birth_prevalence(
+    key: str, location: Union[str, List[int]]
+) -> pd.DataFrame:
     """Return post neonatal data (1 month to 6 months) as birth prevalence."""
     try:
         cause = {
@@ -828,14 +836,14 @@ def load_post_neonatal_birth_prevalence(key: str, location: str) -> pd.DataFrame
     return data
 
 
-def load_underweight_exposure(key: str, location: str) -> pd.DataFrame:
+def load_underweight_exposure(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
     """Read in exposure distribution data (conditional on stunting
     and wasting) from file and transform. This data looks like standard
     categorical exposure distribution data but with stunting and wasting
     parameter values in the index."""
     national_location_id = get_national_location_id(location[0])
     df = pd.read_csv(
-        paths.UNDERWEIGHT_CONDITIONAL_DISTRIBUTIONS_DIR + f"{national_location_id}.csv"
+        paths.UNDERWEIGHT_CONDITIONAL_DISTRIBUTIONS_DIR / f"{national_location_id}.csv"
     )
     df = df.drop(["Unnamed: 0", "location_id"], axis=1)
     # add early neonatal data by copying late neonatal
@@ -908,7 +916,7 @@ def load_underweight_exposure(key: str, location: str) -> pd.DataFrame:
     return df.fillna(0)
 
 
-def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
+def load_gbd_2021_exposure(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
     # Get national location id to use national data probabilities
     entity_key = EntityKey(key)
     national_location_id = get_national_location_id(location[0])
@@ -989,7 +997,7 @@ def load_gbd_2021_exposure(key: str, location: str) -> pd.DataFrame:
     return data
 
 
-def load_wasting_rr(key: str, location: str) -> pd.DataFrame:
+def load_wasting_rr(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
     if type(location) != int:
         location_id = utility_data.get_location_id(location)
     else:
@@ -1039,7 +1047,7 @@ def load_wasting_rr(key: str, location: str) -> pd.DataFrame:
     return data
 
 
-def load_gbd_2021_rr(key: str, location: str) -> pd.DataFrame:
+def load_gbd_2021_rr(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
     entity_key = EntityKey(key)
     entity = utilities.get_entity(entity_key)
 
@@ -1061,10 +1069,10 @@ def load_gbd_2021_rr(key: str, location: str) -> pd.DataFrame:
     return data
 
 
-def load_cgf_paf(key: str, location: str) -> pd.DataFrame:
+def load_cgf_paf(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
     national_location_id = get_national_location_id(location[0])
     data = pd.read_csv(
-        paths.CGF_PAFS + f"{national_location_id}.csv"
+        paths.CGF_PAFS / f"{national_location_id}.csv"
     )  # .query("location_id==@location_id")
 
     # add age start and age end data instead of age group name
@@ -1088,7 +1096,7 @@ def load_cgf_paf(key: str, location: str) -> pd.DataFrame:
     return data.sort_index()
 
 
-def load_pem_disability_weight(key: str, location: str) -> pd.DataFrame:
+def load_pem_disability_weight(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
     try:
         pem_sequelae = {
             data_keys.MODERATE_PEM.DISABILITY_WEIGHT: [
@@ -1116,12 +1124,12 @@ def load_pem_disability_weight(key: str, location: str) -> pd.DataFrame:
     return disability_weight
 
 
-def load_pem_emr(key: str, location: str) -> pd.DataFrame:
+def load_pem_emr(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
     emr = load_standard_data(data_keys.PEM.EMR, location)
     return emr
 
 
-def load_pem_csmr(key: str, location: str) -> pd.DataFrame:
+def load_pem_csmr(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
     csmr = load_standard_data(data_keys.PEM.CSMR, location)
     return csmr
 
@@ -1730,7 +1738,7 @@ def load_maternal_bmi_anemia_exposure(key: str, location: str) -> pd.DataFrame:
         data.index.name = None
         return data
 
-    p_low_hgb = _read_hgb_data("pregnant_proportion_with_hgb_below_100.csv")
+    p_low_hgb = _read_hgb_data("pregnant_proportion_with_hgb_below_100_age_aggregated.csv")
     p_low_bmi_given_low_hgb = _read_hgb_data(
         "prevalence_of_low_bmi_given_hemoglobin_below_10_age_weighted.csv"
     )
@@ -1800,7 +1808,7 @@ def load_maternal_bmi_anemia_excess_shift(key: str, location: str) -> pd.DataFra
     return excess_shift
 
 
-def load_sqlns_risk_ratios(key: str, location: str) -> pd.DataFrame:
+def load_sqlns_risk_ratios(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
     """Load effects of SQ-LNS treatment on wasting incidence and stunting prevalence ratios."""
     if key != data_keys.SQLNS_TREATMENT.RISK_RATIOS:
         raise ValueError(f"Unrecognized key {key}")
