@@ -166,7 +166,6 @@ class WastingDiseaseState(DiseaseState):
 
 
 class ChildWastingModel(DiseaseModel):
-
     @property
     def configuration_defaults(self) -> Dict[str, Any]:
         disease_config = super().configuration_defaults
