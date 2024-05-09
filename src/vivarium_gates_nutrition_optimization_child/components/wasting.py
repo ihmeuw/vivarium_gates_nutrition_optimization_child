@@ -161,15 +161,7 @@ class WastingTreatment(Risk):
 class WastingDiseaseState(DiseaseState):
     """DiseaseState where birth prevalence LookupTables is parametrized by birthweight status."""
 
-    # @property
-    # def columns_required(self) -> List[str]:
-    #     return super().columns_required + ["birth_weight_status"]
-
-    # @property
-    # def initialization_requirements(self) -> Dict[str, List[str]]:
-    #     requirements = super().initialization_requirements
-    #     requirements["requires_columns"] += ["birth_weight_status"]
-    #     return requirements
+    # TODO: remove this class
     pass
 
 
