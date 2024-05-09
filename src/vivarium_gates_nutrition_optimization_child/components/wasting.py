@@ -158,13 +158,6 @@ class WastingTreatment(Risk):
                 return pd.Series(exposure, index=index)
 
 
-class WastingDiseaseState(DiseaseState):
-    """DiseaseState where birth prevalence LookupTables is parametrized by birthweight status."""
-
-    # TODO: remove this class
-    pass
-
-
 class ChildWastingModel(DiseaseModel):
     @property
     def configuration_defaults(self) -> Dict[str, Any]:
@@ -270,7 +263,7 @@ class ChildWastingModel(DiseaseModel):
 # noinspection PyPep8Naming
 def ChildWasting() -> ChildWastingModel:
     tmrel = SusceptibleState(models.WASTING.MODEL_NAME)
-    mild = WastingDiseaseState(
+    mild = DiseaseState(
         models.WASTING.MILD_STATE_NAME,
         cause_type="sequela",
         get_data_functions={
@@ -280,7 +273,7 @@ def ChildWasting() -> ChildWastingModel:
             "birth_prevalence": load_mild_wasting_birth_prevalence,
         },
     )
-    better_moderate = WastingDiseaseState(
+    better_moderate = DiseaseState(
         models.WASTING.BETTER_MODERATE_STATE_NAME,
         cause_type="sequela",
         get_data_functions={
@@ -290,7 +283,7 @@ def ChildWasting() -> ChildWastingModel:
             "birth_prevalence": load_better_mam_birth_prevalence,
         },
     )
-    worse_moderate = WastingDiseaseState(
+    worse_moderate = DiseaseState(
         models.WASTING.WORSE_MODERATE_STATE_NAME,
         cause_type="sequela",
         get_data_functions={
@@ -300,7 +293,7 @@ def ChildWasting() -> ChildWastingModel:
             "birth_prevalence": load_worse_mam_birth_prevalence,
         },
     )
-    severe = WastingDiseaseState(
+    severe = DiseaseState(
         models.WASTING.SEVERE_STATE_NAME,
         cause_type="sequela",
         get_data_functions={
