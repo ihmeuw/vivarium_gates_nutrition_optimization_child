@@ -92,7 +92,7 @@ NATIONAL_LEVEL_DATA_KEYS = [
     data_keys.LBWSG.EXPOSURE,
     data_keys.LBWSG.RELATIVE_RISK,
     data_keys.LBWSG.RELATIVE_RISK_INTERPOLATOR,
-    data_keys.LBWSG.PAF,
+    # data_keys.LBWSG.PAF,
     data_keys.AFFECTED_UNMODELED_CAUSES.URI_CSMR,
     data_keys.AFFECTED_UNMODELED_CAUSES.OTITIS_MEDIA_CSMR,
     data_keys.AFFECTED_UNMODELED_CAUSES.MENINGITIS_CSMR,
@@ -199,7 +199,7 @@ def get_data(
         data_keys.WASTING.EXPOSURE: load_gbd_2021_exposure,
         data_keys.WASTING.RELATIVE_RISK: load_wasting_rr,
         data_keys.WASTING.PAF: load_categorical_paf,
-        data_keys.WASTING.TRANSITION_RATES: load_wasting_transition_rates,
+        # data_keys.WASTING.TRANSITION_RATES: load_wasting_transition_rates,
         data_keys.WASTING.BIRTH_PREVALENCE: load_wasting_birth_prevalence,
         data_keys.STUNTING.DISTRIBUTION: load_metadata,
         data_keys.STUNTING.ALT_DISTRIBUTION: load_metadata,
@@ -208,10 +208,10 @@ def get_data(
         data_keys.STUNTING.RELATIVE_RISK: load_gbd_2021_rr,
         data_keys.STUNTING.PAF: load_categorical_paf,
         data_keys.UNDERWEIGHT.DISTRIBUTION: load_metadata,
-        data_keys.UNDERWEIGHT.EXPOSURE: load_underweight_exposure,
+        # data_keys.UNDERWEIGHT.EXPOSURE: load_underweight_exposure,
         data_keys.UNDERWEIGHT.CATEGORIES: load_metadata,
         data_keys.UNDERWEIGHT.RELATIVE_RISK: load_gbd_2021_rr,
-        data_keys.CHILD_GROWTH_FAILURE.PAF: load_cgf_paf,
+        # data_keys.CHILD_GROWTH_FAILURE.PAF: load_cgf_paf,
         data_keys.PEM.EMR: load_pem_emr,
         data_keys.PEM.CSMR: load_pem_csmr,
         data_keys.PEM.RESTRICTIONS: load_pem_restrictions,
@@ -238,7 +238,7 @@ def get_data(
         data_keys.LBWSG.EXPOSURE: load_lbwsg_exposure,  ## Still 2019 age bins, but doesn't have effect past NN
         data_keys.LBWSG.RELATIVE_RISK: load_lbwsg_rr,  ## Still 2019 age bins, but doesn't have effect past NN
         data_keys.LBWSG.RELATIVE_RISK_INTERPOLATOR: load_lbwsg_interpolated_rr,  ## Still 2019 age bins, but doesn't have effect past NN
-        data_keys.LBWSG.PAF: load_lbwsg_paf,  ## Still 2019 age bins, but doesn't have effect past NN
+        # data_keys.LBWSG.PAF: load_lbwsg_paf,  ## Still 2019 age bins, but doesn't have effect past NN
         data_keys.AFFECTED_UNMODELED_CAUSES.URI_CSMR: load_standard_data,
         data_keys.AFFECTED_UNMODELED_CAUSES.OTITIS_MEDIA_CSMR: load_standard_data,
         data_keys.AFFECTED_UNMODELED_CAUSES.MENINGITIS_CSMR: load_standard_data,
