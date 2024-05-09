@@ -85,9 +85,9 @@ configuration:
         step_size: 4 # Days
     population:
         population_size: 0
-        age_start: 0
-        age_end: 5
-        exit_age: 5
+        initialization_age_min: 0
+        initialization_age_max: 5
+        untracking_age: 5
 
     intervention:
         child_scenario: 'baseline'

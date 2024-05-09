@@ -6,6 +6,7 @@ Module for Base Population
 This module contains a component for creating a base population from line list data.
 
 """
+
 import glob
 from typing import List
 
