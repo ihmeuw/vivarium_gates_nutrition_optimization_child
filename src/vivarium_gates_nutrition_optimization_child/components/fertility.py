@@ -6,6 +6,7 @@ Fertility Models
 Fertility module to create simulants from existing data
 
 """
+
 from pathlib import Path
 from typing import List
 

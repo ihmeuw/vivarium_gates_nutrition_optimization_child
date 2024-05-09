@@ -2,7 +2,7 @@ from collections import Counter
 from typing import Dict, List, Optional
 
 import pandas as pd
-from vivarium import Component, ConfigTree
+from vivarium import Component
 from vivarium.framework.engine import Builder
 from vivarium.framework.event import Event
 from vivarium.framework.population import PopulationView
