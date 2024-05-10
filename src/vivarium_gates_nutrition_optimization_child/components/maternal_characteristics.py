@@ -4,6 +4,7 @@ Component for maternal supplementation and risk effects
 
 from typing import Callable, Dict, List, Optional, Tuple
 
+from layered_config_tree import ConfigurationError
 import numpy as np
 import pandas as pd
 from layered_config_tree import ConfigurationError
