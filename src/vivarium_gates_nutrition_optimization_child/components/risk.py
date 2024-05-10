@@ -147,6 +147,10 @@ class CGFRiskEffect(RiskEffect):
         self.target_pipeline_name = f"{self.target.name}.{self.target.measure}"
         self.target_paf_pipeline_name = f"{self.target_pipeline_name}.paf"
 
+    def build_all_lookup_tables(self, builder: Builder) -> None:
+        self.lookup_tables["population_attributable_fraction"] = self.get_population_attributable_fraction_source(builder)
+        self.lookup_tables["relative_risk"] = self.get_relative_risk_source(builder)
+    
     def get_distribution_type(self, builder: Builder) -> str:
         return "ordered_polytomous"
 
@@ -155,12 +159,13 @@ class CGFRiskEffect(RiskEffect):
             risk: builder.value.get_value(f"{risk.name}.exposure") for risk in self.cgf_models
         }
 
-    def get_relative_risk_source(self, builder: Builder) -> LookupTable:
+    def get_relative_risk_source(self, builder: Builder) -> Dict[str, LookupTable]:
+        rr_data = {
+            risk: get_relative_risk_data(builder, risk, self.target) for risk in self.cgf_models
+        }
         return {
-            risk: builder.lookup.build_table(
-                get_relative_risk_data(builder, risk, self.target),
-                key_columns=["sex"],
-                parameter_columns=["age", "year"],
+            risk: self.build_lookup_table(
+                builder, rr_data[risk][0], rr_data[risk][1]
             )
             for risk in self.cgf_models
         }
@@ -179,7 +184,7 @@ class CGFRiskEffect(RiskEffect):
         self, builder: Builder
     ) -> Callable[[pd.Index, pd.Series], pd.Series]:
         def adjust_target(index: pd.Index, target: pd.Series) -> pd.Series:
-            rrs = self.relative_risk
+            rrs = self.lookup_tables["relative_risk"]
             exposures = self.exposure
             for risk in self.cgf_models:
                 index_columns = ["index", risk.name]
