@@ -4,9 +4,9 @@ Component for maternal supplementation and risk effects
 
 from typing import Callable, Dict, List, Optional, Tuple
 
-from layered_config_tree import ConfigurationError
 import numpy as np
 import pandas as pd
+from layered_config_tree import ConfigurationError
 from vivarium import Component
 from vivarium.framework.engine import Builder
 from vivarium.framework.lookup import LookupTable
@@ -134,7 +134,6 @@ class MaternalCharacteristics(Component):
                         f"Error building lookup table '{table_name}': {e}"
                     )
 
-
     def on_initialize_simulants(self, pop_data: SimulantData) -> None:
         """
         Initialize simulants from line list data. Population configuration
@@ -214,7 +213,9 @@ class AdditiveRiskEffect(RiskEffect):
         # get used in this class. This is to prevent us from having to configure a scalar for all
         # AdditiveRiskEffect instances in this model
         self.lookup_tables["relative_risk"] = self.build_lookup_table(builder, 1)
-        self.lookup_tables["population_attributable_fraction"] = self.build_lookup_table(builder, 0)
+        self.lookup_tables["population_attributable_fraction"] = self.build_lookup_table(
+            builder, 0
+        )
         self.lookup_tables["excess_shift"] = self.get_excess_shift_source(builder)
         self.lookup_tables["risk_specific_shift"] = self.get_risk_specific_shift_source(
             builder
@@ -234,7 +235,9 @@ class AdditiveRiskEffect(RiskEffect):
             affected_measure=self.target.measure,
         )
         excess_shift_data = rebin_relative_risk_data(builder, self.risk, excess_shift_data)
-        excess_shift_data, value_cols = pivot_categorical(builder, self.risk, excess_shift_data)
+        excess_shift_data, value_cols = pivot_categorical(
+            builder, self.risk, excess_shift_data
+        )
         return self.build_lookup_table(builder, excess_shift_data, value_cols)
 
     def get_target_modifier(
@@ -315,7 +318,9 @@ class MMSEffectOnGestationalAge(AdditiveRiskEffect):
 
     def build_all_lookup_tables(self, builder: Builder) -> None:
         self.lookup_tables["relative_risk"] = self.build_lookup_table(builder, 1)
-        self.lookup_tables["population_attributable_fraction"] = self.build_lookup_table(builder, 0)
+        self.lookup_tables["population_attributable_fraction"] = self.build_lookup_table(
+            builder, 0
+        )
         self.lookup_tables["risk_specific_shift"] = self.get_risk_specific_shift_source(
             builder
         )
@@ -331,7 +336,9 @@ class MMSEffectOnGestationalAge(AdditiveRiskEffect):
             key, affected_entity=self.target.name, affected_measure=self.target.measure
         )
         excess_shift_data = rebin_relative_risk_data(builder, self.risk, excess_shift_data)
-        excess_shift_data, value_cols = pivot_categorical(builder, self.risk, excess_shift_data)
+        excess_shift_data, value_cols = pivot_categorical(
+            builder, self.risk, excess_shift_data
+        )
         return self.build_lookup_table(builder, excess_shift_data, value_cols)
 
     ##################################

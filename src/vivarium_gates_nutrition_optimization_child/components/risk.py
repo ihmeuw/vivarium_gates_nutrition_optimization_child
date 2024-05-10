@@ -112,17 +112,11 @@ class ChildUnderweight(Risk):
 class CGFRiskEffect(RiskEffect):
     @property
     def configuration_defaults(self) -> Dict[str, Any]:
-        def get_config_by_risk(risk):
-            return {
-                f"effect_of_{risk.name}_on_{self.target.name}": {
-                    self.target.measure: RiskEffect.CONFIGURATION_DEFAULTS
-                }[self.name]
-            }
-
-        config = get_config_by_risk(self.risk)
-        for sub_risk in self.cgf_models:
-            config.update(get_config_by_risk(sub_risk))
-        return config
+        risk_effect_config = super().configuration_defaults
+        return {
+            self.get_name(risk, self.target): risk_effect_config[self.name]
+            for risk in [self.risk] + self.cgf_models
+        }
 
     def __init__(self, target: str):
         """
@@ -143,16 +137,17 @@ class CGFRiskEffect(RiskEffect):
             ]
         ]
         self.target = TargetString(target)
-
-        self.target_pipeline_name = f"{self.target.name}.{self.target.measure}"
-        self.target_paf_pipeline_name = f"{self.target_pipeline_name}.paf"
+        # This is to have access to the distribution type before setup
+        self._distribution_type = "ordered_polytomous"
 
     def build_all_lookup_tables(self, builder: Builder) -> None:
-        self.lookup_tables["population_attributable_fraction"] = self.get_population_attributable_fraction_source(builder)
+        self.lookup_tables[
+            "population_attributable_fraction"
+        ] = self.get_population_attributable_fraction_source(builder)
         self.lookup_tables["relative_risk"] = self.get_relative_risk_source(builder)
-    
+
     def get_distribution_type(self, builder: Builder) -> str:
-        return "ordered_polytomous"
+        return self._distribution_type
 
     def get_risk_exposure(self, builder: Builder) -> Callable[[pd.Index], pd.Series]:
         return {
@@ -160,13 +155,14 @@ class CGFRiskEffect(RiskEffect):
         }
 
     def get_relative_risk_source(self, builder: Builder) -> Dict[str, LookupTable]:
+        # TODO: get_relative_risk data needs to take distribution arg but we don't have
+        # access to it yet because we are in setup_components and not setup
         rr_data = {
-            risk: get_relative_risk_data(builder, risk, self.target) for risk in self.cgf_models
+            risk: get_relative_risk_data(builder, risk, self.target, self._distribution_type)
+            for risk in self.cgf_models
         }
         return {
-            risk: self.build_lookup_table(
-                builder, rr_data[risk][0], rr_data[risk][1]
-            )
+            risk: self.build_lookup_table(builder, rr_data[risk][0], rr_data[risk][1])
             for risk in self.cgf_models
         }
 
@@ -178,7 +174,7 @@ class CGFRiskEffect(RiskEffect):
         paf_data = paf_data[correct_target].drop(
             columns=["affected_entity", "affected_measure"]
         )
-        return self.build_lookup_table(builder, paf_data)
+        return self.build_lookup_table(builder, paf_data, ["value"])
 
     def get_target_modifier(
         self, builder: Builder
