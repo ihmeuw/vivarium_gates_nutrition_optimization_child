@@ -245,7 +245,7 @@ class __Wasting(NamedTuple):
     EXPOSURE: TargetString = "risk_factor.child_wasting.exposure"
     RELATIVE_RISK: TargetString = "risk_factor.child_wasting.relative_risk"
     PAF: TargetString = "risk_factor.child_wasting.population_attributable_fraction"
-    #    TRANSITION_RATES: TargetString = "risk_factor.child_wasting.transition_rates"
+    TRANSITION_RATES: TargetString = "risk_factor.child_wasting.transition_rates"
     BIRTH_PREVALENCE: TargetString = "risk_factor.child_wasting.birth_prevalence"
 
     # Useful keys not for the artifact - distinguished by not using the colon type declaration
@@ -297,7 +297,7 @@ STUNTING = __Stunting()
 class __Underweight(NamedTuple):
     # Keys that will be loaded into the artifact. must have a colon type declaration
     DISTRIBUTION: TargetString = "risk_factor.child_underweight.distribution"
-    # EXPOSURE: TargetString = "risk_factor.child_underweight.exposure"
+    EXPOSURE: TargetString = "risk_factor.child_underweight.exposure"
     CATEGORIES: TargetString = "risk_factor.child_underweight.categories"
     RELATIVE_RISK: TargetString = "risk_factor.child_underweight.relative_risk"
 
@@ -320,7 +320,7 @@ UNDERWEIGHT = __Underweight()
 
 
 class __ChildGrowthFailure(NamedTuple):
-    #    PAF: TargetString = "risk_factor.child_growth_failure.population_attributable_fraction"
+    PAF: TargetString = "risk_factor.child_growth_failure.population_attributable_fraction"
 
     @property
     def name(self):
