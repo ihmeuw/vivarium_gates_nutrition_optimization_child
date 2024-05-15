@@ -25,13 +25,18 @@ from vivarium_gates_nutrition_optimization_child.utilities import get_random_var
 
 class WastingTreatment(Risk):
     @property
+    def configuration_defaults(self) -> Dict[str, Any]:
+        base_risk_config = super().configuration_defaults
+        return {self.risk: base_risk_config[self.name]}
+
+    @property
     def time_step_prepare_priority(self) -> int:
         # we want to reset propensities before updating previous state column
         return 4
 
-    @property
-    def name(self) -> str:
-        return f"wasting_treatment_{self.risk}"
+    # @property
+    # def name(self) -> str:
+    #     return f"wasting_treatment_{self.risk}"
 
     def __init__(self, treatment_type: str):
         super().__init__(treatment_type)

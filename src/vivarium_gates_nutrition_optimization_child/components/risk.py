@@ -11,10 +11,12 @@ from vivarium_public_health.risks.data_transformations import (
     get_relative_risk_data,
     pivot_categorical,
 )
-from vivarium_public_health.risks.distributions import PolytomousDistribution
 from vivarium_public_health.utilities import EntityString, TargetString
 
 from vivarium_gates_nutrition_optimization_child.constants import data_keys, data_values
+from vivarium_gates_nutrition_optimization_child.components.distribution import (
+    PolytomousDistribution,
+)
 
 
 class ChildUnderweight(Risk):
@@ -37,6 +39,9 @@ class ChildUnderweight(Risk):
         self.stunting = builder.value.get_value(data_values.PIPELINES.STUNTING_EXPOSURE)
         self.wasting = builder.value.get_value(data_values.PIPELINES.WASTING_EXPOSURE)
         self.distributions = self._get_distributions(builder)
+
+    def build_all_lookup_tables(self, builder: Builder) -> None:
+        pass
 
     def get_exposure_distribution(self) -> None:
         pass
@@ -75,10 +80,10 @@ class ChildUnderweight(Risk):
             distribution_data = distribution_data.drop(
                 ["stunting_parameter", "wasting_parameter"], axis=1
             )
-            distribution_data = pivot_categorical(distribution_data)
+            distribution_data = pivot_categorical(builder, self.risk, distribution_data)
             distributions[key] = PolytomousDistribution(key, distribution_data)
         for dist in distributions.values():
-            dist.setup(builder)
+            dist.setup_component(builder)
         return distributions
 
     ##################################
@@ -137,7 +142,7 @@ class CGFRiskEffect(RiskEffect):
             ]
         ]
         self.target = TargetString(target)
-        # This is to have access to the distribution type before setup
+        # This is to access to the distribution type before setup
         self._distribution_type = "ordered_polytomous"
 
     def build_all_lookup_tables(self, builder: Builder) -> None:
@@ -149,7 +154,7 @@ class CGFRiskEffect(RiskEffect):
     def get_distribution_type(self, builder: Builder) -> str:
         return self._distribution_type
 
-    def get_risk_exposure(self, builder: Builder) -> Callable[[pd.Index], pd.Series]:
+    def get_risk_exposure(self, builder: Builder) -> Dict[str, Pipeline]:
         return {
             risk: builder.value.get_value(f"{risk.name}.exposure") for risk in self.cgf_models
         }

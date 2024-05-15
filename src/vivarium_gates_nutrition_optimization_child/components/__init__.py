@@ -40,3 +40,6 @@ from vivarium_gates_nutrition_optimization_child.components.wasting import (
     ChildWasting,
     WastingTreatment,
 )
+from vivarium_gates_nutrition_optimization_child.components.distribution import (
+    PolytomousDistribution,
+)

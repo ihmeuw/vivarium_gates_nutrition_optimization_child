@@ -266,8 +266,10 @@ class AdditiveRiskEffect(RiskEffect):
 
     def get_effect(self, index: pd.Index) -> pd.Series:
         index_columns = ["index", self.risk.name]
-
-        excess_shift = self.lookup_tables["excess_shift"](index)
+        if "excess_shift" in self.lookup_tables.keys():
+            excess_shift = self.lookup_tables["excess_shift"](index)
+        else:
+            excess_shift = self.excess_shift_source(index)
         exposure = self.exposure(index).reset_index()
         exposure.columns = index_columns
         exposure = exposure.set_index(index_columns)
