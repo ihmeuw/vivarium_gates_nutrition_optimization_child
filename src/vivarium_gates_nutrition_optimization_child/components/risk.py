@@ -17,6 +17,9 @@ from vivarium_gates_nutrition_optimization_child.components.distribution import 
     PolytomousDistribution,
 )
 from vivarium_gates_nutrition_optimization_child.constants import data_keys, data_values
+from vivarium_gates_nutrition_optimization_child.components.distribution import (
+    PolytomousDistribution,
+)
 
 
 class ChildUnderweight(Risk):
