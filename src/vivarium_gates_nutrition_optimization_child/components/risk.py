@@ -13,10 +13,10 @@ from vivarium_public_health.risks.data_transformations import (
 )
 from vivarium_public_health.utilities import EntityString, TargetString
 
-from vivarium_gates_nutrition_optimization_child.constants import data_keys, data_values
 from vivarium_gates_nutrition_optimization_child.components.distribution import (
     PolytomousDistribution,
 )
+from vivarium_gates_nutrition_optimization_child.constants import data_keys, data_values
 
 
 class ChildUnderweight(Risk):

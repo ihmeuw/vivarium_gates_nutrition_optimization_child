@@ -1,10 +1,8 @@
 from typing import List, Tuple
 
 import pandas as pd
-
 from vivarium.framework.engine import Builder
 from vivarium.framework.values import Pipeline
-
 from vivarium_public_health.risks.distributions import (
     PolytomousDistribution as PolytomousDistribution_,
 )
