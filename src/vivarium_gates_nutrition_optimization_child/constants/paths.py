@@ -28,3 +28,4 @@ UNDERWEIGHT_CONDITIONAL_DISTRIBUTIONS_DIR = CLUSTER_BASE_DIR / "raw_data/underwe
 CGF_PAFS = CLUSTER_BASE_DIR / "raw_data/cgf_pafs/"
 
 TEMPORARY_PAF_DIR = CLUSTER_BASE_DIR / "lbwsg_pafs/outputs/"
+SUBNATIONAL_PERCENTAGES = RAW_DATA_DIR / "subnational_percentages.csv"

@@ -7,8 +7,7 @@ This module contains a component for creating a base population from line list d
 
 """
 
-import glob
-from typing import List
+from typing import Dict, List
 
 import numpy as np
 import pandas as pd
@@ -22,6 +21,9 @@ from vivarium_public_health.population.data_transformations import (
 )
 
 from vivarium_gates_nutrition_optimization_child.constants import data_keys
+from vivarium_gates_nutrition_optimization_child.constants.paths import (
+    SUBNATIONAL_PERCENTAGES,
+)
 
 
 class PopulationLineList(BasePopulation):
@@ -35,6 +37,7 @@ class PopulationLineList(BasePopulation):
             "age",
             "sex",
             "alive",
+            "country",
             "location",
             "entrance_time",
             "exit_time",
@@ -73,11 +76,14 @@ class PopulationLineList(BasePopulation):
             "age_smoothing_age_bounds": builder.randomness.get_stream(
                 "age_smoothing_age_bounds", initializes_crn_attributes=True
             ),
+            "subnational_selection": builder.randomness.get_stream(
+                "subnational_selection", initializes_crn_attributes=True
+            ),
         }
         self.register_simulants = builder.randomness.register_simulants
 
         self.start_time = get_time_stamp(builder.configuration.time.start)
-        self.location = self._get_location(builder)
+        self.country = self._get_country(builder)
 
     def on_initialize_simulants(self, pop_data: SimulantData) -> None:
         """
@@ -94,7 +100,8 @@ class PopulationLineList(BasePopulation):
             new_simulants["age"] = 0.0
             new_simulants["sex"] = new_births["sex"]
             new_simulants["alive"] = new_births["alive"]
-            new_simulants["location"] = self.location
+            new_simulants["country"] = self.country
+            new_simulants["location"] = self._get_subnational_locations(new_simulants.index)
             new_simulants["entrance_time"] = pop_data.creation_time
             new_simulants["exit_time"] = new_births["exit_time"]
             new_simulants["maternal_id"] = new_births["maternal_id"]
@@ -102,8 +109,18 @@ class PopulationLineList(BasePopulation):
         self.register_simulants(new_simulants[self.key_columns])
         self.population_view.update(new_simulants)
 
-    def _get_location(self, builder: Builder) -> str:
+    def _get_country(self, builder: Builder) -> Dict[str, str]:
         return builder.data.load("population.location")
+
+    def _get_subnational_locations(self, pop_index: pd.Index) -> pd.Series:
+        subnational_percents = pd.read_csv(SUBNATIONAL_PERCENTAGES)
+        location_choices = self.randomness["subnational_selection"].choice(
+            index=pop_index,
+            choices=subnational_percents["location"],
+            p=subnational_percents["percent_in_location"],
+            additional_key="subnational_location_choice",
+        )
+        return location_choices
 
 
 class EvenlyDistributedPopulation(BasePopulation):
