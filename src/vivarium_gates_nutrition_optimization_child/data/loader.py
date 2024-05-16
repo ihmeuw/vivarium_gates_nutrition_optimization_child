@@ -291,8 +291,8 @@ def get_data(
 
 
 def scrub_location_level(data: pd.DataFrame) -> pd.DataFrame:
-    if data.index.get_level_values("location")[0] in metadata.LOCATIONS:
-        data.index = data.index.rename({"location": "country"})
+    if data.index.get_level_values("location")[0] not in metadata.LOCATIONS:
+        data.index = data.index.rename({"location": "subnational"})
     return data
 
 

@@ -83,7 +83,7 @@ class PopulationLineList(BasePopulation):
         self.register_simulants = builder.randomness.register_simulants
 
         self.start_time = get_time_stamp(builder.configuration.time.start)
-        self.country = self._get_country(builder)
+        self.location = self._get_location(builder)
 
     def on_initialize_simulants(self, pop_data: SimulantData) -> None:
         """
@@ -100,8 +100,10 @@ class PopulationLineList(BasePopulation):
             new_simulants["age"] = 0.0
             new_simulants["sex"] = new_births["sex"]
             new_simulants["alive"] = new_births["alive"]
-            new_simulants["country"] = self.country
-            new_simulants["location"] = self._get_subnational_locations(new_simulants.index)
+            new_simulants["location"] = self.location
+            new_simulants["subnational"] = self._get_subnational_locations(
+                new_simulants.index
+            )
             new_simulants["entrance_time"] = pop_data.creation_time
             new_simulants["exit_time"] = new_births["exit_time"]
             new_simulants["maternal_id"] = new_births["maternal_id"]
@@ -109,7 +111,7 @@ class PopulationLineList(BasePopulation):
         self.register_simulants(new_simulants[self.key_columns])
         self.population_view.update(new_simulants)
 
-    def _get_country(self, builder: Builder) -> Dict[str, str]:
+    def _get_location(self, builder: Builder) -> Dict[str, str]:
         return builder.data.load("population.location")
 
     def _get_subnational_locations(self, pop_index: pd.Index) -> pd.Series:
