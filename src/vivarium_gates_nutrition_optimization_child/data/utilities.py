@@ -36,6 +36,7 @@ from vivarium_gates_nutrition_optimization_child.constants.metadata import (  # 
     ARTIFACT_COLUMNS,
     ARTIFACT_INDEX_COLUMNS,
     GBD_2021_ROUND_ID,
+    LOCATIONS,
     NEONATAL_END_AGE,
 )
 from vivarium_gates_nutrition_optimization_child.utilities import (
@@ -689,6 +690,6 @@ def get_wasting_treatment_parameter_data(parameter: str, location: str) -> pd.Se
 
 
 def scrub_location_level(data: pd.DataFrame) -> pd.DataFrame:
-    if data.index.get_level_values("location")[0] not in metadata.LOCATIONS:
+    if data.index.get_level_values("location")[0] not in LOCATIONS:
         data.index = data.index.rename({"location": "subnational"})
     return data
