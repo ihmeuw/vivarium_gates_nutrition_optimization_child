@@ -503,7 +503,7 @@ def load_child_wasting_exposures(builder: Builder) -> pd.DataFrame:
     except KeyError:
         exposures = (
             builder.data.load(WASTING.EXPOSURE)
-            .set_index(metadata.DEMOGRAPHIC_COLUMNS)
+            .set_index(metadata.DEMOGRAPHIC_COLUMNS + ["subnational"])
             .pivot(columns="parameter")
         )
 
