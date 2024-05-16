@@ -686,3 +686,9 @@ def get_wasting_treatment_parameter_data(parameter: str, location: str) -> pd.Se
     draws = draws.query("parameter==@parameter").drop("parameter", axis=1)
     draws = draws.T.squeeze()  # transpose and convert to series
     return draws
+
+
+def scrub_location_level(data: pd.DataFrame) -> pd.DataFrame:
+    if data.index.get_level_values("location")[0] not in metadata.LOCATIONS:
+        data.index = data.index.rename({"location": "subnational"})
+    return data
