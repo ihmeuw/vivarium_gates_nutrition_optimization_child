@@ -512,6 +512,16 @@ def parse_low_birth_weight_description(description: str) -> pd.Interval:
 
 def parse_short_gestation_description(description: str) -> pd.Interval:
     # descriptions look like this: 'Birth prevalence - [34, 36) wks, [2000, 2500) g'
+    # NOTE: one of the descriptions: 'Neonatal preterm and LBWSG (estimation years) - [40, 42+] wks, [2000, 2500) g'
+    # does not follow the common format so I am special casing it - albrja
+    if (
+        description
+        == "Neonatal preterm and LBWSG (estimation years) - [40, 42+] wks, [2000, 2500) g"
+    ):
+        description = (
+            "Neonatal preterm and LBWSG (estimation years) - [40, 42) wks, [2000, 2500) g"
+        )
+
     endpoints = pd.Interval(
         *[float(val) for val in description.split("- [")[1].split(")")[0].split(", ")]
     )
