@@ -286,7 +286,7 @@ def get_data(
     else:
         subnational_ids = fetch_subnational_ids(location)
         data = mapping[lookup_key](lookup_key, subnational_ids)
-    if isinstance(data, pd.DataFrame):
+    if isinstance(data, pd.DataFrame) and ("location" in data.index.names):
         data = scrub_location_level(data)
 
     return data
