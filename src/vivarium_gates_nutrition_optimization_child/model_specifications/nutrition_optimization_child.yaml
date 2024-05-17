@@ -107,11 +107,11 @@ configuration:
         - "neonatal_lower_respiratory_infections"
         - "neonatal_diarrheal_diseases"
 
-    moderate_protein_energy_malnutrition:
+    risk_attributable_disease.moderate_protein_energy_malnutrition:
         threshold: ['cat2','cat2.5']
         mortality: True
         recoverable: True
-    severe_protein_energy_malnutrition:
+    risk_attributable_disease.severe_protein_energy_malnutrition:
         threshold: ['cat1']
         mortality: True
         recoverable: True
