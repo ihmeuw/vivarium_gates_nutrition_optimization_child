@@ -37,7 +37,7 @@ class PopulationLineList(BasePopulation):
             "age",
             "sex",
             "alive",
-            "country",
+            "subnational",
             "location",
             "entrance_time",
             "exit_time",
@@ -116,6 +116,9 @@ class PopulationLineList(BasePopulation):
 
     def _get_subnational_locations(self, pop_index: pd.Index) -> pd.Series:
         subnational_percents = pd.read_csv(SUBNATIONAL_PERCENTAGES)
+        subnational_percents = subnational_percents.loc[
+            subnational_percents["national_location"] == self.location
+        ]
         location_choices = self.randomness["subnational_selection"].choice(
             index=pop_index,
             choices=subnational_percents["location"],

@@ -79,11 +79,11 @@ class ChildUnderweight(Risk):
             else:
                 key = f"risk_factor.stunting_{stunting_cat}_wasting_{wasting_cat}_underweight"
             distribution_data = all_distribution_data.query(
-                "stunting_parameter == @stunting_cat and " "wasting_parameter == @wasting_cat"
+                "stunting_parameter == @stunting_cat and wasting_parameter == @wasting_cat"
             )
             distribution_data = distribution_data.drop(
                 ["stunting_parameter", "wasting_parameter"], axis=1
-            )
+            ) 
             distribution_data = pivot_categorical(builder, self.risk, distribution_data)
             distributions[key] = PolytomousDistribution(key, distribution_data)
         for dist in distributions.values():
