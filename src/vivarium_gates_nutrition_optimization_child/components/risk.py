@@ -150,9 +150,9 @@ class CGFRiskEffect(RiskEffect):
         self._distribution_type = "ordered_polytomous"
 
     def build_all_lookup_tables(self, builder: Builder) -> None:
-        self.lookup_tables["population_attributable_fraction"] = (
-            self.get_population_attributable_fraction_source(builder)
-        )
+        self.lookup_tables[
+            "population_attributable_fraction"
+        ] = self.get_population_attributable_fraction_source(builder)
         self.lookup_tables["relative_risk"] = self.get_relative_risk_source(builder)
 
     def build_all_lookup_tables(self, builder: Builder) -> None:
