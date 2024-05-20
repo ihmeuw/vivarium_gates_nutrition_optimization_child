@@ -19,13 +19,13 @@ components:
             # - LBWSGRiskEffect('cause.lower_respiratory_infections.excess_mortality_rate')
             # - LBWSGRiskEffect('cause.affected_unmodeled.cause_specific_mortality_rate')
         metrics:
-            # - DiseaseObserver('diarrheal_diseases')
-            # - DiseaseObserver('measles')
-            # - DiseaseObserver('lower_respiratory_infections')
-            # - DiseaseObserver('malaria')
+            - DiseaseObserver('diarrheal_diseases')
+            - DiseaseObserver('measles')
+            - DiseaseObserver('lower_respiratory_infections')
+            - DiseaseObserver('malaria')
             - DisabilityObserver()
             - CategoricalRiskObserver('child_stunting')
-            # - CategoricalRiskObserver('child_underweight')
+            - CategoricalRiskObserver('child_underweight')
 
     vivarium_gates_nutrition_optimization_child:
         components:
