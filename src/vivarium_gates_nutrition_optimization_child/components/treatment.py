@@ -1,6 +1,6 @@
 """Prevention and treatment models"""
 
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 import pandas as pd
 from vivarium import Component
@@ -46,20 +46,6 @@ class SQLNSTreatment(Component):
         self.randomness = builder.randomness.get_stream(self._randomness_stream_name)
 
         self.coverage_value = self.get_coverage_value(builder)
-        self.tmrel_to_mild_wasting_risk_ratio = self.get_risk_ratios(
-            builder, "tmrel_to_mild_rate"
-        )
-        self.mild_to_mam_wasting_risk_ratio = self.get_risk_ratios(
-            builder, "mild_to_mam_rate"
-        )
-        self.mam_to_sam_wasting_risk_ratio = self.get_risk_ratios(builder, "mam_to_sam_rate")
-
-        self.severe_stunting_risk_ratio = self.get_risk_ratios(
-            builder, "severe_stunting_prevalence_ratio"
-        )
-        self.moderate_stunting_risk_ratio = self.get_risk_ratios(
-            builder, "moderate_stunting_prevalence_ratio"
-        )
 
         self.propensity = builder.value.register_value_producer(
             self.propensity_pipeline_name,
@@ -108,6 +94,23 @@ class SQLNSTreatment(Component):
             "risk_factor.child_stunting.exposure_parameters",
             modifier=self.apply_stunting_treatment,
             requires_values=[self.coverage_pipeline_name],
+        )
+
+    def build_all_lookup_tables(self, builder: Builder) -> None:
+        self.lookup_tables["tmrel_to_mild_wasting_risk_ratio"] = self.get_risk_ratios(
+            builder, "tmrel_to_mild_rate"
+        )
+        self.lookup_tables["mild_to_mam_wasting_risk_ratio"] = self.get_risk_ratios(
+            builder, "mild_to_mam_rate"
+        )
+        self.lookup_tables["mam_to_sam_wasting_risk_ratio"] = self.get_risk_ratios(
+            builder, "mam_to_sam_rate"
+        )
+        self.lookup_tables["severe_stunting_risk_ratio"] = self.get_risk_ratios(
+            builder, "severe_stunting_prevalence_ratio"
+        )
+        self.lookup_tables["moderate_stunting_risk_ratio"] = self.get_risk_ratios(
+            builder, "moderate_stunting_prevalence_ratio"
         )
 
     def get_coverage_value(self, builder: Builder) -> float:
@@ -159,7 +162,9 @@ class SQLNSTreatment(Component):
         self, index: pd.Index, target: pd.Series
     ) -> pd.Series:
         covered = self.coverage(index) == "covered"
-        target[covered] = target[covered] * self.tmrel_to_mild_wasting_risk_ratio(index)
+        target[covered] = target[covered] * self.lookup_tables[
+            "tmrel_to_mild_wasting_risk_ratio"
+        ](index)
 
         return target
 
@@ -167,7 +172,9 @@ class SQLNSTreatment(Component):
         self, index: pd.Index, target: pd.Series
     ) -> pd.Series:
         covered = self.coverage(index) == "covered"
-        target[covered] = target[covered] * self.mild_to_mam_wasting_risk_ratio(index)
+        target[covered] = target[covered] * self.lookup_tables[
+            "mild_to_mam_wasting_risk_ratio"
+        ](index)
 
         return target
 
@@ -175,13 +182,19 @@ class SQLNSTreatment(Component):
         self, index: pd.Index, target: pd.Series
     ) -> pd.Series:
         covered = self.coverage(index) == "covered"
-        target[covered] = target[covered] * self.mam_to_sam_wasting_risk_ratio(index)
+        target[covered] = target[covered] * self.lookup_tables[
+            "mam_to_sam_wasting_risk_ratio"
+        ](index)
 
         return target
 
     def apply_stunting_treatment(self, index: pd.Index, target: pd.DataFrame) -> pd.DataFrame:
-        cat1_decrease = target.loc[:, "cat1"] * (1 - self.severe_stunting_risk_ratio(index))
-        cat2_decrease = target.loc[:, "cat2"] * (1 - self.moderate_stunting_risk_ratio(index))
+        cat1_decrease = target.loc[:, "cat1"] * (
+            1 - self.lookup_tables["severe_stunting_risk_ratio"](index)
+        )
+        cat2_decrease = target.loc[:, "cat2"] * (
+            1 - self.lookup_tables["moderate_stunting_risk_ratio"](index)
+        )
 
         coverages = self.coverage(index)
         covered = coverages != "uncovered"

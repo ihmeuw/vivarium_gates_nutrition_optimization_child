@@ -2,6 +2,9 @@ from vivarium_gates_nutrition_optimization_child.components.causes import (
     RiskAttributableDisease,
     SIS_with_birth_prevalence,
 )
+from vivarium_gates_nutrition_optimization_child.components.distribution import (
+    PolytomousDistribution,
+)
 from vivarium_gates_nutrition_optimization_child.components.fertility import (
     FertilityLineList,
 )

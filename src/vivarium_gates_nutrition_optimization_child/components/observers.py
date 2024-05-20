@@ -271,6 +271,8 @@ class BirthObserver(Component):
 class MortalityObserver(MortalityObserver_):
     """This is a class to make component ordering work in the model spec."""
 
+    pass
+
 
 class ChildWastingObserver(DiseaseObserver):
     def __init__(self):
@@ -280,7 +282,7 @@ class ChildWastingObserver(DiseaseObserver):
 
     @property
     def columns_required(self) -> Optional[List[str]]:
-        return [self.disease]
+        return [self.disease, "sex", "age"]
 
     #################
     # Setup methods #
