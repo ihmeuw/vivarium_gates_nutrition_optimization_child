@@ -492,12 +492,18 @@ def load_sam_exposure(builder: Builder, cause: str) -> pd.DataFrame:
 
 # Sub-loader functions
 def load_child_wasting_exposures(builder: Builder) -> pd.DataFrame:
-    exposures = (
-        builder.data.load(WASTING.EXPOSURE)
-        .reset_index()
-        .set_index(metadata.DEMOGRAPHIC_COLUMNS + ["subnational"])
-        .pivot(columns="parameter")
-    )
+    try:
+        exposures = (
+            builder.data.load(WASTING.EXPOSURE)
+            .set_index(metadata.ARTIFACT_INDEX_COLUMNS)
+            .pivot(columns="parameter")
+        )
+    except KeyError:
+        exposures = (
+            builder.data.load(WASTING.EXPOSURE)
+            .set_index(metadata.DEMOGRAPHIC_COLUMNS + ["subnational"])
+            .pivot(columns="parameter")
+        )
 
     exposures.columns = exposures.columns.droplevel(0)
     return exposures
