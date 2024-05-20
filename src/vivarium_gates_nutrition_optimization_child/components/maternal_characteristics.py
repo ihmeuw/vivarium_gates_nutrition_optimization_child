@@ -2,10 +2,11 @@
 Component for maternal supplementation and risk effects
 """
 
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
+from layered_config_tree import ConfigurationError
 from vivarium import Component
 from vivarium.framework.engine import Builder
 from vivarium.framework.lookup import LookupTable
@@ -35,28 +36,38 @@ from vivarium_gates_nutrition_optimization_child.utilities import get_random_var
 
 class MaternalCharacteristics(Component):
     CONFIGURATION_DEFAULTS = {
-        IFA_SUPPLEMENTATION.name: {
-            "exposure": "data",
+        f"risk_factor.{IFA_SUPPLEMENTATION.name}": {
+            "data_sources": {
+                "exposure": f"risk_factor.{IFA_SUPPLEMENTATION.name}.exposure",
+            },
             "rebinned_exposed": [],
             "category_thresholds": [],
         },
-        MMN_SUPPLEMENTATION.name: {
-            "exposure": "data",
+        f"risk_factor.{MMN_SUPPLEMENTATION.name}": {
+            "data_sources": {
+                "exposure": f"risk_factor.{MMN_SUPPLEMENTATION.name}.exposure",
+            },
             "rebinned_exposed": [],
             "category_thresholds": [],
         },
-        BEP_SUPPLEMENTATION.name: {
-            "exposure": "data",
+        f"risk_factor.{BEP_SUPPLEMENTATION.name}": {
+            "data_sources": {
+                "exposure": f"risk_factor.{BEP_SUPPLEMENTATION.name}.exposure",
+            },
             "rebinned_exposed": [],
             "category_thresholds": [],
         },
-        "iv_iron": {
-            "exposure": "data",
+        "risk_factor.iv_iron": {
+            "data_sources": {
+                "exposure": "risk_factor.iv_iron.exposure",
+            },
             "rebinned_exposed": [],
             "category_thresholds": [],
         },
-        "maternal_bmi_anemia": {
-            "exposure": "data",
+        "risk_factor.maternal_bmi_anemia": {
+            "data_sources": {
+                "exposure": "risk_factor.maternal_bmi_anemia.exposure",
+            },
             "rebinned_exposed": [],
             "category_thresholds": [],
         },
@@ -106,6 +117,22 @@ class MaternalCharacteristics(Component):
             source=self._get_maternal_bmi_anemia_exposure,
             requires_columns=[self.maternal_bmi_anemia_exposure_column_name],
         )
+
+    def build_all_lookup_tables(self, builder: Builder) -> None:
+        # We need to call this method on each risk in the configuration defaults
+        for risk, risk_config in self.CONFIGURATION_DEFAULTS.items():
+            if "data_sources" not in self.CONFIGURATION_DEFAULTS[risk]:
+                continue
+            data_source_configs = self.CONFIGURATION_DEFAULTS[risk]["data_sources"]
+            for table_name in data_source_configs.keys():
+                try:
+                    self.lookup_tables[f"{risk}.{table_name}"] = self.build_lookup_table(
+                        builder, data_source_configs[table_name], ["value"]
+                    )
+                except ConfigurationError as e:
+                    raise ConfigurationError(
+                        f"Error building lookup table '{table_name}': {e}"
+                    )
 
     def on_initialize_simulants(self, pop_data: SimulantData) -> None:
         """
@@ -179,16 +206,20 @@ class AdditiveRiskEffect(RiskEffect):
     def setup(self, builder: Builder) -> None:
         super().setup(builder)
         self.effect = self.get_effect_pipeline(builder)
-        self.excess_shift_source = self.get_excess_shift_source(builder)
         self.risk_specific_shift_source = self.get_risk_specific_shift_source(builder)
 
-    # NOTE: this RR will never be used. Overriding superclass to avoid error
-    def get_relative_risk_source(self, builder: Builder) -> LookupTable:
-        return builder.lookup.build_table(1)
-
-    # NOTE: this PAF will never be used. Overriding superclass to avoid error
-    def get_population_attributable_fraction_source(self, builder: Builder) -> LookupTable:
-        return builder.lookup.build_table(0)
+    def build_all_lookup_tables(self, builder: Builder) -> None:
+        # NOTE: I have overwritten this method since PAF and RR lookup tables do not
+        # get used in this class. This is to prevent us from having to configure a scalar for all
+        # AdditiveRiskEffect instances in this model
+        self.lookup_tables["relative_risk"] = self.build_lookup_table(builder, 1)
+        self.lookup_tables["population_attributable_fraction"] = self.build_lookup_table(
+            builder, 0
+        )
+        self.lookup_tables["excess_shift"] = self.get_excess_shift_source(builder)
+        self.lookup_tables["risk_specific_shift"] = self.get_risk_specific_shift_source(
+            builder
+        )
 
     def get_effect_pipeline(self, builder: Builder) -> Pipeline:
         return builder.value.register_value_producer(
@@ -204,10 +235,10 @@ class AdditiveRiskEffect(RiskEffect):
             affected_measure=self.target.measure,
         )
         excess_shift_data = rebin_relative_risk_data(builder, self.risk, excess_shift_data)
-        excess_shift_data = pivot_categorical(excess_shift_data)
-        return builder.lookup.build_table(
-            excess_shift_data, key_columns=["sex"], parameter_columns=["age", "year"]
+        excess_shift_data, value_cols = pivot_categorical(
+            builder, self.risk, excess_shift_data
         )
+        return self.build_lookup_table(builder, excess_shift_data, value_cols)
 
     def get_target_modifier(
         self, builder: Builder
@@ -224,9 +255,7 @@ class AdditiveRiskEffect(RiskEffect):
             affected_entity=self.target.name,
             affected_measure=self.target.measure,
         )
-        return builder.lookup.build_table(
-            risk_specific_shift_data, key_columns=["sex"], parameter_columns=["age", "year"]
-        )
+        return self.build_lookup_table(builder, risk_specific_shift_data, ["value"])
 
     def register_paf_modifier(self, builder: Builder) -> None:
         pass
@@ -237,8 +266,10 @@ class AdditiveRiskEffect(RiskEffect):
 
     def get_effect(self, index: pd.Index) -> pd.Series:
         index_columns = ["index", self.risk.name]
-
-        excess_shift = self.excess_shift_source(index)
+        if "excess_shift" in self.lookup_tables.keys():
+            excess_shift = self.lookup_tables["excess_shift"](index)
+        else:
+            excess_shift = self.excess_shift_source(index)
         exposure = self.exposure(index).reset_index()
         exposure.columns = index_columns
         exposure = exposure.set_index(index_columns)
@@ -249,7 +280,7 @@ class AdditiveRiskEffect(RiskEffect):
 
         raw_effect = relative_risk.loc[exposure.index, "value"].droplevel(self.risk.name)
 
-        risk_specific_shift = self.risk_specific_shift_source(index)
+        risk_specific_shift = self.lookup_tables["risk_specific_shift"](index)
         effect = raw_effect - risk_specific_shift
         return effect
 
@@ -282,31 +313,40 @@ class MMSEffectOnGestationalAge(AdditiveRiskEffect):
     # noinspection PyAttributeOutsideInit
     def setup(self, builder: Builder) -> None:
         super().setup(builder)
+        self.excess_shift_source = self.get_excess_shift_source(builder)
         self.ifa_on_gestational_age = builder.components.get_component(
-            f"additive_risk_effect.risk_factor.iron_folic_acid_supplementation.{self.target}"
+            f"risk_effect.iron_folic_acid_supplementation_on_{self.target}"
         )
-        self.mms_subpop_1_excess_shift = self._get_mms_excess_shift_data(
+
+    def build_all_lookup_tables(self, builder: Builder) -> None:
+        self.lookup_tables["relative_risk"] = self.build_lookup_table(builder, 1)
+        self.lookup_tables["population_attributable_fraction"] = self.build_lookup_table(
+            builder, 0
+        )
+        self.lookup_tables["risk_specific_shift"] = self.get_risk_specific_shift_source(
+            builder
+        )
+        self.lookup_tables["mms_subpop1_excess_shift"] = self._get_mms_excess_shift_data(
             builder, data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_1
         )
-        self.mms_subpop_2_excess_shift = self._get_mms_excess_shift_data(
+        self.lookup_tables["mms_subpop2_excess_shift"] = self._get_mms_excess_shift_data(
             builder, data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_2
         )
 
-    def _get_mms_excess_shift_data(
-        self, builder: Builder, key: str
-    ) -> Dict[str, LookupTable]:
+    def _get_mms_excess_shift_data(self, builder: Builder, key: str) -> LookupTable:
         excess_shift_data = builder.data.load(
             key, affected_entity=self.target.name, affected_measure=self.target.measure
         )
         excess_shift_data = rebin_relative_risk_data(builder, self.risk, excess_shift_data)
-        excess_shift_data = pivot_categorical(excess_shift_data)
-        return builder.lookup.build_table(
-            excess_shift_data, key_columns=["sex"], parameter_columns=["age", "year"]
+        excess_shift_data, value_cols = pivot_categorical(
+            builder, self.risk, excess_shift_data
         )
+        return self.build_lookup_table(builder, excess_shift_data, value_cols)
 
     ##################################
     # Pipeline sources and modifiers #
     ##################################
+
     def get_excess_shift_source(self, builder: Builder) -> Pipeline:
         return builder.value.register_value_producer(
             self.excess_shift_pipeline_name,
@@ -325,8 +365,8 @@ class MMSEffectOnGestationalAge(AdditiveRiskEffect):
         )
         # excess shift is (mms_shift_1 + mms_shift_2) for subpop_2 and mms_shift_1 for subpop_1
         mms_shift_2 = (
-            self.mms_subpop_2_excess_shift(index)["cat2"]
-            - self.mms_subpop_1_excess_shift(index)["cat2"]
+            self.lookup_tables["mms_subpop2_excess_shift"](index)["cat2"]
+            - self.lookup_tables["mms_subpop1_excess_shift"](index)["cat2"]
         )
         is_subpop_1 = ifa_shifted_gestational_age < (32 - mms_shift_2)
         is_subpop_2 = ifa_shifted_gestational_age >= (32 - mms_shift_2)
@@ -336,8 +376,8 @@ class MMSEffectOnGestationalAge(AdditiveRiskEffect):
 
         excess_shift = pd.concat(
             [
-                self.mms_subpop_1_excess_shift(subpop_1_index),
-                self.mms_subpop_2_excess_shift(subpop_2_index),
+                self.lookup_tables["mms_subpop1_excess_shift"](subpop_1_index),
+                self.lookup_tables["mms_subpop2_excess_shift"](subpop_2_index),
             ]
         )
 
@@ -361,14 +401,10 @@ class BEPEffectOnBirthweight(AdditiveRiskEffect):
             affected_measure=self.target.measure,
         )
         excess_shift_data = rebin_relative_risk_data(builder, self.risk, excess_shift_data)
-        excess_shift_data = self._pivot_categorical(excess_shift_data)
-        return builder.lookup.build_table(
-            excess_shift_data,
-            key_columns=["sex", "maternal_bmi_anemia_exposure"],
-            parameter_columns=["age", "year"],
-        )
+        excess_shift_data, value_cols = self._pivot_categorical(excess_shift_data)
+        return self.build_lookup_table(builder, excess_shift_data, value_cols)
 
-    def _pivot_categorical(self, data: pd.DataFrame) -> pd.DataFrame:
+    def _pivot_categorical(self, data: pd.DataFrame) -> Tuple[pd.DataFrame, List[str]]:
         """Pivots data that is long on categories to be wide.
         Copied from VPH but include maternal BMI anemia exposure."""
         key_cols = [
@@ -384,7 +420,8 @@ class BEPEffectOnBirthweight(AdditiveRiskEffect):
             index=key_cols, columns="parameter", values="value"
         ).reset_index()
         data.columns.name = None
-        return data
+        value_cols = set(data.columns).difference(set(key_cols))
+        return data, value_cols
 
 
 class BirthWeightShiftEffect(Component):
