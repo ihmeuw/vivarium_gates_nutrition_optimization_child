@@ -118,10 +118,8 @@ class LBWSGLineList(LBWSGRisk):
 class LBWSGPAFCalculationRiskEffect(LBWSGRiskEffect):
     """Risk effect component for calculating PAFs for LBWSG."""
 
-    def get_population_attributable_fraction_source(
-        self, builder: Builder
-    ) -> Tuple[float, List]:
-        return 0, []
+    def get_population_attributable_fraction_source(self, builder: Builder) -> LookupTable:
+        return self.build_lookup_table(builder, 0)
 
 
 class LBWSGPAFCalculationExposure(LBWSGRisk):
