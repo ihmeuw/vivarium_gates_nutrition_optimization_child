@@ -34,10 +34,6 @@ class WastingTreatment(Risk):
         # we want to reset propensities before updating previous state column
         return 4
 
-    # @property
-    # def name(self) -> str:
-    #     return f"wasting_treatment_{self.risk}"
-
     def __init__(self, treatment_type: str):
         super().__init__(treatment_type)
 

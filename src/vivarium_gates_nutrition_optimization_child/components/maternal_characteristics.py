@@ -120,7 +120,7 @@ class MaternalCharacteristics(Component):
 
     def build_all_lookup_tables(self, builder: Builder) -> None:
         # We need to call this method on each risk in the configuration defaults
-        for risk, riks_config in self.CONFIGURATION_DEFAULTS.items():
+        for risk, risk_config in self.CONFIGURATION_DEFAULTS.items():
             if "data_sources" not in self.CONFIGURATION_DEFAULTS[risk]:
                 continue
             data_source_configs = self.CONFIGURATION_DEFAULTS[risk]["data_sources"]
