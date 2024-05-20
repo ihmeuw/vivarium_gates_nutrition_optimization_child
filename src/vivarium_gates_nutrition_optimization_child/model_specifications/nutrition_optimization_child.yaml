@@ -93,19 +93,20 @@ configuration:
         child_scenario: 'baseline'
         maternal_scenario: 'baseline'
     
-    unmodeled_causes:
-        - "upper_respiratory_infections"
-        - "otitis_media"
-        - "meningitis"
-        - "encephalitis"
-        - "neonatal_preterm_birth"
-        - "neonatal_encephalopathy_due_to_birth_asphyxia_and_trauma"
-        - "neonatal_sepsis_and_other_neonatal_infections"
-        - "hemolytic_disease_and_other_neonatal_jaundice"
-        - "other_neonatal_disorders"
-        - "sudden_infant_death_syndrome"
-        - "neonatal_lower_respiratory_infections"
-        - "neonatal_diarrheal_diseases"
+    mortality:
+        unmodeled_causes:
+            - "upper_respiratory_infections"
+            - "otitis_media"
+            - "meningitis"
+            - "encephalitis"
+            - "neonatal_preterm_birth"
+            - "neonatal_encephalopathy_due_to_birth_asphyxia_and_trauma"
+            - "neonatal_sepsis_and_other_neonatal_infections"
+            - "hemolytic_disease_and_other_neonatal_jaundice"
+            - "other_neonatal_disorders"
+            - "sudden_infant_death_syndrome"
+            - "neonatal_lower_respiratory_infections"
+            - "neonatal_diarrheal_diseases"
 
     risk_attributable_disease.moderate_protein_energy_malnutrition:
         threshold: ['cat2','cat2.5']
