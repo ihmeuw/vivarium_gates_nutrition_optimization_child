@@ -211,7 +211,7 @@ def get_data(
         data_keys.UNDERWEIGHT.EXPOSURE: load_underweight_exposure,
         data_keys.UNDERWEIGHT.CATEGORIES: load_metadata,
         data_keys.UNDERWEIGHT.RELATIVE_RISK: load_gbd_2021_rr,
-        # data_keys.CHILD_GROWTH_FAILURE.PAF: load_cgf_paf,
+        data_keys.CHILD_GROWTH_FAILURE.PAF: load_cgf_paf,
         data_keys.PEM.EMR: load_pem_emr,
         data_keys.PEM.CSMR: load_pem_csmr,
         data_keys.PEM.RESTRICTIONS: load_pem_restrictions,
