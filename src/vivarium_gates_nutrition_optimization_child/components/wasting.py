@@ -496,7 +496,6 @@ def load_child_wasting_exposures(builder: Builder) -> pd.DataFrame:
         builder.data.load(WASTING.EXPOSURE)
         .reset_index()
         .set_index(metadata.DEMOGRAPHIC_COLUMNS + ["subnational"])
-        .drop(columns="index")
         .pivot(columns="parameter")
     )
 
