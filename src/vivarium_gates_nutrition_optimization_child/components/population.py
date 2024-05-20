@@ -76,9 +76,6 @@ class PopulationLineList(BasePopulation):
             "age_smoothing_age_bounds": builder.randomness.get_stream(
                 "age_smoothing_age_bounds", initializes_crn_attributes=True
             ),
-            "subnational_selection": builder.randomness.get_stream(
-                "subnational_selection", initializes_crn_attributes=True
-            ),
         }
         self.register_simulants = builder.randomness.register_simulants
 
@@ -101,14 +98,17 @@ class PopulationLineList(BasePopulation):
             new_simulants["sex"] = new_births["sex"]
             new_simulants["alive"] = new_births["alive"]
             new_simulants["location"] = self.location
-            new_simulants["subnational"] = self._get_subnational_locations(
-                new_simulants.index
-            )
             new_simulants["entrance_time"] = pop_data.creation_time
             new_simulants["exit_time"] = new_births["exit_time"]
             new_simulants["maternal_id"] = new_births["maternal_id"]
 
         self.register_simulants(new_simulants[self.key_columns])
+
+        if pop_data.creation_time >= self.start_time:
+            new_simulants["subnational"] = self._get_subnational_locations(
+                new_simulants.index
+            )
+
         self.population_view.update(new_simulants)
 
     def _get_location(self, builder: Builder) -> Dict[str, str]:
@@ -119,7 +119,7 @@ class PopulationLineList(BasePopulation):
         subnational_percents = subnational_percents.loc[
             subnational_percents["national_location"] == self.location
         ]
-        location_choices = self.randomness["subnational_selection"].choice(
+        location_choices = self.randomness["general_purpose"].choice(
             index=pop_index,
             choices=subnational_percents["location"],
             p=subnational_percents["percent_in_location"],

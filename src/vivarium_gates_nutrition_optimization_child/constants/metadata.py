@@ -43,6 +43,15 @@ DEMOGRAPHIC_COLUMNS = [
     "year_start",
     "year_end",
 ]
+# Index columns + subnational
+SUBNATIONAL_INDEX_COLUMNS = [
+    "sex",
+    "age_start",
+    "age_end",
+    "year_start",
+    "year_end",
+    "subnational",
+]
 
 DRAW_COUNT = 500
 ARTIFACT_COLUMNS = pd.Index([f"draw_{i}" for i in range(DRAW_COUNT)])
