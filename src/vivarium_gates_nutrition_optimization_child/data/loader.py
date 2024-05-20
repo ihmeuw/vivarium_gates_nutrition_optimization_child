@@ -208,7 +208,7 @@ def get_data(
         data_keys.STUNTING.RELATIVE_RISK: load_gbd_2021_rr,
         data_keys.STUNTING.PAF: load_categorical_paf,
         data_keys.UNDERWEIGHT.DISTRIBUTION: load_metadata,
-        # data_keys.UNDERWEIGHT.EXPOSURE: load_underweight_exposure,
+        data_keys.UNDERWEIGHT.EXPOSURE: load_underweight_exposure,
         data_keys.UNDERWEIGHT.CATEGORIES: load_metadata,
         data_keys.UNDERWEIGHT.RELATIVE_RISK: load_gbd_2021_rr,
         # data_keys.CHILD_GROWTH_FAILURE.PAF: load_cgf_paf,
