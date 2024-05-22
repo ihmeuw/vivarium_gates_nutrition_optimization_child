@@ -134,6 +134,14 @@ class LBWSGPAFCalculationExposure(LBWSGRisk):
             "age_bin",
         ]
 
+    @property
+    def initialization_requirements(self) -> Dict[str, List[str]]:
+        return {
+            "requires_columns": ["age", "sex", "subnational"],
+            "requires_values": [],
+            "requires_streams": [],
+        }
+
     def setup(self, builder: Builder) -> None:
         super().setup(builder)
         self.lbwsg_categories = builder.data.load(data_keys.LBWSG.CATEGORIES)
@@ -144,7 +152,7 @@ class LBWSGPAFCalculationExposure(LBWSGRisk):
             return builder.value.register_value_producer(
                 self.birth_exposure_pipeline_name(axis_),
                 source=lambda index: self.get_birth_exposure(axis_, index),
-                requires_columns=["age", "sex"],
+                requires_columns=["age", "sex", "subnational"],
                 preferred_post_processor=get_exposure_post_processor(builder, self.risk),
             )
 
