@@ -200,7 +200,8 @@ class LBWSGPAFCalculationExposure(LBWSGRisk):
             description = self.lbwsg_categories[cat]
 
             birthweight_endpoints = [
-                float(val) for val in description.split(", [")[1].split(")")[0].split(", ")
+                float(val)
+                for val in description.split(", [")[1].split(")")[0].split("]")[0].split(", ")
             ]
             birthweight_interval_values = np.linspace(
                 birthweight_endpoints[0],
@@ -209,7 +210,8 @@ class LBWSGPAFCalculationExposure(LBWSGRisk):
             )[1:-1]
 
             gestational_age_endpoints = [
-                float(val) for val in description.split("- [")[1].split(")")[0].split(", ")
+                float(val)
+                for val in description.split("- [")[1].split(")")[0].split("+")[0].split(", ")
             ]
             gestational_age_interval_values = np.linspace(
                 gestational_age_endpoints[0],
