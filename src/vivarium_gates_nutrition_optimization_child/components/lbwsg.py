@@ -196,17 +196,20 @@ class LBWSGPAFCalculationExposure(LBWSGRisk):
         ).get(index)
         lbwsg_categories = self.lbwsg_categories.keys()
         subnationals = pop["subnational"].unique()
-        # 2 sexes and 2 age groups
-        num_simulants_in_category = int(
-            len(pop) / (len(lbwsg_categories) * (2 * 2 * len(subnationals)))
-        )
-        num_points_in_interval = int(math.sqrt(num_simulants_in_category))
 
         exposure_values = pd.Series(name=axis, index=pop.index, dtype=float)
 
         for age_bin, sex, subnational, cat in itertools.product(
             pop["age_bin"].unique(), ["Male", "Female"], subnationals, lbwsg_categories
         ):
+            subset_index = pop[
+                (pop["lbwsg_category"] == cat)
+                & (pop["age_bin"] == age_bin)
+                & (pop["sex"] == sex)
+                & (pop["subnational"] == subnational)
+            ].index
+            num_simulants_in_category = len(subset_index)
+            num_points_in_interval = int(math.sqrt(num_simulants_in_category))
             description = self.lbwsg_categories[cat]
 
             birthweight_endpoints = [
@@ -239,12 +242,6 @@ class LBWSGPAFCalculationExposure(LBWSGRisk):
                 }
             )
 
-            subset_index = pop[
-                (pop["lbwsg_category"] == cat)
-                & (pop["age_bin"] == age_bin)
-                & (pop["sex"] == sex)
-                & (pop["subnational"] == subnational)
-            ].index
             exposure_values.loc[subset_index] = lbwsg_exposures[axis].values
 
         return exposure_values
