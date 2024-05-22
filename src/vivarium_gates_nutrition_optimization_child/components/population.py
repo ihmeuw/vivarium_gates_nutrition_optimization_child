@@ -155,4 +155,18 @@ class EvenlyDistributedPopulation(BasePopulation):
         population["sex"] = "Female"
         population.loc[population.index % 2 == 1, "sex"] = "Male"
         self.register_simulants(population[list(self.key_columns)])
+        population["subnational"] = self._distribute_subnational_locations(population.index)
         self.population_view.update(population)
+
+    def _distribute_subnational_locations(self, pop_index: pd.Index) -> pd.Series:
+        subnational_percents = pd.read_csv(SUBNATIONAL_PERCENTAGES)
+        subnational_percents = subnational_percents.loc[
+            subnational_percents["national_location"] == self.location
+        ]
+        # Equal weights
+        location_choices = self.randomness.choice(
+            index=pop_index,
+            choices=subnational_percents["location"],
+            additional_key="subnational_location_choice",
+        )
+        return location_choices
