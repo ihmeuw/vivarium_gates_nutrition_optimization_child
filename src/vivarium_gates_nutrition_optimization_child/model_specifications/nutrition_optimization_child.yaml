@@ -31,7 +31,7 @@ components:
         components:
             - PopulationLineList()
             - FertilityLineList()
-            # - LBWSGLineList()
+            - LBWSGLineList()
             - ChildWasting()
             - ChildWastingObserver()
             - WastingTreatment('risk_factor.severe_acute_malnutrition_treatment')
