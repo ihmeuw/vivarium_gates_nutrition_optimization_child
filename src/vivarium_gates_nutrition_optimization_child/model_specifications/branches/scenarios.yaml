@@ -1,8 +1,8 @@
-input_draw_count: 20
-random_seed_count: 20
+input_draw_count: 5
+random_seed_count: 5
 
-input_draws: [457, 169, 323, 392, 346, 480, 258, 446, 356, 273, 103, 113, 137, 158, 177, 197, 21, 222, 253, 425]
-random_seeds: [4344, 5616, 6810, 2787, 2284, 4369, 3254, 7359, 3541, 5020, 9672, 8869, 3167, 6817, 4507, 9901, 5949, 6545, 1362, 781]
+input_draws: [457, 169, 323, 392, 346]
+random_seeds: [4344, 5616, 6810, 2787, 2284]
 
 branches:
   - intervention:
