@@ -164,7 +164,7 @@ class EvenlyDistributedPopulation(BasePopulation):
             subnational_percents["national_location"] == self.location
         ]
         # Equal weights
-        location_choices = self.randomness.choice(
+        location_choices = self.randomness["general_purpose"].choice(
             index=pop_index,
             choices=subnational_percents["location"],
             additional_key="subnational_location_choice",
