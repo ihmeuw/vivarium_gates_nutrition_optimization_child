@@ -191,7 +191,9 @@ class LBWSGPAFCalculationExposure(LBWSGRisk):
     ##################################
 
     def get_birth_exposure(self, axis: str, index: pd.Index) -> pd.DataFrame:
-        pop = self.population_view.subview(["age_bin", "sex", "lbwsg_category"]).get(index)
+        pop = self.population_view.subview(
+            ["age_bin", "sex", "lbwsg_category", "subnational"]
+        ).get(index)
         lbwsg_categories = self.lbwsg_categories.keys()
         subnationals = pop["subnational"].unique()
         num_simulants_in_category = int(len(pop) / (len(lbwsg_categories) * 4))
