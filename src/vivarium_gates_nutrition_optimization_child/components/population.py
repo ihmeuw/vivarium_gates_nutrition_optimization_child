@@ -163,20 +163,14 @@ class EvenlyDistributedPopulation(BasePopulation):
         self.population_view.update(population)
 
     def _distribute_subnational_locations(self, pop_index: pd.Index) -> pd.Series:
-        subnational_locations = pd.read_csv(SUBNATIONAL_PERCENTAGES)
-        subnational_locations = subnational_locations.loc[
-            subnational_locations["national_location"] == self.location
-        ]["location"].unique()
-
-        # Get repeating array of subnationals then fill remaining rows if necessary
-        filled_subnationals = np.repeat(
-            subnational_locations, repeats=len(pop_index) / len(subnational_locations)
+        subnational_percents = pd.read_csv(SUBNATIONAL_PERCENTAGES)
+        subnational_percents = subnational_percents.loc[
+            subnational_percents["national_location"] == self.location
+        ]
+        # Equal weights
+        location_choices = self.randomness.choice(
+            index=pop_index,
+            choices=subnational_percents["location"],
+            additional_key="subnational_location_choice",
         )
-        remainder = len(pop_index) - len(filled_subnationals)
-        if remainder > 0:
-            extra_fill = subnational_locations[:remainder]
-            filled_subnationals = np.append(filled_subnationals, extra_fill)
-
-        subnational_choices = pd.Series(filled_subnationals, index=pop_index)
-
-        return subnational_choices
+        return location_choices
