@@ -119,7 +119,7 @@ class LBWSGPAFCalculationRiskEffect(LBWSGRiskEffect):
     """Risk effect component for calculating PAFs for LBWSG."""
 
     def get_population_attributable_fraction_source(self, builder: Builder) -> LookupTable:
-        return self.build_lookup_table(builder, 0), []
+        return 0, []
 
 
 class LBWSGPAFCalculationExposure(LBWSGRisk):
