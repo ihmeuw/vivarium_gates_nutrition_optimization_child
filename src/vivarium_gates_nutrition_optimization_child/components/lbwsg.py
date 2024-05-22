@@ -171,7 +171,7 @@ class LBWSGPAFCalculationExposure(LBWSGRisk):
 
         lbwsg_categories = self.lbwsg_categories.keys()
         # Assign category for each group of the population
-        for group, group_pop in pop.groupby(["sex", "age", "subnational"]):
+        for group, group_pop in pop.groupby(["sex", "age_bin", "subnational"]):
             num_repeats, remainder = divmod(len(group_pop), len(lbwsg_categories))
             assigned_categories = list(lbwsg_categories) * num_repeats
             assigned_categories += list(lbwsg_categories)[:remainder]
