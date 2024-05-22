@@ -196,7 +196,10 @@ class LBWSGPAFCalculationExposure(LBWSGRisk):
         ).get(index)
         lbwsg_categories = self.lbwsg_categories.keys()
         subnationals = pop["subnational"].unique()
-        num_simulants_in_category = int(len(pop) / (len(lbwsg_categories) * 4))
+        # 2 sexes and 2 age groups
+        num_simulants_in_category = int(
+            len(pop) / (len(lbwsg_categories) * (2 * 2 * len(subnationals)))
+        )
         num_points_in_interval = int(math.sqrt(num_simulants_in_category))
 
         exposure_values = pd.Series(name=axis, index=pop.index, dtype=float)
