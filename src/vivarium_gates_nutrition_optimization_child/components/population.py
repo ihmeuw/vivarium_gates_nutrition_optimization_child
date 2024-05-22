@@ -7,8 +7,7 @@ This module contains a component for creating a base population from line list d
 
 """
 
-import glob
-from typing import List
+from typing import Dict, List
 
 import numpy as np
 import pandas as pd
