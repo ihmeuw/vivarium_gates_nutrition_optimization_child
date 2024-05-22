@@ -15,9 +15,9 @@ components:
             - RiskEffect('risk_factor.moderate_acute_malnutrition_treatment', 'risk_factor.better_moderate_acute_malnutrition_to_mild_child_wasting.transition_rate')
             - RiskEffect('risk_factor.moderate_acute_malnutrition_treatment', 'risk_factor.worse_moderate_acute_malnutrition_to_mild_child_wasting.transition_rate')
 
-            # - LBWSGRiskEffect('cause.diarrheal_diseases.excess_mortality_rate')
-            # - LBWSGRiskEffect('cause.lower_respiratory_infections.excess_mortality_rate')
-            # - LBWSGRiskEffect('cause.affected_unmodeled.cause_specific_mortality_rate')
+            - LBWSGRiskEffect('cause.diarrheal_diseases.excess_mortality_rate')
+            - LBWSGRiskEffect('cause.lower_respiratory_infections.excess_mortality_rate')
+            - LBWSGRiskEffect('cause.affected_unmodeled.cause_specific_mortality_rate')
         metrics:
             - DiseaseObserver('diarrheal_diseases')
             - DiseaseObserver('measles')
