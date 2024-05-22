@@ -492,8 +492,6 @@ def load_sam_exposure(builder: Builder, cause: str) -> pd.DataFrame:
 
 # Sub-loader functions
 def load_child_wasting_exposures(builder: Builder) -> pd.DataFrame:
-    # TODO: fix me once components are updated for artifacts with location
-    # in artifact
     try:
         exposures = (
             builder.data.load(WASTING.EXPOSURE)
@@ -503,7 +501,7 @@ def load_child_wasting_exposures(builder: Builder) -> pd.DataFrame:
     except KeyError:
         exposures = (
             builder.data.load(WASTING.EXPOSURE)
-            .set_index(metadata.DEMOGRAPHIC_COLUMNS)
+            .set_index(metadata.SUBNATIONAL_INDEX_COLUMNS)
             .pivot(columns="parameter")
         )
 

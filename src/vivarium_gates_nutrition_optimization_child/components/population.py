@@ -7,8 +7,7 @@ This module contains a component for creating a base population from line list d
 
 """
 
-import glob
-from typing import List
+from typing import Dict, List
 
 import numpy as np
 import pandas as pd
@@ -22,6 +21,9 @@ from vivarium_public_health.population.data_transformations import (
 )
 
 from vivarium_gates_nutrition_optimization_child.constants import data_keys
+from vivarium_gates_nutrition_optimization_child.constants.paths import (
+    SUBNATIONAL_PERCENTAGES,
+)
 
 
 class PopulationLineList(BasePopulation):
@@ -35,6 +37,7 @@ class PopulationLineList(BasePopulation):
             "age",
             "sex",
             "alive",
+            "subnational",
             "location",
             "entrance_time",
             "exit_time",
@@ -100,10 +103,29 @@ class PopulationLineList(BasePopulation):
             new_simulants["maternal_id"] = new_births["maternal_id"]
 
         self.register_simulants(new_simulants[self.key_columns])
+
+        if pop_data.creation_time >= self.start_time:
+            new_simulants["subnational"] = self._get_subnational_locations(
+                new_simulants.index
+            )
+
         self.population_view.update(new_simulants)
 
-    def _get_location(self, builder: Builder) -> str:
+    def _get_location(self, builder: Builder) -> Dict[str, str]:
         return builder.data.load("population.location")
+
+    def _get_subnational_locations(self, pop_index: pd.Index) -> pd.Series:
+        subnational_percents = pd.read_csv(SUBNATIONAL_PERCENTAGES)
+        subnational_percents = subnational_percents.loc[
+            subnational_percents["national_location"] == self.location
+        ]
+        location_choices = self.randomness["general_purpose"].choice(
+            index=pop_index,
+            choices=subnational_percents["location"],
+            p=subnational_percents["percent_in_location"],
+            additional_key="subnational_location_choice",
+        )
+        return location_choices
 
 
 class EvenlyDistributedPopulation(BasePopulation):

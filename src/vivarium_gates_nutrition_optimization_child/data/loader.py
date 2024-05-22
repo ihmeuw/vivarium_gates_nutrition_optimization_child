@@ -845,6 +845,8 @@ def load_underweight_exposure(key: str, location: Union[str, List[int]]) -> pd.D
     df = pd.read_csv(
         paths.UNDERWEIGHT_CONDITIONAL_DISTRIBUTIONS_DIR / f"{national_location_id}.csv"
     )
+    # Fix sex values
+    df = df.replace({"female": "Female", "male": "Male"})
     df = df.drop(["Unnamed: 0", "location_id"], axis=1)
     # add early neonatal data by copying late neonatal
     early_neonatal = df[df["age_group_name"] == "late_neonatal"].copy()
@@ -905,6 +907,8 @@ def load_underweight_exposure(key: str, location: Union[str, List[int]]) -> pd.D
         metadata.ARTIFACT_INDEX_COLUMNS
         + ["stunting_parameter", "wasting_parameter", "parameter"]
     ]
+    # Make columns be in the same order
+    complete_index = complete_index[df_index.columns]
     merge_df = complete_index.merge(df_index, how="left", indicator=True)
     empty_missing_rows = merge_df.loc[merge_df["_merge"] == "left_only"].set_index(
         index_names

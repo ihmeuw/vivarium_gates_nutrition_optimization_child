@@ -75,7 +75,7 @@ class ChildUnderweight(Risk):
             else:
                 key = f"risk_factor.stunting_{stunting_cat}_wasting_{wasting_cat}_underweight"
             distribution_data = all_distribution_data.query(
-                "stunting_parameter == @stunting_cat and " "wasting_parameter == @wasting_cat"
+                "stunting_parameter == @stunting_cat and wasting_parameter == @wasting_cat"
             )
             distribution_data = distribution_data.drop(
                 ["stunting_parameter", "wasting_parameter"], axis=1
@@ -144,6 +144,12 @@ class CGFRiskEffect(RiskEffect):
         self.target = TargetString(target)
         # This is to access to the distribution type before setup
         self._distribution_type = "ordered_polytomous"
+
+    def build_all_lookup_tables(self, builder: Builder) -> None:
+        self.lookup_tables[
+            "population_attributable_fraction"
+        ] = self.get_population_attributable_fraction_source(builder)
+        self.lookup_tables["relative_risk"] = self.get_relative_risk_source(builder)
 
     def build_all_lookup_tables(self, builder: Builder) -> None:
         self.lookup_tables[
