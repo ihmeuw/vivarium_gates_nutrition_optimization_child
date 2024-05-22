@@ -135,6 +135,7 @@ class EvenlyDistributedPopulation(BasePopulation):
     male and female.
     """
 
+    @property
     def columns_created(self) -> List[str]:
         return super().columns_created + ["subnational"]
 
