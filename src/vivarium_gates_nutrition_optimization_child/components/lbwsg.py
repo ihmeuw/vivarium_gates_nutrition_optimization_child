@@ -259,7 +259,7 @@ class LBWSGPAFObserver(Component):
     def setup(self, builder: Builder) -> None:
         self.lbwsg_exposure = builder.data.load(data_keys.LBWSG.EXPOSURE)
         self.risk_effect = builder.components.get_component(
-            f"lbwsgpaf_calculation_risk_effect.{self.target}"
+            f"risk_effect.low_birth_weight_and_short_gestation_on_{self.target}"
         )
         self.config = builder.configuration.stratification.lbwsg_paf
 
