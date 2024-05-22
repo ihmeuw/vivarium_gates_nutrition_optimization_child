@@ -125,7 +125,7 @@ class LBWSGPAFCalculationRiskEffect(LBWSGRiskEffect):
 class LBWSGPAFCalculationExposure(LBWSGRisk):
     @property
     def columns_required(self) -> Optional[List[str]]:
-        return ["age", "sex"]
+        return ["age", "sex", "subnational"]
 
     @property
     def columns_created(self) -> List[str]:
@@ -157,21 +157,17 @@ class LBWSGPAFCalculationExposure(LBWSGRisk):
     ########################
 
     def on_initialize_simulants(self, pop_data: SimulantData) -> None:
-        pop = self.population_view.subview(["age", "sex"]).get(pop_data.index)
+        pop = self.population_view.subview(["age", "sex", "subnational"]).get(pop_data.index)
         pop["age_bin"] = pd.cut(pop["age"], self.age_bins["age_start"])
-        pop = pop.sort_values(["sex", "age"])
+        pop = pop.sort_values(["sex", "age", "subnational"])
 
         lbwsg_categories = self.lbwsg_categories.keys()
-        num_repeats, remainder = divmod(len(pop), 2 * len(lbwsg_categories))
-        if remainder != 0:
-            raise ValueError(
-                "Population size should be multiple of double the number of LBWSG categories."
-                f"Population size is {len(pop)}, but should be a multiple of "
-                f"{2*len(lbwsg_categories)}."
-            )
-
-        assigned_categories = list(lbwsg_categories) * (2 * num_repeats)
-        pop["lbwsg_category"] = assigned_categories
+        # Assign category for each group of the population
+        for group, group_pop in pop.groupby(["sex", "age", "subnational"]):
+            num_repeats, remainder = divmod(len(group_pop), len(lbwsg_categories))
+            assigned_categories = list(lbwsg_categories) * num_repeats
+            assigned_categories += list(lbwsg_categories)[:remainder]
+            pop.loc[group_pop.index, "lbwsg_category"] = assigned_categories
         self.population_view.update(pop[["age_bin", "lbwsg_category"]])
 
         birth_exposures = {
