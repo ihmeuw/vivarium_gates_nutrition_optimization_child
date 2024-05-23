@@ -1408,7 +1408,7 @@ def load_lbwsg_paf(key: str, location: str) -> pd.DataFrame:
     }
 
     output_dir = paths.TEMPORARY_PAF_DIR / location_mapper[location]
-    data_dir = output_dir / "2024_05_23_10_26_43/"
+    data_dir = output_dir / "2024_05_23_11_09_58/"
 
     def get_age_and_sex(measure_str):
         age = measure_str.split("AGE_GROUP_")[1].split("SEX")[0][:-1]
