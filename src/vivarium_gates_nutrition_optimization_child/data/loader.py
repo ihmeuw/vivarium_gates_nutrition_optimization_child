@@ -1408,6 +1408,7 @@ def load_lbwsg_paf(key: str, location: str) -> pd.DataFrame:
     }
 
     output_dir = paths.TEMPORARY_PAF_DIR / location_mapper[location]
+    data_dir = output_dir / "2024_05_23_10_26_43/"
 
     def get_age_and_sex(measure_str):
         age = measure_str.split("AGE_GROUP_")[1].split("SEX")[0][:-1]
@@ -1415,7 +1416,7 @@ def load_lbwsg_paf(key: str, location: str) -> pd.DataFrame:
 
         return age + "," + sex
 
-    df = pd.read_hdf(output_dir / "output.hdf")  # this is 4096_simulants.hdf for example
+    df = pd.read_hdf(data_dir / "output.hdf")  # this is 4096_simulants.hdf for example
     df = df[[col for col in df.columns if "MEASURE" in col]].T
     df.columns = [f"draw_{i}" for i in range(metadata.DRAW_COUNT)]
     df = df.reset_index()
