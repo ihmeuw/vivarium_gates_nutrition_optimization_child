@@ -10,7 +10,7 @@ simulants who are initialized from line list data.
 
 import itertools
 import math
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -118,7 +118,9 @@ class LBWSGLineList(LBWSGRisk):
 class LBWSGPAFCalculationRiskEffect(LBWSGRiskEffect):
     """Risk effect component for calculating PAFs for LBWSG."""
 
-    def get_population_attributable_fraction_source(self, builder: Builder) -> LookupTable:
+    def get_population_attributable_fraction_source(
+        self, builder: Builder
+    ) -> Tuple[float, List]:
         return 0, []
 
 
