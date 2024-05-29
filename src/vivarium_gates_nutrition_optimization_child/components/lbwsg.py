@@ -7,9 +7,10 @@ This is a module to subclass the LBWSG component in Vivrium Public Health to use
 simulants who are initialized from line list data.
 
 """
+
 import itertools
 import math
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -117,8 +118,10 @@ class LBWSGLineList(LBWSGRisk):
 class LBWSGPAFCalculationRiskEffect(LBWSGRiskEffect):
     """Risk effect component for calculating PAFs for LBWSG."""
 
-    def get_population_attributable_fraction_source(self, builder: Builder) -> LookupTable:
-        return builder.lookup.build_table(0)
+    def get_population_attributable_fraction_source(
+        self, builder: Builder
+    ) -> Tuple[float, List]:
+        return 0, []
 
 
 class LBWSGPAFCalculationExposure(LBWSGRisk):
@@ -199,7 +202,8 @@ class LBWSGPAFCalculationExposure(LBWSGRisk):
             description = self.lbwsg_categories[cat]
 
             birthweight_endpoints = [
-                float(val) for val in description.split(", [")[1].split(")")[0].split(", ")
+                float(val)
+                for val in description.split(", [")[1].split(")")[0].split("]")[0].split(", ")
             ]
             birthweight_interval_values = np.linspace(
                 birthweight_endpoints[0],
@@ -208,7 +212,8 @@ class LBWSGPAFCalculationExposure(LBWSGRisk):
             )[1:-1]
 
             gestational_age_endpoints = [
-                float(val) for val in description.split("- [")[1].split(")")[0].split(", ")
+                float(val)
+                for val in description.split("- [")[1].split(")")[0].split("+")[0].split(", ")
             ]
             gestational_age_interval_values = np.linspace(
                 gestational_age_endpoints[0],
@@ -258,7 +263,7 @@ class LBWSGPAFObserver(Component):
     def setup(self, builder: Builder) -> None:
         self.lbwsg_exposure = builder.data.load(data_keys.LBWSG.EXPOSURE)
         self.risk_effect = builder.components.get_component(
-            f"lbwsgpaf_calculation_risk_effect.{self.target}"
+            f"risk_effect.low_birth_weight_and_short_gestation_on_{self.target}"
         )
         self.config = builder.configuration.stratification.lbwsg_paf
 

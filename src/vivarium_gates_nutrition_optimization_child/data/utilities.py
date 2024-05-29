@@ -36,6 +36,7 @@ from vivarium_gates_nutrition_optimization_child.constants.metadata import (  # 
     ARTIFACT_COLUMNS,
     ARTIFACT_INDEX_COLUMNS,
     GBD_2021_ROUND_ID,
+    LOCATIONS,
     NEONATAL_END_AGE,
 )
 from vivarium_gates_nutrition_optimization_child.utilities import (
@@ -503,16 +504,24 @@ def get_intervals_from_categories(lbwsg_type: str, categories: Dict[str, str]) -
 
 def parse_low_birth_weight_description(description: str) -> pd.Interval:
     # descriptions look like this: 'Birth prevalence - [34, 36) wks, [2000, 2500) g'
+
     endpoints = pd.Interval(
-        *[float(val) for val in description.split(", [")[1].split(")")[0].split(", ")]
+        *[
+            float(val)
+            for val in description.split(", [")[1].split(")")[0].split("]")[0].split(", ")
+        ]
     )
     return endpoints
 
 
 def parse_short_gestation_description(description: str) -> pd.Interval:
     # descriptions look like this: 'Birth prevalence - [34, 36) wks, [2000, 2500) g'
+
     endpoints = pd.Interval(
-        *[float(val) for val in description.split("- [")[1].split(")")[0].split(", ")]
+        *[
+            float(val)
+            for val in description.split("- [")[1].split(")")[0].split("+")[0].split(", ")
+        ]
     )
     return endpoints
 
@@ -686,3 +695,9 @@ def get_wasting_treatment_parameter_data(parameter: str, location: str) -> pd.Se
     draws = draws.query("parameter==@parameter").drop("parameter", axis=1)
     draws = draws.T.squeeze()  # transpose and convert to series
     return draws
+
+
+def rename_subnational_level(data: pd.DataFrame) -> pd.DataFrame:
+    if data.index.get_level_values("location")[0] not in LOCATIONS:
+        data.index = data.index.rename({"location": "subnational"})
+    return data

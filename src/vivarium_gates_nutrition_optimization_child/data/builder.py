@@ -9,6 +9,7 @@ Some degree of verbosity/boilerplate is fine in the interest of transparency.
    Logging in this module should be done at the ``debug`` level.
 
 """
+
 from pathlib import Path
 
 import pandas as pd
@@ -17,6 +18,9 @@ from vivarium.framework.artifact import Artifact, EntityKey
 
 from vivarium_gates_nutrition_optimization_child.constants import data_keys
 from vivarium_gates_nutrition_optimization_child.data import loader
+from vivarium_gates_nutrition_optimization_child.data.utilities import (
+    rename_subnational_level,
+)
 
 
 def open_artifact(output_path: Path, location: str) -> Artifact:
@@ -71,6 +75,8 @@ def load_and_write_data(
     else:
         logger.debug(f"Loading data for {key} for location {location}.")
         data = loader.get_data(key, location, fetch_subnationals)
+        if isinstance(data, pd.DataFrame) and ("location" in data.index.names):
+            data = rename_subnational_level(data)
         if key not in artifact:
             logger.debug(f"Writing data for {key} to artifact.")
             artifact.write(key, data)

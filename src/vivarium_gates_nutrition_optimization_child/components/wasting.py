@@ -1,11 +1,9 @@
-from typing import Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 import pandas as pd
-from vivarium import Component
 from vivarium.framework.engine import Builder
 from vivarium.framework.event import Event
-from vivarium.framework.lookup import LookupTable, LookupTableData
 from vivarium.framework.population import SimulantData
 from vivarium_public_health.disease import DiseaseModel, DiseaseState, SusceptibleState
 from vivarium_public_health.risks import Risk
@@ -27,13 +25,14 @@ from vivarium_gates_nutrition_optimization_child.utilities import get_random_var
 
 class WastingTreatment(Risk):
     @property
+    def configuration_defaults(self) -> Dict[str, Any]:
+        base_risk_config = super().configuration_defaults
+        return {self.risk: base_risk_config[self.name]}
+
+    @property
     def time_step_prepare_priority(self) -> int:
         # we want to reset propensities before updating previous state column
         return 4
-
-    @property
-    def name(self) -> str:
-        return f"wasting_treatment_{self.risk}"
 
     def __init__(self, treatment_type: str):
         super().__init__(treatment_type)
@@ -160,27 +159,20 @@ class WastingTreatment(Risk):
                 return pd.Series(exposure, index=index)
 
 
-class WastingDiseaseState(DiseaseState):
-    """DiseaseState where birth prevalence LookupTables is parametrized by birthweight status."""
-
-    def get_birth_prevalence(
-        self, builder: Builder, birth_prevalence_data: LookupTableData
-    ) -> LookupTable:
-        return builder.lookup.build_table(
-            birth_prevalence_data,
-            key_columns=["sex", "birth_weight_status"],
-            parameter_columns=["year"],
-        )
-
-
 class ChildWastingModel(DiseaseModel):
-    CONFIGURATION_DEFAULTS = {
-        "child_wasting": {
-            "exposure": "data",
-            "rebinned_exposed": [],
-            "category_thresholds": [],
+    @property
+    def configuration_defaults(self) -> Dict[str, Any]:
+        disease_config = super().configuration_defaults
+        risk_config = {
+            "risk_factor.child_wasting": {
+                "data_sources": {
+                    "exposure": "risk_factor.child_wasting.exposure",
+                },
+                "rebinned_exposed": [],
+                "category_thresholds": [],
+            }
         }
-    }
+        return {**disease_config, **risk_config}
 
     @property
     def columns_created(self) -> List[str]:
@@ -202,8 +194,8 @@ class ChildWastingModel(DiseaseModel):
         """Perform this component's setup."""
         super(DiseaseModel, self).setup(builder)
 
-        self.configuration_age_start = builder.configuration.population.age_start
-        self.configuration_age_end = builder.configuration.population.age_end
+        self.configuration_age_start = builder.configuration.population.initialization_age_min
+        self.configuration_age_end = builder.configuration.population.initialization_age_max
         self.randomness = builder.randomness.get_stream(f"{self.state_column}_initial_states")
 
         self.exposure = builder.value.register_value_producer(
@@ -215,12 +207,6 @@ class ChildWastingModel(DiseaseModel):
             ),
         )
 
-        cause_specific_mortality_rate = self.load_cause_specific_mortality_rate_data(builder)
-        self.cause_specific_mortality_rate = builder.lookup.build_table(
-            cause_specific_mortality_rate,
-            key_columns=["sex"],
-            parameter_columns=["age", "year"],
-        )
         builder.value.register_value_modifier(
             "cause_specific_mortality_rate",
             self.adjust_cause_specific_mortality_rate,
@@ -278,7 +264,7 @@ class ChildWastingModel(DiseaseModel):
 # noinspection PyPep8Naming
 def ChildWasting() -> ChildWastingModel:
     tmrel = SusceptibleState(models.WASTING.MODEL_NAME)
-    mild = WastingDiseaseState(
+    mild = DiseaseState(
         models.WASTING.MILD_STATE_NAME,
         cause_type="sequela",
         get_data_functions={
@@ -288,7 +274,7 @@ def ChildWasting() -> ChildWastingModel:
             "birth_prevalence": load_mild_wasting_birth_prevalence,
         },
     )
-    better_moderate = WastingDiseaseState(
+    better_moderate = DiseaseState(
         models.WASTING.BETTER_MODERATE_STATE_NAME,
         cause_type="sequela",
         get_data_functions={
@@ -298,7 +284,7 @@ def ChildWasting() -> ChildWastingModel:
             "birth_prevalence": load_better_mam_birth_prevalence,
         },
     )
-    worse_moderate = WastingDiseaseState(
+    worse_moderate = DiseaseState(
         models.WASTING.WORSE_MODERATE_STATE_NAME,
         cause_type="sequela",
         get_data_functions={
@@ -308,7 +294,7 @@ def ChildWasting() -> ChildWastingModel:
             "birth_prevalence": load_worse_mam_birth_prevalence,
         },
     )
-    severe = WastingDiseaseState(
+    severe = DiseaseState(
         models.WASTING.SEVERE_STATE_NAME,
         cause_type="sequela",
         get_data_functions={
@@ -418,7 +404,11 @@ def load_mild_wasting_birth_prevalence(builder: Builder, cause: str) -> pd.DataF
 
 # noinspection PyUnusedLocal
 def load_mild_wasting_exposure(builder: Builder, cause: str) -> pd.DataFrame:
-    return load_child_wasting_exposures(builder)[WASTING.CAT3].reset_index()
+    return (
+        load_child_wasting_exposures(builder)[WASTING.CAT3]
+        .reset_index()
+        .rename(columns={WASTING.CAT3: "value"})
+    )
 
 
 def load_wasting_rate(builder: Builder, *wasting_states) -> pd.DataFrame:
@@ -455,7 +445,6 @@ def get_transition_data(builder: Builder, transition: str) -> pd.DataFrame:
         "transition==@transition"
     )
     rates = rates.drop("transition", axis=1).reset_index(drop=True)
-    rates = rates.rename({"value": 0}, axis=1)
     return rates
 
 
@@ -471,12 +460,20 @@ def load_worse_mam_birth_prevalence(builder: Builder, cause: str) -> pd.DataFram
 
 # noinspection PyUnusedLocal
 def load_better_mam_exposure(builder: Builder, cause: str) -> pd.DataFrame:
-    return load_child_wasting_exposures(builder)[WASTING.CAT25].reset_index()
+    return (
+        load_child_wasting_exposures(builder)[WASTING.CAT25]
+        .reset_index()
+        .rename(columns={WASTING.CAT25: "value"})
+    )
 
 
 # noinspection PyUnusedLocal
 def load_worse_mam_exposure(builder: Builder, cause: str) -> pd.DataFrame:
-    return load_child_wasting_exposures(builder)[WASTING.CAT2].reset_index()
+    return (
+        load_child_wasting_exposures(builder)[WASTING.CAT2]
+        .reset_index()
+        .rename(columns={WASTING.CAT2: "value"})
+    )
 
 
 # noinspection PyUnusedLocal
@@ -486,13 +483,15 @@ def load_sam_birth_prevalence(builder: Builder, cause: str) -> pd.DataFrame:
 
 # noinspection PyUnusedLocal
 def load_sam_exposure(builder: Builder, cause: str) -> pd.DataFrame:
-    return load_child_wasting_exposures(builder)[WASTING.CAT1].reset_index()
+    return (
+        load_child_wasting_exposures(builder)[WASTING.CAT1]
+        .reset_index()
+        .rename(columns={WASTING.CAT1: "value"})
+    )
 
 
 # Sub-loader functions
 def load_child_wasting_exposures(builder: Builder) -> pd.DataFrame:
-    # TODO: fix me once components are updated for artifacts with location
-    # in artifact
     try:
         exposures = (
             builder.data.load(WASTING.EXPOSURE)
@@ -502,7 +501,7 @@ def load_child_wasting_exposures(builder: Builder) -> pd.DataFrame:
     except KeyError:
         exposures = (
             builder.data.load(WASTING.EXPOSURE)
-            .set_index(metadata.DEMOGRAPHIC_COLUMNS)
+            .set_index(metadata.SUBNATIONAL_INDEX_COLUMNS)
             .pivot(columns="parameter")
         )
 
@@ -518,5 +517,7 @@ def load_child_wasting_birth_prevalence(
         birth_prevalence.query("parameter == @wasting_category")
         .reset_index()
         .drop(["parameter", "index"], axis=1)
+        .rename(columns={wasting_category: "value"})
     )
+
     return birth_prevalence
