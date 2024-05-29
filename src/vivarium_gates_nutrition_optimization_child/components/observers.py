@@ -23,10 +23,14 @@ from vivarium_gates_nutrition_optimization_child.constants import (
     data_values,
     results,
 )
+<<<<<<< HEAD
 from vivarium_gates_nutrition_optimization_child.constants.metadata import (
     SUBNATIONAL_LOCATION_DICT,
 )
 
+=======
+from vivarium_gates_nutrition_optimization_child.constants.metadata import SUBNATIONAL_LOCATION_DICT
+>>>>>>> 81ea417 (Subnational SQ-LNS effect data, adding subnational stratifiction, changing model specs)
 
 class ResultsStratifier(ResultsStratifier_):
     """Centralized component for handling results stratification.
