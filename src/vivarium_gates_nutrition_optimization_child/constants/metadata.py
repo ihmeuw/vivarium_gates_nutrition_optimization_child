@@ -96,3 +96,16 @@ class __AgeGroup(NamedTuple):
 AGE_GROUP = __AgeGroup()
 
 NEONATAL_END_AGE = 0.076712
+
+SUBNATIONAL_LOCATION_DICT = {'Ethiopia': ['Addis Ababa', 'Afar', 'Amhara', 'Benishangul-Gumuz', 
+                                          'Dire Dawa','Gambella', 'Harari', 'Oromia', 'Somali',
+                                          'Southern Nations, Nationalities, and Peoples', 'Tigray'],
+                             'Nigeria': ['Abia', 'Adamawa', 'Akwa Ibom', 'Anambra', 'Bauchi', 'Bayelsa',
+                                         'Benue', 'Borno', 'Cross River', 'Delta', 'Ebonyi', 'Edo', 'Ekiti',
+                                         'Enugu', 'FCT (Abuja)', 'Gombe', 'Imo', 'Jigawa', 'Kaduna', 'Kano',
+                                         'Katsina', 'Kebbi', 'Kogi', 'Kwara', 'Lagos', 'Nasarawa', 'Niger',
+                                         'Ogun', 'Ondo', 'Osun', 'Oyo', 'Plateau', 'Rivers', 'Sokoto',
+                                         'Taraba', 'Yobe', 'Zamfara'],
+                             'Pakistan': ['Azad Jammu & Kashmir', 'Balochistan', 'Gilgit-Baltistan',
+                                          'Islamabad Capital Territory', 'Khyber Pakhtunkhwa', 'Punjab',
+                                          'Sindh']}
