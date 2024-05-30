@@ -12,7 +12,7 @@ def build_results(output_file: str, single_run: bool, disaggregate_seeds: bool) 
     output_file = Path(output_file)
     measure_dir = output_file.parent / "count_data"
     # Get location for subnationals
-    location = output_file.parent.parent.name
+    location = output_file.resolve().parent.parent.name.title()
     if measure_dir.exists():
         shutil.rmtree(measure_dir)
     measure_dir.mkdir(exist_ok=True, mode=0o775)
