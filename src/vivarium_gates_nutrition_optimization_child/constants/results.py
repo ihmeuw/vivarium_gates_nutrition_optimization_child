@@ -3,7 +3,9 @@ import itertools
 import pandas as pd
 
 from vivarium_gates_nutrition_optimization_child.constants import data_keys, models
-from vivarium_gates_nutrition_optimization_child.constants.metadata import SUBNATIONAL_LOCATION_DICT
+from vivarium_gates_nutrition_optimization_child.constants.metadata import (
+    SUBNATIONAL_LOCATION_DICT,
+)
 
 #################################
 # Results columns and variables #
@@ -226,7 +228,7 @@ def RESULTS_MAP(kind):
         )
     df = pd.DataFrame(value_groups, columns=map(lambda x: x.lower(), fields))
     df["key"] = columns
-    df[
-        "measure"
-    ] = kind  # per researcher feedback, this column is useful, even when it's identical for all rows
+    df["measure"] = (
+        kind  # per researcher feedback, this column is useful, even when it's identical for all rows
+    )
     return df.set_index("key").sort_index()
