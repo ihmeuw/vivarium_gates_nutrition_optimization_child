@@ -129,7 +129,7 @@ class SQLNSTreatment(Component):
         risk_ratios = risk_ratios.query("affected_outcome==@affected_outcome").drop(
             "affected_outcome", axis=1
         )
-        return builder.lookup.build_table(risk_ratios, parameter_columns=["age"])
+        return self.build_lookup_table(builder, risk_ratios, value_columns=["value"])
 
     def on_initialize_simulants(self, pop_data):
         self.population_view.update(

@@ -206,7 +206,6 @@ class AdditiveRiskEffect(RiskEffect):
     def setup(self, builder: Builder) -> None:
         super().setup(builder)
         self.effect = self.get_effect_pipeline(builder)
-        self.risk_specific_shift_source = self.get_risk_specific_shift_source(builder)
 
     def build_all_lookup_tables(self, builder: Builder) -> None:
         # NOTE: I have overwritten this method since PAF and RR lookup tables do not
@@ -355,7 +354,7 @@ class MMSEffectOnGestationalAge(AdditiveRiskEffect):
         )
 
     def get_risk_specific_shift_source(self, builder: Builder) -> LookupTable:
-        return builder.lookup.build_table(0)
+        return self.build_lookup_table(builder, 0)
 
     def get_excess_shift(self, index: pd.Index) -> pd.Series:
         pop = self.population_view.get(index)
