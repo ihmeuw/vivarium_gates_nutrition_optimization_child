@@ -23,7 +23,10 @@ from vivarium_gates_nutrition_optimization_child.constants import (
     data_values,
     results,
 )
-from vivarium_gates_nutrition_optimization_child.constants.metadata import SUBNATIONAL_LOCATION_DICT
+from vivarium_gates_nutrition_optimization_child.constants.metadata import (
+    SUBNATIONAL_LOCATION_DICT,
+)
+
 
 class ResultsStratifier(ResultsStratifier_):
     """Centralized component for handling results stratification.
@@ -38,7 +41,7 @@ class ResultsStratifier(ResultsStratifier_):
         age_bins = super().get_age_bins(builder)
         data_dict = {
             "age_start": [0.0, 0.019178, 0.076712, 0.5, 1.0, 2.0],  # [0.0, 0.5, 1.5],
-            "age_end": [0.019178, 0.076712, 0.5, 1.0, 2.0, 5.0],  #[0.5, 1.5, 5],
+            "age_end": [0.019178, 0.076712, 0.5, 1.0, 2.0, 5.0],  # [0.5, 1.5, 5],
             "age_group_name": [
                 "early_neonatal",
                 "late_neonatal",
