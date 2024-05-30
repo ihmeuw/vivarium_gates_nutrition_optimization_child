@@ -20,6 +20,7 @@ OUTPUT_COLUMN_SORT_ORDER = [
     "age_group",
     "sex",
     "year",
+    "subnational",
     "risk",
     "cause",
     "measure",
@@ -31,22 +32,22 @@ RENAME_COLUMNS = {
 }
 
 
-def make_measure_data(data: pd.DataFrame, disaggregate_seeds: bool):
+def make_measure_data(data: pd.DataFrame, disaggregate_seeds: bool, location: str):
     measure_data = MeasureData(
-        ylls=get_by_cause_measure_data(data, "ylls", disaggregate_seeds),
-        ylds=get_by_cause_measure_data(data, "ylds", disaggregate_seeds),
-        deaths=get_by_cause_measure_data(data, "deaths", disaggregate_seeds),
+        ylls=get_by_cause_measure_data(data, "ylls", disaggregate_seeds, location),
+        ylds=get_by_cause_measure_data(data, "ylds", disaggregate_seeds, location),
+        deaths=get_by_cause_measure_data(data, "deaths", disaggregate_seeds, location),
         diarrhea_state_person_time=get_state_person_time_measure_data(
-            data, "diarrhea_state_person_time", disaggregate_seeds
+            data, "diarrhea_state_person_time", disaggregate_seeds, location
         ),
         lri_state_person_time=get_state_person_time_measure_data(
-            data, "lri_state_person_time", disaggregate_seeds
+            data, "lri_state_person_time", disaggregate_seeds, location
         ),
         measles_state_person_time=get_state_person_time_measure_data(
-            data, "measles_state_person_time", disaggregate_seeds
+            data, "measles_state_person_time", disaggregate_seeds, location
         ),
         malaria_state_person_time=get_state_person_time_measure_data(
-            data, "malaria_state_person_time", disaggregate_seeds
+            data, "malaria_state_person_time", disaggregate_seeds, location
         ),
         #        moderate_pem_state_person_time=get_state_person_time_measure_data(
         #            data, "moderate_pem_state_person_time", disaggregate_seeds
@@ -55,16 +56,16 @@ def make_measure_data(data: pd.DataFrame, disaggregate_seeds: bool):
         #            data, "severe_pem_state_person_time", disaggregate_seeds
         #        ),
         diarrhea_transition_count=get_transition_count_measure_data(
-            data, "diarrhea_transition_count", disaggregate_seeds
+            data, "diarrhea_transition_count", disaggregate_seeds, location
         ),
         lri_transition_count=get_transition_count_measure_data(
-            data, "lri_transition_count", disaggregate_seeds
+            data, "lri_transition_count", disaggregate_seeds, location
         ),
         measles_transition_count=get_transition_count_measure_data(
-            data, "measles_transition_count", disaggregate_seeds
+            data, "measles_transition_count", disaggregate_seeds, location
         ),
         malaria_transition_count=get_transition_count_measure_data(
-            data, "malaria_transition_count", disaggregate_seeds
+            data, "malaria_transition_count", disaggregate_seeds, location
         ),
         #        moderate_pem_transition_count=get_transition_count_measure_data(
         #            data, "moderate_pem_transition_count", disaggregate_seeds
@@ -73,16 +74,16 @@ def make_measure_data(data: pd.DataFrame, disaggregate_seeds: bool):
         #            data, "severe_pem_transition_count", disaggregate_seeds
         #        ),
         stunting_state_person_time=get_state_person_time_measure_data(
-            data, "stunting_state_person_time", disaggregate_seeds
+            data, "stunting_state_person_time", disaggregate_seeds, location
         ),
         wasting_state_person_time=get_state_person_time_measure_data(
-            data, "wasting_state_person_time", disaggregate_seeds
+            data, "wasting_state_person_time", disaggregate_seeds, location
         ),
         wasting_transition_count=get_transition_count_measure_data(
-            data, "wasting_transition_count", disaggregate_seeds
+            data, "wasting_transition_count", disaggregate_seeds, location
         ),
         underweight_state_person_time=get_state_person_time_measure_data(
-            data, "underweight_state_person_time", disaggregate_seeds
+            data, "underweight_state_person_time", disaggregate_seeds, location
         ),
         #        low_birth_weight_and_short_gestation_sum=get_measure_data(
         #            data, "low_birth_weight_and_short_gestation_sum", disaggregate_seeds
@@ -215,9 +216,9 @@ def sort_data(data: pd.DataFrame, disaggregate_seeds: bool) -> pd.DataFrame:
     return data.reset_index(drop=True)
 
 
-def apply_results_map(data: pd.DataFrame, kind: str) -> pd.DataFrame:
+def apply_results_map(data: pd.DataFrame, kind: str, location: str) -> pd.DataFrame:
     logger.info(f"Mapping {kind} data to stratifications.")
-    map_df = results.RESULTS_MAP(kind)
+    map_df = results.RESULTS_MAP(kind, location)
     data = data.set_index("key")
     data = data.join(map_df).reset_index(drop=True)
     data = data.rename(columns=RENAME_COLUMNS)
@@ -244,7 +245,7 @@ def get_population_data(data: pd.DataFrame, disaggregate_seeds: bool) -> pd.Data
 
 
 def get_measure_data(
-    data: pd.DataFrame, measure: str, disaggregate_seeds: bool
+    data: pd.DataFrame, measure: str, disaggregate_seeds: bool, location: str,
 ) -> pd.DataFrame:
     if disaggregate_seeds:
         data = pivot_data(
@@ -259,26 +260,26 @@ def get_measure_data(
         data = pivot_data(
             data[results.RESULT_COLUMNS(measure) + GROUPBY_COLUMNS], disaggregate_seeds
         )
-    data = apply_results_map(data, measure)
+    data = apply_results_map(data, measure, location)
     return sort_data(data, disaggregate_seeds)
 
 
 def get_by_cause_measure_data(
-    data: pd.DataFrame, measure: str, disaggregate_seeds: bool
+    data: pd.DataFrame, measure: str, disaggregate_seeds: bool, location: str,
 ) -> pd.DataFrame:
-    data = get_measure_data(data, measure, disaggregate_seeds)
+    data = get_measure_data(data, measure, disaggregate_seeds, location)
     return sort_data(data, disaggregate_seeds)
 
 
 def get_state_person_time_measure_data(
-    data: pd.DataFrame, measure: str, disaggregate_seeds: bool
+    data: pd.DataFrame, measure: str, disaggregate_seeds: bool, location: str,
 ) -> pd.DataFrame:
-    data = get_measure_data(data, measure, disaggregate_seeds)
+    data = get_measure_data(data, measure, disaggregate_seeds, location)
     return sort_data(data, disaggregate_seeds)
 
 
 def get_transition_count_measure_data(
-    data: pd.DataFrame, measure: str, disaggregate_seeds: bool
+    data: pd.DataFrame, measure: str, disaggregate_seeds: bool, location: str,
 ) -> pd.DataFrame:
     # Oops, edge case.
     data = data.drop(
@@ -286,5 +287,5 @@ def get_transition_count_measure_data(
             c for c in data.columns if "event_count" in c and str(results.YEARS[-1] + 1) in c
         ]
     )
-    data = get_measure_data(data, measure, disaggregate_seeds)
+    data = get_measure_data(data, measure, disaggregate_seeds, location)
     return sort_data(data, disaggregate_seeds)
