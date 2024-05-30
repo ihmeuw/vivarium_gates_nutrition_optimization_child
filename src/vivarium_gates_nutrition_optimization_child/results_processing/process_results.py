@@ -175,10 +175,10 @@ def filter_out_incomplete(
     return pd.concat(output, ignore_index=True).reset_index(drop=True)
 
 
-def aggregate_over_seed(data: pd.DataFrame) -> pd.DataFrame:
+def aggregate_over_seed(data: pd.DataFrame, location: str) -> pd.DataFrame:
     non_count_columns = []
     for non_count_template in results.NON_COUNT_TEMPLATES:
-        non_count_columns += results.RESULT_COLUMNS(non_count_template)
+        non_count_columns += results.RESULT_COLUMNS(location, non_count_template)
     count_columns = [c for c in data.columns if c not in non_count_columns + GROUPBY_COLUMNS]
 
     # non_count_data = data[non_count_columns + GROUPBY_COLUMNS].groupby(GROUPBY_COLUMNS).mean()
@@ -226,7 +226,9 @@ def apply_results_map(data: pd.DataFrame, kind: str, location: str) -> pd.DataFr
     return data
 
 
-def get_population_data(data: pd.DataFrame, disaggregate_seeds: bool) -> pd.DataFrame:
+def get_population_data(
+    data: pd.DataFrame, disaggregate_seeds: bool, location: str
+) -> pd.DataFrame:
     if disaggregate_seeds:
         groupby_cols = GROUPBY_COLUMNS + [results.RANDOM_SEED_COLUMN]
     else:
@@ -235,7 +237,7 @@ def get_population_data(data: pd.DataFrame, disaggregate_seeds: bool) -> pd.Data
     total_pop = pivot_data(
         data[
             [results.TOTAL_POPULATION_COLUMN]
-            + results.RESULT_COLUMNS("population")
+            + results.RESULT_COLUMNS(location, "population")
             + groupby_cols
         ],
         disaggregate_seeds,
@@ -245,12 +247,15 @@ def get_population_data(data: pd.DataFrame, disaggregate_seeds: bool) -> pd.Data
 
 
 def get_measure_data(
-    data: pd.DataFrame, measure: str, disaggregate_seeds: bool, location: str,
+    data: pd.DataFrame,
+    measure: str,
+    disaggregate_seeds: bool,
+    location: str,
 ) -> pd.DataFrame:
     if disaggregate_seeds:
         data = pivot_data(
             data[
-                results.RESULT_COLUMNS(measure)
+                results.RESULT_COLUMNS(location, measure)
                 + GROUPBY_COLUMNS
                 + [results.RANDOM_SEED_COLUMN]
             ],
@@ -258,28 +263,38 @@ def get_measure_data(
         )
     else:
         data = pivot_data(
-            data[results.RESULT_COLUMNS(measure) + GROUPBY_COLUMNS], disaggregate_seeds
+            data[results.RESULT_COLUMNS(location, measure) + GROUPBY_COLUMNS],
+            disaggregate_seeds,
         )
     data = apply_results_map(data, measure, location)
     return sort_data(data, disaggregate_seeds)
 
 
 def get_by_cause_measure_data(
-    data: pd.DataFrame, measure: str, disaggregate_seeds: bool, location: str,
+    data: pd.DataFrame,
+    measure: str,
+    disaggregate_seeds: bool,
+    location: str,
 ) -> pd.DataFrame:
     data = get_measure_data(data, measure, disaggregate_seeds, location)
     return sort_data(data, disaggregate_seeds)
 
 
 def get_state_person_time_measure_data(
-    data: pd.DataFrame, measure: str, disaggregate_seeds: bool, location: str,
+    data: pd.DataFrame,
+    measure: str,
+    disaggregate_seeds: bool,
+    location: str,
 ) -> pd.DataFrame:
     data = get_measure_data(data, measure, disaggregate_seeds, location)
     return sort_data(data, disaggregate_seeds)
 
 
 def get_transition_count_measure_data(
-    data: pd.DataFrame, measure: str, disaggregate_seeds: bool, location: str,
+    data: pd.DataFrame,
+    measure: str,
+    disaggregate_seeds: bool,
+    location: str,
 ) -> pd.DataFrame:
     # Oops, edge case.
     data = data.drop(

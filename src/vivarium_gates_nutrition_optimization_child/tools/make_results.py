@@ -27,7 +27,7 @@ def build_results(output_file: str, single_run: bool, disaggregate_seeds: bool) 
         f"Filtered {rows - new_rows} from data due to incomplete information.  {new_rows} remaining."
     )
     if not disaggregate_seeds:
-        data = process_results.aggregate_over_seed(data)
+        data = process_results.aggregate_over_seed(data, location)
     logger.info(f"Computing raw count and proportion data.")
     measure_data = process_results.make_measure_data(data, disaggregate_seeds, location)
     logger.info(f"Writing raw count and proportion data to {str(measure_dir)}")
