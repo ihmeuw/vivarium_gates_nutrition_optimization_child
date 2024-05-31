@@ -144,6 +144,7 @@ def read_data(path: Path, single_run: bool) -> (pd.DataFrame, List[str]):
         data[results.INPUT_DRAW_COLUMN] = 0
         data[results.RANDOM_SEED_COLUMN] = 0
         data[SCENARIO_COLUMN] = scenarios.INTERVENTION_SCENARIOS.BASELINE.name
+        data[MATERNAL_SCENARIO_COLUMN] = scenarios.INTERVENTION_SCENARIOS.BASELINE.name
         keyspace = {
             results.INPUT_DRAW_COLUMN: [0],
             results.RANDOM_SEED_COLUMN: [0],
