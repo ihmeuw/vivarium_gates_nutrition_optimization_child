@@ -95,19 +95,6 @@ AGE_GROUPS = (
     "12_to_23_months",
     "2_to_4",
 )
-SUBNATIONALS = [
-    "Addis Ababa",
-    "Afar",
-    "Amhara",
-    "Benishangul-Gumuz",
-    "Dire Dawa",
-    "Gambella",
-    "Harari",
-    "Oromia",
-    "Somali",
-    "Southern Nations, Nationalities, and Peoples",
-    "Tigray",
-]
 DICHOTOMOUS_RISK_STATES = ("cat2", "cat1")
 CAUSES_OF_DEATH = (
     "other_causes",
