@@ -95,19 +95,6 @@ AGE_GROUPS = (
     "12_to_23_months",
     "2_to_4",
 )
-SUBNATIONALS = [
-    "Addis Ababa",
-    "Afar",
-    "Amhara",
-    "Benishangul-Gumuz",
-    "Dire Dawa",
-    "Gambella",
-    "Harari",
-    "Oromia",
-    "Somali",
-    "Southern Nations, Nationalities, and Peoples",
-    "Tigray",
-]
 DICHOTOMOUS_RISK_STATES = ("cat2", "cat1")
 CAUSES_OF_DEATH = (
     "other_causes",
@@ -179,22 +166,23 @@ TEMPLATE_FIELD_MAP = {
     "WASTING_TRANSITION": WASTING_TRANSITIONS,
     "SQLNS_COVERAGE": SQLNS_COVERAGES,
     "BIRTH_WEIGHT_STATUS": BIRTH_WEIGHT_STATUSES,
+    "SUBNATIONAL": SUBNATIONAL_LOCATION_DICT,
 }
 
 
 # noinspection PyPep8Naming
-def RESULT_COLUMNS(kind="all"):
+def RESULT_COLUMNS(location, kind="all"):
     if kind not in COLUMN_TEMPLATES and kind != "all":
         raise ValueError(f"Unknown result column type {kind}")
     columns = []
     if kind == "all":
         for k in COLUMN_TEMPLATES:
-            columns += RESULT_COLUMNS(k)
+            columns += RESULT_COLUMNS(location, k)
         columns = list(STANDARD_COLUMNS.values()) + columns
     else:
         template = COLUMN_TEMPLATES[kind]
         filtered_field_map = {
-            field: values
+            field: (values if field != "SUBNATIONAL" else values[location])
             for field, values in TEMPLATE_FIELD_MAP.items()
             if f"{{{field}}}" in template
         }
@@ -209,13 +197,14 @@ def RESULT_COLUMNS(kind="all"):
 
 
 # noinspection PyPep8Naming
-def RESULTS_MAP(kind):
+def RESULTS_MAP(kind, location):
     if kind not in COLUMN_TEMPLATES:
         raise ValueError(f"Unknown result column type {kind}")
     columns = []
     template = COLUMN_TEMPLATES[kind]
+
     filtered_field_map = {
-        field: values
+        field: (values if field != "SUBNATIONAL" else values[location])
         for field, values in TEMPLATE_FIELD_MAP.items()
         if f"{{{field}}}" in template
     }
