@@ -121,6 +121,7 @@ configuration:
         default:
             - 'age_group'
             - 'sex'
+            - 'subnational'
         child_wasting:
             include: ['sam_treatment', 'mam_treatment']
         child_stunting:

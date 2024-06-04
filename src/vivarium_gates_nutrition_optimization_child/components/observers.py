@@ -23,6 +23,9 @@ from vivarium_gates_nutrition_optimization_child.constants import (
     data_values,
     results,
 )
+from vivarium_gates_nutrition_optimization_child.constants.metadata import (
+    SUBNATIONAL_LOCATION_DICT,
+)
 
 
 class ResultsStratifier(ResultsStratifier_):
@@ -37,18 +40,18 @@ class ResultsStratifier(ResultsStratifier_):
         """Define final age groups for production runs."""
         age_bins = super().get_age_bins(builder)
         data_dict = {
-            "age_start": [0.0, 0.5, 1.5],  # [0.0, 0.019178, 0.076712, 0.5, 1.0, 2.0],
-            "age_end": [0.5, 1.5, 5],  # [0.019178, 0.076712, 0.5, 1.0, 2.0, 5.0],
+            "age_start": [0.0, 0.019178, 0.076712, 0.5, 1.0, 2.0],  # [0.0, 0.5, 1.5],
+            "age_end": [0.019178, 0.076712, 0.5, 1.0, 2.0, 5.0],  # [0.5, 1.5, 5],
             "age_group_name": [
-                # "early_neonatal",
-                # "late_neonatal",
-                # "1-5_months",
-                # "6-11_months",
-                # "12_to_23_months",
-                # "2_to_4",
-                "0_to_6_months",
-                "6_to_18_months",
-                "18_to_59_months",
+                "early_neonatal",
+                "late_neonatal",
+                "1-5_months",
+                "6-11_months",
+                "12_to_23_months",
+                "2_to_4",
+                # "0_to_6_months",
+                # "6_to_18_months",
+                # "18_to_59_months",
             ],
         }
 
@@ -116,6 +119,13 @@ class ResultsStratifier(ResultsStratifier_):
             ["low_birth_weight", "adequate_birth_weight"],
             is_vectorized=True,
             requires_columns=["birth_weight_status"],
+        )
+        location = builder.data.load("population.location")
+        builder.results.register_stratification(
+            "subnational",
+            SUBNATIONAL_LOCATION_DICT[location],
+            is_vectorized=True,
+            requires_columns=["subnational"],
         )
 
     ###########################
