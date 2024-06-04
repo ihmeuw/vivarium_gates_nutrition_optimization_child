@@ -92,7 +92,7 @@ NATIONAL_LEVEL_DATA_KEYS = [
     data_keys.LBWSG.EXPOSURE,
     data_keys.LBWSG.RELATIVE_RISK,
     data_keys.LBWSG.RELATIVE_RISK_INTERPOLATOR,
-    #data_keys.LBWSG.PAF,
+    # data_keys.LBWSG.PAF,
     data_keys.AFFECTED_UNMODELED_CAUSES.URI_CSMR,
     data_keys.AFFECTED_UNMODELED_CAUSES.OTITIS_MEDIA_CSMR,
     data_keys.AFFECTED_UNMODELED_CAUSES.MENINGITIS_CSMR,
@@ -238,7 +238,7 @@ def get_data(
         data_keys.LBWSG.EXPOSURE: load_lbwsg_exposure,  ## Still 2019 age bins, but doesn't have effect past NN
         data_keys.LBWSG.RELATIVE_RISK: load_lbwsg_rr,  ## Still 2019 age bins, but doesn't have effect past NN
         data_keys.LBWSG.RELATIVE_RISK_INTERPOLATOR: load_lbwsg_interpolated_rr,  ## Still 2019 age bins, but doesn't have effect past NN
-        #data_keys.LBWSG.PAF: load_lbwsg_paf,  ## Still 2019 age bins, but doesn't have effect past NN
+        # data_keys.LBWSG.PAF: load_lbwsg_paf,  ## Still 2019 age bins, but doesn't have effect past NN
         data_keys.AFFECTED_UNMODELED_CAUSES.URI_CSMR: load_standard_data,
         data_keys.AFFECTED_UNMODELED_CAUSES.OTITIS_MEDIA_CSMR: load_standard_data,
         data_keys.AFFECTED_UNMODELED_CAUSES.MENINGITIS_CSMR: load_standard_data,

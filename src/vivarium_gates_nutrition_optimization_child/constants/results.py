@@ -3,7 +3,9 @@ import itertools
 import pandas as pd
 
 from vivarium_gates_nutrition_optimization_child.constants import data_keys, models
-from vivarium_gates_nutrition_optimization_child.constants.metadata import SUBNATIONAL_LOCATION_DICT
+from vivarium_gates_nutrition_optimization_child.constants.metadata import (
+    SUBNATIONAL_LOCATION_DICT,
+)
 
 #################################
 # Results columns and variables #
