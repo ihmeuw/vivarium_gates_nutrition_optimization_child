@@ -1,7 +1,8 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
 import pandas as pd
+from vivarium.framework.artifact.artifact import ArtifactException
 from vivarium.framework.engine import Builder
 from vivarium.framework.event import Event
 from vivarium.framework.population import SimulantData
@@ -403,12 +404,13 @@ def load_mild_wasting_birth_prevalence(builder: Builder, cause: str) -> pd.DataF
 
 
 # noinspection PyUnusedLocal
-def load_mild_wasting_exposure(builder: Builder, cause: str) -> pd.DataFrame:
-    return (
-        load_child_wasting_exposures(builder)[WASTING.CAT3]
-        .reset_index()
-        .rename(columns={WASTING.CAT3: "value"})
-    )
+def load_mild_wasting_exposure(builder: Builder, cause: str) -> Union[float, pd.DataFrame]:
+    exposure = load_child_wasting_exposures(builder)
+    if isinstance(exposure, pd.DataFrame):
+        exposure = (
+            exposure[WASTING.CAT3].reset_index().rename(columns={WASTING.CAT3: "value"})
+        )
+    return exposure
 
 
 def load_wasting_rate(builder: Builder, *wasting_states) -> pd.DataFrame:
@@ -459,21 +461,23 @@ def load_worse_mam_birth_prevalence(builder: Builder, cause: str) -> pd.DataFram
 
 
 # noinspection PyUnusedLocal
-def load_better_mam_exposure(builder: Builder, cause: str) -> pd.DataFrame:
-    return (
-        load_child_wasting_exposures(builder)[WASTING.CAT25]
-        .reset_index()
-        .rename(columns={WASTING.CAT25: "value"})
-    )
+def load_better_mam_exposure(builder: Builder, cause: str) -> Union[float, pd.DataFrame]:
+    exposure = load_child_wasting_exposures(builder)
+    if isinstance(exposure, pd.DataFrame):
+        exposure = (
+            exposure[WASTING.CAT25].reset_index().rename(columns={WASTING.CAT25: "value"})
+        )
+    return exposure
 
 
 # noinspection PyUnusedLocal
-def load_worse_mam_exposure(builder: Builder, cause: str) -> pd.DataFrame:
-    return (
-        load_child_wasting_exposures(builder)[WASTING.CAT2]
-        .reset_index()
-        .rename(columns={WASTING.CAT2: "value"})
-    )
+def load_worse_mam_exposure(builder: Builder, cause: str) -> Union[float, pd.DataFrame]:
+    exposure = load_child_wasting_exposures(builder)
+    if isinstance(exposure, pd.DataFrame):
+        exposure = (
+            exposure[WASTING.CAT2].reset_index().rename(columns={WASTING.CAT2: "value"})
+        )
+    return exposure
 
 
 # noinspection PyUnusedLocal
@@ -482,29 +486,33 @@ def load_sam_birth_prevalence(builder: Builder, cause: str) -> pd.DataFrame:
 
 
 # noinspection PyUnusedLocal
-def load_sam_exposure(builder: Builder, cause: str) -> pd.DataFrame:
-    return (
-        load_child_wasting_exposures(builder)[WASTING.CAT1]
-        .reset_index()
-        .rename(columns={WASTING.CAT1: "value"})
-    )
+def load_sam_exposure(builder: Builder, cause: str) -> Union[float, pd.DataFrame]:
+    exposure = load_child_wasting_exposures(builder)
+    if isinstance(exposure, pd.DataFrame):
+        exposure = (
+            exposure[WASTING.CAT1].reset_index().rename(columns={WASTING.CAT1: "value"})
+        )
+    return exposure
 
 
 # Sub-loader functions
-def load_child_wasting_exposures(builder: Builder) -> pd.DataFrame:
+def load_child_wasting_exposures(builder: Builder) -> Union[float, pd.DataFrame]:
+
+    # Get wasting exposure data
     try:
-        exposures = (
-            builder.data.load(WASTING.EXPOSURE)
-            .set_index(metadata.ARTIFACT_INDEX_COLUMNS)
-            .pivot(columns="parameter")
+        exposures = builder.data.load(WASTING.EXPOSURE)
+    except ArtifactException:
+        # No exposure if data is not in artifact
+        return 0
+    # Set index for either national or subnational
+    try:
+        exposures = exposures.set_index(metadata.ARTIFACT_INDEX_COLUMNS).pivot(
+            columns="parameter"
         )
     except KeyError:
-        exposures = (
-            builder.data.load(WASTING.EXPOSURE)
-            .set_index(metadata.SUBNATIONAL_INDEX_COLUMNS)
-            .pivot(columns="parameter")
+        exposures = exposures.set_index(metadata.SUBNATIONAL_INDEX_COLUMNS).pivot(
+            columns="parameter"
         )
-
     exposures.columns = exposures.columns.droplevel(0)
     return exposures
 
