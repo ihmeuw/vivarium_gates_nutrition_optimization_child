@@ -370,20 +370,20 @@ def load_standard_data(key: str, location: Union[str, List[int]]) -> pd.DataFram
     ]
 
     if key in use_2019_data_keys:
-        data = interface.get_measure(entity, key.measure, location, True)
+        data = interface.get_measure(entity, key.measure, location, metadata.GBD_EXTRACT_YEAR)
         data = data.query("year_start == 2019")
 
     elif key in neonatal_deleted_keys:
-        data = interface.get_measure(entity, key.measure, location)
+        data = interface.get_measure(entity, key.measure, location, metadata.GBD_EXTRACT_YEAR)
         data.loc[data.reset_index()["age_start"] < metadata.NEONATAL_END_AGE, :] = 0
 
     elif key in both_2019_and_neonatal_deleted:
-        data = interface.get_measure(entity, key.measure, location, True)
+        data = interface.get_measure(entity, key.measure, location, metadata.GBD_EXTRACT_YEAR)
         data = data.query("year_start == 2019")
         data.loc[data.reset_index()["age_start"] < metadata.NEONATAL_END_AGE, :] = 0
 
     else:
-        data = interface.get_measure(entity, key.measure, location)
+        data = interface.get_measure(entity, key.measure, location, metadata.GBD_EXTRACT_YEAR)
 
     if key not in no_age:
         data = data.query("age_start < 5")
@@ -1118,8 +1118,12 @@ def load_pem_disability_weight(key: str, location: Union[str, List[int]]) -> pd.
     prevalence_disability_weight = []
     state_prevalence = []
     for s in pem_sequelae:
-        sequela_prevalence = interface.get_measure(s, "prevalence", location)
-        sequela_disability_weight = interface.get_measure(s, "disability_weight", location)
+        sequela_prevalence = interface.get_measure(
+            s, "prevalence", location, metadata.GBD_EXTRACT_YEAR
+        )
+        sequela_disability_weight = interface.get_measure(
+            s, "disability_weight", location, metadata.GBD_EXTRACT_YEAR
+        )
 
         prevalence_disability_weight += [sequela_prevalence * sequela_disability_weight]
         state_prevalence += [sequela_prevalence]
@@ -1455,7 +1459,7 @@ def load_sids_csmr(key: str, location: str) -> pd.DataFrame:
         entity.restrictions.yll_only = False
         entity.restrictions.yld_age_group_id_start = metadata.AGE_GROUP.LATE_NEONATAL_ID
         entity.restrictions.yld_age_group_id_end = metadata.AGE_GROUP.LATE_NEONATAL_ID
-        data = interface.get_measure(entity, key.measure, location)
+        data = interface.get_measure(entity, key.measure, location, metadata.GBD_EXTRACT_YEAR)
         return data
     else:
         raise ValueError(f"Unrecognized key {key}")
