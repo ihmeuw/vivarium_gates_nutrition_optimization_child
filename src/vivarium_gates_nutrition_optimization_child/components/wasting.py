@@ -270,7 +270,6 @@ def ChildWasting() -> ChildWastingModel:
         cause_type="sequela",
         get_data_functions={
             "prevalence": load_mild_wasting_exposure,
-            # "prevalence": lambda *_: 0,
             "disability_weight": lambda *_: 0,
             "excess_mortality_rate": lambda *_: 0,
             "birth_prevalence": load_mild_wasting_birth_prevalence,
@@ -281,7 +280,6 @@ def ChildWasting() -> ChildWastingModel:
         cause_type="sequela",
         get_data_functions={
             "prevalence": load_better_mam_exposure,
-            # "prevalence": lambda *_: 0,
             "disability_weight": lambda *_: 0,
             "excess_mortality_rate": lambda *_: 0,
             "birth_prevalence": load_better_mam_birth_prevalence,
@@ -292,7 +290,6 @@ def ChildWasting() -> ChildWastingModel:
         cause_type="sequela",
         get_data_functions={
             "prevalence": load_worse_mam_exposure,
-            # "prevalence": lambda *_: 0,
             "disability_weight": lambda *_: 0,
             "excess_mortality_rate": lambda *_: 0,
             "birth_prevalence": load_worse_mam_birth_prevalence,
@@ -303,7 +300,6 @@ def ChildWasting() -> ChildWastingModel:
         cause_type="sequela",
         get_data_functions={
             "prevalence": load_sam_exposure,
-            # "prevalence": lambda *_: 0,
             "disability_weight": lambda *_: 0,
             "excess_mortality_rate": lambda *_: 0,
             "birth_prevalence": load_sam_birth_prevalence,
