@@ -370,11 +370,11 @@ def load_standard_data(key: str, location: Union[str, List[int]]) -> pd.DataFram
     ]
 
     if key in use_2019_data_keys:
-        data = interface.get_measure(entity, key.measure, location)
+        data = interface.get_measure(entity, key.measure, location, 2019)
         data = data.query("year_start == 2019")
 
     elif key in neonatal_deleted_keys:
-        data = interface.get_measure(entity, key.measure, location, 2019)
+        data = interface.get_measure(entity, key.measure, location, metadata.GBD_EXTRACT_YEAR)
         data.loc[data.reset_index()["age_start"] < metadata.NEONATAL_END_AGE, :] = 0
 
     elif key in both_2019_and_neonatal_deleted:
