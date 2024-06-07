@@ -378,7 +378,7 @@ def load_standard_data(key: str, location: Union[str, List[int]]) -> pd.DataFram
         data.loc[data.reset_index()["age_start"] < metadata.NEONATAL_END_AGE, :] = 0
 
     elif key in both_2019_and_neonatal_deleted:
-        data = interface.get_measure(entity, key.measure, location, metadata.GBD_EXTRACT_YEAR)
+        data = interface.get_measure(entity, key.measure, location, 2019)
         data = data.query("year_start == 2019")
         data.loc[data.reset_index()["age_start"] < metadata.NEONATAL_END_AGE, :] = 0
 
