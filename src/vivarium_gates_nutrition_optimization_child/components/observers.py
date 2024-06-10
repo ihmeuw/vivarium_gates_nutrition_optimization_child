@@ -1,20 +1,20 @@
 from collections import Counter
-from typing import Dict, List, Optional
-
+from typing import Dict, List, Optional, Any
+from functools import partial
 import pandas as pd
 from vivarium import Component
 from vivarium.framework.engine import Builder
 from vivarium.framework.event import Event
 from vivarium.framework.population import PopulationView
 from vivarium_public_health.disease.transition import TransitionString
-from vivarium_public_health.metrics.disability import (
+from vivarium_public_health.results.disability import (
     DisabilityObserver as DisabilityObserver_,
 )
-from vivarium_public_health.metrics.disease import DiseaseObserver
-from vivarium_public_health.metrics.mortality import (
+from vivarium_public_health.results.disease import DiseaseObserver
+from vivarium_public_health.results.mortality import (
     MortalityObserver as MortalityObserver_,
 )
-from vivarium_public_health.metrics.stratification import (
+from vivarium_public_health.results.stratification import (
     ResultsStratifier as ResultsStratifier_,
 )
 
@@ -175,114 +175,130 @@ class ResultsStratifier(ResultsStratifier_):
         return age_group
 
 
-class BirthObserver(Component):
-    CONFIGURATION_DEFAULTS = {
-        "stratification": {
-            "birth": {
-                "exclude": [],
-                "include": [],
-            }
-        }
-    }
+# delete?
+# class BirthObserver(Component):
+#     CONFIGURATION_DEFAULTS = {
+#         "stratification": {
+#             "birth": {
+#                 "exclude": [],
+#                 "include": [],
+#             }
+#         }
+#     }
 
-    def __init__(self):
-        super().__init__()
-        self.birth_weight_column_name = "birth_weight_exposure"
-        self.gestational_age_column_name = "gestational_age_exposure"
-        self.low_birth_weight_limit = 2500  # grams
+#     def __init__(self):
+#         super().__init__()
+#         self.birth_weight_column_name = "birth_weight_exposure"
+#         self.gestational_age_column_name = "gestational_age_exposure"
+#         self.low_birth_weight_limit = 2500  # grams
 
-    @property
-    def columns_required(self) -> Optional[List[str]]:
-        return [
-            "entrance_time",
-            self.birth_weight_column_name,
-            self.gestational_age_column_name,
-        ]
+#     @property
+#     def columns_required(self) -> Optional[List[str]]:
+#         return [
+#             "entrance_time",
+#             self.birth_weight_column_name,
+#             self.gestational_age_column_name,
+#         ]
 
-    #################
-    # Setup methods #
-    #################
+#     #################
+#     # Setup methods #
+#     #################
 
-    # noinspection PyAttributeOutsideInit
-    def setup(self, builder: Builder) -> None:
-        self.clock = builder.time.clock()
-        self.config = builder.configuration.stratification.birth
+#     # noinspection PyAttributeOutsideInit
+#     def setup(self, builder: Builder) -> None:
+#         self.clock = builder.time.clock()
+#         self.config = builder.configuration.stratification.birth
 
-        builder.results.register_observation(
-            name=f"live_births",
-            pop_filter="alive=='alive'",
-            aggregator=self.count_live_births,
-            requires_columns=["entrance_time"],
-            additional_stratifications=self.config.include,
-            excluded_stratifications=self.config.exclude,
-            when="collect_metrics",
-        )
-        builder.results.register_observation(
-            name=f"birth_weight_sum",
-            pop_filter="alive=='alive'",
-            aggregator=self.sum_birth_weights,
-            requires_columns=["entrance_time", self.birth_weight_column_name],
-            additional_stratifications=self.config.include,
-            excluded_stratifications=self.config.exclude,
-            when="collect_metrics",
-        )
-        builder.results.register_observation(
-            name=f"gestational_age_sum",
-            pop_filter="alive=='alive'",
-            aggregator=self.sum_gestational_ages,
-            requires_columns=["entrance_time", self.gestational_age_column_name],
-            additional_stratifications=self.config.include,
-            excluded_stratifications=self.config.exclude,
-            when="collect_metrics",
-        )
-        builder.results.register_observation(
-            name=f"low_weight_births",
-            pop_filter="alive=='alive'",
-            aggregator=self.count_low_weight_births,
-            requires_columns=["entrance_time", self.birth_weight_column_name],
-            additional_stratifications=self.config.include,
-            excluded_stratifications=self.config.exclude,
-            when="collect_metrics",
-        )
+#         builder.results.register_observation(
+#             name=f"live_births",
+#             pop_filter="alive=='alive'",
+#             aggregator=self.count_live_births,
+#             requires_columns=["entrance_time"],
+#             additional_stratifications=self.config.include,
+#             excluded_stratifications=self.config.exclude,
+#             when="collect_metrics",
+#         )
+#         builder.results.register_observation(
+#             name=f"birth_weight_sum",
+#             pop_filter="alive=='alive'",
+#             aggregator=self.sum_birth_weights,
+#             requires_columns=["entrance_time", self.birth_weight_column_name],
+#             additional_stratifications=self.config.include,
+#             excluded_stratifications=self.config.exclude,
+#             when="collect_metrics",
+#         )
+#         builder.results.register_observation(
+#             name=f"gestational_age_sum",
+#             pop_filter="alive=='alive'",
+#             aggregator=self.sum_gestational_ages,
+#             requires_columns=["entrance_time", self.gestational_age_column_name],
+#             additional_stratifications=self.config.include,
+#             excluded_stratifications=self.config.exclude,
+#             when="collect_metrics",
+#         )
+#         builder.results.register_observation(
+#             name=f"low_weight_births",
+#             pop_filter="alive=='alive'",
+#             aggregator=self.count_low_weight_births,
+#             requires_columns=["entrance_time", self.birth_weight_column_name],
+#             additional_stratifications=self.config.include,
+#             excluded_stratifications=self.config.exclude,
+#             when="collect_metrics",
+#         )
 
-    ########################
-    # Event-driven methods #
-    ########################
-    def count_live_births(self, x: pd.DataFrame) -> float:
-        born_this_step = x["entrance_time"] == self.clock()
-        return sum(born_this_step)
+#     ########################
+#     # Event-driven methods #
+#     ########################
+#     def count_live_births(self, x: pd.DataFrame) -> float:
+#         born_this_step = x["entrance_time"] == self.clock()
+#         return sum(born_this_step)
 
-    def sum_birth_weights(self, x: pd.DataFrame) -> float:
-        born_this_step = x["entrance_time"] == self.clock()
-        return x.loc[born_this_step, self.birth_weight_column_name].sum()
+#     def sum_birth_weights(self, x: pd.DataFrame) -> float:
+#         born_this_step = x["entrance_time"] == self.clock()
+#         return x.loc[born_this_step, self.birth_weight_column_name].sum()
 
-    def sum_gestational_ages(self, x: pd.DataFrame) -> float:
-        born_this_step = x["entrance_time"] == self.clock()
-        return x.loc[born_this_step, self.gestational_age_column_name].sum()
+#     def sum_gestational_ages(self, x: pd.DataFrame) -> float:
+#         born_this_step = x["entrance_time"] == self.clock()
+#         return x.loc[born_this_step, self.gestational_age_column_name].sum()
 
-    def count_low_weight_births(self, x: pd.DataFrame) -> float:
-        born_this_step = x["entrance_time"] == self.clock()
-        has_low_birth_weight = (
-            x.loc[born_this_step, self.birth_weight_column_name] < self.low_birth_weight_limit
-        )
-        return sum(has_low_birth_weight)
+#     def count_low_weight_births(self, x: pd.DataFrame) -> float:
+#         born_this_step = x["entrance_time"] == self.clock()
+#         has_low_birth_weight = (
+#             x.loc[born_this_step, self.birth_weight_column_name] < self.low_birth_weight_limit
+#         )
+#         return sum(has_low_birth_weight)
 
 
 class MortalityObserver(MortalityObserver_):
-    """This is a class to make component ordering work in the model spec."""
-
-    pass
+    def setup(self, builder: Builder) -> None:
+        super().setup(builder)
+        self.cause_of_death_values += ["stillborn"]
 
 
 class ChildWastingObserver(DiseaseObserver):
+
+    # def __init__(self):
+    #     super().__init__("child_wasting")
+    #     self.disease = self.risk = "child_wasting"
+    #     self.exposure_pipeline_name = f"{self.risk}.exposure"
     def __init__(self):
         super().__init__("child_wasting")
-        self.disease = self.risk = "child_wasting"
-        self.exposure_pipeline_name = f"{self.risk}.exposure"
+        self.risk = self.disease
+        self.exposure_pipeline_name = f"{self.disease}.exposure"
 
+    # @property
+    # def columns_required(self) -> Optional[List[str]]:
+    #     return [self.disease, "sex", "age"]
     @property
-    def columns_required(self) -> Optional[List[str]]:
-        return [self.disease, "sex", "age"]
+    def configuration_defaults(self) -> Dict[str, Any]:
+        return {
+            "stratification": {
+                self.disease: {
+                    "exclude": [],
+                    "include": [],
+                }
+            }
+        }
 
     #################
     # Setup methods #
@@ -293,74 +309,127 @@ class ChildWastingObserver(DiseaseObserver):
         self.step_size = builder.time.step_size()
         self.config = builder.configuration.stratification[self.disease]
         self.categories = builder.data.load(f"risk_factor.{self.risk}.categories")
-
-        disease_model = builder.components.get_component(
+        self.disease_model = builder.components.get_component(
             f"child_wasting_model.{self.disease}"
         )
 
-        # not needed for final runs
-        for category in self.categories:
-            builder.results.register_observation(
-                name=f"{self.risk}_{category}_person_time",
-                pop_filter=f'alive == "alive" and `{self.exposure_pipeline_name}`=="{category}" and tracked==True',
-                aggregator=self.aggregate_state_person_time,
-                requires_columns=["alive"],
-                requires_values=[self.exposure_pipeline_name],
-                additional_stratifications=self.config.include,
-                excluded_stratifications=self.config.exclude,
-                when="time_step__prepare",
-            )
-
-        for transition in disease_model.transition_names:
-            filter_string = (
-                f'{self.previous_state_column_name} == "{transition.from_state}" '
-                f'and {self.disease} == "{transition.to_state}" '
-                f"and tracked==True"
-            )
-            builder.results.register_observation(
-                name=f"{transition}_event_count",
-                pop_filter=filter_string,
-                requires_columns=[self.previous_state_column_name, self.disease],
-                additional_stratifications=self.config.include,
-                excluded_stratifications=self.config.exclude,
-                when="collect_metrics",
-            )
-
-
-class MortalityHazardRateObserver(Component):
-    CONFIGURATION_DEFAULTS = {
-        "stratification": {
-            "mortality_hazard_rate": {
-                "exclude": [],
-                "include": [],
-            }
-        }
-    }
-
-    def __init__(self):
-        super().__init__()
-        self.mortality_rate_pipeline_name = "mortality_rate"
-
-    #################
-    # Setup methods #
-    #################
-
-    # noinspection PyAttributeOutsideInit
-    def setup(self, builder: Builder):
-        self.config = builder.configuration.stratification.mortality_hazard_rate
-        self.mortality_rates = builder.value.get_value(self.mortality_rate_pipeline_name)
-
-        builder.results.register_observation(
-            name=f"mortality_hazard_rate_first_moment",
-            pop_filter="alive=='alive'",
-            aggregator=self.calculate_mortality_hazard_rate,
-            requires_columns=["alive"],
-            additional_stratifications=self.config.include,
-            excluded_stratifications=self.config.exclude,
-            when="collect_metrics",
+    def register_observations(self, builder: Builder) -> None:
+        builder.results.register_stratification(
+            f"{self.disease}_category",
+            self.categories,
+            requires_columns=[self.exposure_pipeline_name],
         )
 
-    def calculate_mortality_hazard_rate(self, x: pd.DataFrame) -> float:
-        # sum mortality rates across all causes
-        summed_mortality_rates = self.mortality_rates(x.index).sum()
-        return sum(summed_mortality_rates)
+        transition_stratification_name = f"transition_{self.disease}"
+        builder.results.register_stratification(
+            transition_stratification_name,
+            categories=self.disease_model.transition_names + ["no_transition"],
+            mapper=self.map_transitions,
+            requires_columns=[self.disease, self.previous_state_column_name],
+            is_vectorized=True,
+        )
+
+        entity_type = self.disease_model.cause_type
+        entity = self.disease_model.cause
+
+        # # not needed for final runs
+        # for category in self.categories:
+        #     builder.results.register_observation(
+        #         name=f"{self.risk}_{category}_person_time",
+        #         pop_filter=f'alive == "alive" and `{self.exposure_pipeline_name}`=="{category}" and tracked==True',
+        #         aggregator=self.aggregate_state_person_time,
+        #         requires_columns=["alive"],
+        #         requires_values=[self.exposure_pipeline_name],
+        #         additional_stratifications=self.config.include,
+        #         excluded_stratifications=self.config.exclude,
+        #         when="time_step__prepare",
+        #     )
+        builder.results.register_observation(
+            name=f"person_time_{self.disease}",
+            pop_filter='alive == "alive" and tracked==True',
+            aggregator=self.aggregate_state_person_time,
+            requires_columns=["alive", self.exposure_pipeline_name],
+            additional_stratifications=self.config.include + [f"{self.disease}_category"],
+            excluded_stratifications=self.config.exclude,
+            when="time_step__prepare",
+            formatter=partial(
+                self.formatter,
+                measure_name="person_time",
+                entity_type=entity_type,
+                entity=entity,
+                sub_entity_col=self.disease,  # is this correct?
+            ),
+        )
+
+        # for transition in disease_model.transition_names:
+        #     filter_string = (
+        #         f'{self.previous_state_column_name} == "{transition.from_state}" '
+        #         f'and {self.disease} == "{transition.to_state}" '
+        #         f"and tracked==True"
+        #     )
+        #     builder.results.register_observation(
+        #         name=f"{transition}_event_count",
+        #         pop_filter=filter_string,
+        #         requires_columns=[self.previous_state_column_name, self.disease],
+        #         additional_stratifications=self.config.include,
+        #         excluded_stratifications=self.config.exclude,
+        #         when="collect_metrics",
+        #     )
+        builder.results.register_observation(
+            name=f"transition_count_{self.disease}",
+            pop_filter="tracked==True",  # FIXME: should it include alive?
+            requires_columns=[
+                self.previous_state_column_name,
+                self.disease,
+            ],
+            additional_stratifications=self.config.include + [f"transition_{self.disease}"],
+            excluded_stratifications=self.config.exclude,
+            when="collect_metrics",
+            formatter=partial(
+                self.formatter,
+                measure_name="transition_count",
+                entity_type=entity_type,
+                entity=entity,
+                sub_entity_col=f"transition_{self.disease}",
+            ),
+        )
+
+
+# delete?
+# class MortalityHazardRateObserver(Component):
+#     CONFIGURATION_DEFAULTS = {
+#         "stratification": {
+#             "mortality_hazard_rate": {
+#                 "exclude": [],
+#                 "include": [],
+#             }
+#         }
+#     }
+
+#     def __init__(self):
+#         super().__init__()
+#         self.mortality_rate_pipeline_name = "mortality_rate"
+
+#     #################
+#     # Setup methods #
+#     #################
+
+#     # noinspection PyAttributeOutsideInit
+#     def setup(self, builder: Builder):
+#         self.config = builder.configuration.stratification.mortality_hazard_rate
+#         self.mortality_rates = builder.value.get_value(self.mortality_rate_pipeline_name)
+
+#         builder.results.register_observation(
+#             name=f"mortality_hazard_rate_first_moment",
+#             pop_filter="alive=='alive'",
+#             aggregator=self.calculate_mortality_hazard_rate,
+#             requires_columns=["alive"],
+#             additional_stratifications=self.config.include,
+#             excluded_stratifications=self.config.exclude,
+#             when="collect_metrics",
+#         )
+
+#     def calculate_mortality_hazard_rate(self, x: pd.DataFrame) -> float:
+#         # sum mortality rates across all causes
+#         summed_mortality_rates = self.mortality_rates(x.index).sum()
+#         return sum(summed_mortality_rates)
