@@ -383,7 +383,9 @@ def load_standard_data(key: str, location: Union[str, List[int]]) -> pd.DataFram
         data.loc[data.reset_index()["age_start"] < metadata.NEONATAL_END_AGE, :] = 0
 
     else:
+        breakpoint()
         data = interface.get_measure(entity, key.measure, location)
+        breakpoint()
 
     if key not in no_age:
         data = data.query("age_start < 5")
@@ -455,7 +457,7 @@ def load_wasting_transition_rates(key: str, location: Union[str, List[int]]) -> 
     national_location_id = get_national_location_id(location[0])
     demography = get_data(data_keys.POPULATION.DEMOGRAPHY, national_location_id)
     rates = pd.read_csv(paths.WASTING_TRANSITIONS_DATA_DIR / f"{national_location_id}.csv")
-    rates = rates.rename({"parameter": "transition"}, axis=1)
+    rates = rates.rename({"parameter": "transition", "subnational":"location"}, axis=1)
 
     # explicitly add the youngest ages data with values of 0
     min_age = rates.reset_index()["age_start"].min()
