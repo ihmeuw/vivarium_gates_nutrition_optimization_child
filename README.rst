@@ -102,22 +102,16 @@ You'll find six directories inside the main
 Running Simulations
 -------------------
 
-With your conda environment active, the first step to running simulations
-is making the model specification files.  A model specification is a
-complete description of a vivarium model. The command to generate model
-specifications is installed with this repository and it can be run
-from any directory.::
+You can run your simulation from the command line. 
+With your conda environment active, you can run with, e.g.::
 
-  (vivarium_gates_nutrition_optimization_child) :~$ make_specs -v
-  2020-06-18 18:18:28.311 | 0:00:00.679701 | build_model_specifications:48 - Writing model spec(s) to "/REPO_INSTALLATION_DIRECTORY/vivarium_gates_nutrition_optimization_child/src/vivarium_gates_nutrition_optimization_child/model_specifications"
+   (vivarium_gates_nutrition_optimization_child) :~$ simulate run -vvv /<REPO_INSTALLATION_DIRECTORY>/vivarium_gates_nutrition_optimization_child/src/vivarium_gates_nutrition_optimization_child/model_specifications/model_spec.yaml -o /FILE/PATH/TO/SAVE/RESULTS -i src/vivarium_gates_nutrition_optimization_child/artifacts/<COUNTRY_TO_RUN_IN>.hdf
 
-As the log message indicates, the model specifications will be written to
-the ``model_specifications`` subdirectory in this repository. You can then
-run simulations by, e.g.::
+The simulation will run in one location at a time, enter the country you wish to 
+run the simulation for in your call. Currently only Ethiopia is supported. 
+The country name should be in lower case, for example 'ethiopia'.
 
-   (vivarium_gates_nutrition_optimization_child) :~$ simulate run -v /<REPO_INSTALLATION_DIRECTORY>/vivarium_gates_nutrition_optimization_child/src/vivarium_gates_nutrition_optimization_child/model_specifications/china.yaml
-
-The ``-v`` flag will log verbosely, so you will get log messages every time
+The ``-vvv`` flag will log verbosely, so you will get log messages every time
 step. For more ways to run simulations, see the tutorials at
 https://vivarium.readthedocs.io/en/latest/tutorials/running_a_simulation/index.html
 and https://vivarium.readthedocs.io/en/latest/tutorials/exploration.html
