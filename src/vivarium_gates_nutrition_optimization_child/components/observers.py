@@ -58,65 +58,70 @@ class ResultsStratifier(ResultsStratifier_):
         """Register each desired stratification with calls to _setup_stratification"""
         super().register_stratifications(builder)
 
-        builder.results.register_stratification(
-            "wasting_state",
-            [category.value for category in data_keys.ChildWastingCategories],
-            self.child_wasting_stratification_mapper,
-            is_vectorized=True,
-            requires_values=["child_wasting.exposure"],
-        )
-        builder.results.register_stratification(
-            "stunting_state",
-            [category.value for category in data_keys.CGFCategories],
-            self.child_growth_risk_factor_stratification_mapper,
-            is_vectorized=True,
-            requires_values=["child_stunting.exposure"],
-        )
-        builder.results.register_stratification(
-            "underweight_state",
-            [category.value for category in data_keys.CGFCategories],
-            self.child_growth_risk_factor_stratification_mapper,
-            is_vectorized=True,
-            requires_values=["child_underweight.exposure"],
-        )
-        builder.results.register_stratification(
-            "maternal_supplementation",
-            results.MATERNAL_SUPPLEMENTATION_TYPES,
-            is_vectorized=True,
-            requires_columns=["maternal_supplementation_exposure"],
-        )
-        builder.results.register_stratification(
-            "bmi_anemia",
-            ["cat4", "cat3", "cat2", "cat1"],
-            is_vectorized=True,
-            requires_columns=["maternal_bmi_anemia_exposure"],
-        )
-        builder.results.register_stratification(
-            "sam_treatment",
-            ["covered", "uncovered"],
-            self.map_wasting_treatment,
-            is_vectorized=True,
-            requires_values=[f"{data_keys.SAM_TREATMENT.name}.exposure"],
-        )
-        builder.results.register_stratification(
-            "mam_treatment",
-            ["covered", "uncovered"],
-            self.map_wasting_treatment,
-            is_vectorized=True,
-            requires_values=[f"{data_keys.MAM_TREATMENT.name}.exposure"],
-        )
-        builder.results.register_stratification(
-            "sqlns_coverage",
-            ["covered", "uncovered", "received"],
-            is_vectorized=True,
-            requires_values=[data_values.SQ_LNS.COVERAGE_PIPELINE],
-        )
-        builder.results.register_stratification(
-            "birth_weight_status",
-            ["low_birth_weight", "adequate_birth_weight"],
-            is_vectorized=True,
-            requires_columns=["birth_weight_status"],
-        )
+        # UNUSED
+        # builder.results.register_stratification(
+        #     "wasting_state",
+        #     [category.value for category in data_keys.ChildWastingCategories],
+        #     self.child_wasting_stratification_mapper,
+        #     is_vectorized=True,
+        #     requires_values=["child_wasting.exposure"],
+        # )
+        # UNUSED
+        # builder.results.register_stratification(
+        #     "stunting_state",
+        #     [category.value for category in data_keys.CGFCategories],
+        #     self.child_growth_risk_factor_stratification_mapper,
+        #     is_vectorized=True,
+        #     requires_values=["child_stunting.exposure"],
+        # )
+        # builder.results.register_stratification(
+        #     "underweight_state",
+        #     [category.value for category in data_keys.CGFCategories],
+        #     self.child_growth_risk_factor_stratification_mapper,
+        #     is_vectorized=True,
+        #     requires_values=["child_underweight.exposure"],
+        # )
+        # UNUSED
+        # builder.results.register_stratification(
+        #     "maternal_supplementation",
+        #     results.MATERNAL_SUPPLEMENTATION_TYPES,
+        #     is_vectorized=True,
+        #     requires_columns=["maternal_supplementation_exposure"],
+        # )
+        # UNUSED
+        # builder.results.register_stratification(
+        #     "bmi_anemia",
+        #     ["cat4", "cat3", "cat2", "cat1"],
+        #     is_vectorized=True,
+        #     requires_columns=["maternal_bmi_anemia_exposure"],
+        # )
+        # builder.results.register_stratification(
+        #     "sam_treatment",
+        #     ["covered", "uncovered"],
+        #     self.map_wasting_treatment,
+        #     is_vectorized=True,
+        #     requires_values=[f"{data_keys.SAM_TREATMENT.name}.exposure"],
+        # )
+        # builder.results.register_stratification(
+        #     "mam_treatment",
+        #     ["covered", "uncovered"],
+        #     self.map_wasting_treatment,
+        #     is_vectorized=True,
+        #     requires_values=[f"{data_keys.MAM_TREATMENT.name}.exposure"],
+        # )
+        # builder.results.register_stratification(
+        #     "sqlns_coverage",
+        #     ["covered", "uncovered", "received"],
+        #     is_vectorized=True,
+        #     requires_values=[data_values.SQ_LNS.COVERAGE_PIPELINE],
+        # )
+        # UNUSED
+        # builder.results.register_stratification(
+        #     "birth_weight_status",
+        #     ["low_birth_weight", "adequate_birth_weight"],
+        #     is_vectorized=True,
+        #     requires_columns=["birth_weight_status"],
+        # )
 
     ###########################
     # Stratifications Details #
@@ -169,6 +174,8 @@ class ResultsStratifier(ResultsStratifier_):
         bins = self.age_bins["age_start"].to_list() + [self.age_bins["age_end"].iloc[-1]]
         labels = self.age_bins["age_group_name"].to_list()
         # need to include lowest to map people who are exactly 0
+        pop = pop.copy()
+        pop.loc[pop.age > 5, "age"] = 5
         age_group = pd.cut(
             pop.squeeze(axis=1), bins, labels=labels, include_lowest=True
         ).rename("age_group")
@@ -308,29 +315,10 @@ class ChildWastingObserver(DiseaseObserver):
     def setup(self, builder: Builder) -> None:
         self.step_size = builder.time.step_size()
         self.config = builder.configuration.stratification[self.disease]
-        self.categories = builder.data.load(f"risk_factor.{self.risk}.categories")
+        # self.categories = builder.data.load(f"risk_factor.{self.risk}.categories")
         self.disease_model = builder.components.get_component(
             f"child_wasting_model.{self.disease}"
         )
-
-    def register_observations(self, builder: Builder) -> None:
-        builder.results.register_stratification(
-            f"{self.disease}_category",
-            self.categories,
-            requires_columns=[self.exposure_pipeline_name],
-        )
-
-        transition_stratification_name = f"transition_{self.disease}"
-        builder.results.register_stratification(
-            transition_stratification_name,
-            categories=self.disease_model.transition_names + ["no_transition"],
-            mapper=self.map_transitions,
-            requires_columns=[self.disease, self.previous_state_column_name],
-            is_vectorized=True,
-        )
-
-        entity_type = self.disease_model.cause_type
-        entity = self.disease_model.cause
 
         # # not needed for final runs
         # for category in self.categories:
@@ -344,22 +332,6 @@ class ChildWastingObserver(DiseaseObserver):
         #         excluded_stratifications=self.config.exclude,
         #         when="time_step__prepare",
         #     )
-        builder.results.register_observation(
-            name=f"person_time_{self.disease}",
-            pop_filter='alive == "alive" and tracked==True',
-            aggregator=self.aggregate_state_person_time,
-            requires_columns=["alive", self.exposure_pipeline_name],
-            additional_stratifications=self.config.include + [f"{self.disease}_category"],
-            excluded_stratifications=self.config.exclude,
-            when="time_step__prepare",
-            formatter=partial(
-                self.formatter,
-                measure_name="person_time",
-                entity_type=entity_type,
-                entity=entity,
-                sub_entity_col=self.disease,  # is this correct?
-            ),
-        )
 
         # for transition in disease_model.transition_names:
         #     filter_string = (
@@ -375,24 +347,6 @@ class ChildWastingObserver(DiseaseObserver):
         #         excluded_stratifications=self.config.exclude,
         #         when="collect_metrics",
         #     )
-        builder.results.register_observation(
-            name=f"transition_count_{self.disease}",
-            pop_filter="tracked==True",  # FIXME: should it include alive?
-            requires_columns=[
-                self.previous_state_column_name,
-                self.disease,
-            ],
-            additional_stratifications=self.config.include + [f"transition_{self.disease}"],
-            excluded_stratifications=self.config.exclude,
-            when="collect_metrics",
-            formatter=partial(
-                self.formatter,
-                measure_name="transition_count",
-                entity_type=entity_type,
-                entity=entity,
-                sub_entity_col=f"transition_{self.disease}",
-            ),
-        )
 
 
 # delete?
