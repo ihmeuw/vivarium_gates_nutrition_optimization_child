@@ -11,7 +11,7 @@ from vivarium_public_health.risks import Risk
 from vivarium_public_health.risks.data_transformations import (
     get_exposure_post_processor,
 )
-from vivarium_public_health.utilities import EntityString, is_non_zero
+from vivarium_public_health.utilities import EntityString
 
 from vivarium_gates_nutrition_optimization_child.constants import (
     data_keys,
@@ -21,14 +21,13 @@ from vivarium_gates_nutrition_optimization_child.constants import (
     scenarios,
 )
 from vivarium_gates_nutrition_optimization_child.constants.data_keys import WASTING
-from vivarium_gates_nutrition_optimization_child.utilities import get_random_variable
 
 
 class WastingTreatment(Risk):
     @property
     def configuration_defaults(self) -> Dict[str, Any]:
         base_risk_config = super().configuration_defaults
-        return {self.risk: base_risk_config[self.name]}
+        return {self.name: base_risk_config[self.name]}
 
     @property
     def time_step_prepare_priority(self) -> int:
@@ -73,9 +72,6 @@ class WastingTreatment(Risk):
         self.underweight_exposure = builder.value.get_value(
             data_values.PIPELINES.UNDERWEIGHT_EXPOSURE
         )
-        self.treatment_exposure = builder.value.get_value(
-            f"{self.treated_state}_treatment.exposure"
-        )
 
     ########################
     # Event-driven methods #
@@ -97,7 +93,7 @@ class WastingTreatment(Risk):
         """define previous_treatment and redraw propensities upon transition to new wasting state"""
         pop = self.population_view.get(event.index)
         # previous treatment column (for results stratification)
-        previous_treatment = self.treatment_exposure(pop.index)
+        previous_treatment = self.exposure(pop.index)
         previous_treatment.name = self.previous_treatment_column
         # update propensity
         propensity = pop[self.propensity_column_name]

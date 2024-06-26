@@ -3,18 +3,16 @@ from typing import Any, Callable, Dict
 
 import pandas as pd
 from vivarium.framework.engine import Builder
-from vivarium.framework.lookup import LookupTable
 from vivarium.framework.values import Pipeline
 from vivarium_public_health.risks import Risk, RiskEffect
 from vivarium_public_health.risks.data_transformations import (
     get_exposure_post_processor,
-    get_relative_risk_data,
-    pivot_categorical,
 )
-from vivarium_public_health.utilities import EntityString, TargetString
+from vivarium_public_health.risks.distributions import RiskExposureDistribution
+from vivarium_public_health.utilities import EntityString
 
-from vivarium_gates_nutrition_optimization_child.components.distribution import (
-    PolytomousDistribution,
+from vivarium_gates_nutrition_optimization_child.components import (
+    CGFPolytomousDistribution,
 )
 from vivarium_gates_nutrition_optimization_child.constants import data_keys, data_values
 
@@ -27,7 +25,6 @@ class ChildUnderweight(Risk):
 
     def __init__(self):
         super().__init__("risk_factor.child_underweight")
-        self._sub_components = []  # no exposure distribution
 
     #################
     # Setup methods #
@@ -43,7 +40,10 @@ class ChildUnderweight(Risk):
     def build_all_lookup_tables(self, builder: Builder) -> None:
         pass
 
-    def get_exposure_distribution(self) -> None:
+    def get_distribution_type(self, builder: Builder) -> str:
+        pass
+
+    def get_exposure_distribution(self, builder: Builder) -> RiskExposureDistribution:
         pass
 
     def get_exposure_pipeline(self, builder: Builder) -> Pipeline:
@@ -59,7 +59,7 @@ class ChildUnderweight(Risk):
             preferred_post_processor=get_exposure_post_processor(builder, self.risk),
         )
 
-    def _get_distributions(self, builder: Builder) -> Dict[str, PolytomousDistribution]:
+    def _get_distributions(self, builder: Builder) -> Dict[str, CGFPolytomousDistribution]:
         """Store and setup distributions for each joint stunting and wasting state."""
         distributions = {}
         stunting_categories = [f"cat{i+1}" for i in range(4)]
@@ -69,19 +69,20 @@ class ChildUnderweight(Risk):
         for stunting_cat, wasting_cat in itertools.product(
             stunting_categories, wasting_categories
         ):
-            if wasting_cat == "cat2.5":
-                # this key will not be parsed properly by the distribution if it contains a dot
-                key = f"risk_factor.stunting_{stunting_cat}_wasting_cat25_underweight"
-            else:
-                key = f"risk_factor.stunting_{stunting_cat}_wasting_{wasting_cat}_underweight"
-            distribution_data = all_distribution_data.query(
-                "stunting_parameter == @stunting_cat and wasting_parameter == @wasting_cat"
-            )
+            distribution_data = all_distribution_data[
+                (all_distribution_data["stunting_parameter"] == stunting_cat)
+                & (all_distribution_data["wasting_parameter"] == wasting_cat)
+            ]
             distribution_data = distribution_data.drop(
                 ["stunting_parameter", "wasting_parameter"], axis=1
             )
-            distribution_data = pivot_categorical(builder, self.risk, distribution_data)
-            distributions[key] = PolytomousDistribution(key, distribution_data)
+
+            wasting_cat = wasting_cat.replace(".", "")
+            key = f"risk_factor.stunting_{stunting_cat}_wasting_{wasting_cat}_underweight"
+
+            distributions[key] = CGFPolytomousDistribution(
+                EntityString(key), distribution_data
+            )
         for dist in distributions.values():
             dist.setup_component(builder)
         return distributions
@@ -117,11 +118,28 @@ class ChildUnderweight(Risk):
 class CGFRiskEffect(RiskEffect):
     @property
     def configuration_defaults(self) -> Dict[str, Any]:
-        risk_effect_config = super().configuration_defaults
-        return {
-            self.get_name(risk, self.target): risk_effect_config[self.name]
-            for risk in [self.risk] + self.cgf_models
+
+        sub_risk_configs = {
+            risk: {
+                "data_sources": {
+                    "relative_risk": f"{risk}.relative_risk",
+                },
+                "data_source_parameters": {
+                    "relative_risk": {},
+                },
+            }
+            for risk in self.cgf_models
         }
+
+        config = {
+            self.name: {
+                "sub_risks": sub_risk_configs,
+                "data_sources": {
+                    "population_attributable_fraction": f"{self.risk}.population_attributable_fraction",
+                },
+            },
+        }
+        return config
 
     def __init__(self, target: str):
         """
@@ -141,61 +159,42 @@ class CGFRiskEffect(RiskEffect):
                 data_keys.STUNTING.name,
             ]
         ]
-        self.target = TargetString(target)
         # This is to access to the distribution type before setup
-        self._distribution_type = "ordered_polytomous"
+        self._exposure_distribution_type = "ordered_polytomous"
 
     def build_all_lookup_tables(self, builder: Builder) -> None:
-        self.lookup_tables[
-            "population_attributable_fraction"
-        ] = self.get_population_attributable_fraction_source(builder)
-        self.lookup_tables["relative_risk"] = self.get_relative_risk_source(builder)
+        for risk in self.cgf_models:
+            rr_data = self.get_relative_risk_data(builder, self.configuration.sub_risks[risk])
+            rr_value_columns = None
+            if self.is_exposure_categorical:
+                rr_data, rr_value_columns = self.process_categorical_data(builder, rr_data)
+            self.lookup_tables[f"{risk.name}_relative_risk"] = self.build_lookup_table(
+                builder, rr_data, rr_value_columns
+            )
 
-    def build_all_lookup_tables(self, builder: Builder) -> None:
-        self.lookup_tables[
-            "population_attributable_fraction"
-        ] = self.get_population_attributable_fraction_source(builder)
-        self.lookup_tables["relative_risk"] = self.get_relative_risk_source(builder)
+        paf_data = self.get_filtered_data(
+            builder, self.configuration.data_sources.population_attributable_fraction
+        )
+        self.lookup_tables["population_attributable_fraction"] = self.build_lookup_table(
+            builder, paf_data
+        )
 
     def get_distribution_type(self, builder: Builder) -> str:
-        return self._distribution_type
+        return self._exposure_distribution_type
 
     def get_risk_exposure(self, builder: Builder) -> Dict[str, Pipeline]:
         return {
             risk: builder.value.get_value(f"{risk.name}.exposure") for risk in self.cgf_models
         }
 
-    def get_relative_risk_source(self, builder: Builder) -> Dict[str, LookupTable]:
-        # TODO: get_relative_risk data needs to take distribution arg but we don't have
-        # access to it yet because we are in setup_components and not setup
-        rr_data = {
-            risk: get_relative_risk_data(builder, risk, self.target, self._distribution_type)
-            for risk in self.cgf_models
-        }
-        return {
-            risk: self.build_lookup_table(builder, rr_data[risk][0], rr_data[risk][1])
-            for risk in self.cgf_models
-        }
-
-    def get_population_attributable_fraction_source(self, builder: Builder) -> LookupTable:
-        paf_data = builder.data.load(f"{self.risk}.population_attributable_fraction")
-        correct_target = (paf_data["affected_entity"] == self.target.name) & (
-            paf_data["affected_measure"] == self.target.measure
-        )
-        paf_data = paf_data[correct_target].drop(
-            columns=["affected_entity", "affected_measure"]
-        )
-        return self.build_lookup_table(builder, paf_data, ["value"])
-
     def get_target_modifier(
         self, builder: Builder
     ) -> Callable[[pd.Index, pd.Series], pd.Series]:
         def adjust_target(index: pd.Index, target: pd.Series) -> pd.Series:
-            rrs = self.lookup_tables["relative_risk"]
             exposures = self.exposure
             for risk in self.cgf_models:
                 index_columns = ["index", risk.name]
-                rr = rrs[risk](index)
+                rr = self.lookup_tables[f"{risk.name}_relative_risk"](index)
                 exposure = exposures[risk](index).reset_index()
                 exposure.columns = index_columns
                 exposure = exposure.set_index(index_columns)
