@@ -4,10 +4,11 @@
 # Conda environments should be created with the simulation science service user and 
 # the credientials can be found at /mnt/team/simulation_science/priv/credentials/svc-simsci
 
-# Two arguments are provided to the script:
+# Three arguments must be provided to the script:
 #   - The first argument is the name of the conda environment
-#   - The second argument is the url to the requirements.txt on Github. This should be of 
-#       the format https://raw.githubusercontent.com/ihmeuw/<REPO_NAME>/<BRANCH_NAME>/requirements.txt 
+#   - The second argument is the repo name
+#   - The third argument is the name of the branch to fetch requirements.txt from for
+#       repo specified in argument two.
 
 # Create conda environment
 conda create -p /mnt/team/simulation_science/pub/envs/$1 python=3.11
@@ -16,7 +17,7 @@ conda create -p /mnt/team/simulation_science/pub/envs/$1 python=3.11
 conda activate /mnt/team/simulation_science/pub/envs/$1
 
 # Install requirements via Github
-pip install -r $2
+pip install -r https://raw.githubusercontent.com/ihmeuw/$2/$3/requirements.txt 
 
 # Install redis for sims
 conda install redis
