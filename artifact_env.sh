@@ -21,8 +21,5 @@ conda create -p /mnt/team/simulation_science/pub/envs/$env_name python=3.11
 conda activate /mnt/team/simulation_science/pub/envs/$env_name
 
 # Install requirements via Github
-pip install -r https://raw.githubusercontent.com/ihmeuw/$repo_name/$branch_name/requirements.txt 
-
-# Install redis for sims
-conda install redis
+pip install -r https://raw.githubusercontent.com/ihmeuw/$repo_name/$branch_name/artifact_requirements.txt 
     
