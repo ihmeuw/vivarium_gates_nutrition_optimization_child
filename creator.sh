@@ -12,5 +12,9 @@
 # Create conda environment
 conda create -p /mnt/team/simulation_science/pub/envs/$1 python=3.11
 
+# Activate new environment
+conda activate /mnt/team/simulation_science/pub/envs/$1
+
 # Install requirements via Github
 pip install -r $2
+    
