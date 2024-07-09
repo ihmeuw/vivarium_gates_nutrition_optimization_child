@@ -15,7 +15,7 @@ repo_name=$2
 branch_name=$3
 
 # Create conda environment
-conda create -p /mnt/team/simulation_science/pub/envs/$env_name python=3.11
+conda create -p -y /mnt/team/simulation_science/pub/envs/$env_name python=3.11
 
 # Activate new environment
 conda activate /mnt/team/simulation_science/pub/envs/$env_name
