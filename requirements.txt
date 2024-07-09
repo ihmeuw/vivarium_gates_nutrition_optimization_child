@@ -1,7 +1,9 @@
-# gbd_mapping>=4.0.0
+# Note: This requires users to update the branch to create an envrionment from the branch they are
+#   working on.
 vivarium_gates_nutrition_optimization_child @ git+https://github.com/ihmeuw/vivarium_gates_nutrition_optimization_child@main
 vivarium @ git+https://github.com/ihmeuw/vivarium@release-candidate-spring
 vivarium_public_health @ git+https://github.com/ihmeuw/vivarium_public_health@release-candidate-spring
+# gbd_mapping>=4.0.0
 click
 jinja2
 loguru
