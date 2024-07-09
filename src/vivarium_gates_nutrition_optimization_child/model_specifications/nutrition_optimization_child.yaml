@@ -79,8 +79,8 @@ configuration:
             month: 1
             day: 1
         end:
-            year: 2025
-            month: 1
+            year: 2029
+            month: 12
             day: 31
         step_size: 4 # Days
     population:
@@ -90,9 +90,9 @@ configuration:
         untracking_age: 5
 
     intervention:
-        child_scenario: 'scenario_18_baseline_with_sqlns'
+        child_scenario: 'baseline'
         maternal_scenario: 'baseline'
-        sqlns_effect_size: 'modified'
+        sqlns_effect_size: 'standard'
     
     mortality:
         unmodeled_causes:
