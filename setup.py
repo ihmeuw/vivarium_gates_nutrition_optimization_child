@@ -28,6 +28,7 @@ if __name__ == "__main__":
         "pyyaml",
         "scipy",
         "tables",
+        "layered_config_tree",
     ]
 
     # use "pip install -e .[dev]" to install required components + extra components
