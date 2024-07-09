@@ -24,5 +24,5 @@ conda activate /mnt/team/simulation_science/pub/envs/$env_name
 pip install -r https://raw.githubusercontent.com/ihmeuw/$repo_name/$branch_name/requirements.txt 
 
 # Install redis for sims
-conda install redis
+conda install redis -y
     
