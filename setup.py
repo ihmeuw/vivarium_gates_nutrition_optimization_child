@@ -28,6 +28,7 @@ if __name__ == "__main__":
         "pyyaml",
         "scipy",
         "tables",
+        "layered_config_tree",
     ]
 
     # use "pip install -e .[dev]" to install required components + extra components
@@ -60,6 +61,5 @@ if __name__ == "__main__":
         entry_points="""
             [console_scripts]
             make_artifacts=vivarium_gates_nutrition_optimization_child.tools.cli:make_artifacts
-            make_results=vivarium_gates_nutrition_optimization_child.tools.cli:make_results
         """,
     )
