@@ -309,7 +309,7 @@ class ChildWastingObserver(DiseaseObserver):
         self.entity = self.disease_model.cause
         self.transition_stratification_name = f"transition_{self.disease}"
 
-    # We want diseaste state to be categories instead of the state_ids
+    # We want disease state to be categories instead of the (default) state_ids
     def register_disease_state_stratification(self, builder: Builder) -> None:
         builder.results.register_stratification(
             "wasting_categories",
