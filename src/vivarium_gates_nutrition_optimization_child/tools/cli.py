@@ -7,7 +7,6 @@ from vivarium.framework.utilities import handle_exceptions
 from vivarium_gates_nutrition_optimization_child.constants import metadata, paths
 from vivarium_gates_nutrition_optimization_child.tools import (
     build_artifacts,
-    build_results,
     configure_logging_to_terminal,
 )
 
