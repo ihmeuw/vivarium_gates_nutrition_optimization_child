@@ -265,7 +265,7 @@ class LBWSGPAFObserver(Component):
         )
         self.config = builder.configuration.stratification.lbwsg_paf
 
-        builder.results.register_observation(
+        builder.results.register_adding_observation(
             name=f"calculated_lbwsg_paf_on_{self.target}",
             pop_filter='alive == "alive"',
             aggregator=self.calculate_paf,

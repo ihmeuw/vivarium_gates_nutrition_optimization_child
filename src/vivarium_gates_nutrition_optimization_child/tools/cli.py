@@ -7,7 +7,6 @@ from vivarium.framework.utilities import handle_exceptions
 from vivarium_gates_nutrition_optimization_child.constants import metadata, paths
 from vivarium_gates_nutrition_optimization_child.tools import (
     build_artifacts,
-    build_results,
     configure_logging_to_terminal,
 )
 
@@ -74,39 +73,3 @@ def make_artifacts(
         verbose,
         fetch_subnationals,
     )
-
-
-@click.command()
-@click.argument("output_file", type=click.Path(exists=True))
-@click.option("-v", "verbose", count=True, help="Configure logging verbosity.")
-@click.option(
-    "--pdb",
-    "with_debugger",
-    is_flag=True,
-    help="Drop into python debugger if an error occurs.",
-)
-@click.option(
-    "-s",
-    "--single",
-    "single_run",
-    default=False,
-    is_flag=True,
-    help="Results are from a single, non-parallel run.",
-)
-@click.option(
-    "--disaggregate-seeds",
-    "disaggregate_seeds",
-    default=False,
-    is_flag=True,
-    help="Don't aggregate across seeds.",
-)
-def make_results(
-    output_file: str,
-    verbose: int,
-    with_debugger: bool,
-    single_run: bool,
-    disaggregate_seeds: bool,
-) -> None:
-    configure_logging_to_terminal(verbose)
-    main = handle_exceptions(build_results, logger, with_debugger=with_debugger)
-    main(output_file, single_run, disaggregate_seeds)

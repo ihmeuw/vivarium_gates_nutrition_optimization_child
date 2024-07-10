@@ -21,10 +21,8 @@ from vivarium_gates_nutrition_optimization_child.components.maternal_characteris
     MaternalCharacteristics,
     MMSEffectOnGestationalAge,
 )
-from vivarium_gates_nutrition_optimization_child.components.observers import (
-    BirthObserver,
+from vivarium_gates_nutrition_optimization_child.components.observers import (  # BirthObserver,; MortalityHazardRateObserver,
     ChildWastingObserver,
-    MortalityHazardRateObserver,
     MortalityObserver,
     ResultsStratifier,
 )
