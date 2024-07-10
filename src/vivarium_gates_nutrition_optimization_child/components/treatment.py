@@ -125,9 +125,13 @@ class SQLNSTreatment(Component):
         return coverage_map[scenario.sqlns_coverage]
 
     def get_risk_ratios(self, builder: Builder, affected_outcome: str) -> LookupTable:
+        sqlns_effect_size = builder.configuration.intervention.sqlns_effect_size
         risk_ratios = builder.data.load(data_keys.SQLNS_TREATMENT.RISK_RATIOS)
         risk_ratios = risk_ratios.query("affected_outcome==@affected_outcome").drop(
             "affected_outcome", axis=1
+        )
+        risk_ratios = risk_ratios.query("effect_size==@sqlns_effect_size").drop(
+            "effect_size", axis=1
         )
         return self.build_lookup_table(builder, risk_ratios, value_columns=["value"])
 

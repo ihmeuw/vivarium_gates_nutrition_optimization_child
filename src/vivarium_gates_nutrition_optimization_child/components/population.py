@@ -105,9 +105,12 @@ class PopulationLineList(BasePopulation):
         self.register_simulants(new_simulants[self.key_columns])
 
         if pop_data.creation_time >= self.start_time:
-            new_simulants["subnational"] = self._get_subnational_locations(
-                new_simulants.index
-            )
+            ## Changing to run for a single subnational location
+            new_simulants["subnational"] = "Punjab"
+
+            # new_simulants["subnational"] = self._get_subnational_locations(
+            #     new_simulants.index
+            # )
 
         self.population_view.update(new_simulants)
 
@@ -159,8 +162,12 @@ class EvenlyDistributedPopulation(BasePopulation):
         population["sex"] = "Female"
         population.loc[population.index % 2 == 1, "sex"] = "Male"
         self.register_simulants(population[list(self.key_columns)])
-        population["subnational"] = self._distribute_subnational_locations(population.index)
-        self.population_view.update(population)
+
+        ##Similar to above, changing to run for a single subnational location
+        population["subnational"] = "Punjab"
+
+        # self._distribute_subnational_locations(population.index)
+        # self.population_view.update(population)
 
     def _distribute_subnational_locations(self, pop_index: pd.Index) -> pd.Series:
         subnational_locations = pd.read_csv(SUBNATIONAL_PERCENTAGES)
