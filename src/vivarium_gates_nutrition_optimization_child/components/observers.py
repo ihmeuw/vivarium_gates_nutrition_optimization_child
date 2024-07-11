@@ -3,6 +3,7 @@ from typing import Any, Dict
 import pandas as pd
 from vivarium.framework.engine import Builder
 from vivarium_public_health.disease import DiseaseState
+from vivarium_public_health.results import COLUMNS
 from vivarium_public_health.results.disease import DiseaseObserver
 from vivarium_public_health.results.mortality import (
     MortalityObserver as MortalityObserver_,
@@ -280,7 +281,6 @@ class MortalityObserver(MortalityObserver_):
 class ChildWastingObserver(DiseaseObserver):
     def __init__(self):
         super().__init__("child_wasting")
-        self.risk = self.disease
         self.exposure_pipeline_name = f"{self.disease}.exposure"
 
     @property
@@ -308,3 +308,33 @@ class ChildWastingObserver(DiseaseObserver):
         self.entity_type = self.disease_model.cause_type
         self.entity = self.disease_model.cause
         self.transition_stratification_name = f"transition_{self.disease}"
+
+    # We want disease state to be categories instead of the (default) state_ids
+    def register_disease_state_stratification(self, builder: Builder) -> None:
+        builder.results.register_stratification(
+            "wasting_categories",
+            list(builder.data.load(f"risk_factor.{self.disease}.categories").keys()),
+            requires_values=[self.exposure_pipeline_name],
+        )
+
+    def register_person_time_observation(self, builder: Builder, pop_filter: str) -> None:
+        self.register_adding_observation(
+            builder=builder,
+            name=f"person_time_{self.disease}",
+            pop_filter=pop_filter,
+            when="time_step__prepare",
+            requires_columns=["alive"],
+            additional_stratifications=self.config.include + ["wasting_categories"],
+            excluded_stratifications=self.config.exclude,
+            aggregator=self.aggregate_state_person_time,
+        )
+
+    def format(self, measure: str, results: pd.DataFrame) -> pd.DataFrame:
+        results = results.reset_index()
+        if "transition_count_" in measure:
+            results = results[results[self.transition_stratification_name] != "no_transition"]
+            sub_entity = self.transition_stratification_name
+        if "person_time_" in measure:
+            sub_entity = "wasting_categories"
+        results.rename(columns={sub_entity: COLUMNS.SUB_ENTITY}, inplace=True)
+        return results
