@@ -37,7 +37,6 @@ pip install -r https://raw.githubusercontent.com/ihmeuw/vivarium_gates_nutrition
 pip install -e .[dev]
 
 # Install redis for simulation environments
-if env_type=="simulation"
-then
+if [ $env_type == 'simulation' ]; then
   conda install redis -y
 fi
