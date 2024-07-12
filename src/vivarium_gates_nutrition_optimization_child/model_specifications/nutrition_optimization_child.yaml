@@ -18,7 +18,7 @@ components:
             - LBWSGRiskEffect('cause.diarrheal_diseases.excess_mortality_rate')
             - LBWSGRiskEffect('cause.lower_respiratory_infections.excess_mortality_rate')
             - LBWSGRiskEffect('cause.affected_unmodeled.cause_specific_mortality_rate')
-        metrics:
+        results:
             - DiseaseObserver('diarrheal_diseases')
             - DiseaseObserver('measles')
             - DiseaseObserver('lower_respiratory_infections')
