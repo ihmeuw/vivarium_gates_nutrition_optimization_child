@@ -22,4 +22,5 @@ else
 fi
 
 # Update packages
+echo "Updating packages: $packages_to_update..."
 pip install $packages_to_update --constraint $install_file
