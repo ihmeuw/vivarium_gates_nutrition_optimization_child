@@ -1,0 +1,881 @@
+,location,age_start,age_end,affected_outcome,lower,median,upper,location_id,national_id,effect_size
+0,Abia,0.5,0.833333333,mam_to_sam_rate,0.05,0.51,1,25318,214,modified
+1,Abia,0.5,0.833333333,mild_to_mam_rate,0.37,0.81,1,25318,214,modified
+2,Abia,0.5,0.833333333,tmrel_to_mild_rate,0.59,0.85,1,25318,214,modified
+3,Abia,0.833333333,1.5,mam_to_sam_rate,0.64,0.82,1,25318,214,modified
+4,Abia,0.833333333,1.5,mild_to_mam_rate,0.92,0.99,1,25318,214,modified
+5,Abia,0.833333333,1.5,tmrel_to_mild_rate,0.68,0.89,1,25318,214,modified
+6,Abia,0,5,moderate_stunting_prevalence_ratio,0.77,0.87,1.02,25318,214,modified
+7,Abia,0,5,severe_stunting_prevalence_ratio,0.83,0.92,0.98,25318,214,modified
+8,Adamawa,0.5,0.833333333,mam_to_sam_rate,0.05,0.57,1,25319,214,modified
+9,Adamawa,0.5,0.833333333,mild_to_mam_rate,0.59,0.91,1,25319,214,modified
+10,Adamawa,0.5,0.833333333,tmrel_to_mild_rate,0.67,0.89,1,25319,214,modified
+11,Adamawa,0.833333333,1.5,mam_to_sam_rate,0.63,0.81,1,25319,214,modified
+12,Adamawa,0.833333333,1.5,mild_to_mam_rate,0.94,0.99,1,25319,214,modified
+13,Adamawa,0.833333333,1.5,tmrel_to_mild_rate,0.71,0.9,1,25319,214,modified
+14,Adamawa,0,5,moderate_stunting_prevalence_ratio,0.77,0.87,1.02,25319,214,modified
+15,Adamawa,0,5,severe_stunting_prevalence_ratio,0.83,0.92,0.98,25319,214,modified
+16,Addis Ababa,0.5,0.833333333,mam_to_sam_rate,0.05,0.61,1,44861,179,modified
+17,Addis Ababa,0.5,0.833333333,mild_to_mam_rate,0.69,0.95,1,44861,179,modified
+18,Addis Ababa,0.5,0.833333333,tmrel_to_mild_rate,0.71,0.91,1,44861,179,modified
+19,Addis Ababa,0.833333333,1.5,mam_to_sam_rate,0.65,0.83,1,44861,179,modified
+20,Addis Ababa,0.833333333,1.5,mild_to_mam_rate,0.98,0.99,1,44861,179,modified
+21,Addis Ababa,0.833333333,1.5,tmrel_to_mild_rate,0.74,0.92,1,44861,179,modified
+22,Addis Ababa,0,5,moderate_stunting_prevalence_ratio,0.77,0.87,1.02,44861,179,modified
+23,Addis Ababa,0,5,severe_stunting_prevalence_ratio,0.83,0.92,0.98,44861,179,modified
+24,Afar,0.5,0.833333333,mam_to_sam_rate,0.05,0.23,0.69,44853,179,modified
+25,Afar,0.5,0.833333333,mild_to_mam_rate,0.51,0.65,0.85,44853,179,modified
+26,Afar,0.5,0.833333333,tmrel_to_mild_rate,0.59,0.75,0.93,44853,179,modified
+27,Afar,0.833333333,1.5,mam_to_sam_rate,0.63,0.77,0.94,44853,179,modified
+28,Afar,0.833333333,1.5,mild_to_mam_rate,0.83,0.87,0.9,44853,179,modified
+29,Afar,0.833333333,1.5,tmrel_to_mild_rate,0.71,0.82,0.97,44853,179,modified
+30,Afar,0,5,moderate_stunting_prevalence_ratio,0.78,0.83,0.93,44853,179,modified
+31,Afar,0,5,severe_stunting_prevalence_ratio,0.65,0.78,0.89,44853,179,modified
+32,Akwa Ibom,0.5,0.833333333,mam_to_sam_rate,0.05,0.51,1,25320,214,modified
+33,Akwa Ibom,0.5,0.833333333,mild_to_mam_rate,0.35,0.81,1,25320,214,modified
+34,Akwa Ibom,0.5,0.833333333,tmrel_to_mild_rate,0.59,0.87,1,25320,214,modified
+35,Akwa Ibom,0.833333333,1.5,mam_to_sam_rate,0.64,0.83,1,25320,214,modified
+36,Akwa Ibom,0.833333333,1.5,mild_to_mam_rate,0.9,0.98,1,25320,214,modified
+37,Akwa Ibom,0.833333333,1.5,tmrel_to_mild_rate,0.69,0.9,1,25320,214,modified
+38,Akwa Ibom,0,5,moderate_stunting_prevalence_ratio,0.77,0.87,1.02,25320,214,modified
+39,Akwa Ibom,0,5,severe_stunting_prevalence_ratio,0.83,0.92,0.98,25320,214,modified
+40,Amhara,0.5,0.833333333,mam_to_sam_rate,0.05,0.61,1,44854,179,modified
+41,Amhara,0.5,0.833333333,mild_to_mam_rate,0.67,0.95,1,44854,179,modified
+42,Amhara,0.5,0.833333333,tmrel_to_mild_rate,0.67,0.89,1,44854,179,modified
+43,Amhara,0.833333333,1.5,mam_to_sam_rate,0.65,0.84,1,44854,179,modified
+44,Amhara,0.833333333,1.5,mild_to_mam_rate,0.97,0.99,1,44854,179,modified
+45,Amhara,0.833333333,1.5,tmrel_to_mild_rate,0.7,0.9,1,44854,179,modified
+46,Amhara,0,5,moderate_stunting_prevalence_ratio,0.77,0.87,1.02,44854,179,modified
+47,Amhara,0,5,severe_stunting_prevalence_ratio,0.83,0.92,0.98,44854,179,modified
+48,Anambra,0.5,0.833333333,mam_to_sam_rate,0.05,0.53,1,25321,214,modified
+49,Anambra,0.5,0.833333333,mild_to_mam_rate,0.49,0.87,1,25321,214,modified
+50,Anambra,0.5,0.833333333,tmrel_to_mild_rate,0.65,0.89,1,25321,214,modified
+51,Anambra,0.833333333,1.5,mam_to_sam_rate,0.65,0.83,1,25321,214,modified
+52,Anambra,0.833333333,1.5,mild_to_mam_rate,0.93,0.99,1,25321,214,modified
+53,Anambra,0.833333333,1.5,tmrel_to_mild_rate,0.71,0.91,1,25321,214,modified
+54,Anambra,0,5,moderate_stunting_prevalence_ratio,0.77,0.87,1.02,25321,214,modified
+55,Anambra,0,5,severe_stunting_prevalence_ratio,0.83,0.92,0.98,25321,214,modified
+56,Azad Jammu & Kashmir,0.5,0.833333333,mam_to_sam_rate,0.05,0.59,1,53615,165,modified
+57,Azad Jammu & Kashmir,0.5,0.833333333,mild_to_mam_rate,0.63,0.93,1,53615,165,modified
+58,Azad Jammu & Kashmir,0.5,0.833333333,tmrel_to_mild_rate,0.23,0.77,1,53615,165,modified
+59,Azad Jammu & Kashmir,0.833333333,1.5,mam_to_sam_rate,0.64,0.81,1,53615,165,modified
+60,Azad Jammu & Kashmir,0.833333333,1.5,mild_to_mam_rate,0.99,0.99,1,53615,165,modified
+61,Azad Jammu & Kashmir,0.833333333,1.5,tmrel_to_mild_rate,0.74,0.93,1,53615,165,modified
+62,Azad Jammu & Kashmir,0,5,moderate_stunting_prevalence_ratio,0.77,0.87,1.02,53615,165,modified
+63,Azad Jammu & Kashmir,0,5,severe_stunting_prevalence_ratio,0.83,0.92,0.98,53615,165,modified
+64,Balochistan,0.5,0.833333333,mam_to_sam_rate,0.05,0.05,0.33,53616,165,modified
+65,Balochistan,0.5,0.833333333,mild_to_mam_rate,0.19,0.35,0.63,53616,165,modified
+66,Balochistan,0.5,0.833333333,tmrel_to_mild_rate,0.57,0.71,0.89,53616,165,modified
+67,Balochistan,0.833333333,1.5,mam_to_sam_rate,0.5,0.5,0.95,53616,165,modified
+68,Balochistan,0.833333333,1.5,mild_to_mam_rate,0.85,0.85,0.93,53616,165,modified
+69,Balochistan,0.833333333,1.5,tmrel_to_mild_rate,0.69,0.93,0.94,53616,165,modified
+70,Balochistan,0,5,moderate_stunting_prevalence_ratio,0.78,0.83,0.93,53616,165,modified
+71,Balochistan,0,5,severe_stunting_prevalence_ratio,0.65,0.78,0.89,53616,165,modified
+72,Bauchi,0.5,0.833333333,mam_to_sam_rate,0.05,0.57,1,25322,214,modified
+73,Bauchi,0.5,0.833333333,mild_to_mam_rate,0.53,0.89,1,25322,214,modified
+74,Bauchi,0.5,0.833333333,tmrel_to_mild_rate,0.63,0.89,1,25322,214,modified
+75,Bauchi,0.833333333,1.5,mam_to_sam_rate,0.63,0.85,1,25322,214,modified
+76,Bauchi,0.833333333,1.5,mild_to_mam_rate,0.92,0.99,1,25322,214,modified
+77,Bauchi,0.833333333,1.5,tmrel_to_mild_rate,0.67,0.93,1,25322,214,modified
+78,Bauchi,0,5,moderate_stunting_prevalence_ratio,0.77,0.87,1.02,25322,214,modified
+79,Bauchi,0,5,severe_stunting_prevalence_ratio,0.83,0.92,0.98,25322,214,modified
+80,Bayelsa,0.5,0.833333333,mam_to_sam_rate,0.05,0.59,1,25323,214,modified
+81,Bayelsa,0.5,0.833333333,mild_to_mam_rate,0.61,0.91,1,25323,214,modified
+82,Bayelsa,0.5,0.833333333,tmrel_to_mild_rate,0.69,0.91,1,25323,214,modified
+83,Bayelsa,0.833333333,1.5,mam_to_sam_rate,0.65,0.84,1,25323,214,modified
+84,Bayelsa,0.833333333,1.5,mild_to_mam_rate,0.96,0.99,1,25323,214,modified
+85,Bayelsa,0.833333333,1.5,tmrel_to_mild_rate,0.73,0.91,1,25323,214,modified
+86,Bayelsa,0,5,moderate_stunting_prevalence_ratio,0.77,0.87,1.02,25323,214,modified
+87,Bayelsa,0,5,severe_stunting_prevalence_ratio,0.83,0.92,0.98,25323,214,modified
+88,Benishangul-Gumuz,0.5,0.833333333,mam_to_sam_rate,0.05,0.25,0.69,44857,179,modified
+89,Benishangul-Gumuz,0.5,0.833333333,mild_to_mam_rate,0.57,0.71,0.85,44857,179,modified
+90,Benishangul-Gumuz,0.5,0.833333333,tmrel_to_mild_rate,0.71,0.81,0.95,44857,179,modified
+91,Benishangul-Gumuz,0.833333333,1.5,mam_to_sam_rate,0.61,0.75,0.91,44857,179,modified
+92,Benishangul-Gumuz,0.833333333,1.5,mild_to_mam_rate,0.86,0.89,0.92,44857,179,modified
+93,Benishangul-Gumuz,0.833333333,1.5,tmrel_to_mild_rate,0.76,0.85,0.98,44857,179,modified
+94,Benishangul-Gumuz,0,5,moderate_stunting_prevalence_ratio,0.78,0.83,0.93,44857,179,modified
+95,Benishangul-Gumuz,0,5,severe_stunting_prevalence_ratio,0.65,0.78,0.89,44857,179,modified
+96,Benue,0.5,0.833333333,mam_to_sam_rate,0.05,0.59,1,25324,214,modified
+97,Benue,0.5,0.833333333,mild_to_mam_rate,0.59,0.93,1,25324,214,modified
+98,Benue,0.5,0.833333333,tmrel_to_mild_rate,0.69,0.89,1,25324,214,modified
+99,Benue,0.833333333,1.5,mam_to_sam_rate,0.64,0.83,1,25324,214,modified
+100,Benue,0.833333333,1.5,mild_to_mam_rate,0.95,0.99,1,25324,214,modified
+101,Benue,0.833333333,1.5,tmrel_to_mild_rate,0.72,0.91,1,25324,214,modified
+102,Benue,0,5,moderate_stunting_prevalence_ratio,0.77,0.87,1.02,25324,214,modified
+103,Benue,0,5,severe_stunting_prevalence_ratio,0.83,0.92,0.98,25324,214,modified
+104,Borno,0.5,0.833333333,mam_to_sam_rate,0.05,0.07,0.63,25325,214,modified
+105,Borno,0.5,0.833333333,mild_to_mam_rate,0.29,0.41,0.75,25325,214,modified
+106,Borno,0.5,0.833333333,tmrel_to_mild_rate,0.65,0.75,0.93,25325,214,modified
+107,Borno,0.833333333,1.5,mam_to_sam_rate,0.61,0.75,0.91,25325,214,modified
+108,Borno,0.833333333,1.5,mild_to_mam_rate,0.75,0.82,0.89,25325,214,modified
+109,Borno,0.833333333,1.5,tmrel_to_mild_rate,0.73,0.82,0.95,25325,214,modified
+110,Borno,0,5,moderate_stunting_prevalence_ratio,0.78,0.83,0.93,25325,214,modified
+111,Borno,0,5,severe_stunting_prevalence_ratio,0.65,0.78,0.89,25325,214,modified
+112,Cross River,0.5,0.833333333,mam_to_sam_rate,0.05,0.53,1,25326,214,modified
+113,Cross River,0.5,0.833333333,mild_to_mam_rate,0.53,0.89,1,25326,214,modified
+114,Cross River,0.5,0.833333333,tmrel_to_mild_rate,0.67,0.89,1,25326,214,modified
+115,Cross River,0.833333333,1.5,mam_to_sam_rate,0.67,0.85,1,25326,214,modified
+116,Cross River,0.833333333,1.5,mild_to_mam_rate,0.97,0.99,1,25326,214,modified
+117,Cross River,0.833333333,1.5,tmrel_to_mild_rate,0.72,0.91,1,25326,214,modified
+118,Cross River,0,5,moderate_stunting_prevalence_ratio,0.77,0.87,1.02,25326,214,modified
+119,Cross River,0,5,severe_stunting_prevalence_ratio,0.83,0.92,0.98,25326,214,modified
+120,Delta,0.5,0.833333333,mam_to_sam_rate,0.05,0.55,1,25327,214,modified
+121,Delta,0.5,0.833333333,mild_to_mam_rate,0.55,0.89,1,25327,214,modified
+122,Delta,0.5,0.833333333,tmrel_to_mild_rate,0.65,0.89,1,25327,214,modified
+123,Delta,0.833333333,1.5,mam_to_sam_rate,0.64,0.83,1,25327,214,modified
+124,Delta,0.833333333,1.5,mild_to_mam_rate,0.95,0.99,1,25327,214,modified
+125,Delta,0.833333333,1.5,tmrel_to_mild_rate,0.71,0.91,1,25327,214,modified
+126,Delta,0,5,moderate_stunting_prevalence_ratio,0.77,0.87,1.02,25327,214,modified
+127,Delta,0,5,severe_stunting_prevalence_ratio,0.83,0.92,0.98,25327,214,modified
+128,Dire Dawa,0.5,0.833333333,mam_to_sam_rate,0.05,0.23,0.67,44862,179,modified
+129,Dire Dawa,0.5,0.833333333,mild_to_mam_rate,0.51,0.67,0.83,44862,179,modified
+130,Dire Dawa,0.5,0.833333333,tmrel_to_mild_rate,0.67,0.79,0.95,44862,179,modified
+131,Dire Dawa,0.833333333,1.5,mam_to_sam_rate,0.61,0.74,0.9,44862,179,modified
+132,Dire Dawa,0.833333333,1.5,mild_to_mam_rate,0.86,0.89,0.92,44862,179,modified
+133,Dire Dawa,0.833333333,1.5,tmrel_to_mild_rate,0.75,0.84,0.97,44862,179,modified
+134,Dire Dawa,0,5,moderate_stunting_prevalence_ratio,0.78,0.83,0.93,44862,179,modified
+135,Dire Dawa,0,5,severe_stunting_prevalence_ratio,0.65,0.78,0.89,44862,179,modified
+136,Ebonyi,0.5,0.833333333,mam_to_sam_rate,0.05,0.53,1,25328,214,modified
+137,Ebonyi,0.5,0.833333333,mild_to_mam_rate,0.43,0.85,1,25328,214,modified
+138,Ebonyi,0.5,0.833333333,tmrel_to_mild_rate,0.61,0.87,1,25328,214,modified
+139,Ebonyi,0.833333333,1.5,mam_to_sam_rate,0.64,0.82,1,25328,214,modified
+140,Ebonyi,0.833333333,1.5,mild_to_mam_rate,0.93,0.99,1,25328,214,modified
+141,Ebonyi,0.833333333,1.5,tmrel_to_mild_rate,0.7,0.9,1,25328,214,modified
+142,Ebonyi,0,5,moderate_stunting_prevalence_ratio,0.77,0.87,1.02,25328,214,modified
+143,Ebonyi,0,5,severe_stunting_prevalence_ratio,0.83,0.92,0.98,25328,214,modified
+144,Edo,0.5,0.833333333,mam_to_sam_rate,0.05,0.51,1,25329,214,modified
+145,Edo,0.5,0.833333333,mild_to_mam_rate,0.43,0.85,1,25329,214,modified
+146,Edo,0.5,0.833333333,tmrel_to_mild_rate,0.63,0.87,1,25329,214,modified
+147,Edo,0.833333333,1.5,mam_to_sam_rate,0.65,0.84,1,25329,214,modified
+148,Edo,0.833333333,1.5,mild_to_mam_rate,0.96,0.99,1,25329,214,modified
+149,Edo,0.833333333,1.5,tmrel_to_mild_rate,0.72,0.91,1,25329,214,modified
+150,Edo,0,5,moderate_stunting_prevalence_ratio,0.77,0.87,1.02,25329,214,modified
+151,Edo,0,5,severe_stunting_prevalence_ratio,0.83,0.92,0.98,25329,214,modified
+152,Ekiti,0.5,0.833333333,mam_to_sam_rate,0.05,0.59,1,25330,214,modified
+153,Ekiti,0.5,0.833333333,mild_to_mam_rate,0.59,0.93,1,25330,214,modified
+154,Ekiti,0.5,0.833333333,tmrel_to_mild_rate,0.67,0.89,1,25330,214,modified
+155,Ekiti,0.833333333,1.5,mam_to_sam_rate,0.64,0.82,1,25330,214,modified
+156,Ekiti,0.833333333,1.5,mild_to_mam_rate,0.96,0.99,1,25330,214,modified
+157,Ekiti,0.833333333,1.5,tmrel_to_mild_rate,0.72,0.91,1,25330,214,modified
+158,Ekiti,0,5,moderate_stunting_prevalence_ratio,0.77,0.87,1.02,25330,214,modified
+159,Ekiti,0,5,severe_stunting_prevalence_ratio,0.83,0.92,0.98,25330,214,modified
+160,Enugu,0.5,0.833333333,mam_to_sam_rate,0.05,0.59,1,25331,214,modified
+161,Enugu,0.5,0.833333333,mild_to_mam_rate,0.59,0.93,1,25331,214,modified
+162,Enugu,0.5,0.833333333,tmrel_to_mild_rate,0.69,0.89,1,25331,214,modified
+163,Enugu,0.833333333,1.5,mam_to_sam_rate,0.64,0.83,1,25331,214,modified
+164,Enugu,0.833333333,1.5,mild_to_mam_rate,0.96,0.99,1,25331,214,modified
+165,Enugu,0.833333333,1.5,tmrel_to_mild_rate,0.73,0.91,1,25331,214,modified
+166,Enugu,0,5,moderate_stunting_prevalence_ratio,0.77,0.87,1.02,25331,214,modified
+167,Enugu,0,5,severe_stunting_prevalence_ratio,0.83,0.92,0.98,25331,214,modified
+168,FCT (Abuja),0.5,0.833333333,mam_to_sam_rate,0.05,0.57,1,25332,214,modified
+169,FCT (Abuja),0.5,0.833333333,mild_to_mam_rate,0.63,0.93,1,25332,214,modified
+170,FCT (Abuja),0.5,0.833333333,tmrel_to_mild_rate,0.67,0.89,1,25332,214,modified
+171,FCT (Abuja),0.833333333,1.5,mam_to_sam_rate,0.68,0.85,1,25332,214,modified
+172,FCT (Abuja),0.833333333,1.5,mild_to_mam_rate,0.99,0.99,1,25332,214,modified
+173,FCT (Abuja),0.833333333,1.5,tmrel_to_mild_rate,0.73,0.93,1,25332,214,modified
+174,FCT (Abuja),0,5,moderate_stunting_prevalence_ratio,0.77,0.87,1.02,25332,214,modified
+175,FCT (Abuja),0,5,severe_stunting_prevalence_ratio,0.83,0.92,0.98,25332,214,modified
+176,Gambella,0.5,0.833333333,mam_to_sam_rate,0.05,0.19,0.65,44860,179,modified
+177,Gambella,0.5,0.833333333,mild_to_mam_rate,0.49,0.63,0.83,44860,179,modified
+178,Gambella,0.5,0.833333333,tmrel_to_mild_rate,0.67,0.79,0.95,44860,179,modified
+179,Gambella,0.833333333,1.5,mam_to_sam_rate,0.64,0.78,0.95,44860,179,modified
+180,Gambella,0.833333333,1.5,mild_to_mam_rate,0.85,0.9,0.94,44860,179,modified
+181,Gambella,0.833333333,1.5,tmrel_to_mild_rate,0.74,0.83,0.96,44860,179,modified
+182,Gambella,0,5,moderate_stunting_prevalence_ratio,0.78,0.83,0.93,44860,179,modified
+183,Gambella,0,5,severe_stunting_prevalence_ratio,0.65,0.78,0.89,44860,179,modified
+184,Gilgit-Baltistan,0.5,0.833333333,mam_to_sam_rate,0.05,0.55,1,53617,165,modified
+185,Gilgit-Baltistan,0.5,0.833333333,mild_to_mam_rate,0.59,0.91,1,53617,165,modified
+186,Gilgit-Baltistan,0.5,0.833333333,tmrel_to_mild_rate,0.61,0.89,1,53617,165,modified
+187,Gilgit-Baltistan,0.833333333,1.5,mam_to_sam_rate,0.65,0.83,1,53617,165,modified
+188,Gilgit-Baltistan,0.833333333,1.5,mild_to_mam_rate,0.99,0.99,1,53617,165,modified
+189,Gilgit-Baltistan,0.833333333,1.5,tmrel_to_mild_rate,0.72,0.93,1,53617,165,modified
+190,Gilgit-Baltistan,0,5,moderate_stunting_prevalence_ratio,0.77,0.87,1.02,53617,165,modified
+191,Gilgit-Baltistan,0,5,severe_stunting_prevalence_ratio,0.83,0.92,0.98,53617,165,modified
+192,Gombe,0.5,0.833333333,mam_to_sam_rate,0.05,0.19,0.69,25333,214,modified
+193,Gombe,0.5,0.833333333,mild_to_mam_rate,0.45,0.61,0.81,25333,214,modified
+194,Gombe,0.5,0.833333333,tmrel_to_mild_rate,0.71,0.81,0.95,25333,214,modified
+195,Gombe,0.833333333,1.5,mam_to_sam_rate,0.61,0.75,0.91,25333,214,modified
+196,Gombe,0.833333333,1.5,mild_to_mam_rate,0.79,0.85,0.9,25333,214,modified
+197,Gombe,0.833333333,1.5,tmrel_to_mild_rate,0.74,0.83,0.95,25333,214,modified
+198,Gombe,0,5,moderate_stunting_prevalence_ratio,0.78,0.83,0.93,25333,214,modified
+199,Gombe,0,5,severe_stunting_prevalence_ratio,0.65,0.78,0.89,25333,214,modified
+200,Harari,0.5,0.833333333,mam_to_sam_rate,0.05,0.57,1,44859,179,modified
+201,Harari,0.5,0.833333333,mild_to_mam_rate,0.61,0.93,1,44859,179,modified
+202,Harari,0.5,0.833333333,tmrel_to_mild_rate,0.65,0.89,1,44859,179,modified
+203,Harari,0.833333333,1.5,mam_to_sam_rate,0.64,0.83,1,44859,179,modified
+204,Harari,0.833333333,1.5,mild_to_mam_rate,0.97,0.99,1,44859,179,modified
+205,Harari,0.833333333,1.5,tmrel_to_mild_rate,0.71,0.91,1,44859,179,modified
+206,Harari,0,5,moderate_stunting_prevalence_ratio,0.77,0.87,1.02,44859,179,modified
+207,Harari,0,5,severe_stunting_prevalence_ratio,0.83,0.92,0.98,44859,179,modified
+208,Imo,0.5,0.833333333,mam_to_sam_rate,0.05,0.53,1,25334,214,modified
+209,Imo,0.5,0.833333333,mild_to_mam_rate,0.51,0.87,1,25334,214,modified
+210,Imo,0.5,0.833333333,tmrel_to_mild_rate,0.63,0.87,1,25334,214,modified
+211,Imo,0.833333333,1.5,mam_to_sam_rate,0.65,0.83,1,25334,214,modified
+212,Imo,0.833333333,1.5,mild_to_mam_rate,0.94,0.99,1,25334,214,modified
+213,Imo,0.833333333,1.5,tmrel_to_mild_rate,0.71,0.9,1,25334,214,modified
+214,Imo,0,5,moderate_stunting_prevalence_ratio,0.77,0.87,1.02,25334,214,modified
+215,Imo,0,5,severe_stunting_prevalence_ratio,0.83,0.92,0.98,25334,214,modified
+216,Islamabad Capital Territory,0.5,0.833333333,mam_to_sam_rate,0.05,0.53,1,53618,165,modified
+217,Islamabad Capital Territory,0.5,0.833333333,mild_to_mam_rate,0.59,0.91,1,53618,165,modified
+218,Islamabad Capital Territory,0.5,0.833333333,tmrel_to_mild_rate,0.65,0.89,1,53618,165,modified
+219,Islamabad Capital Territory,0.833333333,1.5,mam_to_sam_rate,0.65,0.84,1,53618,165,modified
+220,Islamabad Capital Territory,0.833333333,1.5,mild_to_mam_rate,0.99,0.99,1,53618,165,modified
+221,Islamabad Capital Territory,0.833333333,1.5,tmrel_to_mild_rate,0.73,0.92,1,53618,165,modified
+222,Islamabad Capital Territory,0,5,moderate_stunting_prevalence_ratio,0.77,0.87,1.02,53618,165,modified
+223,Islamabad Capital Territory,0,5,severe_stunting_prevalence_ratio,0.83,0.92,0.98,53618,165,modified
+224,Jigawa,0.5,0.833333333,mam_to_sam_rate,0.05,0.11,0.65,25335,214,modified
+225,Jigawa,0.5,0.833333333,mild_to_mam_rate,0.35,0.49,0.77,25335,214,modified
+226,Jigawa,0.5,0.833333333,tmrel_to_mild_rate,0.69,0.79,0.93,25335,214,modified
+227,Jigawa,0.833333333,1.5,mam_to_sam_rate,0.59,0.73,0.88,25335,214,modified
+228,Jigawa,0.833333333,1.5,mild_to_mam_rate,0.76,0.82,0.88,25335,214,modified
+229,Jigawa,0.833333333,1.5,tmrel_to_mild_rate,0.73,0.82,0.95,25335,214,modified
+230,Jigawa,0,5,moderate_stunting_prevalence_ratio,0.78,0.83,0.93,25335,214,modified
+231,Jigawa,0,5,severe_stunting_prevalence_ratio,0.65,0.78,0.89,25335,214,modified
+232,Kaduna,0.5,0.833333333,mam_to_sam_rate,0.05,0.13,0.67,25336,214,modified
+233,Kaduna,0.5,0.833333333,mild_to_mam_rate,0.39,0.53,0.79,25336,214,modified
+234,Kaduna,0.5,0.833333333,tmrel_to_mild_rate,0.69,0.79,0.95,25336,214,modified
+235,Kaduna,0.833333333,1.5,mam_to_sam_rate,0.62,0.75,0.92,25336,214,modified
+236,Kaduna,0.833333333,1.5,mild_to_mam_rate,0.82,0.87,0.91,25336,214,modified
+237,Kaduna,0.833333333,1.5,tmrel_to_mild_rate,0.75,0.84,0.96,25336,214,modified
+238,Kaduna,0,5,moderate_stunting_prevalence_ratio,0.78,0.83,0.93,25336,214,modified
+239,Kaduna,0,5,severe_stunting_prevalence_ratio,0.65,0.78,0.89,25336,214,modified
+240,Kano,0.5,0.833333333,mam_to_sam_rate,0.05,0.11,0.67,25337,214,modified
+241,Kano,0.5,0.833333333,mild_to_mam_rate,0.37,0.49,0.79,25337,214,modified
+242,Kano,0.5,0.833333333,tmrel_to_mild_rate,0.69,0.79,0.95,25337,214,modified
+243,Kano,0.833333333,1.5,mam_to_sam_rate,0.6,0.74,0.89,25337,214,modified
+244,Kano,0.833333333,1.5,mild_to_mam_rate,0.78,0.84,0.9,25337,214,modified
+245,Kano,0.833333333,1.5,tmrel_to_mild_rate,0.75,0.83,0.96,25337,214,modified
+246,Kano,0,5,moderate_stunting_prevalence_ratio,0.78,0.83,0.93,25337,214,modified
+247,Kano,0,5,severe_stunting_prevalence_ratio,0.65,0.78,0.89,25337,214,modified
+248,Katsina,0.5,0.833333333,mam_to_sam_rate,0.05,0.11,0.67,25338,214,modified
+249,Katsina,0.5,0.833333333,mild_to_mam_rate,0.33,0.45,0.77,25338,214,modified
+250,Katsina,0.5,0.833333333,tmrel_to_mild_rate,0.69,0.77,0.93,25338,214,modified
+251,Katsina,0.833333333,1.5,mam_to_sam_rate,0.6,0.73,0.89,25338,214,modified
+252,Katsina,0.833333333,1.5,mild_to_mam_rate,0.77,0.83,0.89,25338,214,modified
+253,Katsina,0.833333333,1.5,tmrel_to_mild_rate,0.75,0.83,0.96,25338,214,modified
+254,Katsina,0,5,moderate_stunting_prevalence_ratio,0.78,0.83,0.93,25338,214,modified
+255,Katsina,0,5,severe_stunting_prevalence_ratio,0.65,0.78,0.89,25338,214,modified
+256,Kebbi,0.5,0.833333333,mam_to_sam_rate,0.05,0.11,0.65,25339,214,modified
+257,Kebbi,0.5,0.833333333,mild_to_mam_rate,0.33,0.47,0.77,25339,214,modified
+258,Kebbi,0.5,0.833333333,tmrel_to_mild_rate,0.63,0.75,0.93,25339,214,modified
+259,Kebbi,0.833333333,1.5,mam_to_sam_rate,0.62,0.76,0.92,25339,214,modified
+260,Kebbi,0.833333333,1.5,mild_to_mam_rate,0.76,0.83,0.89,25339,214,modified
+261,Kebbi,0.833333333,1.5,tmrel_to_mild_rate,0.72,0.81,0.94,25339,214,modified
+262,Kebbi,0,5,moderate_stunting_prevalence_ratio,0.78,0.83,0.93,25339,214,modified
+263,Kebbi,0,5,severe_stunting_prevalence_ratio,0.65,0.78,0.89,25339,214,modified
+264,Khyber Pakhtunkhwa,0.5,0.833333333,mam_to_sam_rate,0.05,0.05,0.55,53619,165,modified
+265,Khyber Pakhtunkhwa,0.5,0.833333333,mild_to_mam_rate,0.33,0.49,0.77,53619,165,modified
+266,Khyber Pakhtunkhwa,0.5,0.833333333,tmrel_to_mild_rate,0.61,0.75,0.93,53619,165,modified
+267,Khyber Pakhtunkhwa,0.833333333,1.5,mam_to_sam_rate,0.61,0.74,0.9,53619,165,modified
+268,Khyber Pakhtunkhwa,0.833333333,1.5,mild_to_mam_rate,0.91,0.93,0.94,53619,165,modified
+269,Khyber Pakhtunkhwa,0.833333333,1.5,tmrel_to_mild_rate,0.77,0.86,1,53619,165,modified
+270,Khyber Pakhtunkhwa,0,5,moderate_stunting_prevalence_ratio,0.78,0.83,0.93,53619,165,modified
+271,Khyber Pakhtunkhwa,0,5,severe_stunting_prevalence_ratio,0.65,0.78,0.89,53619,165,modified
+272,Kogi,0.5,0.833333333,mam_to_sam_rate,0.05,0.51,1,25340,214,modified
+273,Kogi,0.5,0.833333333,mild_to_mam_rate,0.29,0.77,1,25340,214,modified
+274,Kogi,0.5,0.833333333,tmrel_to_mild_rate,0.57,0.85,1,25340,214,modified
+275,Kogi,0.833333333,1.5,mam_to_sam_rate,0.65,0.83,1,25340,214,modified
+276,Kogi,0.833333333,1.5,mild_to_mam_rate,0.94,0.99,1,25340,214,modified
+277,Kogi,0.833333333,1.5,tmrel_to_mild_rate,0.7,0.9,1,25340,214,modified
+278,Kogi,0,5,moderate_stunting_prevalence_ratio,0.77,0.87,1.02,25340,214,modified
+279,Kogi,0,5,severe_stunting_prevalence_ratio,0.83,0.92,0.98,25340,214,modified
+280,Kwara,0.5,0.833333333,mam_to_sam_rate,0.05,0.55,1,25341,214,modified
+281,Kwara,0.5,0.833333333,mild_to_mam_rate,0.51,0.89,1,25341,214,modified
+282,Kwara,0.5,0.833333333,tmrel_to_mild_rate,0.65,0.89,1,25341,214,modified
+283,Kwara,0.833333333,1.5,mam_to_sam_rate,0.65,0.84,1,25341,214,modified
+284,Kwara,0.833333333,1.5,mild_to_mam_rate,0.95,0.99,1,25341,214,modified
+285,Kwara,0.833333333,1.5,tmrel_to_mild_rate,0.7,0.9,1,25341,214,modified
+286,Kwara,0,5,moderate_stunting_prevalence_ratio,0.77,0.87,1.02,25341,214,modified
+287,Kwara,0,5,severe_stunting_prevalence_ratio,0.83,0.92,0.98,25341,214,modified
+288,Lagos,0.5,0.833333333,mam_to_sam_rate,0.05,0.51,1,25342,214,modified
+289,Lagos,0.5,0.833333333,mild_to_mam_rate,0.37,0.81,1,25342,214,modified
+290,Lagos,0.5,0.833333333,tmrel_to_mild_rate,0.59,0.87,1,25342,214,modified
+291,Lagos,0.833333333,1.5,mam_to_sam_rate,0.65,0.84,1,25342,214,modified
+292,Lagos,0.833333333,1.5,mild_to_mam_rate,0.93,0.99,1,25342,214,modified
+293,Lagos,0.833333333,1.5,tmrel_to_mild_rate,0.69,0.9,1,25342,214,modified
+294,Lagos,0,5,moderate_stunting_prevalence_ratio,0.77,0.87,1.02,25342,214,modified
+295,Lagos,0,5,severe_stunting_prevalence_ratio,0.83,0.92,0.98,25342,214,modified
+296,Nasarawa,0.5,0.833333333,mam_to_sam_rate,0.05,0.55,1,25343,214,modified
+297,Nasarawa,0.5,0.833333333,mild_to_mam_rate,0.55,0.91,1,25343,214,modified
+298,Nasarawa,0.5,0.833333333,tmrel_to_mild_rate,0.65,0.89,1,25343,214,modified
+299,Nasarawa,0.833333333,1.5,mam_to_sam_rate,0.65,0.83,1,25343,214,modified
+300,Nasarawa,0.833333333,1.5,mild_to_mam_rate,0.96,0.99,1,25343,214,modified
+301,Nasarawa,0.833333333,1.5,tmrel_to_mild_rate,0.72,0.91,1,25343,214,modified
+302,Nasarawa,0,5,moderate_stunting_prevalence_ratio,0.77,0.87,1.02,25343,214,modified
+303,Nasarawa,0,5,severe_stunting_prevalence_ratio,0.83,0.92,0.98,25343,214,modified
+304,Niger,0.5,0.833333333,mam_to_sam_rate,0.05,0.55,1,25344,214,modified
+305,Niger,0.5,0.833333333,mild_to_mam_rate,0.49,0.87,1,25344,214,modified
+306,Niger,0.5,0.833333333,tmrel_to_mild_rate,0.61,0.87,1,25344,214,modified
+307,Niger,0.833333333,1.5,mam_to_sam_rate,0.64,0.83,1,25344,214,modified
+308,Niger,0.833333333,1.5,mild_to_mam_rate,0.94,0.99,1,25344,214,modified
+309,Niger,0.833333333,1.5,tmrel_to_mild_rate,0.69,0.9,1,25344,214,modified
+310,Niger,0,5,moderate_stunting_prevalence_ratio,0.77,0.87,1.02,25344,214,modified
+311,Niger,0,5,severe_stunting_prevalence_ratio,0.83,0.92,0.98,25344,214,modified
+312,Ogun,0.5,0.833333333,mam_to_sam_rate,0.05,0.53,1,25345,214,modified
+313,Ogun,0.5,0.833333333,mild_to_mam_rate,0.45,0.85,1,25345,214,modified
+314,Ogun,0.5,0.833333333,tmrel_to_mild_rate,0.63,0.89,1,25345,214,modified
+315,Ogun,0.833333333,1.5,mam_to_sam_rate,0.67,0.86,1,25345,214,modified
+316,Ogun,0.833333333,1.5,mild_to_mam_rate,0.97,0.99,1,25345,214,modified
+317,Ogun,0.833333333,1.5,tmrel_to_mild_rate,0.71,0.91,1,25345,214,modified
+318,Ogun,0,5,moderate_stunting_prevalence_ratio,0.77,0.87,1.02,25345,214,modified
+319,Ogun,0,5,severe_stunting_prevalence_ratio,0.83,0.92,0.98,25345,214,modified
+320,Ondo,0.5,0.833333333,mam_to_sam_rate,0.05,0.53,1,25346,214,modified
+321,Ondo,0.5,0.833333333,mild_to_mam_rate,0.37,0.81,1,25346,214,modified
+322,Ondo,0.5,0.833333333,tmrel_to_mild_rate,0.63,0.87,1,25346,214,modified
+323,Ondo,0.833333333,1.5,mam_to_sam_rate,0.67,0.85,1,25346,214,modified
+324,Ondo,0.833333333,1.5,mild_to_mam_rate,0.99,0.99,1,25346,214,modified
+325,Ondo,0.833333333,1.5,tmrel_to_mild_rate,0.74,0.93,1,25346,214,modified
+326,Ondo,0,5,moderate_stunting_prevalence_ratio,0.77,0.87,1.02,25346,214,modified
+327,Ondo,0,5,severe_stunting_prevalence_ratio,0.83,0.92,0.98,25346,214,modified
+328,Oromia,0.5,0.833333333,mam_to_sam_rate,0.05,0.57,1,44855,179,modified
+329,Oromia,0.5,0.833333333,mild_to_mam_rate,0.63,0.93,1,44855,179,modified
+330,Oromia,0.5,0.833333333,tmrel_to_mild_rate,0.65,0.89,1,44855,179,modified
+331,Oromia,0.833333333,1.5,mam_to_sam_rate,0.65,0.84,1,44855,179,modified
+332,Oromia,0.833333333,1.5,mild_to_mam_rate,0.97,0.99,1,44855,179,modified
+333,Oromia,0.833333333,1.5,tmrel_to_mild_rate,0.71,0.91,1,44855,179,modified
+334,Oromia,0,5,moderate_stunting_prevalence_ratio,0.77,0.87,1.02,44855,179,modified
+335,Oromia,0,5,severe_stunting_prevalence_ratio,0.83,0.92,0.98,44855,179,modified
+336,Osun,0.5,0.833333333,mam_to_sam_rate,0.05,0.57,1,25347,214,modified
+337,Osun,0.5,0.833333333,mild_to_mam_rate,0.55,0.91,1,25347,214,modified
+338,Osun,0.5,0.833333333,tmrel_to_mild_rate,0.65,0.89,1,25347,214,modified
+339,Osun,0.833333333,1.5,mam_to_sam_rate,0.65,0.83,1,25347,214,modified
+340,Osun,0.833333333,1.5,mild_to_mam_rate,0.95,0.99,1,25347,214,modified
+341,Osun,0.833333333,1.5,tmrel_to_mild_rate,0.7,0.9,1,25347,214,modified
+342,Osun,0,5,moderate_stunting_prevalence_ratio,0.77,0.87,1.02,25347,214,modified
+343,Osun,0,5,severe_stunting_prevalence_ratio,0.83,0.92,0.98,25347,214,modified
+344,Oyo,0.5,0.833333333,mam_to_sam_rate,0.05,0.55,1,25348,214,modified
+345,Oyo,0.5,0.833333333,mild_to_mam_rate,0.51,0.89,1,25348,214,modified
+346,Oyo,0.5,0.833333333,tmrel_to_mild_rate,0.67,0.89,1,25348,214,modified
+347,Oyo,0.833333333,1.5,mam_to_sam_rate,0.67,0.82,1,25348,214,modified
+348,Oyo,0.833333333,1.5,mild_to_mam_rate,0.98,0.99,1,25348,214,modified
+349,Oyo,0.833333333,1.5,tmrel_to_mild_rate,0.72,0.93,1,25348,214,modified
+350,Oyo,0,5,moderate_stunting_prevalence_ratio,0.77,0.87,1.02,25348,214,modified
+351,Oyo,0,5,severe_stunting_prevalence_ratio,0.83,0.92,0.98,25348,214,modified
+352,Plateau,0.5,0.833333333,mam_to_sam_rate,0.05,0.55,1,25349,214,modified
+353,Plateau,0.5,0.833333333,mild_to_mam_rate,0.57,0.91,1,25349,214,modified
+354,Plateau,0.5,0.833333333,tmrel_to_mild_rate,0.69,0.89,1,25349,214,modified
+355,Plateau,0.833333333,1.5,mam_to_sam_rate,0.64,0.83,1,25349,214,modified
+356,Plateau,0.833333333,1.5,mild_to_mam_rate,0.95,0.99,1,25349,214,modified
+357,Plateau,0.833333333,1.5,tmrel_to_mild_rate,0.72,0.91,1,25349,214,modified
+358,Plateau,0,5,moderate_stunting_prevalence_ratio,0.77,0.87,1.02,25349,214,modified
+359,Plateau,0,5,severe_stunting_prevalence_ratio,0.83,0.92,0.98,25349,214,modified
+360,Punjab,0.5,0.833333333,mam_to_sam_rate,0.05,0.51,1,53620,165,modified
+361,Punjab,0.5,0.833333333,mild_to_mam_rate,0.49,0.89,1,53620,165,modified
+362,Punjab,0.5,0.833333333,tmrel_to_mild_rate,0.57,0.87,1,53620,165,modified
+363,Punjab,0.833333333,1.5,mam_to_sam_rate,0.66,0.84,1,53620,165,modified
+364,Punjab,0.833333333,1.5,mild_to_mam_rate,0.99,0.99,1,53620,165,modified
+365,Punjab,0.833333333,1.5,tmrel_to_mild_rate,0.68,0.9,1,53620,165,modified
+366,Punjab,0,5,moderate_stunting_prevalence_ratio,0.77,0.87,1.02,53620,165,modified
+367,Punjab,0,5,severe_stunting_prevalence_ratio,0.83,0.92,0.98,53620,165,modified
+368,Rivers,0.5,0.833333333,mam_to_sam_rate,0.05,0.55,1,25350,214,modified
+369,Rivers,0.5,0.833333333,mild_to_mam_rate,0.59,0.91,1,25350,214,modified
+370,Rivers,0.5,0.833333333,tmrel_to_mild_rate,0.67,0.89,1,25350,214,modified
+371,Rivers,0.833333333,1.5,mam_to_sam_rate,0.67,0.87,1,25350,214,modified
+372,Rivers,0.833333333,1.5,mild_to_mam_rate,0.99,0.99,1,25350,214,modified
+373,Rivers,0.833333333,1.5,tmrel_to_mild_rate,0.73,0.92,1,25350,214,modified
+374,Rivers,0,5,moderate_stunting_prevalence_ratio,0.77,0.87,1.02,25350,214,modified
+375,Rivers,0,5,severe_stunting_prevalence_ratio,0.83,0.92,0.98,25350,214,modified
+376,Sindh,0.5,0.833333333,mam_to_sam_rate,0.05,0.05,0.55,53621,165,modified
+377,Sindh,0.5,0.833333333,mild_to_mam_rate,0.33,0.49,0.77,53621,165,modified
+378,Sindh,0.5,0.833333333,tmrel_to_mild_rate,0.61,0.73,0.93,53621,165,modified
+379,Sindh,0.833333333,1.5,mam_to_sam_rate,0.62,0.76,0.92,53621,165,modified
+380,Sindh,0.833333333,1.5,mild_to_mam_rate,0.91,0.93,0.94,53621,165,modified
+381,Sindh,0.833333333,1.5,tmrel_to_mild_rate,0.72,0.82,0.97,53621,165,modified
+382,Sindh,0,5,moderate_stunting_prevalence_ratio,0.78,0.83,0.93,53621,165,modified
+383,Sindh,0,5,severe_stunting_prevalence_ratio,0.65,0.78,0.89,53621,165,modified
+384,Sokoto,0.5,0.833333333,mam_to_sam_rate,0.05,0.09,0.65,25351,214,modified
+385,Sokoto,0.5,0.833333333,mild_to_mam_rate,0.19,0.31,0.71,25351,214,modified
+386,Sokoto,0.5,0.833333333,tmrel_to_mild_rate,0.59,0.71,0.91,25351,214,modified
+387,Sokoto,0.833333333,1.5,mam_to_sam_rate,0.59,0.72,0.88,25351,214,modified
+388,Sokoto,0.833333333,1.5,mild_to_mam_rate,0.72,0.79,0.86,25351,214,modified
+389,Sokoto,0.833333333,1.5,tmrel_to_mild_rate,0.7,0.79,0.93,25351,214,modified
+390,Sokoto,0,5,moderate_stunting_prevalence_ratio,0.78,0.83,0.93,25351,214,modified
+391,Sokoto,0,5,severe_stunting_prevalence_ratio,0.65,0.78,0.89,25351,214,modified
+392,Somali,0.5,0.833333333,mam_to_sam_rate,0.05,0.13,0.65,44856,179,modified
+393,Somali,0.5,0.833333333,mild_to_mam_rate,0.41,0.55,0.79,44856,179,modified
+394,Somali,0.5,0.833333333,tmrel_to_mild_rate,0.63,0.75,0.93,44856,179,modified
+395,Somali,0.833333333,1.5,mam_to_sam_rate,0.64,0.78,0.95,44856,179,modified
+396,Somali,0.833333333,1.5,mild_to_mam_rate,0.85,0.89,0.93,44856,179,modified
+397,Somali,0.833333333,1.5,tmrel_to_mild_rate,0.71,0.81,0.95,44856,179,modified
+398,Somali,0,5,moderate_stunting_prevalence_ratio,0.78,0.83,0.93,44856,179,modified
+399,Somali,0,5,severe_stunting_prevalence_ratio,0.65,0.78,0.89,44856,179,modified
+400,"Southern Nations, Nationalities, and Peoples",0.5,0.833333333,mam_to_sam_rate,0.05,0.15,0.67,44858,179,modified
+401,"Southern Nations, Nationalities, and Peoples",0.5,0.833333333,mild_to_mam_rate,0.49,0.61,0.83,44858,179,modified
+402,"Southern Nations, Nationalities, and Peoples",0.5,0.833333333,tmrel_to_mild_rate,0.73,0.83,0.95,44858,179,modified
+403,"Southern Nations, Nationalities, and Peoples",0.833333333,1.5,mam_to_sam_rate,0.62,0.76,0.92,44858,179,modified
+404,"Southern Nations, Nationalities, and Peoples",0.833333333,1.5,mild_to_mam_rate,0.84,0.89,0.93,44858,179,modified
+405,"Southern Nations, Nationalities, and Peoples",0.833333333,1.5,tmrel_to_mild_rate,0.78,0.86,0.98,44858,179,modified
+406,"Southern Nations, Nationalities, and Peoples",0,5,moderate_stunting_prevalence_ratio,0.78,0.83,0.93,44858,179,modified
+407,"Southern Nations, Nationalities, and Peoples",0,5,severe_stunting_prevalence_ratio,0.65,0.78,0.89,44858,179,modified
+408,Taraba,0.5,0.833333333,mam_to_sam_rate,0.05,0.57,1,25352,214,modified
+409,Taraba,0.5,0.833333333,mild_to_mam_rate,0.57,0.91,1,25352,214,modified
+410,Taraba,0.5,0.833333333,tmrel_to_mild_rate,0.69,0.89,1,25352,214,modified
+411,Taraba,0.833333333,1.5,mam_to_sam_rate,0.63,0.81,1,25352,214,modified
+412,Taraba,0.833333333,1.5,mild_to_mam_rate,0.94,0.99,1,25352,214,modified
+413,Taraba,0.833333333,1.5,tmrel_to_mild_rate,0.72,0.91,1,25352,214,modified
+414,Taraba,0,5,moderate_stunting_prevalence_ratio,0.77,0.87,1.02,25352,214,modified
+415,Taraba,0,5,severe_stunting_prevalence_ratio,0.83,0.92,0.98,25352,214,modified
+416,Tigray,0.5,0.833333333,mam_to_sam_rate,0.05,0.29,0.71,44852,179,modified
+417,Tigray,0.5,0.833333333,mild_to_mam_rate,0.59,0.73,0.87,44852,179,modified
+418,Tigray,0.5,0.833333333,tmrel_to_mild_rate,0.71,0.81,0.95,44852,179,modified
+419,Tigray,0.833333333,1.5,mam_to_sam_rate,0.63,0.77,0.93,44852,179,modified
+420,Tigray,0.833333333,1.5,mild_to_mam_rate,0.87,0.9,0.93,44852,179,modified
+421,Tigray,0.833333333,1.5,tmrel_to_mild_rate,0.76,0.84,0.97,44852,179,modified
+422,Tigray,0,5,moderate_stunting_prevalence_ratio,0.78,0.83,0.93,44852,179,modified
+423,Tigray,0,5,severe_stunting_prevalence_ratio,0.65,0.78,0.89,44852,179,modified
+424,Yobe,0.5,0.833333333,mam_to_sam_rate,0.05,0.07,0.63,25353,214,modified
+425,Yobe,0.5,0.833333333,mild_to_mam_rate,0.23,0.37,0.73,25353,214,modified
+426,Yobe,0.5,0.833333333,tmrel_to_mild_rate,0.63,0.75,0.93,25353,214,modified
+427,Yobe,0.833333333,1.5,mam_to_sam_rate,0.63,0.77,0.94,25353,214,modified
+428,Yobe,0.833333333,1.5,mild_to_mam_rate,0.77,0.84,0.91,25353,214,modified
+429,Yobe,0.833333333,1.5,tmrel_to_mild_rate,0.73,0.82,0.95,25353,214,modified
+430,Yobe,0,5,moderate_stunting_prevalence_ratio,0.78,0.83,0.93,25353,214,modified
+431,Yobe,0,5,severe_stunting_prevalence_ratio,0.65,0.78,0.89,25353,214,modified
+432,Zamfara,0.5,0.833333333,mam_to_sam_rate,0.05,0.17,0.67,25354,214,modified
+433,Zamfara,0.5,0.833333333,mild_to_mam_rate,0.41,0.55,0.81,25354,214,modified
+434,Zamfara,0.5,0.833333333,tmrel_to_mild_rate,0.69,0.79,0.95,25354,214,modified
+435,Zamfara,0.833333333,1.5,mam_to_sam_rate,0.58,0.71,0.86,25354,214,modified
+436,Zamfara,0.833333333,1.5,mild_to_mam_rate,0.77,0.82,0.87,25354,214,modified
+437,Zamfara,0.833333333,1.5,tmrel_to_mild_rate,0.73,0.81,0.94,25354,214,modified
+438,Zamfara,0,5,moderate_stunting_prevalence_ratio,0.78,0.83,0.93,25354,214,modified
+439,Zamfara,0,5,severe_stunting_prevalence_ratio,0.65,0.78,0.89,25354,214,modified
+0,Abia,0.5,0.833333333,mam_to_sam_rate,0.05,0.19,0.63,25318,214,standard
+1,Abia,0.5,0.833333333,mild_to_mam_rate,0.29,0.49,0.81,25318,214,standard
+2,Abia,0.5,0.833333333,tmrel_to_mild_rate,0.63,0.73,0.89,25318,214,standard
+3,Abia,0.833333333,1.5,mam_to_sam_rate,0.67,0.77,0.88,25318,214,standard
+4,Abia,0.833333333,1.5,mild_to_mam_rate,0.8,0.87,0.94,25318,214,standard
+5,Abia,0.833333333,1.5,tmrel_to_mild_rate,0.83,0.88,0.96,25318,214,standard
+6,Abia,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,25318,214,standard
+7,Abia,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,25318,214,standard
+8,Adamawa,0.5,0.833333333,mam_to_sam_rate,0.05,0.31,0.69,25319,214,standard
+9,Adamawa,0.5,0.833333333,mild_to_mam_rate,0.53,0.69,0.89,25319,214,standard
+10,Adamawa,0.5,0.833333333,tmrel_to_mild_rate,0.75,0.83,0.93,25319,214,standard
+11,Adamawa,0.833333333,1.5,mam_to_sam_rate,0.66,0.77,0.87,25319,214,standard
+12,Adamawa,0.833333333,1.5,mild_to_mam_rate,0.82,0.88,0.95,25319,214,standard
+13,Adamawa,0.833333333,1.5,tmrel_to_mild_rate,0.85,0.9,0.96,25319,214,standard
+14,Adamawa,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,25319,214,standard
+15,Adamawa,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,25319,214,standard
+16,Addis Ababa,0.5,0.833333333,mam_to_sam_rate,0.05,0.35,0.71,44861,179,standard
+17,Addis Ababa,0.5,0.833333333,mild_to_mam_rate,0.57,0.73,0.89,44861,179,standard
+18,Addis Ababa,0.5,0.833333333,tmrel_to_mild_rate,0.75,0.83,0.95,44861,179,standard
+19,Addis Ababa,0.833333333,1.5,mam_to_sam_rate,0.68,0.78,0.89,44861,179,standard
+20,Addis Ababa,0.833333333,1.5,mild_to_mam_rate,0.85,0.91,0.97,44861,179,standard
+21,Addis Ababa,0.833333333,1.5,tmrel_to_mild_rate,0.88,0.92,0.98,44861,179,standard
+22,Addis Ababa,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,44861,179,standard
+23,Addis Ababa,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,44861,179,standard
+24,Afar,0.5,0.833333333,mam_to_sam_rate,0.05,0.33,0.69,44853,179,standard
+25,Afar,0.5,0.833333333,mild_to_mam_rate,0.49,0.69,0.89,44853,179,standard
+26,Afar,0.5,0.833333333,tmrel_to_mild_rate,0.45,0.63,0.87,44853,179,standard
+27,Afar,0.833333333,1.5,mam_to_sam_rate,0.7,0.8,0.92,44853,179,standard
+28,Afar,0.833333333,1.5,mild_to_mam_rate,0.81,0.87,0.94,44853,179,standard
+29,Afar,0.833333333,1.5,tmrel_to_mild_rate,0.8,0.87,0.97,44853,179,standard
+30,Afar,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,44853,179,standard
+31,Afar,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,44853,179,standard
+32,Akwa Ibom,0.5,0.833333333,mam_to_sam_rate,0.05,0.17,0.65,25320,214,standard
+33,Akwa Ibom,0.5,0.833333333,mild_to_mam_rate,0.29,0.47,0.81,25320,214,standard
+34,Akwa Ibom,0.5,0.833333333,tmrel_to_mild_rate,0.65,0.75,0.89,25320,214,standard
+35,Akwa Ibom,0.833333333,1.5,mam_to_sam_rate,0.67,0.78,0.89,25320,214,standard
+36,Akwa Ibom,0.833333333,1.5,mild_to_mam_rate,0.79,0.87,0.94,25320,214,standard
+37,Akwa Ibom,0.833333333,1.5,tmrel_to_mild_rate,0.84,0.89,0.96,25320,214,standard
+38,Akwa Ibom,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,25320,214,standard
+39,Akwa Ibom,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,25320,214,standard
+40,Amhara,0.5,0.833333333,mam_to_sam_rate,0.05,0.37,0.71,44854,179,standard
+41,Amhara,0.5,0.833333333,mild_to_mam_rate,0.61,0.75,0.91,44854,179,standard
+42,Amhara,0.5,0.833333333,tmrel_to_mild_rate,0.75,0.83,0.93,44854,179,standard
+43,Amhara,0.833333333,1.5,mam_to_sam_rate,0.68,0.79,0.9,44854,179,standard
+44,Amhara,0.833333333,1.5,mild_to_mam_rate,0.85,0.91,0.96,44854,179,standard
+45,Amhara,0.833333333,1.5,tmrel_to_mild_rate,0.85,0.9,0.97,44854,179,standard
+46,Amhara,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,44854,179,standard
+47,Amhara,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,44854,179,standard
+48,Anambra,0.5,0.833333333,mam_to_sam_rate,0.05,0.21,0.65,25321,214,standard
+49,Anambra,0.5,0.833333333,mild_to_mam_rate,0.43,0.61,0.85,25321,214,standard
+50,Anambra,0.5,0.833333333,tmrel_to_mild_rate,0.73,0.81,0.93,25321,214,standard
+51,Anambra,0.833333333,1.5,mam_to_sam_rate,0.68,0.78,0.89,25321,214,standard
+52,Anambra,0.833333333,1.5,mild_to_mam_rate,0.82,0.88,0.95,25321,214,standard
+53,Anambra,0.833333333,1.5,tmrel_to_mild_rate,0.86,0.9,0.97,25321,214,standard
+54,Anambra,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,25321,214,standard
+55,Anambra,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,25321,214,standard
+56,Azad Jammu & Kashmir,0.5,0.833333333,mam_to_sam_rate,0.09,0.39,0.71,53615,165,standard
+57,Azad Jammu & Kashmir,0.5,0.833333333,mild_to_mam_rate,0.61,0.75,0.91,53615,165,standard
+58,Azad Jammu & Kashmir,0.5,0.833333333,tmrel_to_mild_rate,0.45,0.63,0.87,53615,165,standard
+59,Azad Jammu & Kashmir,0.833333333,1.5,mam_to_sam_rate,0.67,0.8,0.88,53615,165,standard
+60,Azad Jammu & Kashmir,0.833333333,1.5,mild_to_mam_rate,0.9,0.9,0.97,53615,165,standard
+61,Azad Jammu & Kashmir,0.833333333,1.5,tmrel_to_mild_rate,0.9,0.9,0.97,53615,165,standard
+62,Azad Jammu & Kashmir,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,53615,165,standard
+63,Azad Jammu & Kashmir,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,53615,165,standard
+64,Balochistan,0.5,0.833333333,mam_to_sam_rate,0.05,0.05,0.29,53616,165,standard
+65,Balochistan,0.5,0.833333333,mild_to_mam_rate,0.07,0.29,0.61,53616,165,standard
+66,Balochistan,0.5,0.833333333,tmrel_to_mild_rate,0.45,0.57,0.77,53616,165,standard
+67,Balochistan,0.833333333,1.5,mam_to_sam_rate,0.7,0.81,0.93,53616,165,standard
+68,Balochistan,0.833333333,1.5,mild_to_mam_rate,0.86,0.92,0.97,53616,165,standard
+69,Balochistan,0.833333333,1.5,tmrel_to_mild_rate,0.77,0.84,0.93,53616,165,standard
+70,Balochistan,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,53616,165,standard
+71,Balochistan,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,53616,165,standard
+72,Bauchi,0.5,0.833333333,mam_to_sam_rate,0.05,0.27,0.69,25322,214,standard
+73,Bauchi,0.5,0.833333333,mild_to_mam_rate,0.49,0.65,0.87,25322,214,standard
+74,Bauchi,0.5,0.833333333,tmrel_to_mild_rate,0.71,0.79,0.93,25322,214,standard
+75,Bauchi,0.833333333,1.5,mam_to_sam_rate,0.65,0.75,0.86,25322,214,standard
+76,Bauchi,0.833333333,1.5,mild_to_mam_rate,0.8,0.87,0.93,25322,214,standard
+77,Bauchi,0.833333333,1.5,tmrel_to_mild_rate,0.82,0.87,0.94,25322,214,standard
+78,Bauchi,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,25322,214,standard
+79,Bauchi,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,25322,214,standard
+80,Bayelsa,0.5,0.833333333,mam_to_sam_rate,0.05,0.33,0.71,25323,214,standard
+81,Bayelsa,0.5,0.833333333,mild_to_mam_rate,0.55,0.71,0.89,25323,214,standard
+82,Bayelsa,0.5,0.833333333,tmrel_to_mild_rate,0.79,0.85,0.95,25323,214,standard
+83,Bayelsa,0.833333333,1.5,mam_to_sam_rate,0.68,0.79,0.9,25323,214,standard
+84,Bayelsa,0.833333333,1.5,mild_to_mam_rate,0.84,0.9,0.96,25323,214,standard
+85,Bayelsa,0.833333333,1.5,tmrel_to_mild_rate,0.87,0.91,0.97,25323,214,standard
+86,Bayelsa,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,25323,214,standard
+87,Bayelsa,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,25323,214,standard
+88,Benishangul-Gumuz,0.5,0.833333333,mam_to_sam_rate,0.05,0.29,0.67,44857,179,standard
+89,Benishangul-Gumuz,0.5,0.833333333,mild_to_mam_rate,0.61,0.75,0.91,44857,179,standard
+90,Benishangul-Gumuz,0.5,0.833333333,tmrel_to_mild_rate,0.73,0.81,0.93,44857,179,standard
+91,Benishangul-Gumuz,0.833333333,1.5,mam_to_sam_rate,0.68,0.78,0.89,44857,179,standard
+92,Benishangul-Gumuz,0.833333333,1.5,mild_to_mam_rate,0.84,0.9,0.96,44857,179,standard
+93,Benishangul-Gumuz,0.833333333,1.5,tmrel_to_mild_rate,0.84,0.89,0.97,44857,179,standard
+94,Benishangul-Gumuz,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,44857,179,standard
+95,Benishangul-Gumuz,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,44857,179,standard
+96,Benue,0.5,0.833333333,mam_to_sam_rate,0.05,0.31,0.69,25324,214,standard
+97,Benue,0.5,0.833333333,mild_to_mam_rate,0.55,0.71,0.89,25324,214,standard
+98,Benue,0.5,0.833333333,tmrel_to_mild_rate,0.77,0.83,0.93,25324,214,standard
+99,Benue,0.833333333,1.5,mam_to_sam_rate,0.67,0.77,0.89,25324,214,standard
+100,Benue,0.833333333,1.5,mild_to_mam_rate,0.83,0.89,0.96,25324,214,standard
+101,Benue,0.833333333,1.5,tmrel_to_mild_rate,0.87,0.91,0.97,25324,214,standard
+102,Benue,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,25324,214,standard
+103,Benue,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,25324,214,standard
+104,Borno,0.5,0.833333333,mam_to_sam_rate,0.05,0.15,0.61,25325,214,standard
+105,Borno,0.5,0.833333333,mild_to_mam_rate,0.25,0.43,0.77,25325,214,standard
+106,Borno,0.5,0.833333333,tmrel_to_mild_rate,0.61,0.71,0.87,25325,214,standard
+107,Borno,0.833333333,1.5,mam_to_sam_rate,0.67,0.78,0.89,25325,214,standard
+108,Borno,0.833333333,1.5,mild_to_mam_rate,0.76,0.84,0.93,25325,214,standard
+109,Borno,0.833333333,1.5,tmrel_to_mild_rate,0.81,0.87,0.95,25325,214,standard
+110,Borno,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,25325,214,standard
+111,Borno,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,25325,214,standard
+112,Cross River,0.5,0.833333333,mam_to_sam_rate,0.05,0.23,0.65,25326,214,standard
+113,Cross River,0.5,0.833333333,mild_to_mam_rate,0.49,0.65,0.87,25326,214,standard
+114,Cross River,0.5,0.833333333,tmrel_to_mild_rate,0.75,0.81,0.93,25326,214,standard
+115,Cross River,0.833333333,1.5,mam_to_sam_rate,0.69,0.8,0.92,25326,214,standard
+116,Cross River,0.833333333,1.5,mild_to_mam_rate,0.85,0.91,0.97,25326,214,standard
+117,Cross River,0.833333333,1.5,tmrel_to_mild_rate,0.86,0.91,0.97,25326,214,standard
+118,Cross River,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,25326,214,standard
+119,Cross River,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,25326,214,standard
+120,Delta,0.5,0.833333333,mam_to_sam_rate,0.05,0.25,0.67,25327,214,standard
+121,Delta,0.5,0.833333333,mild_to_mam_rate,0.49,0.65,0.87,25327,214,standard
+122,Delta,0.5,0.833333333,tmrel_to_mild_rate,0.73,0.81,0.93,25327,214,standard
+123,Delta,0.833333333,1.5,mam_to_sam_rate,0.67,0.78,0.89,25327,214,standard
+124,Delta,0.833333333,1.5,mild_to_mam_rate,0.83,0.89,0.96,25327,214,standard
+125,Delta,0.833333333,1.5,tmrel_to_mild_rate,0.86,0.91,0.97,25327,214,standard
+126,Delta,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,25327,214,standard
+127,Delta,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,25327,214,standard
+128,Dire Dawa,0.5,0.833333333,mam_to_sam_rate,0.05,0.15,0.61,44862,179,standard
+129,Dire Dawa,0.5,0.833333333,mild_to_mam_rate,0.47,0.61,0.85,44862,179,standard
+130,Dire Dawa,0.5,0.833333333,tmrel_to_mild_rate,0.57,0.69,0.89,44862,179,standard
+131,Dire Dawa,0.833333333,1.5,mam_to_sam_rate,0.67,0.78,0.89,44862,179,standard
+132,Dire Dawa,0.833333333,1.5,mild_to_mam_rate,0.84,0.9,0.96,44862,179,standard
+133,Dire Dawa,0.833333333,1.5,tmrel_to_mild_rate,0.83,0.88,0.96,44862,179,standard
+134,Dire Dawa,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,44862,179,standard
+135,Dire Dawa,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,44862,179,standard
+136,Ebonyi,0.5,0.833333333,mam_to_sam_rate,0.05,0.23,0.67,25328,214,standard
+137,Ebonyi,0.5,0.833333333,mild_to_mam_rate,0.37,0.57,0.83,25328,214,standard
+138,Ebonyi,0.5,0.833333333,tmrel_to_mild_rate,0.67,0.77,0.91,25328,214,standard
+139,Ebonyi,0.833333333,1.5,mam_to_sam_rate,0.67,0.77,0.88,25328,214,standard
+140,Ebonyi,0.833333333,1.5,mild_to_mam_rate,0.82,0.88,0.95,25328,214,standard
+141,Ebonyi,0.833333333,1.5,tmrel_to_mild_rate,0.85,0.9,0.96,25328,214,standard
+142,Ebonyi,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,25328,214,standard
+143,Ebonyi,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,25328,214,standard
+144,Edo,0.5,0.833333333,mam_to_sam_rate,0.05,0.19,0.63,25329,214,standard
+145,Edo,0.5,0.833333333,mild_to_mam_rate,0.37,0.55,0.83,25329,214,standard
+146,Edo,0.5,0.833333333,tmrel_to_mild_rate,0.69,0.77,0.91,25329,214,standard
+147,Edo,0.833333333,1.5,mam_to_sam_rate,0.68,0.79,0.9,25329,214,standard
+148,Edo,0.833333333,1.5,mild_to_mam_rate,0.84,0.9,0.96,25329,214,standard
+149,Edo,0.833333333,1.5,tmrel_to_mild_rate,0.87,0.91,0.97,25329,214,standard
+150,Edo,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,25329,214,standard
+151,Edo,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,25329,214,standard
+152,Ekiti,0.5,0.833333333,mam_to_sam_rate,0.05,0.33,0.71,25330,214,standard
+153,Ekiti,0.5,0.833333333,mild_to_mam_rate,0.55,0.71,0.89,25330,214,standard
+154,Ekiti,0.5,0.833333333,tmrel_to_mild_rate,0.77,0.83,0.93,25330,214,standard
+155,Ekiti,0.833333333,1.5,mam_to_sam_rate,0.67,0.77,0.88,25330,214,standard
+156,Ekiti,0.833333333,1.5,mild_to_mam_rate,0.84,0.9,0.96,25330,214,standard
+157,Ekiti,0.833333333,1.5,tmrel_to_mild_rate,0.87,0.91,0.97,25330,214,standard
+158,Ekiti,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,25330,214,standard
+159,Ekiti,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,25330,214,standard
+160,Enugu,0.5,0.833333333,mam_to_sam_rate,0.05,0.31,0.71,25331,214,standard
+161,Enugu,0.5,0.833333333,mild_to_mam_rate,0.55,0.71,0.89,25331,214,standard
+162,Enugu,0.5,0.833333333,tmrel_to_mild_rate,0.77,0.85,0.95,25331,214,standard
+163,Enugu,0.833333333,1.5,mam_to_sam_rate,0.67,0.78,0.89,25331,214,standard
+164,Enugu,0.833333333,1.5,mild_to_mam_rate,0.84,0.9,0.96,25331,214,standard
+165,Enugu,0.833333333,1.5,tmrel_to_mild_rate,0.87,0.92,0.97,25331,214,standard
+166,Enugu,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,25331,214,standard
+167,Enugu,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,25331,214,standard
+168,FCT (Abuja),0.5,0.833333333,mam_to_sam_rate,0.05,0.31,0.69,25332,214,standard
+169,FCT (Abuja),0.5,0.833333333,mild_to_mam_rate,0.59,0.73,0.91,25332,214,standard
+170,FCT (Abuja),0.5,0.833333333,tmrel_to_mild_rate,0.75,0.83,0.93,25332,214,standard
+171,FCT (Abuja),0.833333333,1.5,mam_to_sam_rate,0.71,0.82,0.94,25332,214,standard
+172,FCT (Abuja),0.833333333,1.5,mild_to_mam_rate,0.88,0.94,1,25332,214,standard
+173,FCT (Abuja),0.833333333,1.5,tmrel_to_mild_rate,0.87,0.92,0.97,25332,214,standard
+174,FCT (Abuja),0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,25332,214,standard
+175,FCT (Abuja),0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,25332,214,standard
+176,Gambella,0.5,0.833333333,mam_to_sam_rate,0.15,0.43,0.75,44860,179,standard
+177,Gambella,0.5,0.833333333,mild_to_mam_rate,0.57,0.73,0.89,44860,179,standard
+178,Gambella,0.5,0.833333333,tmrel_to_mild_rate,0.67,0.77,0.91,44860,179,standard
+179,Gambella,0.833333333,1.5,mam_to_sam_rate,0.7,0.81,0.93,44860,179,standard
+180,Gambella,0.833333333,1.5,mild_to_mam_rate,0.84,0.9,0.97,44860,179,standard
+181,Gambella,0.833333333,1.5,tmrel_to_mild_rate,0.82,0.88,0.95,44860,179,standard
+182,Gambella,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,44860,179,standard
+183,Gambella,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,44860,179,standard
+184,Gilgit-Baltistan,0.5,0.833333333,mam_to_sam_rate,0.05,0.23,0.67,53617,165,standard
+185,Gilgit-Baltistan,0.5,0.833333333,mild_to_mam_rate,0.55,0.69,0.89,53617,165,standard
+186,Gilgit-Baltistan,0.5,0.833333333,tmrel_to_mild_rate,0.71,0.79,0.93,53617,165,standard
+187,Gilgit-Baltistan,0.833333333,1.5,mam_to_sam_rate,0.67,0.78,0.89,53617,165,standard
+188,Gilgit-Baltistan,0.833333333,1.5,mild_to_mam_rate,0.89,0.94,0.98,53617,165,standard
+189,Gilgit-Baltistan,0.833333333,1.5,tmrel_to_mild_rate,0.88,0.93,1,53617,165,standard
+190,Gilgit-Baltistan,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,53617,165,standard
+191,Gilgit-Baltistan,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,53617,165,standard
+192,Gombe,0.5,0.833333333,mam_to_sam_rate,0.05,0.29,0.69,25333,214,standard
+193,Gombe,0.5,0.833333333,mild_to_mam_rate,0.47,0.65,0.87,25333,214,standard
+194,Gombe,0.5,0.833333333,tmrel_to_mild_rate,0.69,0.79,0.91,25333,214,standard
+195,Gombe,0.833333333,1.5,mam_to_sam_rate,0.68,0.78,0.89,25333,214,standard
+196,Gombe,0.833333333,1.5,mild_to_mam_rate,0.79,0.86,0.93,25333,214,standard
+197,Gombe,0.833333333,1.5,tmrel_to_mild_rate,0.82,0.87,0.95,25333,214,standard
+198,Gombe,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,25333,214,standard
+199,Gombe,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,25333,214,standard
+200,Harari,0.5,0.833333333,mam_to_sam_rate,0.05,0.13,0.59,44859,179,standard
+201,Harari,0.5,0.833333333,mild_to_mam_rate,0.53,0.67,0.87,44859,179,standard
+202,Harari,0.5,0.833333333,tmrel_to_mild_rate,0.73,0.81,0.93,44859,179,standard
+203,Harari,0.833333333,1.5,mam_to_sam_rate,0.67,0.78,0.89,44859,179,standard
+204,Harari,0.833333333,1.5,mild_to_mam_rate,0.85,0.9,0.96,44859,179,standard
+205,Harari,0.833333333,1.5,tmrel_to_mild_rate,0.86,0.91,0.97,44859,179,standard
+206,Harari,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,44859,179,standard
+207,Harari,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,44859,179,standard
+208,Imo,0.5,0.833333333,mam_to_sam_rate,0.05,0.23,0.65,25334,214,standard
+209,Imo,0.5,0.833333333,mild_to_mam_rate,0.45,0.61,0.85,25334,214,standard
+210,Imo,0.5,0.833333333,tmrel_to_mild_rate,0.69,0.77,0.91,25334,214,standard
+211,Imo,0.833333333,1.5,mam_to_sam_rate,0.68,0.78,0.89,25334,214,standard
+212,Imo,0.833333333,1.5,mild_to_mam_rate,0.82,0.89,0.95,25334,214,standard
+213,Imo,0.833333333,1.5,tmrel_to_mild_rate,0.85,0.9,0.96,25334,214,standard
+214,Imo,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,25334,214,standard
+215,Imo,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,25334,214,standard
+216,Islamabad Capital Territory,0.5,0.833333333,mam_to_sam_rate,0.05,0.21,0.67,53618,165,standard
+217,Islamabad Capital Territory,0.5,0.833333333,mild_to_mam_rate,0.55,0.69,0.89,53618,165,standard
+218,Islamabad Capital Territory,0.5,0.833333333,tmrel_to_mild_rate,0.75,0.83,0.93,53618,165,standard
+219,Islamabad Capital Territory,0.833333333,1.5,mam_to_sam_rate,0.68,0.79,0.9,53618,165,standard
+220,Islamabad Capital Territory,0.833333333,1.5,mild_to_mam_rate,0.89,0.94,0.99,53618,165,standard
+221,Islamabad Capital Territory,0.833333333,1.5,tmrel_to_mild_rate,0.88,0.93,0.99,53618,165,standard
+222,Islamabad Capital Territory,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,53618,165,standard
+223,Islamabad Capital Territory,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,53618,165,standard
+224,Jigawa,0.5,0.833333333,mam_to_sam_rate,0.05,0.21,0.65,25335,214,standard
+225,Jigawa,0.5,0.833333333,mild_to_mam_rate,0.35,0.53,0.83,25335,214,standard
+226,Jigawa,0.5,0.833333333,tmrel_to_mild_rate,0.65,0.75,0.89,25335,214,standard
+227,Jigawa,0.833333333,1.5,mam_to_sam_rate,0.66,0.76,0.87,25335,214,standard
+228,Jigawa,0.833333333,1.5,mild_to_mam_rate,0.76,0.84,0.92,25335,214,standard
+229,Jigawa,0.833333333,1.5,tmrel_to_mild_rate,0.81,0.87,0.94,25335,214,standard
+230,Jigawa,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,25335,214,standard
+231,Jigawa,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,25335,214,standard
+232,Kaduna,0.5,0.833333333,mam_to_sam_rate,0.05,0.23,0.67,25336,214,standard
+233,Kaduna,0.5,0.833333333,mild_to_mam_rate,0.39,0.57,0.85,25336,214,standard
+234,Kaduna,0.5,0.833333333,tmrel_to_mild_rate,0.67,0.77,0.91,25336,214,standard
+235,Kaduna,0.833333333,1.5,mam_to_sam_rate,0.68,0.79,0.9,25336,214,standard
+236,Kaduna,0.833333333,1.5,mild_to_mam_rate,0.81,0.88,0.95,25336,214,standard
+237,Kaduna,0.833333333,1.5,tmrel_to_mild_rate,0.83,0.88,0.96,25336,214,standard
+238,Kaduna,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,25336,214,standard
+239,Kaduna,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,25336,214,standard
+240,Kano,0.5,0.833333333,mam_to_sam_rate,0.05,0.23,0.67,25337,214,standard
+241,Kano,0.5,0.833333333,mild_to_mam_rate,0.35,0.53,0.83,25337,214,standard
+242,Kano,0.5,0.833333333,tmrel_to_mild_rate,0.65,0.75,0.89,25337,214,standard
+243,Kano,0.833333333,1.5,mam_to_sam_rate,0.66,0.77,0.88,25337,214,standard
+244,Kano,0.833333333,1.5,mild_to_mam_rate,0.78,0.85,0.93,25337,214,standard
+245,Kano,0.833333333,1.5,tmrel_to_mild_rate,0.82,0.88,0.95,25337,214,standard
+246,Kano,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,25337,214,standard
+247,Kano,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,25337,214,standard
+248,Katsina,0.5,0.833333333,mam_to_sam_rate,0.05,0.21,0.67,25338,214,standard
+249,Katsina,0.5,0.833333333,mild_to_mam_rate,0.31,0.49,0.81,25338,214,standard
+250,Katsina,0.5,0.833333333,tmrel_to_mild_rate,0.65,0.75,0.89,25338,214,standard
+251,Katsina,0.833333333,1.5,mam_to_sam_rate,0.66,0.76,0.87,25338,214,standard
+252,Katsina,0.833333333,1.5,mild_to_mam_rate,0.77,0.84,0.92,25338,214,standard
+253,Katsina,0.833333333,1.5,tmrel_to_mild_rate,0.82,0.88,0.95,25338,214,standard
+254,Katsina,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,25338,214,standard
+255,Katsina,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,25338,214,standard
+256,Kebbi,0.5,0.833333333,mam_to_sam_rate,0.05,0.21,0.63,25339,214,standard
+257,Kebbi,0.5,0.833333333,mild_to_mam_rate,0.31,0.51,0.81,25339,214,standard
+258,Kebbi,0.5,0.833333333,tmrel_to_mild_rate,0.57,0.69,0.87,25339,214,standard
+259,Kebbi,0.833333333,1.5,mam_to_sam_rate,0.68,0.79,0.9,25339,214,standard
+260,Kebbi,0.833333333,1.5,mild_to_mam_rate,0.76,0.84,0.92,25339,214,standard
+261,Kebbi,0.833333333,1.5,tmrel_to_mild_rate,0.8,0.86,0.94,25339,214,standard
+262,Kebbi,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,25339,214,standard
+263,Kebbi,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,25339,214,standard
+264,Khyber Pakhtunkhwa,0.5,0.833333333,mam_to_sam_rate,0.05,0.05,0.55,53619,165,standard
+265,Khyber Pakhtunkhwa,0.5,0.833333333,mild_to_mam_rate,0.33,0.49,0.81,53619,165,standard
+266,Khyber Pakhtunkhwa,0.5,0.833333333,tmrel_to_mild_rate,0.55,0.67,0.87,53619,165,standard
+267,Khyber Pakhtunkhwa,0.833333333,1.5,mam_to_sam_rate,0.67,0.77,0.88,53619,165,standard
+268,Khyber Pakhtunkhwa,0.833333333,1.5,mild_to_mam_rate,0.88,0.93,0.98,53619,165,standard
+269,Khyber Pakhtunkhwa,0.833333333,1.5,tmrel_to_mild_rate,0.85,0.91,0.99,53619,165,standard
+270,Khyber Pakhtunkhwa,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,53619,165,standard
+271,Khyber Pakhtunkhwa,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,53619,165,standard
+272,Kogi,0.5,0.833333333,mam_to_sam_rate,0.05,0.13,0.61,25340,214,standard
+273,Kogi,0.5,0.833333333,mild_to_mam_rate,0.21,0.37,0.75,25340,214,standard
+274,Kogi,0.5,0.833333333,tmrel_to_mild_rate,0.59,0.69,0.87,25340,214,standard
+275,Kogi,0.833333333,1.5,mam_to_sam_rate,0.67,0.78,0.89,25340,214,standard
+276,Kogi,0.833333333,1.5,mild_to_mam_rate,0.82,0.89,0.95,25340,214,standard
+277,Kogi,0.833333333,1.5,tmrel_to_mild_rate,0.85,0.9,0.97,25340,214,standard
+278,Kogi,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,25340,214,standard
+279,Kogi,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,25340,214,standard
+280,Kwara,0.5,0.833333333,mam_to_sam_rate,0.05,0.23,0.67,25341,214,standard
+281,Kwara,0.5,0.833333333,mild_to_mam_rate,0.45,0.61,0.87,25341,214,standard
+282,Kwara,0.5,0.833333333,tmrel_to_mild_rate,0.71,0.79,0.93,25341,214,standard
+283,Kwara,0.833333333,1.5,mam_to_sam_rate,0.68,0.78,0.9,25341,214,standard
+284,Kwara,0.833333333,1.5,mild_to_mam_rate,0.83,0.89,0.96,25341,214,standard
+285,Kwara,0.833333333,1.5,tmrel_to_mild_rate,0.85,0.9,0.97,25341,214,standard
+286,Kwara,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,25341,214,standard
+287,Kwara,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,25341,214,standard
+288,Lagos,0.5,0.833333333,mam_to_sam_rate,0.05,0.17,0.65,25342,214,standard
+289,Lagos,0.5,0.833333333,mild_to_mam_rate,0.29,0.47,0.81,25342,214,standard
+290,Lagos,0.5,0.833333333,tmrel_to_mild_rate,0.63,0.73,0.89,25342,214,standard
+291,Lagos,0.833333333,1.5,mam_to_sam_rate,0.68,0.78,0.9,25342,214,standard
+292,Lagos,0.833333333,1.5,mild_to_mam_rate,0.82,0.88,0.95,25342,214,standard
+293,Lagos,0.833333333,1.5,tmrel_to_mild_rate,0.84,0.89,0.96,25342,214,standard
+294,Lagos,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,25342,214,standard
+295,Lagos,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,25342,214,standard
+296,Nasarawa,0.5,0.833333333,mam_to_sam_rate,0.05,0.27,0.67,25343,214,standard
+297,Nasarawa,0.5,0.833333333,mild_to_mam_rate,0.51,0.67,0.87,25343,214,standard
+298,Nasarawa,0.5,0.833333333,tmrel_to_mild_rate,0.73,0.81,0.93,25343,214,standard
+299,Nasarawa,0.833333333,1.5,mam_to_sam_rate,0.68,0.78,0.89,25343,214,standard
+300,Nasarawa,0.833333333,1.5,mild_to_mam_rate,0.83,0.9,0.96,25343,214,standard
+301,Nasarawa,0.833333333,1.5,tmrel_to_mild_rate,0.86,0.91,0.97,25343,214,standard
+302,Nasarawa,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,25343,214,standard
+303,Nasarawa,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,25343,214,standard
+304,Niger,0.5,0.833333333,mam_to_sam_rate,0.05,0.27,0.67,25344,214,standard
+305,Niger,0.5,0.833333333,mild_to_mam_rate,0.43,0.61,0.85,25344,214,standard
+306,Niger,0.5,0.833333333,tmrel_to_mild_rate,0.67,0.77,0.91,25344,214,standard
+307,Niger,0.833333333,1.5,mam_to_sam_rate,0.67,0.78,0.89,25344,214,standard
+308,Niger,0.833333333,1.5,mild_to_mam_rate,0.82,0.89,0.95,25344,214,standard
+309,Niger,0.833333333,1.5,tmrel_to_mild_rate,0.84,0.89,0.96,25344,214,standard
+310,Niger,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,25344,214,standard
+311,Niger,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,25344,214,standard
+312,Ogun,0.5,0.833333333,mam_to_sam_rate,0.05,0.21,0.65,25345,214,standard
+313,Ogun,0.5,0.833333333,mild_to_mam_rate,0.41,0.57,0.83,25345,214,standard
+314,Ogun,0.5,0.833333333,tmrel_to_mild_rate,0.71,0.79,0.91,25345,214,standard
+315,Ogun,0.833333333,1.5,mam_to_sam_rate,0.7,0.81,0.93,25345,214,standard
+316,Ogun,0.833333333,1.5,mild_to_mam_rate,0.85,0.91,0.98,25345,214,standard
+317,Ogun,0.833333333,1.5,tmrel_to_mild_rate,0.86,0.91,0.97,25345,214,standard
+318,Ogun,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,25345,214,standard
+319,Ogun,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,25345,214,standard
+320,Ondo,0.5,0.833333333,mam_to_sam_rate,0.05,0.15,0.63,25346,214,standard
+321,Ondo,0.5,0.833333333,mild_to_mam_rate,0.31,0.47,0.79,25346,214,standard
+322,Ondo,0.5,0.833333333,tmrel_to_mild_rate,0.71,0.79,0.91,25346,214,standard
+323,Ondo,0.833333333,1.5,mam_to_sam_rate,0.7,0.81,0.93,25346,214,standard
+324,Ondo,0.833333333,1.5,mild_to_mam_rate,0.86,0.93,0.99,25346,214,standard
+325,Ondo,0.833333333,1.5,tmrel_to_mild_rate,0.88,0.93,0.99,25346,214,standard
+326,Ondo,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,25346,214,standard
+327,Ondo,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,25346,214,standard
+328,Oromia,0.5,0.833333333,mam_to_sam_rate,0.05,0.37,0.71,44855,179,standard
+329,Oromia,0.5,0.833333333,mild_to_mam_rate,0.57,0.73,0.91,44855,179,standard
+330,Oromia,0.5,0.833333333,tmrel_to_mild_rate,0.73,0.81,0.93,44855,179,standard
+331,Oromia,0.833333333,1.5,mam_to_sam_rate,0.68,0.78,0.9,44855,179,standard
+332,Oromia,0.833333333,1.5,mild_to_mam_rate,0.85,0.91,0.97,44855,179,standard
+333,Oromia,0.833333333,1.5,tmrel_to_mild_rate,0.86,0.91,0.97,44855,179,standard
+334,Oromia,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,44855,179,standard
+335,Oromia,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,44855,179,standard
+336,Osun,0.5,0.833333333,mam_to_sam_rate,0.05,0.29,0.69,25347,214,standard
+337,Osun,0.5,0.833333333,mild_to_mam_rate,0.51,0.67,0.87,25347,214,standard
+338,Osun,0.5,0.833333333,tmrel_to_mild_rate,0.73,0.81,0.93,25347,214,standard
+339,Osun,0.833333333,1.5,mam_to_sam_rate,0.68,0.78,0.89,25347,214,standard
+340,Osun,0.833333333,1.5,mild_to_mam_rate,0.83,0.89,0.96,25347,214,standard
+341,Osun,0.833333333,1.5,tmrel_to_mild_rate,0.85,0.9,0.96,25347,214,standard
+342,Osun,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,25347,214,standard
+343,Osun,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,25347,214,standard
+344,Oyo,0.5,0.833333333,mam_to_sam_rate,0.05,0.23,0.69,25348,214,standard
+345,Oyo,0.5,0.833333333,mild_to_mam_rate,0.47,0.63,0.87,25348,214,standard
+346,Oyo,0.5,0.833333333,tmrel_to_mild_rate,0.75,0.83,0.93,25348,214,standard
+347,Oyo,0.833333333,1.5,mam_to_sam_rate,0.7,0.8,0.92,25348,214,standard
+348,Oyo,0.833333333,1.5,mild_to_mam_rate,0.85,0.91,0.97,25348,214,standard
+349,Oyo,0.833333333,1.5,tmrel_to_mild_rate,0.87,0.91,0.97,25348,214,standard
+350,Oyo,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,25348,214,standard
+351,Oyo,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,25348,214,standard
+352,Plateau,0.5,0.833333333,mam_to_sam_rate,0.05,0.27,0.67,25349,214,standard
+353,Plateau,0.5,0.833333333,mild_to_mam_rate,0.51,0.67,0.89,25349,214,standard
+354,Plateau,0.5,0.833333333,tmrel_to_mild_rate,0.77,0.85,0.93,25349,214,standard
+355,Plateau,0.833333333,1.5,mam_to_sam_rate,0.67,0.78,0.89,25349,214,standard
+356,Plateau,0.833333333,1.5,mild_to_mam_rate,0.83,0.89,0.96,25349,214,standard
+357,Plateau,0.833333333,1.5,tmrel_to_mild_rate,0.87,0.91,0.97,25349,214,standard
+358,Plateau,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,25349,214,standard
+359,Plateau,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,25349,214,standard
+360,Punjab,0.5,0.833333333,mam_to_sam_rate,0.05,0.13,0.63,53620,165,standard
+361,Punjab,0.5,0.833333333,mild_to_mam_rate,0.45,0.61,0.85,53620,165,standard
+362,Punjab,0.5,0.833333333,tmrel_to_mild_rate,0.63,0.73,0.89,53620,165,standard
+363,Punjab,0.833333333,1.5,mam_to_sam_rate,0.68,0.79,0.9,53620,165,standard
+364,Punjab,0.833333333,1.5,mild_to_mam_rate,0.89,0.94,0.99,53620,165,standard
+365,Punjab,0.833333333,1.5,tmrel_to_mild_rate,0.84,0.89,0.97,53620,165,standard
+366,Punjab,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,53620,165,standard
+367,Punjab,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,53620,165,standard
+368,Rivers,0.5,0.833333333,mam_to_sam_rate,0.05,0.27,0.67,25350,214,standard
+369,Rivers,0.5,0.833333333,mild_to_mam_rate,0.55,0.69,0.89,25350,214,standard
+370,Rivers,0.5,0.833333333,tmrel_to_mild_rate,0.75,0.83,0.93,25350,214,standard
+371,Rivers,0.833333333,1.5,mam_to_sam_rate,0.7,0.81,0.93,25350,214,standard
+372,Rivers,0.833333333,1.5,mild_to_mam_rate,0.87,0.93,0.99,25350,214,standard
+373,Rivers,0.833333333,1.5,tmrel_to_mild_rate,0.88,0.92,0.98,25350,214,standard
+374,Rivers,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,25350,214,standard
+375,Rivers,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,25350,214,standard
+376,Sindh,0.5,0.833333333,mam_to_sam_rate,0.05,0.05,0.53,53621,165,standard
+377,Sindh,0.5,0.833333333,mild_to_mam_rate,0.31,0.49,0.81,53621,165,standard
+378,Sindh,0.5,0.833333333,tmrel_to_mild_rate,0.53,0.65,0.87,53621,165,standard
+379,Sindh,0.833333333,1.5,mam_to_sam_rate,0.68,0.79,0.9,53621,165,standard
+380,Sindh,0.833333333,1.5,mild_to_mam_rate,0.89,0.94,0.98,53621,165,standard
+381,Sindh,0.833333333,1.5,tmrel_to_mild_rate,0.81,0.87,0.96,53621,165,standard
+382,Sindh,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,53621,165,standard
+383,Sindh,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,53621,165,standard
+384,Sokoto,0.5,0.833333333,mam_to_sam_rate,0.05,0.15,0.63,25351,214,standard
+385,Sokoto,0.5,0.833333333,mild_to_mam_rate,0.15,0.31,0.73,25351,214,standard
+386,Sokoto,0.5,0.833333333,tmrel_to_mild_rate,0.51,0.63,0.85,25351,214,standard
+387,Sokoto,0.833333333,1.5,mam_to_sam_rate,0.65,0.75,0.86,25351,214,standard
+388,Sokoto,0.833333333,1.5,mild_to_mam_rate,0.72,0.8,0.89,25351,214,standard
+389,Sokoto,0.833333333,1.5,tmrel_to_mild_rate,0.78,0.84,0.92,25351,214,standard
+390,Sokoto,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,25351,214,standard
+391,Sokoto,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,25351,214,standard
+392,Somali,0.5,0.833333333,mam_to_sam_rate,0.05,0.31,0.69,44856,179,standard
+393,Somali,0.5,0.833333333,mild_to_mam_rate,0.43,0.63,0.85,44856,179,standard
+394,Somali,0.5,0.833333333,tmrel_to_mild_rate,0.59,0.71,0.89,44856,179,standard
+395,Somali,0.833333333,1.5,mam_to_sam_rate,0.7,0.81,0.93,44856,179,standard
+396,Somali,0.833333333,1.5,mild_to_mam_rate,0.84,0.9,0.97,44856,179,standard
+397,Somali,0.833333333,1.5,tmrel_to_mild_rate,0.8,0.86,0.95,44856,179,standard
+398,Somali,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,44856,179,standard
+399,Somali,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,44856,179,standard
+400,"Southern Nations, Nationalities, and Peoples",0.5,0.833333333,mam_to_sam_rate,0.21,0.49,0.75,44858,179,standard
+401,"Southern Nations, Nationalities, and Peoples",0.5,0.833333333,mild_to_mam_rate,0.63,0.77,0.91,44858,179,standard
+402,"Southern Nations, Nationalities, and Peoples",0.5,0.833333333,tmrel_to_mild_rate,0.79,0.85,0.95,44858,179,standard
+403,"Southern Nations, Nationalities, and Peoples",0.833333333,1.5,mam_to_sam_rate,0.69,0.79,0.9,44858,179,standard
+404,"Southern Nations, Nationalities, and Peoples",0.833333333,1.5,mild_to_mam_rate,0.83,0.9,0.96,44858,179,standard
+405,"Southern Nations, Nationalities, and Peoples",0.833333333,1.5,tmrel_to_mild_rate,0.86,0.91,0.97,44858,179,standard
+406,"Southern Nations, Nationalities, and Peoples",0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,44858,179,standard
+407,"Southern Nations, Nationalities, and Peoples",0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,44858,179,standard
+408,Taraba,0.5,0.833333333,mam_to_sam_rate,0.05,0.31,0.69,25352,214,standard
+409,Taraba,0.5,0.833333333,mild_to_mam_rate,0.53,0.69,0.89,25352,214,standard
+410,Taraba,0.5,0.833333333,tmrel_to_mild_rate,0.77,0.83,0.93,25352,214,standard
+411,Taraba,0.833333333,1.5,mam_to_sam_rate,0.66,0.76,0.87,25352,214,standard
+412,Taraba,0.833333333,1.5,mild_to_mam_rate,0.82,0.88,0.94,25352,214,standard
+413,Taraba,0.833333333,1.5,tmrel_to_mild_rate,0.86,0.91,0.97,25352,214,standard
+414,Taraba,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,25352,214,standard
+415,Taraba,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,25352,214,standard
+416,Tigray,0.5,0.833333333,mam_to_sam_rate,0.05,0.27,0.67,44852,179,standard
+417,Tigray,0.5,0.833333333,mild_to_mam_rate,0.53,0.69,0.89,44852,179,standard
+418,Tigray,0.5,0.833333333,tmrel_to_mild_rate,0.65,0.75,0.91,44852,179,standard
+419,Tigray,0.833333333,1.5,mam_to_sam_rate,0.69,0.8,0.92,44852,179,standard
+420,Tigray,0.833333333,1.5,mild_to_mam_rate,0.85,0.91,0.97,44852,179,standard
+421,Tigray,0.833333333,1.5,tmrel_to_mild_rate,0.84,0.89,0.96,44852,179,standard
+422,Tigray,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,44852,179,standard
+423,Tigray,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,44852,179,standard
+424,Yobe,0.5,0.833333333,mam_to_sam_rate,0.05,0.15,0.65,25353,214,standard
+425,Yobe,0.5,0.833333333,mild_to_mam_rate,0.21,0.39,0.77,25353,214,standard
+426,Yobe,0.5,0.833333333,tmrel_to_mild_rate,0.59,0.69,0.87,25353,214,standard
+427,Yobe,0.833333333,1.5,mam_to_sam_rate,0.7,0.81,0.92,25353,214,standard
+428,Yobe,0.833333333,1.5,mild_to_mam_rate,0.77,0.86,0.94,25353,214,standard
+429,Yobe,0.833333333,1.5,tmrel_to_mild_rate,0.81,0.87,0.95,25353,214,standard
+430,Yobe,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,25353,214,standard
+431,Yobe,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,25353,214,standard
+432,Zamfara,0.5,0.833333333,mam_to_sam_rate,0.05,0.25,0.67,25354,214,standard
+433,Zamfara,0.5,0.833333333,mild_to_mam_rate,0.41,0.59,0.85,25354,214,standard
+434,Zamfara,0.5,0.833333333,tmrel_to_mild_rate,0.65,0.75,0.89,25354,214,standard
+435,Zamfara,0.833333333,1.5,mam_to_sam_rate,0.64,0.74,0.84,25354,214,standard
+436,Zamfara,0.833333333,1.5,mild_to_mam_rate,0.76,0.83,0.9,25354,214,standard
+437,Zamfara,0.833333333,1.5,tmrel_to_mild_rate,0.8,0.86,0.93,25354,214,standard
+438,Zamfara,0,5,moderate_stunting_prevalence_ratio,0.86,0.89,0.93,25354,214,standard
+439,Zamfara,0,5,severe_stunting_prevalence_ratio,0.78,0.83,0.9,25354,214,standard
