@@ -93,6 +93,7 @@ configuration:
         child_scenario: 'baseline'
         maternal_scenario: 'baseline'
         sqlns_effect_size: 'standard'
+        subnational: 'Azad Jammu & Kashmir'
     
     mortality:
         unmodeled_causes:
@@ -122,7 +123,6 @@ configuration:
         default:
             - 'age_group'
             - 'sex'
-            - 'subnational'
         child_wasting:
             include: ['sam_treatment', 'mam_treatment']
         child_stunting:
