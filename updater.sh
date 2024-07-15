@@ -14,7 +14,7 @@ if [ $env_type == 'simulation' ]; then
   install_file="requirements.txt"
 elif [ $env_type == 'artifact' ]; then
   echo "Updating requirements for artifact environment"
-  packages_to_update+=" gbd_mapping vivarium_inputs[data]"
+  packages_to_update+=" gbd_mapping vivarium_inputs vivarium_gbd_access"
   install_file="artifact_requirements.txt"
 else
   echo "Invalid environment type. Valid argument types are simulation (default) and artifact."
