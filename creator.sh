@@ -19,8 +19,8 @@ elif [ $env_type == 'artifact' ]; then
   echo "Installing requirements for artifact environment"
   install_file="artifact_requirements.txt"
 else
-  echo "Invalid environment type. Valid argument types are simulation (default) and artifact."
-  sleep 
+  echo "Invalid environment type. Valid argument types are simulation and artifact."
+  return 
 fi
 
 
@@ -39,4 +39,4 @@ pip install -e .[dev]
 # Install redis for simulation environments
 if [ $env_type == 'simulation' ]; then
   conda install redis -y
-fi
+fi  
