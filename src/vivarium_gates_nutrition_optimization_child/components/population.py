@@ -81,6 +81,7 @@ class PopulationLineList(BasePopulation):
 
         self.start_time = get_time_stamp(builder.configuration.time.start)
         self.location = self._get_location(builder)
+        self.subnational = builder.configuration.intervention.subnational
 
     def on_initialize_simulants(self, pop_data: SimulantData) -> None:
         """
@@ -105,12 +106,12 @@ class PopulationLineList(BasePopulation):
         self.register_simulants(new_simulants[self.key_columns])
 
         if pop_data.creation_time >= self.start_time:
-            ## Changing to run for a single subnational location
-            new_simulants["subnational"] = "Punjab"
-
-            # new_simulants["subnational"] = self._get_subnational_locations(
-            #     new_simulants.index
-            # )
+            if self.subnational == "All":
+                new_simulants["subnational"] = self._get_subnational_locations(
+                    new_simulants.index
+                )
+            else:
+                new_simulants["subnational"] = self.subnational
 
         self.population_view.update(new_simulants)
 
@@ -146,6 +147,7 @@ class EvenlyDistributedPopulation(BasePopulation):
     def setup(self, builder: Builder) -> None:
         super().setup(builder)
         self.location = builder.data.load(data_keys.POPULATION.LOCATION)
+        self.subnational = builder.configuration.intervention.subnational
 
     def on_initialize_simulants(self, pop_data: SimulantData) -> None:
         age_start = pop_data.user_data.get("age_start", self.config.initialization_age_min)
@@ -163,11 +165,11 @@ class EvenlyDistributedPopulation(BasePopulation):
         population.loc[population.index % 2 == 1, "sex"] = "Male"
         self.register_simulants(population[list(self.key_columns)])
 
-        ##Similar to above, changing to run for a single subnational location
-        population["subnational"] = "Punjab"
-
-        # self._distribute_subnational_locations(population.index)
-        # self.population_view.update(population)
+        if self.subnational == "All":
+            self._distribute_subnational_locations(population.index)
+            self.population_view.update(population)
+        else:
+            population["subnational"] = self.subnational
 
     def _distribute_subnational_locations(self, pop_index: pd.Index) -> pd.Series:
         subnational_locations = pd.read_csv(SUBNATIONAL_PERCENTAGES)
