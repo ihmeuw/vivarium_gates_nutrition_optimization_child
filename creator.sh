@@ -31,6 +31,7 @@ conda create -n $env_name python=3.11 -y
 conda activate $env_name
 
 # Install requirements via Github
+# NOTE: update branch name if you update requirements.txt in a branch
 pip install -r https://raw.githubusercontent.com/ihmeuw/vivarium_gates_nutrition_optimization_child/main/$install_file 
 
 # Editable install of repo
