@@ -31,7 +31,7 @@ conda create -n $env_name python=3.11 -y
 conda activate $env_name
 
 # Install requirements via Github
-pip install -r https://raw.githubusercontent.com/ihmeuw/vivarium_gates_nutrition_optimization_child/mic-5146/create-conda-from-commits/$install_file 
+pip install -r https://raw.githubusercontent.com/ihmeuw/vivarium_gates_nutrition_optimization_child/main/$install_file 
 
 # Editable install of repo
 pip install -e .[dev]
