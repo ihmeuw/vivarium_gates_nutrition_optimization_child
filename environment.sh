@@ -15,7 +15,9 @@ Help()
 }
 
 # Define variables
+username=$(whoami)
 env_type="simulation"
+one_week_ago=$(date -d "7 days ago" '+%Y-%m-%d %H:%M:%S')
 
 # Process input options
 while getopts ":ht:" option; do
@@ -44,7 +46,14 @@ else
 fi
 
 if [ $env_exists == 'yes' ]; then
+  creation_time="$(head -n1 /home/$username/miniconda3/envs/$env_name/conda-meta/history)"
   echo "Existing environment found for $env_name."
+  # Check if existing environment is older than a week and remake it if so
+  if [[ $one_week_ago > $creation_time ]]; then
+    echo "Environment is older than one week old. Deleting and remaking environment...."
+    conda remove -n $env_name --all -y
+    env_exists="no"
+  fi
 fi
 
 # If environment does not exit, create the new environment
