@@ -54,7 +54,9 @@ if [ $env_exists == 'yes' ]; then
     conda remove -n $env_name --all -y
     env_exists="no"
   fi
-else
+
+if [ $env_exists == 'no' ]; then
+# This cannot be an else about because we set env_exists to no in that block
   # Create new environment
   echo "Environment $env_name does not exist. Creating new environment $env_name..."
   # Create conda environment
