@@ -54,6 +54,7 @@ if [ $env_exists == 'yes' ]; then
     conda remove -n $env_name --all -y
     env_exists="no"
   fi
+fi
 
 # Create new environment if it did not exist or we need to remake it
 if [ $env_exists == 'no' ]; then
