@@ -55,6 +55,7 @@ if [ $env_exists == 'yes' ]; then
     env_exists="no"
   fi
 
+# Create new environment if it did not exist or we need to remake it
 if [ $env_exists == 'no' ]; then
 # This cannot be an else about because we set env_exists to no in that block
   # Create new environment
