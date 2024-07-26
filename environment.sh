@@ -1,7 +1,6 @@
 #!/bin/bash
 ############################################################
-# Help: 
-# Run script by: source environment.sh                                         #
+# Help:                                      #
 ############################################################
 Help()
 { 
@@ -10,11 +9,11 @@ Help()
    # Display Help
    echo "Script to automatically create and validate conda environments."
    echo
-   echo "Syntax: scriptTemplate [-h|t|v]"
+   echo "Syntax: source environment.sh [-h|t|v]"
    echo "options:"
    echo "h     Print this Help."
    echo "v     Verbose mode."
-   echo "t     Type of conda environment. Either simulation (default) or artifact."
+   echo "t     Type of conda environment. Either 'simulation' (default) or 'artifact'."
 }
 
 # Define variables
