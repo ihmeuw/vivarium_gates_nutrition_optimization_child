@@ -1,7 +1,5 @@
 #!/bin/bash
-############################################################
-# Help:                                      #
-############################################################
+
 Help()
 { 
   # Reset OPTIND so help can be invoked multiple times per shell session.
@@ -19,7 +17,6 @@ Help()
 # Define variables
 username=$(whoami)
 env_type="simulation"
-one_week_ago=$(date -d "7 days ago" '+%Y-%m-%d %H:%M:%S')
 
 # Process input options
 while getopts ":ht:" option; do
@@ -45,7 +42,7 @@ if [ $env_type == 'simulation' ]; then
 elif [ $env_type == 'artifact' ]; then
   install_file="artifact_requirements.txt"
 else
-  echo "Invalid environment type. Valid argument types are simulation and artifact."
+  echo "Invalid environment type. Valid argument types are 'simulation' and 'artifact'."
   return 
 fi
 requirements_modification_time="$(date -r $install_file '+%Y-%m-%d %H:%M:%S')"
@@ -55,8 +52,8 @@ git ls-remote --exit-code --heads origin $branch_name >/dev/null 2>&1
 exit_code=$?
 if [[ $exit_code == '0' ]]; then
   git fetch --all
-  echo "Git branch '$branch_name' exists in the remote repository"
-  git pull -u origin $branch_name
+  echo "Git branch '$branch_name' exists in the remote repository, pulling latest changes..."
+  git pull origin $branch_name
 fi
 
 # Check if environment exists already
@@ -71,6 +68,7 @@ fi
 if [ $create_env == 'no' ]; then
   # Check if existing environment needs to be updated
   echo "Existing environment found for $env_name."
+  one_week_ago=$(date -d "7 days ago" '+%Y-%m-%d %H:%M:%S')
   creation_time="$(head -n1 /home/$username/miniconda3/envs/$env_name/conda-meta/history)"
   # Check if existing environment is older than a week and delete it if so
   if [[ $one_week_ago > $creation_time ]]; then
@@ -92,18 +90,23 @@ conda activate $env_name
 if [ $create_env == 'yes' ]; then
   # Install json parser
   conda install jq -y
+  update_env='yes'
+else
+  update_env='no'
 fi
+
 # At this point we have either a new environment or an environment that is less than a week old.
 # We need to check if we need to reinstall packages
-update_env=$create_env
-
 if [ $update_env == 'no' ]; then
   # Check if environment was build before last modification to requirements file
   if [[ $creation_time < $requirements_modification_time ]]; then
     echo "Requirements file last modified after environment was created. Reinstalling packages..."
     update_env="yes"
   fi
-  # Check if there has been an update to vivarium packages since last modification to requirements file
+fi
+
+# Check if there has been an update to vivarium packages since last modification to requirements file
+if [ $update_env == 'no' ]; then
   grep @ $install_file 
   # TODO: can we make this grep output a variable?
   while read -r line ; do
