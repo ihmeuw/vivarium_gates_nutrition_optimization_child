@@ -13,18 +13,4 @@ class __WastingModel:
     SEVERE_STATE_NAME = "severe_acute_malnutrition"
 
 
-###########################
-# Disease Model variables #
-###########################
-
 WASTING = __WastingModel()
-
-
-def get_risk_category(state_name: str) -> str:
-    return {
-        WASTING.SUSCEPTIBLE_STATE_NAME: data_keys.WASTING.CAT4,
-        WASTING.MILD_STATE_NAME: data_keys.WASTING.CAT3,
-        WASTING.BETTER_MODERATE_STATE_NAME: data_keys.WASTING.CAT25,
-        WASTING.WORSE_MODERATE_STATE_NAME: data_keys.WASTING.CAT2,
-        WASTING.SEVERE_STATE_NAME: data_keys.WASTING.CAT1,
-    }[state_name]

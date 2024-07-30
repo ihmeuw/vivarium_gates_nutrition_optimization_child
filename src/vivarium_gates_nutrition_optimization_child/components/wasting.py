@@ -20,7 +20,6 @@ from vivarium_gates_nutrition_optimization_child.constants import (
     models,
     scenarios,
 )
-from vivarium_gates_nutrition_optimization_child.constants.data_keys import WASTING
 
 
 class WastingTreatment(Risk):
@@ -254,8 +253,18 @@ class ChildWastingModel(DiseaseModel):
 
     def get_current_exposure(self, index: pd.Index) -> pd.Series:
         pop = self.population_view.get(index)
-        exposure = pop[self.state_column].apply(models.get_risk_category)
+        exposure = pop[self.state_column].apply(self.get_risk_category)
         return exposure
+
+    @staticmethod
+    def get_risk_category(state_name: str) -> str:
+        return {
+            models.WASTING.SUSCEPTIBLE_STATE_NAME: data_keys.WASTING.CAT4,
+            models.WASTING.MILD_STATE_NAME: data_keys.WASTING.CAT3,
+            models.WASTING.BETTER_MODERATE_STATE_NAME: data_keys.WASTING.CAT25,
+            models.WASTING.WORSE_MODERATE_STATE_NAME: data_keys.WASTING.CAT2,
+            models.WASTING.SEVERE_STATE_NAME: data_keys.WASTING.CAT1,
+        }[state_name]
 
 
 # noinspection PyPep8Naming
@@ -396,7 +405,7 @@ def load_pem_excess_mortality_rate(builder: Builder, cause: str) -> pd.DataFrame
 
 # noinspection PyUnusedLocal
 def load_mild_wasting_birth_prevalence(builder: Builder, cause: str) -> pd.DataFrame:
-    return load_child_wasting_birth_prevalence(builder, WASTING.CAT3)
+    return load_child_wasting_birth_prevalence(builder, data_keys.WASTING.CAT3)
 
 
 # noinspection PyUnusedLocal
@@ -404,7 +413,9 @@ def load_mild_wasting_exposure(builder: Builder, cause: str) -> Union[float, pd.
     exposure = load_child_wasting_exposures(builder)
     if isinstance(exposure, pd.DataFrame):
         exposure = (
-            exposure[WASTING.CAT3].reset_index().rename(columns={WASTING.CAT3: "value"})
+            exposure[data_keys.WASTING.CAT3]
+            .reset_index()
+            .rename(columns={data_keys.WASTING.CAT3: "value"})
         )
     return exposure
 
@@ -448,12 +459,12 @@ def get_transition_data(builder: Builder, transition: str) -> pd.DataFrame:
 
 # noinspection PyUnusedLocal
 def load_better_mam_birth_prevalence(builder: Builder, cause: str) -> pd.DataFrame:
-    return load_child_wasting_birth_prevalence(builder, WASTING.CAT25)
+    return load_child_wasting_birth_prevalence(builder, data_keys.WASTING.CAT25)
 
 
 # noinspection PyUnusedLocal
 def load_worse_mam_birth_prevalence(builder: Builder, cause: str) -> pd.DataFrame:
-    return load_child_wasting_birth_prevalence(builder, WASTING.CAT2)
+    return load_child_wasting_birth_prevalence(builder, data_keys.WASTING.CAT2)
 
 
 # noinspection PyUnusedLocal
@@ -461,7 +472,9 @@ def load_better_mam_exposure(builder: Builder, cause: str) -> Union[float, pd.Da
     exposure = load_child_wasting_exposures(builder)
     if isinstance(exposure, pd.DataFrame):
         exposure = (
-            exposure[WASTING.CAT25].reset_index().rename(columns={WASTING.CAT25: "value"})
+            exposure[data_keys.WASTING.CAT25]
+            .reset_index()
+            .rename(columns={data_keys.WASTING.CAT25: "value"})
         )
     return exposure
 
@@ -471,14 +484,16 @@ def load_worse_mam_exposure(builder: Builder, cause: str) -> Union[float, pd.Dat
     exposure = load_child_wasting_exposures(builder)
     if isinstance(exposure, pd.DataFrame):
         exposure = (
-            exposure[WASTING.CAT2].reset_index().rename(columns={WASTING.CAT2: "value"})
+            exposure[data_keys.WASTING.CAT2]
+            .reset_index()
+            .rename(columns={data_keys.WASTING.CAT2: "value"})
         )
     return exposure
 
 
 # noinspection PyUnusedLocal
 def load_sam_birth_prevalence(builder: Builder, cause: str) -> pd.DataFrame:
-    return load_child_wasting_birth_prevalence(builder, WASTING.CAT1)
+    return load_child_wasting_birth_prevalence(builder, data_keys.WASTING.CAT1)
 
 
 # noinspection PyUnusedLocal
@@ -486,7 +501,9 @@ def load_sam_exposure(builder: Builder, cause: str) -> Union[float, pd.DataFrame
     exposure = load_child_wasting_exposures(builder)
     if isinstance(exposure, pd.DataFrame):
         exposure = (
-            exposure[WASTING.CAT1].reset_index().rename(columns={WASTING.CAT1: "value"})
+            exposure[data_keys.WASTING.CAT1]
+            .reset_index()
+            .rename(columns={data_keys.WASTING.CAT1: "value"})
         )
     return exposure
 
@@ -496,7 +513,7 @@ def load_child_wasting_exposures(builder: Builder) -> Union[float, pd.DataFrame]
 
     # Get wasting exposure data
     try:
-        exposures = builder.data.load(WASTING.EXPOSURE)
+        exposures = builder.data.load(data_keys.WASTING.EXPOSURE)
     except ArtifactException:
         # No exposure if data is not in artifact
         return 0
