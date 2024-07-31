@@ -45,7 +45,6 @@ else
   echo "Invalid environment type. Valid argument types are 'simulation' and 'artifact'."
   return 
 fi
-requirements_modification_time="$(date -r $install_file '+%Y-%m-%d %H:%M:%S')"
 
 # Pull repo to get latest changes from remote if remote exists
 git ls-remote --exit-code --heads origin $branch_name >/dev/null 2>&1
@@ -55,6 +54,7 @@ if [[ $exit_code == '0' ]]; then
   echo "Git branch '$branch_name' exists in the remote repository, pulling latest changes..."
   git pull origin $branch_name
 fi
+requirements_modification_time="$(date -r $install_file '+%Y-%m-%d %H:%M:%S')"
 
 # Check if environment exists already
 create_env=$(conda info --envs | grep $env_name | head -n 1)
