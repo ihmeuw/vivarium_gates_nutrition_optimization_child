@@ -1,23 +1,22 @@
 #!/bin/bash
-############################################################
-# Help                                                     #
-############################################################
+
 Help()
-{
+{ 
+  # Reset OPTIND so help can be invoked multiple times per shell session.
+  OPTIND=1
    # Display Help
-   echo "Add description of the script functions here."
+   echo "Script to automatically create and validate conda environments."
    echo
-   echo "Syntax: scriptTemplate [-h|t|v]"
+   echo "Syntax: source environment.sh [-h|t|v]"
    echo "options:"
    echo "h     Print this Help."
    echo "v     Verbose mode."
-   echo "t     Type of conda environment. Either simulation (default) or artifact."
+   echo "t     Type of conda environment. Either 'simulation' (default) or 'artifact'."
 }
 
 # Define variables
 username=$(whoami)
 env_type="simulation"
-one_week_ago=$(date -d "7 days ago" '+%Y-%m-%d %H:%M:%S')
 
 # Process input options
 while getopts ":ht:" option; do
@@ -36,57 +35,95 @@ done
 # Parse environment name
 env_name=$(basename "`pwd`")
 env_name+="_$env_type"
+branch_name=$(git rev-parse --abbrev-ref HEAD)
+# Determine which requirements.txt to install from
+if [ $env_type == 'simulation' ]; then
+  install_file="requirements.txt"
+elif [ $env_type == 'artifact' ]; then
+  install_file="artifact_requirements.txt"
+else
+  echo "Invalid environment type. Valid argument types are 'simulation' and 'artifact'."
+  return 
+fi
+
+# Pull repo to get latest changes from remote if remote exists
+git ls-remote --exit-code --heads origin $branch_name >/dev/null 2>&1
+exit_code=$?
+if [[ $exit_code == '0' ]]; then
+  git fetch --all
+  echo "Git branch '$branch_name' exists in the remote repository, pulling latest changes..."
+  git pull origin $branch_name
+fi
 
 # Check if environment exists already
-env_exists=$(conda info --envs | grep $env_name | head -n 1)
-if [[ $env_exists == '' ]]; then
+create_env=$(conda info --envs | grep $env_name | head -n 1)
+if [[ $create_env == '' ]]; then
+  # No environment exists with this name
+  echo "Environment $env_name does not exist."
+  create_env="yes"
   env_exists="no"
 else
   env_exists="yes"
-fi
-
-if [ $env_exists == 'yes' ]; then
-  creation_time="$(head -n1 /home/$username/miniconda3/envs/$env_name/conda-meta/history)"
+  conda activate $env_name
+  # Check if existing environment needs to be recreated
   echo "Existing environment found for $env_name."
-  # Check if existing environment is older than a week and remake it if so
-  if [[ $one_week_ago > $creation_time ]]; then
-    echo "Environment is older than one week old. Deleting and remaking environment...."
-    conda remove -n $env_name --all -y
-    env_exists="no"
+  one_week_ago=$(date -d "7 days ago" '+%Y-%m-%d %H:%M:%S')
+  creation_time="$(head -n1 /home/$username/miniconda3/envs/$env_name/conda-meta/history)"
+  requirements_modification_time="$(date -r $install_file '+%Y-%m-%d %H:%M:%S')"
+  # Check if existing environment is older than a week or if environment was built 
+  # before last modification to requirements file. If so, mark for recreation.
+  if [[ $one_week_ago > $creation_time ]] | [[ $creation_time < $requirements_modification_time ]]; then
+    echo "Environment is stale. Deleting and remaking environment..."
+    create_env="yes"
+  else
+    # Install json parser if it is not installed
+    jq_exists=$(conda list | grep -w jq)
+    if [[ $jq_exists == '' ]]; then
+      # Empty string is no return on grep
+      conda install jq -y
+    fi
+    # Check if there has been an update to vivarium packages since last modification to requirements file
+    # or more reccent than environment creation
+    grep @ $install_file 
+    # TODO: can we make this grep output a variable?
+    while read -r line ; do
+      # Parse each line of grep output
+      repo_info=(${line//@/ })
+      repo=${repo_info[0]}
+      repo_branch=${repo_info[2]}
+      last_commit_time=$(curl -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/ihmeuw/$repo/commits?sha=$repo_branch | jq '.["0"].commit.committer.date')
+      if [[ $creation_time > $last_commit_time ]]; then
+        create_env="yes"
+        break
+      fi
+    # This way of writing/exiting while loop is a here string so the process runs
+    # in the main shell and not a subshell: https://www.gnu.org/software/bash/manual/bashref.html#Here-Strings
+    # I put an arbitrary empty string here but this is so we can set create_env to yes if we hit that trigger
+    done <<< "$(echo "")"
   fi
 fi
 
-# Create new environment if it did not exist or we need to remake it
-if [ $env_exists == 'no' ]; then
-# This cannot be an else about because we set env_exists to no in that block
-  # Create new environment
-  echo "Environment $env_name does not exist. Creating new environment $env_name..."
+if [[ $create_env == 'yes' ]]; then
+  if [[ $env_exists == 'yes' ]]; then
+    conda deactivate $env_name
+    conda remove -n $env_name --all -y
+  fi
   # Create conda environment
   conda create -n $env_name python=3.11 -y
-  # Determine which requirements.txt to install from
-  if [ $env_type == 'simulation' ]; then
-    echo "Installing requirements for simulation environment..."
-    install_file="requirements.txt"
-  elif [ $env_type == 'artifact' ]; then
-    echo "Installing requirements for artifact environment"
-    install_file="artifact_requirements.txt"
-  else
-    echo "Invalid environment type. Valid argument types are simulation and artifact."
-    return 
-  fi
+  conda activate $env_name
+else
+  echo "Existing environment validated"
 fi
 
-# Activate new environment
-conda activate $env_name
-
-# Install requirements via Github for new environment
-if [ $env_exists == 'no' ]; then
+# Install requirements via Github
+if [[ $create_env == 'yes' ]]; then
   # NOTE: update branch name if you update requirements.txt in a branch
-  pip install -r https://raw.githubusercontent.com/ihmeuw/vivarium_gates_nutrition_optimization_child/main/$install_file 
+  echo "Installing packages for $env_type environment"
+  pip install -r $install_file
   # Editable install of repo
-  pip install -e .[dev]
+  pip install -e .[dev] 
   # Install redis for simulation environments
-  if [ $env_type == 'simulation' ]; then
+  if [$env_type == 'simulation']; then
     conda install redis -y
   fi
 fi
