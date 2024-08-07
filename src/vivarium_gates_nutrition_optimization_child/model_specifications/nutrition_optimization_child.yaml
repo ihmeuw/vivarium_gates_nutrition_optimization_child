@@ -127,3 +127,12 @@ configuration:
             include: ['sam_treatment', 'mam_treatment']
         child_stunting:
             include: ['sqlns_coverage']
+        excluded_categories:
+            cause_of_death:
+                - 'stillborn'
+            disability:
+                - 'all_causes'
+                - 'mild_child_wasting'
+                - 'better_moderate_acute_malnutrition'
+                - 'worse_moderate_acute_malnutrition'
+                - 'severe_acute_malnutrition'
