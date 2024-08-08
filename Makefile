@@ -71,7 +71,7 @@ lint: .flake8 $(MAKE_SOURCES) # Run the code linter and package security vulnera
 
 test: $(MAKE_SOURCES) # Run unit tests
 	export COVERAGE_FILE=./output/.coverage.test
-	pytest --cov --cov-report term --cov-report html:./output/htmlcov_test tests
+	pytest tests --cov --cov-report term --cov-report html:./output/htmlcov_test
 	@echo "Ignore, Created by Makefile, `date`" > $@
 
 clean: # Delete build artifacts and do any custom cleanup such as spinning down services
