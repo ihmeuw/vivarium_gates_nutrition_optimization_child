@@ -66,7 +66,7 @@ format: setup.py pyproject.toml $(MAKE_SOURCES) # Run the code formatter and imp
 
 test: $(MAKE_SOURCES) # Run unit tests
 	export COVERAGE_FILE=./output/.coverage.test
-	pytest --cov --cov-report term --cov-report html:./output/htmlcov_test tests/
+	pytest tests --cov --cov-report term --cov-report html:./output/htmlcov_test
 	@echo "Ignore, Created by Makefile, `date`" > $@
 
 clean: # Delete build artifacts and do any custom cleanup such as spinning down services

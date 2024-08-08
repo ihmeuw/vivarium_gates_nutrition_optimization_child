@@ -10,3 +10,6 @@ source = ["vivarium_gates_nutrition_optimization_child"]
 
 [tool.coverage.report]
 show_missing = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests/"]
