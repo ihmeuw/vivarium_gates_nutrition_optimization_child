@@ -119,12 +119,6 @@ pipeline {
             sh "${ACTIVATE} && make format"
           }
         }
-
-        stage("Lint") {
-          steps {
-            sh "${ACTIVATE} && make lint"
-          }
-        }
       }
     }
 

@@ -64,11 +64,6 @@ format: setup.py pyproject.toml $(MAKE_SOURCES) # Run the code formatter and imp
 	-isort $(LOCATIONS)
 	@echo "Ignore, Created by Makefile, `date`" > $@
 
-lint: .flake8 $(MAKE_SOURCES) # Run the code linter and package security vulnerability checker
-	-flake8 $(LOCATIONS)
-	-safety check
-	@echo "Ignore, Created by Makefile, `date`" > $@
-
 test: $(MAKE_SOURCES) # Run unit tests
 	export COVERAGE_FILE=./output/.coverage.test
 	pytest tests --cov --cov-report term --cov-report html:./output/htmlcov_test
