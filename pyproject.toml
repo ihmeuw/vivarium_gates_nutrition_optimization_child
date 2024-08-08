@@ -3,3 +3,10 @@ line_length = 94
 
 [tool.isort]
 profile = "black"
+known_third_party = ["vivarium", "vivarium_public_health"]
+
+[tool.coverage.run]
+source = ["vivarium_gates_nutrition_optimization_child"]
+
+[tool.coverage.report]
+show_missing = true
