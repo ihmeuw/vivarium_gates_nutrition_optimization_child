@@ -8,6 +8,7 @@ from vivarium_public_health.results.disease import DiseaseObserver
 from vivarium_public_health.results.mortality import (
     MortalityObserver as MortalityObserver_,
 )
+from vivarium_public_health.results.simple_cause import SimpleCause
 from vivarium_public_health.results.stratification import (
     ResultsStratifier as ResultsStratifier_,
 )
@@ -60,21 +61,21 @@ class ResultsStratifier(ResultsStratifier_):
         # builder.results.register_stratification(
         #     "wasting_state",
         #     [category.value for category in data_keys.ChildWastingCategories],
-        #     self.child_wasting_stratification_mapper,
+        #     mapper=self.child_wasting_stratification_mapper,
         #     is_vectorized=True,
         #     requires_values=["child_wasting.exposure"],
         # )
         # builder.results.register_stratification(
         #     "stunting_state",
         #     [category.value for category in data_keys.CGFCategories],
-        #     self.child_growth_risk_factor_stratification_mapper,
+        #     mapper=self.child_growth_risk_factor_stratification_mapper,
         #     is_vectorized=True,
         #     requires_values=["child_stunting.exposure"],
         # )
         # builder.results.register_stratification(
         #     "underweight_state",
         #     [category.value for category in data_keys.CGFCategories],
-        #     self.child_growth_risk_factor_stratification_mapper,
+        #     mapper=self.child_growth_risk_factor_stratification_mapper,
         #     is_vectorized=True,
         #     requires_values=["child_underweight.exposure"],
         # )
@@ -93,14 +94,14 @@ class ResultsStratifier(ResultsStratifier_):
         builder.results.register_stratification(
             "sam_treatment",
             ["covered", "uncovered"],
-            self.map_wasting_treatment,
+            mapper=self.map_wasting_treatment,
             is_vectorized=True,
             requires_values=[f"{data_keys.SAM_TREATMENT.name}.exposure"],
         )
         builder.results.register_stratification(
             "mam_treatment",
             ["covered", "uncovered"],
-            self.map_wasting_treatment,
+            mapper=self.map_wasting_treatment,
             is_vectorized=True,
             requires_values=[f"{data_keys.MAM_TREATMENT.name}.exposure"],
         )
@@ -279,9 +280,7 @@ class ResultsStratifier(ResultsStratifier_):
 class MortalityObserver(MortalityObserver_):
     def setup(self, builder: Builder) -> None:
         super().setup(builder)
-        stillborn = DiseaseState("stillborn")
-        stillborn.set_model("stillborn")
-        self.causes_of_death += [stillborn]
+        self.causes_of_death += [SimpleCause("stillborn", "stillborn", "cause")]
 
 
 class ChildWastingObserver(DiseaseObserver):
