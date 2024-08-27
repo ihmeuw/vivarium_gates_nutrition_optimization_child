@@ -67,7 +67,7 @@ else
   # Check if existing environment needs to be recreated
   echo "Existing environment found for $env_name."
   one_week_ago=$(date -d "7 days ago" '+%Y-%m-%d %H:%M:%S')
-  env_path=$(conda info --envs | grep -Po "$env_name\K.*" | sed "s: ::g" | tr -d "*")
+  env_path=$CONDA_PREFIX
   creation_time="$(head -n1 $env_path/conda-meta/history)"
   requirements_modification_time="$(date -r $install_file '+%Y-%m-%d %H:%M:%S')"
   # Check if existing environment is older than a week or if environment was built 
