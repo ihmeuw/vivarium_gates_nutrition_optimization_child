@@ -1,9 +1,8 @@
 #!/bin/bash
-
+# Reset OPTIND so help can be invoked multiple times per shell session.
+OPTIND=1
 Help()
 { 
-  # Reset OPTIND so help can be invoked multiple times per shell session.
-  OPTIND=1
    # Display Help
    echo "Script to automatically create and validate conda environments."
    echo
