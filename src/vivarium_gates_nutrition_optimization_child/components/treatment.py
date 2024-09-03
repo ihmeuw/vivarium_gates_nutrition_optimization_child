@@ -119,6 +119,10 @@ class SQLNSTreatment(Component):
         ]
         coverage_map = {
             "baseline": data_values.SQ_LNS.COVERAGE_BASELINE,
+            ## This is a placeholder line to set up the scenarios
+            ## I need help making this a real targeted coverage!!!
+            ## I did add a csv indicated which locations are targeted: data/raw_data/sqlns_targeting_ghi.csv
+            "targeted": 1,
             "none": 0,
             "full": 1,
         }
