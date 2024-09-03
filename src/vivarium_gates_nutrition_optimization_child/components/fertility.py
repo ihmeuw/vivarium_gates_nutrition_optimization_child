@@ -52,8 +52,14 @@ class FertilityLineList(Component):
         draw = builder.configuration.input_data.input_draw_number
         seed = builder.configuration.randomness.random_seed
 
-        file_path = data_directory / f"scenario_{scenario}_draw_{draw}_seed_{seed}.hdf"
-        birth_records = pd.read_hdf(file_path)
+        birth_records = pd.read_parquet(
+            data_directory / "births.parquet",
+            filters=[
+                ("scenario", "==", scenario),
+                ("input_draw", "==", draw),
+                ("random_seed", "==", seed),
+            ],
+        )
         birth_records["birth_date"] = pd.to_datetime(birth_records["birth_date"])
         return birth_records
 
