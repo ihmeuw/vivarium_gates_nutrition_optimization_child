@@ -52,8 +52,22 @@ class FertilityLineList(Component):
         draw = builder.configuration.input_data.input_draw_number
         seed = builder.configuration.randomness.random_seed
 
-        file_path = data_directory / f"scenario_{scenario}_draw_{draw}_seed_{seed}.hdf"
-        birth_records = pd.read_hdf(file_path)
+        # We changed the format and output type of the maternal model and so
+        # we need to handle the different births datasets
+        if (data_directory / "births.parquet").exists():
+            # new parquet format
+            birth_records = pd.read_parquet(
+                data_directory / "births.parquet",
+                filters=[
+                    ("scenario", "==", scenario),
+                    ("input_draw", "==", draw),
+                    ("random_seed", "==", seed),
+                ],
+            )
+        else:
+            # old hdf format
+            file_path = data_directory / f"scenario_{scenario}_draw_{draw}_seed_{seed}.hdf"
+            birth_records = pd.read_hdf(file_path)
         birth_records["birth_date"] = pd.to_datetime(birth_records["birth_date"])
         return birth_records
 
