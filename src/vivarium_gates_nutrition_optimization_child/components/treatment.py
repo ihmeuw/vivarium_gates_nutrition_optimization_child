@@ -13,6 +13,7 @@ from vivarium_gates_nutrition_optimization_child.constants import (
     models,
     scenarios,
 )
+from vivarium_gates_nutrition_optimization_child.constants.paths import SQLNS_TARGETING_GHI
 
 
 class SQLNSTreatment(Component):
@@ -20,7 +21,7 @@ class SQLNSTreatment(Component):
 
     @property
     def columns_required(self) -> Optional[List[str]]:
-        return ["age"]
+        return ["age", "subnational"]
 
     @property
     def columns_created(self) -> Optional[List[str]]:
@@ -147,18 +148,23 @@ class SQLNSTreatment(Component):
         )
 
     def get_current_coverage(self, index: pd.Index) -> pd.Series:
-        age = self.population_view.get(index)["age"]
+        pop = self.population_view.get(index)[["age", "subnational"]]
         propensity = self.propensity(index)
+        # Targeted ghi will be yes if we want to have similuants covered for specific subnationals
+        sqlns_targeted_ghi = pd.read_csv(SQLNS_TARGETING_GHI)[["location", "targeted_ghi"]]
+        ghi = pd.Series(data=sqlns_targeted_ghi['targeted_ghi'].to_list(), index=sqlns_targeted_ghi['location'].to_list()).to_dict()
+        pop["targeted_ghi"] = pop["subnationa"].map(ghi)
 
         coverage = pd.Series("uncovered", index=index)
 
         covered = (
             (propensity < self.coverage_value)
-            & (data_values.SQ_LNS.COVERAGE_START_AGE <= age)
-            & (age <= data_values.SQ_LNS.COVERAGE_END_AGE)
+            & (data_values.SQ_LNS.COVERAGE_START_AGE <= pop)
+            & (pop["age"] <= data_values.SQ_LNS.COVERAGE_END_AGE)
+            & (pop["targeted_ghi"] == "yes")
         )
         received = (propensity < self.coverage_value) & (
-            data_values.SQ_LNS.COVERAGE_END_AGE < age
+            data_values.SQ_LNS.COVERAGE_END_AGE < pop["age"]
         )
 
         coverage[covered] = "covered"
