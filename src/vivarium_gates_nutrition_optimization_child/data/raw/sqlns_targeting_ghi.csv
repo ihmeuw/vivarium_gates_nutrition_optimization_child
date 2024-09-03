@@ -1,0 +1,56 @@
+,location_id,national_location_id,location,national_location,targeted_ghi
+0,44852,179,Tigray,Ethiopia,no
+1,44853,179,Afar,Ethiopia,yes
+2,44854,179,Amhara,Ethiopia,yes
+3,44855,179,Oromia,Ethiopia,no
+4,44856,179,Somali,Ethiopia,yes
+5,44857,179,Benishangul-Gumuz,Ethiopia,no
+6,44858,179,"Southern Nations, Nationalities, and Peoples",Ethiopia,no
+7,44859,179,Harari,Ethiopia,no
+8,44860,179,Gambella,Ethiopia,no
+9,44861,179,Addis Ababa,Ethiopia,no
+10,44862,179,Dire Dawa,Ethiopia,no
+11,53615,165,Azad Jammu & Kashmir,Pakistan,no
+12,53616,165,Balochistan,Pakistan,yes
+13,53617,165,Gilgit-Baltistan,Pakistan,no
+14,53618,165,Islamabad Capital Territory,Pakistan,no
+15,53619,165,Khyber Pakhtunkhwa,Pakistan,no
+16,53620,165,Punjab,Pakistan,no
+17,53621,165,Sindh,Pakistan,yes
+18,25318,214,Abia,Nigeria,no
+19,25319,214,Adamawa,Nigeria,no
+20,25320,214,Akwa Ibom,Nigeria,no
+21,25321,214,Anambra,Nigeria,no
+22,25322,214,Bauchi,Nigeria,no
+23,25323,214,Bayelsa,Nigeria,no
+24,25324,214,Benue,Nigeria,no
+25,25325,214,Borno,Nigeria,no
+26,25326,214,Cross River,Nigeria,no
+27,25327,214,Delta,Nigeria,no
+28,25328,214,Ebonyi,Nigeria,no
+29,25329,214,Edo,Nigeria,no
+30,25330,214,Ekiti,Nigeria,no
+31,25331,214,Enugu,Nigeria,no
+32,25332,214,FCT (Abuja),Nigeria,no
+33,25333,214,Gombe,Nigeria,no
+34,25334,214,Imo,Nigeria,no
+35,25335,214,Jigawa,Nigeria,yes
+36,25336,214,Kaduna,Nigeria,no
+37,25337,214,Kano,Nigeria,yes
+38,25338,214,Katsina,Nigeria,yes
+39,25339,214,Kebbi,Nigeria,yes
+40,25340,214,Kogi,Nigeria,no
+41,25341,214,Kwara,Nigeria,no
+42,25342,214,Lagos,Nigeria,no
+43,25343,214,Nasarawa,Nigeria,no
+44,25344,214,Niger,Nigeria,no
+45,25345,214,Ogun,Nigeria,no
+46,25346,214,Ondo,Nigeria,no
+47,25347,214,Osun,Nigeria,no
+48,25348,214,Oyo,Nigeria,no
+49,25349,214,Plateau,Nigeria,no
+50,25350,214,Rivers,Nigeria,no
+51,25351,214,Sokoto,Nigeria,yes
+52,25352,214,Taraba,Nigeria,no
+53,25353,214,Yobe,Nigeria,yes
+54,25354,214,Zamfara,Nigeria,yes

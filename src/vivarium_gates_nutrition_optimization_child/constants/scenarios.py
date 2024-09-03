@@ -48,6 +48,18 @@ class __InterventionScenarios(NamedTuple):
     SCENARIO_8: InterventionScenario = InterventionScenario(
         "scenario_8_all", "full", "full", "full"
     )
+    SCENARIO_9: InterventionScenario = InterventionScenario(
+        "scenario_9_targeted_sqlns", "none", "none", "targeted"
+    )
+    SCENARIO_10: InterventionScenario = InterventionScenario(
+        "scenario_10_targeted_sqlns_sam", "full", "none", "targeted"
+    )
+    SCENARIO_11: InterventionScenario = InterventionScenario(
+        "scenario_11_targeted_sqlns_mam", "none", "full", "targeted"
+    )
+    SCENARIO_12: InterventionScenario = InterventionScenario(
+        "scenario_12_targeted_sqlns_sam_mam", "full", "full", "targeted"
+    )
     SCENARIO_13: InterventionScenario = InterventionScenario(
         "scenario_13_targeted_mam", "none", "targeted", "none"
     )
@@ -60,8 +72,11 @@ class __InterventionScenarios(NamedTuple):
     SCENARIO_16: InterventionScenario = InterventionScenario(
         "scenario_16_sqlns_and_sam_targeted_mam", "full", "targeted", "full"
     )
+    SCENARIO_17: InterventionScenario = InterventionScenario(
+        "scenario_17_targeted_mam_targeted_sqlns", "none", "targeted", "targeted"
+    )
     SCENARIO_18: InterventionScenario = InterventionScenario(
-        "scenario_18_baseline_with_sqlns", "baseline", "baseline", "full"
+        "scenario_18_targeted_mam_targeted_sqlns_sam", "full", "targeted", "targeted"
     )
 
     def __getitem__(self, item) -> InterventionScenario:
