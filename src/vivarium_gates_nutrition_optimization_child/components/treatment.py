@@ -13,7 +13,9 @@ from vivarium_gates_nutrition_optimization_child.constants import (
     models,
     scenarios,
 )
-from vivarium_gates_nutrition_optimization_child.constants.paths import SQLNS_TARGETING_GHI
+from vivarium_gates_nutrition_optimization_child.constants.paths import (
+    SQLNS_TARGETING_GHI,
+)
 
 
 class SQLNSTreatment(Component):
@@ -152,7 +154,10 @@ class SQLNSTreatment(Component):
         propensity = self.propensity(index)
         # Targeted ghi will be yes if we want to have similuants covered for specific subnationals
         sqlns_targeted_ghi = pd.read_csv(SQLNS_TARGETING_GHI)[["location", "targeted_ghi"]]
-        ghi = pd.Series(data=sqlns_targeted_ghi['targeted_ghi'].to_list(), index=sqlns_targeted_ghi['location'].to_list()).to_dict()
+        ghi = pd.Series(
+            data=sqlns_targeted_ghi["targeted_ghi"].to_list(),
+            index=sqlns_targeted_ghi["location"].to_list(),
+        ).to_dict()
         pop["targeted_ghi"] = pop["subnationa"].map(ghi)
 
         coverage = pd.Series("uncovered", index=index)
