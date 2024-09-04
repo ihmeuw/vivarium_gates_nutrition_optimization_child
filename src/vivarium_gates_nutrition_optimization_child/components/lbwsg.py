@@ -81,7 +81,7 @@ class LBWSGLineList(LBWSGRisk):
     # noinspection PyAttributeOutsideInit
     def on_initialize_simulants(self, pop_data: SimulantData) -> None:
         if pop_data.creation_time < self.start_time:
-            columns = [self.exposure_column_name(axis) for axis in self.AXES] + [
+            columns = [self.get_exposure_column_name(axis) for axis in self.AXES] + [
                 self.raw_gestational_age_exposure_column_name,
                 self.birth_weight_status_column_name,
             ]
@@ -129,7 +129,7 @@ class LBWSGPAFCalculationExposure(LBWSGRisk):
 
     @property
     def columns_created(self) -> List[str]:
-        return [self.exposure_column_name(axis) for axis in self.AXES] + [
+        return [self.get_exposure_column_name(axis) for axis in self.AXES] + [
             "lbwsg_category",
             "age_bin",
         ]
@@ -175,7 +175,7 @@ class LBWSGPAFCalculationExposure(LBWSGRisk):
         self.population_view.update(pop[["age_bin", "lbwsg_category"]])
 
         birth_exposures = {
-            self.exposure_column_name(axis): self.birth_exposures[
+            self.get_exposure_column_name(axis): self.birth_exposures[
                 self.birth_exposure_pipeline_name(axis)
             ](pop_data.index)
             for axis in self.AXES
