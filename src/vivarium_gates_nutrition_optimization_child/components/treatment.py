@@ -164,7 +164,7 @@ class SQLNSTreatment(Component):
 
         covered = (
             (propensity < self.coverage_value)
-            & (data_values.SQ_LNS.COVERAGE_START_AGE <= pop)
+            & (data_values.SQ_LNS.COVERAGE_START_AGE <= pop["age"])
             & (pop["age"] <= data_values.SQ_LNS.COVERAGE_END_AGE)
             & (pop["targeted_ghi"] == "yes")
         )
