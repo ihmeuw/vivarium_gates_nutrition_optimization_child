@@ -158,7 +158,7 @@ class SQLNSTreatment(Component):
             data=sqlns_targeted_ghi["targeted_ghi"].to_list(),
             index=sqlns_targeted_ghi["location"].to_list(),
         ).to_dict()
-        pop["targeted_ghi"] = pop["subnationa"].map(ghi)
+        pop["targeted_ghi"] = pop["subnational"].map(ghi)
 
         coverage = pd.Series("uncovered", index=index)
 
