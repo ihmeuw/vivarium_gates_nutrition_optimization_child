@@ -59,7 +59,7 @@ class SQLNSTreatment(Component):
         self.coverage = builder.value.register_value_producer(
             self.coverage_pipeline_name,
             source=self.get_current_coverage,
-            requires_columns=["age"],
+            requires_columns=["age", "subnational"],
             requires_values=[self.propensity_pipeline_name],
         )
 
