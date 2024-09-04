@@ -29,3 +29,4 @@ CGF_PAFS = CLUSTER_BASE_DIR / "raw_data/cgf_pafs/"
 
 TEMPORARY_PAF_DIR = CLUSTER_BASE_DIR / "lbwsg_pafs/outputs/"
 SUBNATIONAL_PERCENTAGES = RAW_DATA_DIR / "subnational_percentages.csv"
+SQLNS_TARGETING_GHI = RAW_DATA_DIR / "sqlns_targeting_ghi.csv"
