@@ -43,6 +43,9 @@ class SQLNSTreatment(Component):
         self.propensity_column_name = data_values.SQ_LNS.PROPENSITY_COLUMN
         self.propensity_pipeline_name = data_values.SQ_LNS.PROPENSITY_PIPELINE
         self.coverage_pipeline_name = data_values.SQ_LNS.COVERAGE_PIPELINE
+        self.sqlns_targeted_ghi = pd.read_csv(SQLNS_TARGETING_GHI)[
+            ["location", "targeted_ghi"]
+        ]
 
     # noinspection PyAttributeOutsideInit
     def setup(self, builder: Builder):
@@ -122,9 +125,6 @@ class SQLNSTreatment(Component):
         ]
         coverage_map = {
             "baseline": data_values.SQ_LNS.COVERAGE_BASELINE,
-            ## This is a placeholder line to set up the scenarios
-            ## I need help making this a real targeted coverage!!!
-            ## I did add a csv indicated which locations are targeted: data/raw_data/sqlns_targeting_ghi.csv
             "targeted": 1,
             "none": 0,
             "full": 1,
@@ -153,10 +153,9 @@ class SQLNSTreatment(Component):
         pop = self.population_view.get(index)[["age", "subnational"]]
         propensity = self.propensity(index)
         # Targeted ghi will be yes if we want to have similuants covered for specific subnationals
-        sqlns_targeted_ghi = pd.read_csv(SQLNS_TARGETING_GHI)[["location", "targeted_ghi"]]
         ghi = pd.Series(
-            data=sqlns_targeted_ghi["targeted_ghi"].to_list(),
-            index=sqlns_targeted_ghi["location"].to_list(),
+            data=self.sqlns_targeted_ghi["targeted_ghi"].to_list(),
+            index=self.sqlns_targeted_ghi["location"].to_list(),
         ).to_dict()
         pop["targeted_ghi"] = pop["subnational"].map(ghi)
 
