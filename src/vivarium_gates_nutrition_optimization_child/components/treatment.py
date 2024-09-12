@@ -50,7 +50,9 @@ class SQLNSTreatment(Component):
     # noinspection PyAttributeOutsideInit
     def setup(self, builder: Builder):
         self.randomness = builder.randomness.get_stream(self._randomness_stream_name)
-
+        self.scenario = scenarios.INTERVENTION_SCENARIOS[
+            builder.configuration.intervention.child_scenario
+        ]
         self.coverage_value = self.get_coverage_value(builder)
 
         self.propensity = builder.value.register_value_producer(
@@ -120,16 +122,13 @@ class SQLNSTreatment(Component):
         )
 
     def get_coverage_value(self, builder: Builder) -> float:
-        scenario = scenarios.INTERVENTION_SCENARIOS[
-            builder.configuration.intervention.child_scenario
-        ]
         coverage_map = {
             "baseline": data_values.SQ_LNS.COVERAGE_BASELINE,
             "targeted": 1,
             "none": 0,
             "full": 1,
         }
-        return coverage_map[scenario.sqlns_coverage]
+        return coverage_map[self.scenario.sqlns_coverage]
 
     def get_risk_ratios(self, builder: Builder, affected_outcome: str) -> LookupTable:
         sqlns_effect_size = builder.configuration.intervention.sqlns_effect_size
@@ -165,8 +164,9 @@ class SQLNSTreatment(Component):
             (propensity < self.coverage_value)
             & (data_values.SQ_LNS.COVERAGE_START_AGE <= pop["age"])
             & (pop["age"] <= data_values.SQ_LNS.COVERAGE_END_AGE)
-            & (pop["targeted_ghi"] == "yes")
         )
+        if self.scenario.sqlns_coverage == "targeted":
+            covered = covered & (pop["targeted_ghi"] == "yes")
         received = (propensity < self.coverage_value) & (
             data_values.SQ_LNS.COVERAGE_END_AGE < pop["age"]
         )
