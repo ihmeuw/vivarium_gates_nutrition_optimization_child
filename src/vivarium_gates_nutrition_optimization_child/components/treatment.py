@@ -165,7 +165,7 @@ class SQLNSTreatment(Component):
             & (data_values.SQ_LNS.COVERAGE_START_AGE <= pop["age"])
             & (pop["age"] <= data_values.SQ_LNS.COVERAGE_END_AGE)
         )
-        if self.scenario == "targeted":
+        if self.scenario.sqlns_coverage == "targeted":
             covered = covered & (pop["targeted_ghi"] == "yes")
         received = (propensity < self.coverage_value) & (
             data_values.SQ_LNS.COVERAGE_END_AGE < pop["age"]
