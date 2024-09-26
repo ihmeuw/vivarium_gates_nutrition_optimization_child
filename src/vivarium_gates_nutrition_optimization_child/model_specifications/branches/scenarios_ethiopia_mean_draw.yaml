@@ -15,8 +15,7 @@ branches:
       subnational: 
         - 'All'
     input_data:
-      artifact_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization_child/artifacts/mean/ethiopia.hdf'
-## Need to figure out how to handle the fertility data with mean draw 
+      artifact_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization_child/artifacts/mean-new/ethiopia.hdf'
       fertility_input_data_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization/results/mean/ethiopia/2024_09_02_12_22_02/results'
   - intervention:
       child_scenario:
@@ -49,6 +48,5 @@ branches:
       subnational: 
         - 'All'
     input_data:
-      artifact_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization_child/artifacts/mean/ethiopia.hdf'
-## Need to figure out how to handle the fertility data with mean draw 
+      artifact_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization_child/artifacts/mean-new/ethiopia.hdf'
       fertility_input_data_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization/results/mean/ethiopia/2024_09_02_12_22_02/results'
