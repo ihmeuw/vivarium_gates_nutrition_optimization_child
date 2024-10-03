@@ -1,0 +1,40 @@
+input_draw_count: 20
+random_seed_count: 10
+
+input_draws: [8, 13, 41, 103, 139, 177, 192, 199, 216, 221, 227, 250, 323, 346, 385, 392, 399, 402, 417, 457]
+random_seeds: [5548, 5703, 6324, 6800, 7551, 781, 9549, 1061, 1362, 2284]
+
+branches:
+  - intervention:
+      child_scenario:
+        # - 'scenario_0_zero_coverage'
+        # - 'scenario_1_sam_tx'
+        # - 'scenario_2_mam_tx'
+        - 'scenario_3_sqlns'
+        # - 'scenario_5_sam_and_mam'
+        - 'scenario_6_sam_and_sqlns'
+        - 'scenario_7_mam_and_sqlns'
+        - 'scenario_8_all'
+        # - 'scenario_9_targeted_sqlns'
+        # - 'scenario_10_targeted_sqlns_sam'
+        # - 'scenario_11_targeted_sqlns_mam'
+        # - 'scenario_12_targeted_sqlns_sam_mam'
+        # - 'scenario_13_targeted_mam'
+        # - 'scenario_14_sam_and_targeted_mam'
+        - 'scenario_15_sqlns_and_targeted_mam'
+        - 'scenario_16_sqlns_and_sam_targeted_mam'
+        # - 'scenario_17_targeted_mam_targeted_sqlns'
+        # - 'scenario_18_targeted_mam_targeted_sqlns_sam'
+      maternal_scenario:
+        # - 'zero_coverage'
+        - 'mms'
+        # - 'ifa'
+        #- 'targeted_bep_ifa'
+        - 'targeted_bep_mms'
+      sqlns_effect_size: 
+        - 'standard'
+      subnational: 
+        - 'All'
+    input_data:
+      artifact_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization_child/artifacts/model_15.0/ethiopia.hdf'
+      fertility_input_data_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization/results/model12.0/ethiopia/2024_04_08_10_17_27/child_data'

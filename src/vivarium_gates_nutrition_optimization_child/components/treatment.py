@@ -13,6 +13,9 @@ from vivarium_gates_nutrition_optimization_child.constants import (
     models,
     scenarios,
 )
+from vivarium_gates_nutrition_optimization_child.constants.paths import (
+    SQLNS_TARGETING_GHI,
+)
 
 
 class SQLNSTreatment(Component):
@@ -20,7 +23,7 @@ class SQLNSTreatment(Component):
 
     @property
     def columns_required(self) -> Optional[List[str]]:
-        return ["age"]
+        return ["age", "subnational"]
 
     @property
     def columns_created(self) -> Optional[List[str]]:
@@ -40,11 +43,16 @@ class SQLNSTreatment(Component):
         self.propensity_column_name = data_values.SQ_LNS.PROPENSITY_COLUMN
         self.propensity_pipeline_name = data_values.SQ_LNS.PROPENSITY_PIPELINE
         self.coverage_pipeline_name = data_values.SQ_LNS.COVERAGE_PIPELINE
+        self.sqlns_targeted_ghi = pd.read_csv(SQLNS_TARGETING_GHI)[
+            ["location", "targeted_ghi"]
+        ]
 
     # noinspection PyAttributeOutsideInit
     def setup(self, builder: Builder):
         self.randomness = builder.randomness.get_stream(self._randomness_stream_name)
-
+        self.scenario = scenarios.INTERVENTION_SCENARIOS[
+            builder.configuration.intervention.child_scenario
+        ]
         self.coverage_value = self.get_coverage_value(builder)
 
         self.propensity = builder.value.register_value_producer(
@@ -56,7 +64,7 @@ class SQLNSTreatment(Component):
         self.coverage = builder.value.register_value_producer(
             self.coverage_pipeline_name,
             source=self.get_current_coverage,
-            requires_columns=["age"],
+            requires_columns=["age", "subnational"],
             requires_values=[self.propensity_pipeline_name],
         )
 
@@ -114,15 +122,13 @@ class SQLNSTreatment(Component):
         )
 
     def get_coverage_value(self, builder: Builder) -> float:
-        scenario = scenarios.INTERVENTION_SCENARIOS[
-            builder.configuration.intervention.child_scenario
-        ]
         coverage_map = {
             "baseline": data_values.SQ_LNS.COVERAGE_BASELINE,
+            "targeted": 1,
             "none": 0,
             "full": 1,
         }
-        return coverage_map[scenario.sqlns_coverage]
+        return coverage_map[self.scenario.sqlns_coverage]
 
     def get_risk_ratios(self, builder: Builder, affected_outcome: str) -> LookupTable:
         sqlns_effect_size = builder.configuration.intervention.sqlns_effect_size
@@ -143,18 +149,26 @@ class SQLNSTreatment(Component):
         )
 
     def get_current_coverage(self, index: pd.Index) -> pd.Series:
-        age = self.population_view.get(index)["age"]
+        pop = self.population_view.get(index)[["age", "subnational"]]
         propensity = self.propensity(index)
+        # Targeted ghi will be yes if we want to have similuants covered for specific subnationals
+        ghi = pd.Series(
+            data=self.sqlns_targeted_ghi["targeted_ghi"].to_list(),
+            index=self.sqlns_targeted_ghi["location"].to_list(),
+        ).to_dict()
+        pop["targeted_ghi"] = pop["subnational"].map(ghi)
 
         coverage = pd.Series("uncovered", index=index)
 
         covered = (
             (propensity < self.coverage_value)
-            & (data_values.SQ_LNS.COVERAGE_START_AGE <= age)
-            & (age <= data_values.SQ_LNS.COVERAGE_END_AGE)
+            & (data_values.SQ_LNS.COVERAGE_START_AGE <= pop["age"])
+            & (pop["age"] <= data_values.SQ_LNS.COVERAGE_END_AGE)
         )
+        if self.scenario.sqlns_coverage == "targeted":
+            covered = covered & (pop["targeted_ghi"] == "yes")
         received = (propensity < self.coverage_value) & (
-            data_values.SQ_LNS.COVERAGE_END_AGE < age
+            data_values.SQ_LNS.COVERAGE_END_AGE < pop["age"]
         )
 
         coverage[covered] = "covered"
