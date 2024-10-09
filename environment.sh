@@ -96,7 +96,6 @@ else
     # or more reccent than environment creation
     # Note: The lines we will return via grep will look like 'vivarium>=#.#.#' or will be of the format 
     # 'vivarium @ git+https://github.com/ihmeuw/vivarium@SOME_BRANCH'
-    # echo $(grep -E 'vivarium|gbd|risk_distribution|layered_config' $install_file)
     framework_packages=$(grep -E 'vivarium|gbd|risk_distribution|layered_config' $install_file)
     num_packages=$(grep -E 'vivarium|gbd|risk_distribution|layered_config' -c $install_file)
     
