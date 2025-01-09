@@ -64,7 +64,7 @@ format: setup.py pyproject.toml $(MAKE_SOURCES) # Run the code formatter and imp
 	-isort $(LOCATIONS)
 	@echo "Ignore, Created by Makefile, `date`" > $@
 
-test: $(MAKE_SOURCES) # Run unit tests
+unit: $(MAKE_SOURCES) # Run unit tests
 	export COVERAGE_FILE=./output/.coverage.test
 	pytest tests --cov --cov-report term --cov-report html:./output/htmlcov_test
 	@echo "Ignore, Created by Makefile, `date`" > $@
