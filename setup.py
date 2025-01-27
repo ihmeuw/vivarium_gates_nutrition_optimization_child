@@ -40,7 +40,10 @@ if __name__ == "__main__":
         "pytest-cov",
         "pytest-mock",
     ]
-    lint_requirements = ["black", "isort"]
+    lint_requirements = [
+        "black==22.3.0",
+        "isort",
+    ]
 
     setup(
         name=about["__title__"],
