@@ -1,6 +1,6 @@
 **v0.12.1 - 02/05/25**
 
--  Add python versions file
+ - Add python versions file
 
 **v0.12.0 - 01/09/24**
 
