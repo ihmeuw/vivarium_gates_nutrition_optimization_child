@@ -196,7 +196,7 @@ def get_data(
         data_keys.WASTING.DISTRIBUTION: load_metadata,
         data_keys.WASTING.ALT_DISTRIBUTION: load_metadata,
         data_keys.WASTING.CATEGORIES: load_metadata,
-        data_keys.WASTING.EXPOSURE: load_gbd_2021_exposure,
+        data_keys.WASTING.EXPOSURE: load_gbd_2023_exposure,
         data_keys.WASTING.RELATIVE_RISK: load_wasting_rr,
         data_keys.WASTING.PAF: load_categorical_paf,
         data_keys.WASTING.TRANSITION_RATES: load_wasting_transition_rates,
@@ -205,12 +205,12 @@ def get_data(
         data_keys.STUNTING.ALT_DISTRIBUTION: load_metadata,
         data_keys.STUNTING.CATEGORIES: load_metadata,
         data_keys.STUNTING.EXPOSURE: load_standard_data,
-        data_keys.STUNTING.RELATIVE_RISK: load_gbd_2021_rr,
+        data_keys.STUNTING.RELATIVE_RISK: load_gbd_2023_rr,
         data_keys.STUNTING.PAF: load_categorical_paf,
         data_keys.UNDERWEIGHT.DISTRIBUTION: load_metadata,
         data_keys.UNDERWEIGHT.EXPOSURE: load_underweight_exposure,
         data_keys.UNDERWEIGHT.CATEGORIES: load_metadata,
-        data_keys.UNDERWEIGHT.RELATIVE_RISK: load_gbd_2021_rr,
+        data_keys.UNDERWEIGHT.RELATIVE_RISK: load_gbd_2023_rr,
         data_keys.CHILD_GROWTH_FAILURE.PAF: load_cgf_paf,
         data_keys.PEM.EMR: load_pem_emr,
         data_keys.PEM.CSMR: load_pem_csmr,
@@ -235,10 +235,10 @@ def get_data(
         data_keys.MAM_TREATMENT.PAF: load_categorical_paf,
         data_keys.LBWSG.DISTRIBUTION: load_metadata,
         data_keys.LBWSG.CATEGORIES: load_metadata,
-        data_keys.LBWSG.EXPOSURE: load_lbwsg_exposure,  ## Still 2019 age bins, but doesn't have effect past NN
-        data_keys.LBWSG.RELATIVE_RISK: load_lbwsg_rr,  ## Still 2019 age bins, but doesn't have effect past NN
-        data_keys.LBWSG.RELATIVE_RISK_INTERPOLATOR: load_lbwsg_interpolated_rr,  ## Still 2019 age bins, but doesn't have effect past NN
-        data_keys.LBWSG.PAF: load_lbwsg_paf,  ## Still 2019 age bins, but doesn't have effect past NN
+        data_keys.LBWSG.EXPOSURE: load_lbwsg_exposure,
+        data_keys.LBWSG.RELATIVE_RISK: load_lbwsg_rr,
+        data_keys.LBWSG.RELATIVE_RISK_INTERPOLATOR: load_lbwsg_interpolated_rr,
+        data_keys.LBWSG.PAF: load_lbwsg_paf,
         data_keys.AFFECTED_UNMODELED_CAUSES.URI_CSMR: load_standard_data,
         data_keys.AFFECTED_UNMODELED_CAUSES.OTITIS_MEDIA_CSMR: load_standard_data,
         data_keys.AFFECTED_UNMODELED_CAUSES.MENINGITIS_CSMR: load_standard_data,
@@ -344,23 +344,11 @@ def load_standard_data(key: str, location: Union[str, List[int]]) -> pd.DataFram
     key = EntityKey(key)
     entity = utilities.get_entity(key)
 
-    use_2019_data_keys = [
-        data_keys.MEASLES.PREVALENCE,
-        data_keys.MEASLES.INCIDENCE_RATE,
-        data_keys.MEASLES.DISABILITY_WEIGHT,
-        data_keys.MEASLES.EMR,
-        data_keys.MEASLES.CSMR,
-        data_keys.LRI.CSMR,
-    ]
-
     neonatal_deleted_keys = [
         data_keys.DIARRHEA.INCIDENCE_RATE,
         data_keys.DIARRHEA.DISABILITY_WEIGHT,
         data_keys.MALARIA.INCIDENCE_RATE,
         data_keys.MALARIA.DISABILITY_WEIGHT,
-    ]
-
-    both_2019_and_neonatal_deleted = [
         data_keys.LRI.INCIDENCE_RATE,
         data_keys.LRI.DISABILITY_WEIGHT,
     ]
@@ -369,17 +357,8 @@ def load_standard_data(key: str, location: Union[str, List[int]]) -> pd.DataFram
         data_keys.POPULATION.CRUDE_BIRTH_RATE,
     ]
 
-    if key in use_2019_data_keys:
-        data = interface.get_measure(entity, key.measure, location, 2019)
-        data = data.query("year_start == 2019")
-
-    elif key in neonatal_deleted_keys:
+    if key in neonatal_deleted_keys:
         data = interface.get_measure(entity, key.measure, location, metadata.GBD_EXTRACT_YEAR)
-        data.loc[data.reset_index()["age_start"] < metadata.NEONATAL_END_AGE, :] = 0
-
-    elif key in both_2019_and_neonatal_deleted:
-        data = interface.get_measure(entity, key.measure, location, 2019)
-        data = data.query("year_start == 2019")
         data.loc[data.reset_index()["age_start"] < metadata.NEONATAL_END_AGE, :] = 0
 
     else:
@@ -467,8 +446,8 @@ def load_wasting_transition_rates(key: str, location: Union[str, List[int]]) -> 
     transitions = rates.reset_index()["transition"].unique()
     youngest_ages_data = expand_data(youngest_ages_data, "transition", transitions)
 
-    rates["year_start"] = 2021
-    rates["year_end"] = 2022
+    rates["year_start"] = 2023
+    rates["year_end"] = 2024
     rates = rates[youngest_ages_data.columns]
     rates = pd.concat([youngest_ages_data, rates])
 
@@ -708,8 +687,8 @@ def load_duration(key: str, location: str) -> pd.DataFrame:
 
     if key == data_keys.LRI.DURATION:
         duration = duration.reset_index()
-        duration["year_start"] = 2019
-        duration["year_end"] = 2020
+        duration["year_start"] = 2023
+        duration["year_end"] = 2024
         duration = duration.set_index(
             ["location", "sex", "age_start", "age_end", "year_start", "year_end"]
         )
@@ -803,13 +782,12 @@ def load_emr_from_csmr_and_prevalence(
 
 
 def load_neonatal_deleted_csmr(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
-    """Get GBD 2019 CSMR data with 2021 age groups and zero out neonatal age groups."""
+    """Get GBD 2023 data and zero out neonatal age groups."""
     allowed_keys = [data_keys.DIARRHEA.CSMR, data_keys.LRI.CSMR, data_keys.MALARIA.CSMR]
     if key not in allowed_keys:
         raise ValueError(f"Unrecognized key {key}")
 
     data = load_standard_data(key, location)
-    # data.loc[data.age_start < metadata.NEONATAL_END_AGE, :] = 0
     data.loc[data.reset_index()["age_start"] < metadata.NEONATAL_END_AGE, :] = 0
     return data
 
@@ -862,7 +840,7 @@ def load_underweight_exposure(key: str, location: Union[str, List[int]]) -> pd.D
     df["age_end"] = df["age_group_name"].map(age_end_map)
     df = df.drop("age_group_name", axis=1)
 
-    df["year_start"] = 2021
+    df["year_start"] = 2023
     df["year_end"] = df["year_start"] + 1
 
     # define index
@@ -894,7 +872,7 @@ def load_underweight_exposure(key: str, location: Union[str, List[int]]) -> pd.D
     index_elements = {
         "sex": ["Male", "Female"],
         "age_start": age_bins["age_start"],
-        "year_start": list([2021]),
+        "year_start": list([2023]),
         "location": df.reset_index().location.unique(),
         "stunting_parameter": ["cat1", "cat2", "cat3", "cat4"],
         "wasting_parameter": ["cat1", "cat2", "cat2.5", "cat3", "cat4"],
@@ -920,7 +898,7 @@ def load_underweight_exposure(key: str, location: Union[str, List[int]]) -> pd.D
     return df.fillna(0)
 
 
-def load_gbd_2021_exposure(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
+def load_gbd_2023_exposure(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
     # Get national location id to use national data probabilities
     entity_key = EntityKey(key)
     national_location_id = get_national_location_id(location[0])
@@ -944,20 +922,20 @@ def load_gbd_2021_exposure(key: str, location: Union[str, List[int]]) -> pd.Data
 
         # get age start and end from age group ID
         probabilities = expand_data(
-            probabilities, "age_group_id", list(metadata.AGE_GROUP.GBD_2021)
+            probabilities, "age_group_id", list(metadata.AGE_GROUP.GBD_2023)
         )
         enn_rows = probabilities.query("age_group_id==3").copy()
         enn_rows["age_group_id"] = 2
         probabilities = pd.concat([probabilities, enn_rows])
 
         age_bins = get_data(data_keys.POPULATION.AGE_BINS, location).reset_index()
-        age_bins["age_group_id"] = list(metadata.AGE_GROUP.GBD_2021)
+        age_bins["age_group_id"] = list(metadata.AGE_GROUP.GBD_2023)
         age_bins = age_bins.drop("age_group_name", axis=1)
         probabilities = probabilities.merge(age_bins, on="age_group_id").drop(
             "age_group_id", axis=1
         )
         # add year data
-        probabilities["year_start"] = 2021
+        probabilities["year_start"] = 2023
         probabilities["year_end"] = probabilities["year_start"] + 1
 
         probabilities = (
@@ -1013,10 +991,10 @@ def load_wasting_rr(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
 
     # get age start and end from age group ID
     age_bins = get_data(data_keys.POPULATION.AGE_BINS, location).reset_index()
-    age_bins["age_group_id"] = list(metadata.AGE_GROUP.GBD_2021)
+    age_bins["age_group_id"] = list(metadata.AGE_GROUP.GBD_2023)
     age_bins = age_bins.drop("age_group_name", axis=1)
     data = data.merge(age_bins, on="age_group_id").drop("age_group_id", axis=1)
-    data["year_start"] = 2021
+    data["year_start"] = 2023
     data["year_end"] = data["year_start"] + 1
     data["location"] = location
     data = pd.pivot_table(
@@ -1051,13 +1029,33 @@ def load_wasting_rr(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
     return data
 
 
-def load_gbd_2021_rr(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
+def load_gbd_2023_rr(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
     entity_key = EntityKey(key)
     entity = utilities.get_entity(entity_key)
 
     raw_data = load_standard_data(key, location)
 
     inc = raw_data.query('affected_measure == "incidence_rate"')
+    # In GBD 2023, underweight has no impact on measles incidence rate. So we add values of 1 here.
+    if entity_key == data_keys.UNDERWEIGHT.RELATIVE_RISK:
+        inc_measles = inc.copy()
+        inc_measles = inc_measles.reset_index()
+        inc_measles = inc_measles[inc_measles["affected_entity"] == "malaria"]
+        inc_measles["affected_entity"] = "measles"
+        inc_measles = inc_measles.set_index(inc.index.names)
+        inc_measles.loc[:, :] = 1.0
+        inc = pd.concat([inc, inc_measles])
+
+    # In GBD 2023, stunting has no impact on malaria incidence rate. So we add values of 1 here.
+    if entity_key == data_keys.STUNTING.RELATIVE_RISK:
+        inc_measles = inc.copy()
+        inc_measles = inc_measles.reset_index()
+        inc_measles = inc_measles[inc_measles["affected_entity"] == "measles"]
+        inc_measles["affected_entity"] = "malaria"
+        inc_measles = inc_measles.set_index(inc.index.names)
+        inc_measles.loc[:, :] = 1.0
+        inc = pd.concat([inc, inc_measles])
+
     csmr = raw_data.query('affected_measure == "cause_specific_mortality_rate"')
     emr = csmr.droplevel("affected_measure") / inc.droplevel("affected_measure")
     emr["affected_measure"] = "excess_mortality_rate"
@@ -1087,7 +1085,7 @@ def load_cgf_paf(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
     data["age_start"] = data["age_group_name"].map(age_start_map)
     data["age_end"] = data["age_group_name"].map(age_end_map)
     data = data.drop(["age_group_name", "location_id"], axis=1)
-    data["year_start"] = 2021
+    data["year_start"] = 2023
     data["year_end"] = data["year_start"] + 1
     # Capitalize Sex
     data["sex"] = data["sex"].str.capitalize()
@@ -1308,26 +1306,22 @@ def load_mam_treatment_rr(key: str, location: str) -> pd.DataFrame:
 
 
 def load_lbwsg_exposure(key: str, location: str) -> pd.DataFrame:
-    if key != data_keys.LBWSG.EXPOSURE:
-        raise ValueError(f"Unrecognized key {key}")
 
-    entity = utilities.get_entity(data_keys.LBWSG.EXPOSURE)
-    data = utilities.load_lbwsg_exposure(location)
-    # This category was a mistake in GBD 2019, so drop.
-    extra_residual_category = vi_globals.EXTRA_RESIDUAL_CATEGORY[entity.name]
-    data = data.loc[data["parameter"] != extra_residual_category]
-    idx_cols = ["location_id", "age_group_id", "year_id", "sex_id", "parameter"]
-    data = data.set_index(idx_cols)[vi_globals.DRAW_COLUMNS]
-
+    # Get exposure for all age groups except birth age group
+    exposure = load_standard_data(key, location)
     # Sometimes there are data values on the order of 10e-300 that cause
     # floating point headaches, so clip everything to reasonable values
-    data = data.clip(lower=vi_globals.MINIMUM_EXPOSURE_VALUE)
+    exposure = exposure.clip(lower=vi_globals.MINIMUM_EXPOSURE_VALUE)
 
     # normalize so all categories sum to 1
-    total_exposure = data.groupby(["location_id", "age_group_id", "sex_id"]).transform("sum")
-    data = (data / total_exposure).reset_index()
-    data = reshape_to_vivarium_format(data, location)
-    return data
+    total_exposure = exposure.groupby(["age_start", "age_end", "sex"]).transform("sum")
+    exposure = (
+        (exposure / total_exposure)
+        .reset_index()
+        .set_index(metadata.ARTIFACT_INDEX_COLUMNS + ["parameter"])
+        .sort_index()
+    )
+    return exposure
 
 
 def load_lbwsg_rr(key: str, location: str) -> pd.DataFrame:
@@ -1335,7 +1329,7 @@ def load_lbwsg_rr(key: str, location: str) -> pd.DataFrame:
         raise ValueError(f"Unrecognized key {key}")
 
     data = load_standard_data(key, location)
-    data = data.query("year_start == 2021").droplevel(["affected_entity", "affected_measure"])
+    data = data.query("year_start == 2023").droplevel(["affected_entity", "affected_measure"])
     data = data[~data.index.duplicated()]
     return data
 
@@ -1421,6 +1415,9 @@ def load_lbwsg_paf(key: str, location: str) -> pd.DataFrame:
 
     df = pd.read_hdf(output_dir / "output.hdf")  # this is 4096_simulants.hdf for example
     df = df[[col for col in df.columns if "MEASURE" in col]].T
+
+    # This line should be able to be deleted later once the file is updated to only have 250 draws
+    df = df.iloc[:, : metadata.DRAW_COUNT]
     df.columns = [f"draw_{i}" for i in range(metadata.DRAW_COUNT)]
     df = df.reset_index()
     df["demographics"] = df["index"].apply(get_age_and_sex)
@@ -1432,14 +1429,14 @@ def load_lbwsg_paf(key: str, location: str) -> pd.DataFrame:
     age_end_dict = {"early_neonatal": 0.01917808, "late_neonatal": 0.07671233}
     df["age_start"] = df["age"].replace(age_start_dict)
     df["age_end"] = df["age"].replace(age_end_dict)
-    df["year_start"] = 2021
-    df["year_end"] = 2022
+    df["year_start"] = 2023
+    df["year_end"] = 2024
     df = df.drop("age", axis=1)
 
-    new_row_1 = [0] * metadata.DRAW_COUNT + ["Female", 0.07671233, 1.0, 2021, 2022]
-    new_row_2 = [0] * metadata.DRAW_COUNT + ["Male", 0.07671233, 1.0, 2021, 2022]
-    new_row_3 = [0] * metadata.DRAW_COUNT + ["Female", 1.0, 5.0, 2021, 2022]
-    new_row_4 = [0] * metadata.DRAW_COUNT + ["Male", 1.0, 5.0, 2021, 2022]
+    new_row_1 = [0] * metadata.DRAW_COUNT + ["Female", 0.07671233, 1.0, 2023, 2024]
+    new_row_2 = [0] * metadata.DRAW_COUNT + ["Male", 0.07671233, 1.0, 2023, 2024]
+    new_row_3 = [0] * metadata.DRAW_COUNT + ["Female", 1.0, 5.0, 2023, 2024]
+    new_row_4 = [0] * metadata.DRAW_COUNT + ["Male", 1.0, 5.0, 2023, 2024]
 
     df.loc[len(df)] = new_row_1
     df.loc[len(df)] = new_row_2
