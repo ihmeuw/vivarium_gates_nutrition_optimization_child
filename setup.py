@@ -55,7 +55,7 @@ if __name__ == "__main__":
         "jinja2",
         "loguru",
         "numpy",
-        "pandas",
+        "pandas<3.0.0",
         "pyyaml",
         "scipy",
         "tables",

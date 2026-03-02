@@ -1,9 +1,9 @@
 components:
-    # vivarium_public_health:
-    #     disease:
-    #         - SIS_fixed_duration('measles', '10.0')
-    #         - SIS('lower_respiratory_infections')
-    #         - SIS('malaria')
+    vivarium_public_health:
+        disease:
+            - SIS_fixed_duration('measles', '10.0')
+            - SIS('lower_respiratory_infections')
+            - SIS('malaria')
     #     risks:
     #         - Risk('risk_factor.child_stunting')
 
@@ -16,11 +16,11 @@ components:
     #         - LBWSGRiskEffect('cause.diarrheal_diseases.excess_mortality_rate')
     #         - LBWSGRiskEffect('cause.lower_respiratory_infections.excess_mortality_rate')
     #         - LBWSGRiskEffect('cause.affected_unmodeled.cause_specific_mortality_rate')
-    #     results:
+        results:
     #         - DiseaseObserver('diarrheal_diseases')
-    #         - DiseaseObserver('measles')
-    #         - DiseaseObserver('lower_respiratory_infections')
-    #         - DiseaseObserver('malaria')
+            - DiseaseObserver('measles')
+            - DiseaseObserver('lower_respiratory_infections')
+            - DiseaseObserver('malaria')
     #         - DisabilityObserver()
     #         - CategoricalRiskObserver('child_stunting')
     #         - CategoricalRiskObserver('child_underweight')
@@ -82,7 +82,7 @@ configuration:
             year: 2029
             month: 12
             day: 31
-        step_size: 4 # Days
+        step_size: 28 # Days # TODO PUT BACK TO 4
     population:
         population_size: 0
         initialization_age_min: 0
