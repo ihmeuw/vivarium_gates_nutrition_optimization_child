@@ -8,7 +8,6 @@ Fertility module to create simulants from existing data
 """
 
 from pathlib import Path
-from typing import List
 
 import numpy as np
 import pandas as pd
@@ -25,10 +24,6 @@ class FertilityLineList(Component):
     This class will determine what simulants need to be added to the state table based on their birth data from existing
     line list data.  Simulants will be registered to the state table on the time steps in which their birth takes place.
     """
-
-    @property
-    def columns_required(self) -> List[str]:
-        return ["alive", "cause_of_death"]
 
     #################
     # Setup methods #
@@ -54,20 +49,20 @@ class FertilityLineList(Component):
 
         # We changed the format and output type of the maternal model and so
         # we need to handle the different births datasets
-        if (data_directory / "births.parquet").exists():
+        if (data_directory / f"scenario_{scenario}_draw_{draw}_seed_{seed}.hdf").exists():
+            # old hdf format
+            file_path = data_directory / f"scenario_{scenario}_draw_{draw}_seed_{seed}.hdf"
+            birth_records = pd.read_hdf(file_path)
+        else:
             # new parquet format
             birth_records = pd.read_parquet(
-                data_directory / "births.parquet",
+                data_directory,
                 filters=[
                     ("scenario", "==", scenario),
                     ("input_draw", "==", draw),
                     ("random_seed", "==", seed),
                 ],
             )
-        else:
-            # old hdf format
-            file_path = data_directory / f"scenario_{scenario}_draw_{draw}_seed_{seed}.hdf"
-            birth_records = pd.read_hdf(file_path)
         birth_records["birth_date"] = pd.to_datetime(birth_records["birth_date"])
         return birth_records
 
@@ -88,7 +83,7 @@ class FertilityLineList(Component):
             return
         born_previous_step.loc[:, "maternal_id"] = born_previous_step.index
         # stillbirths should be initialized as dead and with exit time
-        born_previous_step.loc[:, "alive"] = "alive"
+        born_previous_step.loc[:, "is_alive"] = True
         born_previous_step.loc[:, "exit_time"] = np.datetime64("NaT")
 
         is_stillbirth = born_previous_step["pregnancy_outcome"] == "stillbirth"
@@ -107,10 +102,3 @@ class FertilityLineList(Component):
                     "new_births": born_previous_step,
                 },
             )
-
-    def on_time_step_cleanup(self, event: Event) -> None:
-        # update cause_of_death on cleanup because mortality handles that column on initialization
-        pop = self.population_view.get(event.index)
-        is_stillborn = (pop["alive"] == "dead") & (pop["cause_of_death"] == "not_dead")
-        pop.loc[is_stillborn, "cause_of_death"] = "stillborn"
-        self.population_view.update(pop)

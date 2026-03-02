@@ -7,19 +7,20 @@ This module contains a component for creating a base population from line list d
 
 """
 
-from typing import Dict, List
+from typing import Any, Dict, List
 
 import numpy as np
 import pandas as pd
 from vivarium.framework.engine import Builder
 from vivarium.framework.population import SimulantData
 from vivarium.framework.time import get_time_stamp
-from vivarium_public_health.population.base_population import BasePopulation
+from vivarium_public_health.population.base_population import BasePopulation, Disability
 from vivarium_public_health.population.data_transformations import (
     assign_demographic_proportions,
-    load_population_structure,
 )
+from vivarium_public_health.population.mortality import Mortality
 
+from vivarium_gates_nutrition_optimization_child import utilities as utils
 from vivarium_gates_nutrition_optimization_child.constants import data_keys
 from vivarium_gates_nutrition_optimization_child.constants.paths import (
     SUBNATIONAL_PERCENTAGES,
@@ -34,6 +35,11 @@ class PopulationLineList(BasePopulation):
     @property
     def time_step_priority(self) -> int:
         return 8
+
+    def __init__(self):
+        """Remove AgeOutSimulants and replace Mortality in subcomponents."""
+        super().__init__()
+        self._sub_components = [MortalityLineList(), Disability()]
 
     # noinspection PyAttributeOutsideInit
     def setup(self, builder: Builder) -> None:
@@ -136,6 +142,39 @@ class PopulationLineList(BasePopulation):
             additional_key="subnational_location_choice",
         )
         return location_choices
+
+
+class MortalityLineList(Mortality):
+    @property
+    def configuration_defaults(self) -> dict[str, Any]:
+        # Change the name from super to self.name
+        config_defaults = super().configuration_defaults
+        config_defaults[self.name] = config_defaults.pop("mortality")
+        return config_defaults
+
+    def initialize_mortality(self, pop_data: SimulantData) -> None:
+        """Initialize mortality include stillbirths based on the line list data."""
+        pop_update = pd.DataFrame(
+            index=pop_data.index,
+            columns=[
+                "is_alive",
+                self.cause_of_death_column_name,
+                self.years_of_life_lost_column_name,
+            ],
+        )
+        if not pop_data.index.empty:
+            pop_update["is_alive"] = True
+            pop_update[self.cause_of_death_column_name] = "not_dead"
+            pop_update[self.years_of_life_lost_column_name] = 0.0
+
+            # Update stillbirths
+            is_stillborn = (
+                pop_data.user_data["new_births"]["pregnancy_outcome"] == "stillbirth"
+            )
+            pop_update.loc[is_stillborn, "is_alive"] = False
+            pop_update.loc[is_stillborn, self.cause_of_death_column_name] = "stillborn"
+
+        self.population_view.update(pop_update)
 
 
 class EvenlyDistributedPopulation(BasePopulation):
