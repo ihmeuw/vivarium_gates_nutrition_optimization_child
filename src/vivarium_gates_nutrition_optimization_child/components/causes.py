@@ -14,10 +14,7 @@ from vivarium_public_health.disease.transition import TransitionString
 def SIS_with_birth_prevalence(cause: str) -> DiseaseModel:
 
     healthy = SusceptibleState(cause)
-    infected = DiseaseState(
-        cause,
-        birth_prevalence=lambda builder: builder.data.load(f"cause.{cause}.birth_prevalence"),
-    )
+    infected = DiseaseState(cause, birth_prevalence=f"cause.{cause}.birth_prevalence")
 
     healthy.add_rate_transition(infected)
     infected.add_rate_transition(healthy)
