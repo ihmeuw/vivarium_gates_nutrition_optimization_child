@@ -63,66 +63,66 @@ class ResultsStratifier(ResultsStratifier_):
         #     [category.value for category in data_keys.ChildWastingCategories],
         #     mapper=self.child_wasting_stratification_mapper,
         #     is_vectorized=True,
-        #     requires_values=["child_wasting.exposure"],
+        #     requires_attributes=["child_wasting.exposure"],
         # )
         # builder.results.register_stratification(
         #     "stunting_state",
         #     [category.value for category in data_keys.CGFCategories],
         #     mapper=self.child_growth_risk_factor_stratification_mapper,
         #     is_vectorized=True,
-        #     requires_values=["child_stunting.exposure"],
+        #     requires_attributes=["child_stunting.exposure"],
         # )
         # builder.results.register_stratification(
         #     "underweight_state",
         #     [category.value for category in data_keys.CGFCategories],
         #     mapper=self.child_growth_risk_factor_stratification_mapper,
         #     is_vectorized=True,
-        #     requires_values=["child_underweight.exposure"],
+        #     requires_attributes=["child_underweight.exposure"],
         # )
         # builder.results.register_stratification(
         #     "maternal_supplementation",
         #     results.MATERNAL_SUPPLEMENTATION_TYPES,
         #     is_vectorized=True,
-        #     requires_columns=["maternal_supplementation_exposure"],
+        #     requires_attributes=["maternal_supplementation_exposure"],
         # )
         # builder.results.register_stratification(
         #     "bmi_anemia",
         #     ["cat4", "cat3", "cat2", "cat1"],
         #     is_vectorized=True,
-        #     requires_columns=["maternal_bmi_anemia_exposure"],
+        #     requires_attributes=["maternal_bmi_anemia_exposure"],
         # )
         builder.results.register_stratification(
             "sam_treatment",
             ["covered", "uncovered"],
             mapper=self.map_wasting_treatment,
             is_vectorized=True,
-            requires_values=[f"{data_keys.SAM_TREATMENT.name}.exposure"],
+            requires_attributes=[f"{data_keys.SAM_TREATMENT.name}.exposure"],
         )
         builder.results.register_stratification(
             "mam_treatment",
             ["covered", "uncovered"],
             mapper=self.map_wasting_treatment,
             is_vectorized=True,
-            requires_values=[f"{data_keys.MAM_TREATMENT.name}.exposure"],
+            requires_attributes=[f"{data_keys.MAM_TREATMENT.name}.exposure"],
         )
         builder.results.register_stratification(
             "sqlns_coverage",
             ["covered", "uncovered", "received"],
             is_vectorized=True,
-            requires_values=[data_values.SQ_LNS.COVERAGE_PIPELINE],
+            requires_attributes=[data_values.SQ_LNS.COVERAGE_PIPELINE],
         )
         # builder.results.register_stratification(
         #     "birth_weight_status",
         #     ["low_birth_weight", "adequate_birth_weight"],
         #     is_vectorized=True,
-        #     requires_columns=["birth_weight_status"],
+        #     requires_attributes=["birth_weight_status"],
         # )
         # location = builder.data.load("population.location")
         # builder.results.register_stratification(
         #     "subnational",
         #     SUBNATIONAL_LOCATION_DICT[location],
         #     is_vectorized=True,
-        #     requires_columns=["subnational"],
+        #     requires_attributes=["subnational"],
         # )
 
     ###########################
@@ -221,7 +221,7 @@ class ResultsStratifier(ResultsStratifier_):
 #             name=f"live_births",
 #             pop_filter="alive=='alive'",
 #             aggregator=self.count_live_births,
-#             requires_columns=["entrance_time"],
+#             requires_attributes=["entrance_time"],
 #             additional_stratifications=self.config.include,
 #             excluded_stratifications=self.config.exclude,
 #             when="collect_metrics",
@@ -230,7 +230,7 @@ class ResultsStratifier(ResultsStratifier_):
 #             name=f"birth_weight_sum",
 #             pop_filter="alive=='alive'",
 #             aggregator=self.sum_birth_weights,
-#             requires_columns=["entrance_time", self.birth_weight_column_name],
+#             requires_attributes=["entrance_time", self.birth_weight_column_name],
 #             additional_stratifications=self.config.include,
 #             excluded_stratifications=self.config.exclude,
 #             when="collect_metrics",
@@ -239,7 +239,7 @@ class ResultsStratifier(ResultsStratifier_):
 #             name=f"gestational_age_sum",
 #             pop_filter="alive=='alive'",
 #             aggregator=self.sum_gestational_ages,
-#             requires_columns=["entrance_time", self.gestational_age_column_name],
+#             requires_attributes=["entrance_time", self.gestational_age_column_name],
 #             additional_stratifications=self.config.include,
 #             excluded_stratifications=self.config.exclude,
 #             when="collect_metrics",
@@ -248,7 +248,7 @@ class ResultsStratifier(ResultsStratifier_):
 #             name=f"low_weight_births",
 #             pop_filter="alive=='alive'",
 #             aggregator=self.count_low_weight_births,
-#             requires_columns=["entrance_time", self.birth_weight_column_name],
+#             requires_attributes=["entrance_time", self.birth_weight_column_name],
 #             additional_stratifications=self.config.include,
 #             excluded_stratifications=self.config.exclude,
 #             when="collect_metrics",
@@ -328,7 +328,6 @@ class ChildWastingObserver(DiseaseObserver):
             name=f"person_time_{self.disease}",
             pop_filter=pop_filter,
             when="time_step__prepare",
-            requires_columns=["alive"],
             additional_stratifications=self.config.include + ["wasting_categories"],
             excluded_stratifications=self.config.exclude,
             aggregator=self.aggregate_state_person_time,
