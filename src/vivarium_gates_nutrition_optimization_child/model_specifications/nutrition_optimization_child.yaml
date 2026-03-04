@@ -21,7 +21,7 @@ components:
             - DiseaseObserver('measles')
             - DiseaseObserver('lower_respiratory_infections')
             - DiseaseObserver('malaria')
-    #         - DisabilityObserver()
+            - DisabilityObserver()
     #         - CategoricalRiskObserver('child_stunting')
     #         - CategoricalRiskObserver('child_underweight')
 
@@ -82,7 +82,7 @@ configuration:
             year: 2029
             month: 12
             day: 31
-        step_size: 28 # Days # TODO PUT BACK TO 4
+        step_size: 56 # Days # TODO PUT BACK TO 4
     population:
         population_size: 0
         initialization_age_min: 0
@@ -132,7 +132,7 @@ configuration:
                 - 'stillborn'
             disability:
                 - 'all_causes'
-                - 'mild_child_wasting'
-                - 'better_moderate_acute_malnutrition'
-                - 'worse_moderate_acute_malnutrition'
-                - 'severe_acute_malnutrition'
+                # - 'mild_child_wasting'
+                # - 'better_moderate_acute_malnutrition'
+                # - 'worse_moderate_acute_malnutrition'
+                # - 'severe_acute_malnutrition'
