@@ -16,9 +16,7 @@ def SIS_with_birth_prevalence(cause: str) -> DiseaseModel:
     healthy = SusceptibleState(cause)
     infected = DiseaseState(
         cause,
-        birth_prevalence=lambda builder: builder.data.load(
-            f"cause.{cause}.birth_prevalence"
-        ),
+        birth_prevalence=lambda builder: builder.data.load(f"cause.{cause}.birth_prevalence"),
     )
 
     healthy.add_rate_transition(infected)
