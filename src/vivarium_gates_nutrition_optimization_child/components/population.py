@@ -49,8 +49,8 @@ class PopulationLineList(BasePopulation):
         super().setup() for the default `initialize_population` initializer (which
         creates age, sex, location, and entrance/exit times) and then register a
         second initializer for the new subnational and maternal_id columns because
-        we need to register the maternal_id column as a randomness key column along
-        with the usual sex and age columns.
+        we need to register the maternal_id column as a randomness key column (along
+        with the age column).
         """
 
         # Copy/paste from BasePopulation modulo the initializer registration.
