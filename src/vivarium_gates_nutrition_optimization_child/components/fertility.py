@@ -55,8 +55,13 @@ class FertilityLineList(Component):
             birth_records = pd.read_hdf(file_path)
         else:
             # new parquet format
+            births_path = (
+                data_directory
+                if not (data_directory / "births").exists()
+                else data_directory / "births"
+            )
             birth_records = pd.read_parquet(
-                data_directory,
+                births_path,
                 filters=[
                     ("scenario", "==", scenario),
                     ("input_draw", "==", draw),
