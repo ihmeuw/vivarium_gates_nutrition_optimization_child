@@ -27,44 +27,6 @@ from vivarium_gates_nutrition_optimization_child.utilities import get_random_var
 
 
 class MaternalCharacteristics(Component):
-    CONFIGURATION_DEFAULTS = {
-        f"risk_factor.{IFA_SUPPLEMENTATION.name}": {
-            "data_sources": {
-                "exposure": f"risk_factor.{IFA_SUPPLEMENTATION.name}.exposure",
-            },
-            "rebinned_exposed": [],
-            "category_thresholds": [],
-        },
-        f"risk_factor.{MMN_SUPPLEMENTATION.name}": {
-            "data_sources": {
-                "exposure": f"risk_factor.{MMN_SUPPLEMENTATION.name}.exposure",
-            },
-            "rebinned_exposed": [],
-            "category_thresholds": [],
-        },
-        f"risk_factor.{BEP_SUPPLEMENTATION.name}": {
-            "data_sources": {
-                "exposure": f"risk_factor.{BEP_SUPPLEMENTATION.name}.exposure",
-            },
-            "rebinned_exposed": [],
-            "category_thresholds": [],
-        },
-        "risk_factor.iv_iron": {
-            "data_sources": {
-                "exposure": "risk_factor.iv_iron.exposure",
-            },
-            "rebinned_exposed": [],
-            "category_thresholds": [],
-        },
-        "risk_factor.maternal_bmi_anemia": {
-            "data_sources": {
-                "exposure": "risk_factor.maternal_bmi_anemia.exposure",
-            },
-            "rebinned_exposed": [],
-            "category_thresholds": [],
-        },
-    }
-
     def __init__(self):
         super().__init__()
         self.supplementation_exposure_column_name = "maternal_supplementation_exposure"
@@ -75,13 +37,6 @@ class MaternalCharacteristics(Component):
         self.mmn_exposure_pipeline_name = f"{MMN_SUPPLEMENTATION.name}.exposure"
         self.maternal_bmi_anemia_exposure_pipeline_name = "maternal_bmi_anemia.exposure"
 
-    @property
-    def columns_created(self) -> List[str]:
-        return [
-            self.supplementation_exposure_column_name,
-            self.maternal_bmi_anemia_exposure_column_name,
-        ]
-
     #################
     # Setup methods #
     #################
@@ -89,50 +44,47 @@ class MaternalCharacteristics(Component):
     # noinspection PyAttributeOutsideInit
     def setup(self, builder: Builder) -> None:
         self.start_time = get_time_stamp(builder.configuration.time.start)
-        self.bep_exposure_pipeline = builder.value.register_value_producer(
+        builder.value.register_attribute_producer(
             self.bep_exposure_pipeline_name,
             source=self._get_bep_exposure,
-            requires_columns=[self.supplementation_exposure_column_name],
+            required_resources=[self.supplementation_exposure_column_name],
         )
-        self.ifa_exposure_pipeline = builder.value.register_value_producer(
+        builder.value.register_attribute_producer(
             self.ifa_exposure_pipeline_name,
             source=self._get_ifa_exposure,
-            requires_columns=[self.supplementation_exposure_column_name],
+            required_resources=[self.supplementation_exposure_column_name],
         )
-        self.mmn_exposure_pipeline = builder.value.register_value_producer(
+        builder.value.register_attribute_producer(
             self.mmn_exposure_pipeline_name,
             source=self._get_mmn_exposure,
-            requires_columns=[self.supplementation_exposure_column_name],
+            required_resources=[self.supplementation_exposure_column_name],
         )
-        self.maternal_bmi_anemia_exposure_pipeline = builder.value.register_value_producer(
+        builder.value.register_attribute_producer(
             self.maternal_bmi_anemia_exposure_pipeline_name,
             source=self._get_maternal_bmi_anemia_exposure,
-            requires_columns=[self.maternal_bmi_anemia_exposure_column_name],
+            required_resources=[self.maternal_bmi_anemia_exposure_column_name],
         )
 
-    def build_all_lookup_tables(self, builder: Builder) -> None:
-        # We need to call this method on each risk in the configuration defaults
-        for risk, risk_config in self.CONFIGURATION_DEFAULTS.items():
-            if "data_sources" not in self.CONFIGURATION_DEFAULTS[risk]:
-                continue
-            data_source_configs = self.CONFIGURATION_DEFAULTS[risk]["data_sources"]
-            for table_name in data_source_configs.keys():
-                try:
-                    self.lookup_tables[f"{risk}.{table_name}"] = self.build_lookup_table(
-                        builder, data_source_configs[table_name], ["value"]
-                    )
-                except ConfigurationError as e:
-                    raise ConfigurationError(
-                        f"Error building lookup table '{table_name}': {e}"
-                    )
+        builder.population.register_initializer(
+            self.initialize_from_line_list,
+            [
+                self.supplementation_exposure_column_name,
+                self.maternal_bmi_anemia_exposure_column_name,
+            ],
+        )
 
-    def on_initialize_simulants(self, pop_data: SimulantData) -> None:
+    def initialize_from_line_list(self, pop_data: SimulantData) -> None:
         """
         Initialize simulants from line list data. Population configuration
         contains a key "new_births" which is the line list data.
         """
-        columns = self.columns_created
-        new_simulants = pd.DataFrame(columns=columns, index=pop_data.index)
+        new_simulants = pd.DataFrame(
+            columns=[
+                self.supplementation_exposure_column_name,
+                self.maternal_bmi_anemia_exposure_column_name,
+            ],
+            index=pop_data.index,
+        )
 
         if pop_data.creation_time >= self.start_time:
             new_births = pop_data.user_data["new_births"]
