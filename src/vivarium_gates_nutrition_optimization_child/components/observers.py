@@ -91,20 +91,22 @@ class ResultsStratifier(ResultsStratifier_):
         #     is_vectorized=True,
         #     requires_attributes=["maternal_bmi_anemia_exposure"],
         # )
-        builder.results.register_stratification(
-            "sam_treatment",
-            ["covered", "uncovered"],
-            mapper=self.map_wasting_treatment,
-            is_vectorized=True,
-            requires_attributes=[f"{data_keys.SAM_TREATMENT.name}.exposure"],
-        )
-        builder.results.register_stratification(
-            "mam_treatment",
-            ["covered", "uncovered"],
-            mapper=self.map_wasting_treatment,
-            is_vectorized=True,
-            requires_attributes=[f"{data_keys.MAM_TREATMENT.name}.exposure"],
-        )
+        # SBACHMEI - REENABLE WHEN WE ADD WASTINGTREATMENT
+        # builder.results.register_stratification(
+        #     "sam_treatment",
+        #     ["covered", "uncovered"],
+        #     mapper=self.map_wasting_treatment,
+        #     is_vectorized=True,
+        #     requires_attributes=[f"{data_keys.SAM_TREATMENT.name}.exposure"],
+        # )
+        # SBACHMEI - REENABLE WHEN WE ADD WASTINGTREATMENT
+        # builder.results.register_stratification(
+        #     "mam_treatment",
+        #     ["covered", "uncovered"],
+        #     mapper=self.map_wasting_treatment,
+        #     is_vectorized=True,
+        #     requires_attributes=[f"{data_keys.MAM_TREATMENT.name}.exposure"],
+        # )
         builder.results.register_stratification(
             "sqlns_coverage",
             ["covered", "uncovered", "received"],
@@ -313,13 +315,18 @@ class ChildWastingObserver(DiseaseObserver):
         self.entity_type = self.disease_model.cause_type
         self.entity = self.disease_model.cause
         self.transition_stratification_name = f"transition_{self.disease}"
+        builder.population.register_initializer(
+            initializer=self.initialize_previous_state,
+            columns=self.previous_state_column_name,
+            required_resources=[self.disease],
+        )
 
     # We want disease state to be categories instead of the (default) state_ids
     def register_disease_state_stratification(self, builder: Builder) -> None:
         builder.results.register_stratification(
             "wasting_categories",
             list(builder.data.load(f"risk_factor.{self.disease}.categories").keys()),
-            requires_values=[self.exposure_pipeline_name],
+            requires_attributes=[self.exposure_pipeline_name],
         )
 
     def register_person_time_observation(self, builder: Builder, pop_filter: str) -> None:
