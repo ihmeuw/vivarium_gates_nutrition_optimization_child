@@ -54,7 +54,6 @@ class LBWSGLineList(LBWSGRisk):
 
     # noinspection PyAttributeOutsideInit
     def setup(self, builder: Builder):
-        # super().setup(builder)
         Risk.setup(self, builder)
 
         self.configuration_age_end = builder.configuration.population.initialization_age_max
