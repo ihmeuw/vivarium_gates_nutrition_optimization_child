@@ -238,7 +238,6 @@ class ChildWastingModel(DiseaseModel):
         state_names = birth_prevalence.columns.tolist()
         state_names = [name.replace(".birth_prevalence", "") for name in state_names]
         weights = birth_prevalence.to_numpy()
-        weights = weights / weights.sum(axis=1, keepdims=True)
         cumulative_weights = np.cumsum(weights, axis=1)
         choice_index = (propensities.values[np.newaxis].T > cumulative_weights).sum(axis=1)
         initial_states = pd.Series(np.array(state_names)[choice_index], index=pop_index)
@@ -351,7 +350,7 @@ def ChildWasting() -> ChildWastingModel:
     return ChildWastingModel(
         models.WASTING.MODEL_NAME,
         cause_specific_mortality_rate=0.0,
-        states=[severe, better_moderate, worse_moderate, mild, tmrel],
+        states=[severe, worse_moderate, better_moderate, mild, tmrel],
     )
 
 
