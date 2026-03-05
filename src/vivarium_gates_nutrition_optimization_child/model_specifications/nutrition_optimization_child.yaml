@@ -4,8 +4,8 @@ components:
             - SIS_fixed_duration('measles', '10.0')
             - SIS('lower_respiratory_infections')
             - SIS('malaria')
-    #     risks:
-    #         - Risk('risk_factor.child_stunting')
+        risks:
+            - Risk('risk_factor.child_stunting')
 
     #         - RiskEffect('risk_factor.severe_acute_malnutrition_treatment', 'risk_factor.severe_acute_malnutrition_to_mild_child_wasting.transition_rate')
     #         - RiskEffect('risk_factor.severe_acute_malnutrition_treatment', 'risk_factor.severe_acute_malnutrition_to_better_moderate_acute_malnutrition.transition_rate')
@@ -22,7 +22,7 @@ components:
             - DiseaseObserver('lower_respiratory_infections')
             - DiseaseObserver('malaria')
             - DisabilityObserver()
-    #         - CategoricalRiskObserver('child_stunting')
+            - CategoricalRiskObserver('child_stunting')
     #         - CategoricalRiskObserver('child_underweight')
 
     vivarium_gates_nutrition_optimization_child:
@@ -129,8 +129,9 @@ configuration:
             # SBACHMEI - REENABLE WHEN WE ADD WASTINGTREATMENT
             # include: ['sam_treatment', 'mam_treatment']
             include: []
-        child_stunting:
-            include: ['sqlns_coverage']
+        # child_stunting:
+              # SBACHMEI - REENABLE WHEN WE ADD SQLNS
+        #     include: ['sqlns_coverage']
         excluded_categories:
             cause_of_death:
                 - 'stillborn'
