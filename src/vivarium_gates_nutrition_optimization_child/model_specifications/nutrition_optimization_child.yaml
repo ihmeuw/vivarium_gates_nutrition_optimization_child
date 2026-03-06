@@ -82,7 +82,7 @@ configuration:
             year: 2029
             month: 12
             day: 31
-        # SBACHMEI: PUT BACK TO 4 DAYS
+        # SBACHMEI - PUT BACK TO 4 DAYS
         # step_size: 4 # Days
         step_size: 28
     population:
