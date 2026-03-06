@@ -93,17 +93,22 @@ class ChildUnderweight(Risk):
     def get_current_exposure(self, index: pd.Index) -> pd.Series:
         """Calculate exposures separately for each joint stunting and wasting state and concatenate."""
         if len(index) == 0:
-            return pd.Series(
-                index=index
-            )  # only happens on first time step when there's no simulants
-        propensity = self.population_view.get_attributes(index, self.propensity_name)
-        wasting = self.population_view.get_attributes(
-            index, data_values.PIPELINES.WASTING_EXPOSURE
-        ).rename("wasting")
-        stunting = self.population_view.get_attributes(
-            index, data_values.PIPELINES.STUNTING_EXPOSURE
-        ).rename("stunting")
-        pop = pd.concat([stunting, wasting, propensity], axis=1)
+            # only happens on first time step when there's no simulants
+            return pd.Series(index=index)
+
+        pop = self.population_view.get_attributes(
+            index,
+            [
+                data_values.PIPELINES.STUNTING_EXPOSURE,
+                data_values.PIPELINES.WASTING_EXPOSURE,
+                self.propensity_name,
+            ],
+        ).rename(
+            columns={
+                data_values.PIPELINES.STUNTING_EXPOSURE: "stunting",
+                data_values.PIPELINES.WASTING_EXPOSURE: "wasting",
+            }
+        )
 
         exposures = []
         for group, group_df in pop.groupby(["stunting", "wasting"]):
