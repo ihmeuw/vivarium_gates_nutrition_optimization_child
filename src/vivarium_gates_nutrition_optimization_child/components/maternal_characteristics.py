@@ -96,22 +96,29 @@ class MaternalCharacteristics(Component):
     # Pipeline sources and modifiers #
     ##################################
     def _get_bep_exposure(self, index: pd.Index) -> pd.Series:
-        has_bep = self.population_view.get_attributes(index, self.supplementation_exposure_name) == "bep"
+        has_bep = (
+            self.population_view.get_attributes(index, self.supplementation_exposure_name)
+            == "bep"
+        )
 
         exposure = pd.Series(BEP_SUPPLEMENTATION.CAT1, index=index)
         exposure[has_bep] = BEP_SUPPLEMENTATION.CAT2
         return exposure
 
     def _get_ifa_exposure(self, index: pd.Index) -> pd.Series:
-        has_ifa = self.population_view.get_attributes(index, self.supplementation_exposure_name).isin(["ifa", "mms", "bep"])
-        breakpoint() # SBACHMEI - HAVEN'T HIT YET
+        has_ifa = self.population_view.get_attributes(
+            index, self.supplementation_exposure_name
+        ).isin(["ifa", "mms", "bep"])
+
         exposure = pd.Series(IFA_SUPPLEMENTATION.CAT1, index=index)
         exposure[has_ifa] = IFA_SUPPLEMENTATION.CAT2
         return exposure
 
     def _get_mmn_exposure(self, index: pd.Index) -> pd.Series:
-        has_mmn = self.population_view.get_attributes(index, self.supplementation_exposure_name).isin(["mms", "bep"])
-        breakpoint() # SBACHMEI - HAVEN'T HIT YET
+        has_mmn = self.population_view.get_attributes(
+            index, self.supplementation_exposure_name
+        ).isin(["mms", "bep"])
+
         exposure = pd.Series(MMN_SUPPLEMENTATION.CAT1, index=index)
         exposure[has_mmn] = MMN_SUPPLEMENTATION.CAT2
         return exposure
@@ -326,7 +333,10 @@ class BEPEffectOnBirthweight(AdditiveRiskEffect):
         excess_shift_data, value_cols = self.process_categorical_data(
             builder, excess_shift_data
         )
-        excess_shift_data.rename(columns={"maternal_bmi_anemia_exposure": "maternal_bmi_anemia.exposure"}, inplace=True)
+        excess_shift_data.rename(
+            columns={"maternal_bmi_anemia_exposure": "maternal_bmi_anemia.exposure"},
+            inplace=True,
+        )
         return self.build_lookup_table(builder, "excess_shift", excess_shift_data, value_cols)
 
 
