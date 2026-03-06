@@ -10,22 +10,24 @@ simulants who are initialized from line list data.
 
 import itertools
 import math
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 import numpy as np
 import pandas as pd
 from vivarium.component import Component
 from vivarium.framework.engine import Builder
 from vivarium.framework.lookup import LookupTable
-from vivarium.framework.population import PopulationView, SimulantData
+from vivarium.framework.population import SimulantData
 from vivarium.framework.time import get_time_stamp
 from vivarium.framework.values import Pipeline
 from vivarium_public_health.risks.data_transformations import (
     get_exposure_post_processor,
 )
 from vivarium_public_health.risks.implementations.low_birth_weight_and_short_gestation import (
+    AXES,
     LBWSGRisk,
     LBWSGRiskEffect,
+    Risk,
 )
 from vivarium_public_health.utilities import TargetString
 
@@ -36,13 +38,6 @@ class LBWSGLineList(LBWSGRisk):
     """
     Component to initialize low birthweight and short gestation data for simulants based on existing line list data.
     """
-
-    @property
-    def columns_created(self) -> List[str]:
-        return super().columns_created + [
-            self.raw_gestational_age_exposure_column_name,
-            self.birth_weight_status_column_name,
-        ]
 
     @property
     def initialization_requirements(self) -> Dict[str, List[str]]:
@@ -59,29 +54,48 @@ class LBWSGLineList(LBWSGRisk):
 
     # noinspection PyAttributeOutsideInit
     def setup(self, builder: Builder):
-        super().setup(builder)
+        Risk.setup(self, builder)
+
+        self.configuration_age_end = builder.configuration.population.initialization_age_max
         self.start_time = get_time_stamp(builder.configuration.time.start)
 
-    def get_birth_exposure_pipelines(self, builder: Builder) -> Dict[str, Pipeline]:
-        def get_pipeline(axis_: str):
-            return builder.value.register_value_producer(
-                self.birth_exposure_pipeline_name(axis_),
-                source=lambda index: self.get_birth_exposure(axis_, index),
-                preferred_post_processor=get_exposure_post_processor(builder, self.risk),
-            )
+        self.register_birth_exposure_pipeline(builder)
 
-        return {
-            self.birth_exposure_pipeline_name(axis): get_pipeline(axis) for axis in self.AXES
-        }
+        continuous_propensity_columns = [
+            self.get_continuous_propensity_name(axis) for axis in AXES
+        ]
+        builder.population.register_initializer(
+            initializer=self.initialize_categorical_and_continuous_propensities,
+            columns=[self.categorical_propensity_name, *continuous_propensity_columns],
+            required_resources=[self.randomness],
+        )
+
+        builder.population.register_initializer(
+            initializer=self.initialize_exposure,
+            columns=[self.get_exposure_name(axis) for axis in AXES]
+            + [
+                self.raw_gestational_age_exposure_column_name,
+                self.birth_weight_status_column_name,
+            ],
+            required_resources=[self.birth_exposure_pipeline],
+        )
+
+    def register_birth_exposure_pipeline(self, builder: Builder) -> Dict[str, Pipeline]:
+        builder.value.register_attribute_producer(
+            self.birth_exposure_pipeline,
+            source=lambda index: self.get_birth_exposure(index),
+            preferred_post_processor=get_exposure_post_processor(builder, self.risk),
+        )
 
     ########################
     # Event-driven methods #
     ########################
 
     # noinspection PyAttributeOutsideInit
-    def on_initialize_simulants(self, pop_data: SimulantData) -> None:
+    def initialize_exposure(self, pop_data: SimulantData) -> None:
         if pop_data.creation_time < self.start_time:
-            columns = [self.get_exposure_column_name(axis) for axis in self.AXES] + [
+            # We initialize the simulation with no simulants so create an empty df
+            columns = [self.get_exposure_name(axis) for axis in AXES] + [
                 self.raw_gestational_age_exposure_column_name,
                 self.birth_weight_status_column_name,
             ]
@@ -94,11 +108,12 @@ class LBWSGLineList(LBWSGRisk):
             gestational_age = pop_data.user_data["new_births"]["gestational_age"].copy()
             gestational_age.name = self.raw_gestational_age_exposure_column_name
             self.population_view.update(gestational_age)
-
-            super().on_initialize_simulants(pop_data)
+            super().initialize_exposure(pop_data)
 
             # add birth weight status to state table
-            birth_weight = self.population_view.get(pop_data.index)["birth_weight_exposure"]
+            birth_weight = self.population_view.get_attributes(
+                pop_data.index, "birth_weight.exposure"
+            )
             birth_weight_status = np.where(
                 birth_weight <= 2500, "low_birth_weight", "adequate_birth_weight"
             )
@@ -111,8 +126,8 @@ class LBWSGLineList(LBWSGRisk):
     # Pipeline sources and modifiers #
     ##################################
 
-    def get_birth_exposure(self, axis: str, index: pd.Index) -> pd.Series:
-        return self.new_births.loc[index, axis]
+    def get_birth_exposure(self, index: pd.Index) -> pd.Series:
+        return self.new_births.loc[index, AXES]
 
 
 class LBWSGPAFCalculationRiskEffect(LBWSGRiskEffect):
@@ -129,7 +144,7 @@ class LBWSGPAFCalculationExposure(LBWSGRisk):
 
     @property
     def columns_created(self) -> List[str]:
-        return [self.get_exposure_column_name(axis) for axis in self.AXES] + [
+        return [self.get_exposure_column_name(axis) for axis in AXES] + [
             "lbwsg_category",
             "age_bin",
         ]
@@ -148,9 +163,7 @@ class LBWSGPAFCalculationExposure(LBWSGRisk):
                 preferred_post_processor=get_exposure_post_processor(builder, self.risk),
             )
 
-        return {
-            self.birth_exposure_pipeline_name(axis): get_pipeline(axis) for axis in self.AXES
-        }
+        return {self.birth_exposure_pipeline_name(axis): get_pipeline(axis) for axis in AXES}
 
     ########################
     # Event-driven methods #
@@ -178,7 +191,7 @@ class LBWSGPAFCalculationExposure(LBWSGRisk):
             self.get_exposure_column_name(axis): self.birth_exposures[
                 self.birth_exposure_pipeline_name(axis)
             ](pop_data.index)
-            for axis in self.AXES
+            for axis in AXES
         }
         self.population_view.update(pd.DataFrame(birth_exposures))
 
