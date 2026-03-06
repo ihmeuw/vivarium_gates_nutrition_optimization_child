@@ -30,8 +30,8 @@ components:
             - PopulationLineList()
             - FertilityLineList()
             - LBWSGLineList()
-    #         - ChildWasting()
-    #         - ChildWastingObserver()
+            - ChildWasting()
+            - ChildWastingObserver()
     #         - WastingTreatment('risk_factor.severe_acute_malnutrition_treatment')
     #         - WastingTreatment('risk_factor.moderate_acute_malnutrition_treatment')
     #         - SQLNSTreatment()
@@ -82,7 +82,9 @@ configuration:
             year: 2029
             month: 12
             day: 31
-        step_size: 56 # Days # TODO PUT BACK TO 4
+        # SBACHMEI - PUT BACK TO 4 DAYS
+        # step_size: 4 # Days
+        step_size: 28
     population:
         population_size: 0
         initialization_age_min: 0
@@ -124,7 +126,9 @@ configuration:
             - 'age_group'
             - 'sex'
         child_wasting:
-            include: ['sam_treatment', 'mam_treatment']
+            # SBACHMEI - REENABLE WHEN WE ADD WASTINGTREATMENT
+            # include: ['sam_treatment', 'mam_treatment']
+            include: []
         child_stunting:
             include: ['sqlns_coverage']
         excluded_categories:
