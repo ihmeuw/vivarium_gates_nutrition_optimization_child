@@ -23,7 +23,7 @@ components:
             - DiseaseObserver('malaria')
             - DisabilityObserver()
             - CategoricalRiskObserver('child_stunting')
-    #         - CategoricalRiskObserver('child_underweight')
+            - CategoricalRiskObserver('child_underweight')
 
     vivarium_gates_nutrition_optimization_child:
         components:
@@ -36,7 +36,7 @@ components:
     #         - WastingTreatment('risk_factor.moderate_acute_malnutrition_treatment')
     #         - SQLNSTreatment()
             - MaternalCharacteristics()
-    #         - ChildUnderweight()
+            - ChildUnderweight()
     #         - CGFRiskEffect('cause.diarrheal_diseases.incidence_rate')
     #         - CGFRiskEffect('cause.measles.incidence_rate')
     #         - CGFRiskEffect('cause.lower_respiratory_infections.incidence_rate')
@@ -82,7 +82,7 @@ configuration:
             year: 2029
             month: 12
             day: 31
-        # FIXME: PUT BACK TO 4 DAYS
+        # SBACHMEI: PUT BACK TO 4 DAYS
         # step_size: 4 # Days
         step_size: 28
     population:

@@ -33,26 +33,22 @@ class ChildUnderweight(Risk):
     # noinspection PyAttributeOutsideInit
     def setup(self, builder: Builder) -> None:
         super().setup(builder)
-        self.stunting = builder.value.get_value(data_values.PIPELINES.STUNTING_EXPOSURE)
-        self.wasting = builder.value.get_value(data_values.PIPELINES.WASTING_EXPOSURE)
         self.distributions = self._get_distributions(builder)
 
-    def build_all_lookup_tables(self, builder: Builder) -> None:
+    def get_distribution_type(self, builder: Builder) -> None:
         pass
 
-    def get_distribution_type(self, builder: Builder) -> str:
+    def get_exposure_distribution(self, builder: Builder) -> None:
         pass
 
-    def get_exposure_distribution(self, builder: Builder) -> RiskExposureDistribution:
-        pass
-
-    def get_exposure_pipeline(self, builder: Builder) -> Pipeline:
-        return builder.value.register_value_producer(
-            self.exposure_pipeline_name,
+    def register_exposure_pipeline(self, builder: Builder) -> Pipeline:
+        builder.value.register_attribute_producer(
+            self.exposure_name,
             source=self.get_current_exposure,
-            requires_columns=["age", "sex"],
-            requires_values=[
-                self.propensity_pipeline_name,
+            required_resources=[
+                "age",
+                "sex",
+                self.propensity_name,
                 data_values.PIPELINES.STUNTING_EXPOSURE,
                 data_values.PIPELINES.WASTING_EXPOSURE,
             ],
@@ -84,7 +80,10 @@ class ChildUnderweight(Risk):
                 EntityString(key), distribution_data
             )
         for dist in distributions.values():
+            # HACK / FIXME [MIC-6756]
+            self._components._manager._current_component = dist
             dist.setup_component(builder)
+            self._components._manager._current_component = self
         return distributions
 
     ##################################
@@ -97,9 +96,13 @@ class ChildUnderweight(Risk):
             return pd.Series(
                 index=index
             )  # only happens on first time step when there's no simulants
-        propensity = self.propensity(index).rename("propensity")
-        wasting = self.wasting(index).rename("wasting")
-        stunting = self.stunting(index).rename("stunting")
+        propensity = self.population_view.get_attributes(index, self.propensity_name)
+        wasting = self.population_view.get_attributes(
+            index, data_values.PIPELINES.WASTING_EXPOSURE
+        ).rename("wasting")
+        stunting = self.population_view.get_attributes(
+            index, data_values.PIPELINES.STUNTING_EXPOSURE
+        ).rename("stunting")
         pop = pd.concat([stunting, wasting, propensity], axis=1)
 
         exposures = []
@@ -110,7 +113,7 @@ class ChildUnderweight(Risk):
             distribution = self.distributions[
                 f"risk_factor.stunting_{stunting_category}_wasting_{wasting_category}_underweight"
             ]
-            exposure = distribution.ppf(group_df["propensity"])
+            exposure = distribution.exposure_ppf(group_df.index)
             exposures.append(exposure)
         return pd.concat(exposures).sort_index()
 
