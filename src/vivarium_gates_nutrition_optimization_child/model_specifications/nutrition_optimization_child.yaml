@@ -48,7 +48,7 @@ components:
     #         - AdditiveRiskEffect('risk_factor.iron_folic_acid_supplementation', 'risk_factor.birth_weight.birth_exposure')
     #         - AdditiveRiskEffect('risk_factor.multiple_micronutrient_supplementation', 'risk_factor.birth_weight.birth_exposure')
     #         - BEPEffectOnBirthweight()
-    #         - AdditiveRiskEffect('risk_factor.maternal_bmi_anemia', 'risk_factor.birth_weight.birth_exposure')
+            - AdditiveRiskEffect('risk_factor.maternal_bmi_anemia', 'risk_factor.birth_weight.birth_exposure')
     #         - AdditiveRiskEffect('risk_factor.iron_folic_acid_supplementation', 'risk_factor.gestational_age.birth_exposure')
     #         - MMSEffectOnGestationalAge()
     #         - BirthWeightShiftEffect()
@@ -93,7 +93,30 @@ configuration:
 
     intervention:
         child_scenario: 'baseline'
+        # child_scenario: 'scenario_0_zero_coverage'
+        # child_scenario: 'scenario_1_sam_tx'
+        # child_scenario: 'scenario_2_mam_tx'
+        # child_scenario: 'scenario_3_sqlns'
+        # child_scenario: 'scenario_5_sam_and_mam'
+        # child_scenario: 'scenario_6_sam_and_sqlns'
+        # child_scenario: 'scenario_7_mam_and_sqlns'
+        # child_scenario: 'scenario_8_all'
+        # child_scenario: 'scenario_9_targeted_sqlns'
+        # child_scenario: 'scenario_10_targeted_sqlns_sam'
+        # child_scenario: 'scenario_11_targeted_sqlns_mam'
+        # child_scenario: 'scenario_12_targeted_sqlns_sam_mam'
+        # child_scenario: 'scenario_13_targeted_mam'
+        # child_scenario: 'scenario_14_sam_and_targeted_mam'
+        # child_scenario: 'scenario_15_sqlns_and_targeted_mam'
+        # child_scenario: 'scenario_16_sqlns_and_sam_targeted_mam'
+        # child_scenario: 'scenario_17_targeted_mam_targeted_sqlns'
+        # child_scenario: 'scenario_18_targeted_mam_targeted_sqlns_sam'
         maternal_scenario: 'baseline'
+        # maternal_scenario: 'zero_coverage'
+        # maternal_scenario: 'mms'
+        # maternal_scenario: 'ifa'
+        # maternal_scenario: 'targeted_bep_ifa'
+        # maternal_scenario: 'targeted_bep_mms'
         sqlns_effect_size: 'standard'
         subnational: 'All'
     

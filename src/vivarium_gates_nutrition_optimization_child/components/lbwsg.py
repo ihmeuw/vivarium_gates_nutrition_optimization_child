@@ -39,14 +39,6 @@ class LBWSGLineList(LBWSGRisk):
     Component to initialize low birthweight and short gestation data for simulants based on existing line list data.
     """
 
-    @property
-    def initialization_requirements(self) -> Dict[str, List[str]]:
-        return {
-            "requires_columns": [],
-            "requires_values": [],
-            "requires_streams": [self.randomness_stream_name],
-        }
-
     def __init__(self):
         super().__init__()
         self.raw_gestational_age_exposure_column_name = "raw_gestational_age_exposure"
