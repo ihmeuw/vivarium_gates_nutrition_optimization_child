@@ -107,12 +107,13 @@ class ResultsStratifier(ResultsStratifier_):
         #     is_vectorized=True,
         #     requires_attributes=[f"{data_keys.MAM_TREATMENT.name}.exposure"],
         # )
-        builder.results.register_stratification(
-            "sqlns_coverage",
-            ["covered", "uncovered", "received"],
-            is_vectorized=True,
-            requires_attributes=[data_values.SQ_LNS.COVERAGE_PIPELINE],
-        )
+        # SBACHMEI - REENABLE WHEN WE ADD SQLNS
+        # builder.results.register_stratification(
+        #     "sqlns_coverage",
+        #     ["covered", "uncovered", "received"],
+        #     is_vectorized=True,
+        #     requires_attributes=[data_values.SQ_LNS.COVERAGE_PIPELINE],
+        # )
         # builder.results.register_stratification(
         #     "birth_weight_status",
         #     ["low_birth_weight", "adequate_birth_weight"],
