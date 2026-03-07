@@ -2,7 +2,8 @@
 Component for maternal supplementation and risk effects
 """
 
-from typing import List, Optional, Union
+from collections.abc import Callable
+from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -234,10 +235,6 @@ class MMSEffectOnGestationalAge(AdditiveRiskEffect):
         )
         self.raw_gestational_age_exposure_column_name = "raw_gestational_age_exposure"
 
-    @property
-    def columns_required(self) -> Optional[List[str]]:
-        return [self.raw_gestational_age_exposure_column_name]
-
     #################
     # Setup methods #
     #################
@@ -249,35 +246,40 @@ class MMSEffectOnGestationalAge(AdditiveRiskEffect):
             f"risk_effect.iron_folic_acid_supplementation_on_{self.target}"
         )
 
-    def build_all_lookup_tables(self, builder: Builder) -> None:
-        self.lookup_tables["relative_risk"] = self.build_lookup_table(builder, 1)
-        self.lookup_tables["population_attributable_fraction"] = self.build_lookup_table(
-            builder, 0
+        self.mms_subpop1_excess_shift_table = self._get_mms_excess_shift_data(
+            builder,
+            "mms_subpop1_excess_shift",
+            data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_1,
         )
-        self.lookup_tables["risk_specific_shift"] = self.get_risk_specific_shift_lookup_table(
-            builder
+        self.mms_subpop2_excess_shift_table = self._get_mms_excess_shift_data(
+            builder,
+            "mms_subpop2_excess_shift",
+            data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_2,
         )
-        self.lookup_tables["mms_subpop1_excess_shift"] = self._get_mms_excess_shift_data(
-            builder, data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_1
-        )
-        self.lookup_tables["mms_subpop2_excess_shift"] = self._get_mms_excess_shift_data(
-            builder, data_keys.MMN_SUPPLEMENTATION.EXCESS_GA_SHIFT_SUBPOP_2
+        builder.value.register_attribute_producer(
+            self.excess_shift_pipeline_name,
+            source=self.get_excess_shift_source,
+            required_resources=[self.raw_gestational_age_exposure_column_name],
         )
 
-    def _get_mms_excess_shift_data(self, builder: Builder, key: str) -> LookupTable:
+    def _get_mms_excess_shift_data(
+        self, builder: Builder, table_name: str, key: str
+    ) -> LookupTable:
         excess_shift_data = builder.data.load(
             key, affected_entity=self.target.name, affected_measure=self.target.measure
         )
         excess_shift_data, value_cols = self.process_categorical_data(
             builder, excess_shift_data
         )
-        return self.build_lookup_table(builder, excess_shift_data, value_cols)
+        return self.build_lookup_table(builder, table_name, excess_shift_data, value_cols)
 
-    def get_excess_shift(self, builder: Builder) -> Pipeline:
-        return builder.value.register_value_producer(
-            self.excess_shift_pipeline_name,
-            source=self.get_excess_shift_source,
-            requires_columns=[self.raw_gestational_age_exposure_column_name],
+    def get_excess_shift_lookup_table(self, builder: Builder) -> None:
+        """We don't use a lookup table for this here."""
+        pass
+
+    def get_excess_shift(self, builder: Builder) -> Callable:
+        return lambda index: self.population_view.get_attribute_frame(
+            index, self.excess_shift_pipeline_name
         )
 
     ##################################
@@ -285,31 +287,33 @@ class MMSEffectOnGestationalAge(AdditiveRiskEffect):
     ##################################
 
     def get_risk_specific_shift_lookup_table(self, builder: Builder) -> LookupTable:
-        return self.build_lookup_table(builder, 0)
+        return self.build_lookup_table(builder, "risk_specific_shift", 0)
 
     def get_excess_shift_source(self, index: pd.Index) -> pd.Series:
-        pop = self.population_view.get(index)
-        raw_gestational_age = pop[self.raw_gestational_age_exposure_column_name]
-        ifa_shifted_gestational_age = (
-            raw_gestational_age + self.ifa_on_gestational_age.effect(index)
+        raw_gestational_age = self.population_view.get_attributes(
+            index, self.raw_gestational_age_exposure_column_name
         )
+        effect = self.population_view.get_attributes(
+            index, self.ifa_on_gestational_age.effect_name
+        )
+        ifa_shifted_gestational_age = raw_gestational_age + effect
         # excess shift is (mms_shift_1 + mms_shift_2) for subpop_2 and mms_shift_1 for subpop_1
         mms_shift_2 = (
-            self.lookup_tables["mms_subpop2_excess_shift"](index)["cat2"]
-            - self.lookup_tables["mms_subpop1_excess_shift"](index)["cat2"]
+            self.mms_subpop2_excess_shift_table(index)["cat2"]
+            - self.mms_subpop1_excess_shift_table(index)["cat2"]
         )
         is_subpop_1 = ifa_shifted_gestational_age < (32 - mms_shift_2)
         is_subpop_2 = ifa_shifted_gestational_age >= (32 - mms_shift_2)
 
-        subpop_1_index = pop[is_subpop_1].index
-        subpop_2_index = pop[is_subpop_2].index
+        subpop_1_index = raw_gestational_age[is_subpop_1].index
+        subpop_2_index = raw_gestational_age[is_subpop_2].index
 
         excess_shift = pd.concat(
             [
-                self.lookup_tables["mms_subpop1_excess_shift"](subpop_1_index),
-                self.lookup_tables["mms_subpop2_excess_shift"](subpop_2_index),
+                self.mms_subpop1_excess_shift_table(subpop_1_index),
+                self.mms_subpop2_excess_shift_table(subpop_2_index),
             ]
-        )
+        ).loc[index]
 
         return excess_shift
 
