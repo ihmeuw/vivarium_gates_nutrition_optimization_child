@@ -34,7 +34,7 @@ components:
             - ChildWastingObserver()
             - WastingTreatment('risk_factor.severe_acute_malnutrition_treatment')
             - WastingTreatment('risk_factor.moderate_acute_malnutrition_treatment')
-    #         - SQLNSTreatment()
+            - SQLNSTreatment()
             - MaternalCharacteristics()
             - ChildUnderweight()
             - CGFRiskEffect('cause.diarrheal_diseases.incidence_rate')
@@ -153,9 +153,8 @@ configuration:
             - 'sex'
         child_wasting:
             include: ['sam_treatment', 'mam_treatment']
-        # child_stunting:
-              # SBACHMEI - REENABLE WHEN WE ADD SQLNS
-        #     include: ['sqlns_coverage']
+        child_stunting:
+            include: ['sqlns_coverage']
         excluded_categories:
             cause_of_death:
                 - 'stillborn'
