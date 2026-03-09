@@ -53,8 +53,8 @@ components:
             - MMSEffectOnGestationalAge()
     #         - BirthWeightShiftEffect()
             - SIS_with_birth_prevalence('diarrheal_diseases')
-    #         - RiskAttributableDisease('cause.moderate_protein_energy_malnutrition', 'risk_factor.child_wasting')
-    #         - RiskAttributableDisease('cause.severe_protein_energy_malnutrition', 'risk_factor.child_wasting')
+            - RiskAttributableDisease('cause.moderate_protein_energy_malnutrition', 'risk_factor.child_wasting')
+            - RiskAttributableDisease('cause.severe_protein_energy_malnutrition', 'risk_factor.child_wasting')
             - MortalityObserver()
             - ResultsStratifier()
 
