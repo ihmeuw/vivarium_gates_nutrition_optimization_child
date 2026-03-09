@@ -41,14 +41,6 @@ class WastingTreatment(Risk):
         self.treated_state = self._get_treated_state()
         self.previous_treatment_column = f"previous_{self.treated_state}_treatment"
 
-    @property
-    def columns_created(self) -> List[str]:
-        return [self.propensity_column_name, self.previous_treatment_column]
-
-    @property
-    def columns_required(self) -> Optional[List[str]]:
-        return ["age", self.previous_wasting_column, self.wasting_column]
-
     ##########################
     # Initialization methods #
     ##########################
@@ -65,37 +57,36 @@ class WastingTreatment(Risk):
         self.scenario = scenarios.INTERVENTION_SCENARIOS[
             builder.configuration.intervention.child_scenario
         ]
-        self.wasting_exposure = builder.value.get_value(
-            data_values.PIPELINES.WASTING_EXPOSURE
-        )
-        self.underweight_exposure = builder.value.get_value(
-            data_values.PIPELINES.UNDERWEIGHT_EXPOSURE
+
+        builder.population.register_initializer(
+            self.initialize_previous_treatment_column, self.previous_treatment_column
         )
 
     ########################
     # Event-driven methods #
     ########################
 
-    def on_initialize_simulants(self, pop_data: SimulantData) -> None:
-        # propensity
-        self.population_view.update(
-            pd.Series(
-                self.randomness.get_draw(pop_data.index), name=self.propensity_column_name
-            )
-        )
-        # previous treatment (initialize as uncovered)
+    def initialize_previous_treatment_column(self, pop_data: SimulantData) -> None:
         self.population_view.update(
             pd.Series("cat1", index=pop_data.index, name=self.previous_treatment_column)
         )
 
     def on_time_step_prepare(self, event: Event):
         """define previous_treatment and redraw propensities upon transition to new wasting state"""
-        pop = self.population_view.get(event.index)
+        pop = self.population_view.get_attributes(
+            event.index,
+            [
+                self.wasting_column,
+                self.previous_wasting_column,
+                self.propensity_name,
+                self.exposure_name,
+            ],
+        )
         # previous treatment column (for results stratification)
-        previous_treatment = self.exposure(pop.index)
+        previous_treatment = pop[self.exposure_name]
         previous_treatment.name = self.previous_treatment_column
         # update propensity
-        propensity = pop[self.propensity_column_name]
+        propensity = pop[self.propensity_name].copy()
         remitted_mask = (pop[self.previous_wasting_column] == self.treated_state) & pop[
             self.wasting_column
         ] != self.treated_state
@@ -106,23 +97,43 @@ class WastingTreatment(Risk):
     # Pipeline sources and modifiers #
     ##################################
 
+    def register_exposure_pipeline(self, builder):
+        builder.value.register_attribute_producer(
+            self.exposure_name,
+            source=self.get_current_exposure,
+            preferred_post_processor=get_exposure_post_processor(builder, self.name),
+        )
+
     def get_current_exposure(self, index: pd.Index) -> pd.Series:
+        if index.empty:
+            return pd.Series(index=index)
+
+        # Convert RangeIndex into Index if needed
+        if isinstance(index, pd.RangeIndex):
+            index = pd.Index(index.to_list())
+
         is_mam_component = self.risk.name == "moderate_acute_malnutrition_treatment"
         coverage_to_exposure_map = {"none": "cat1", "full": "cat2"}
 
         if is_mam_component:
             mam_coverage = self.scenario.mam_tx_coverage
             if mam_coverage == "baseline":  # return standard exposure if baseline
-                propensity = self.propensity(index)
-                return pd.Series(self.exposure_distribution.ppf(propensity), index=index)
+                return self.exposure_distribution.exposure_ppf(index)
             elif mam_coverage == "targeted":
                 # initialize exposures as cat1 (untreated)
                 exposures = pd.Series("cat1", index=index)
-
                 # define relevant booleans
-                wasting = self.wasting_exposure(index)
-                age = self.population_view.get(index)["age"]
-                underweight = self.underweight_exposure(index)
+                pop = self.population_view.get_attributes(
+                    index,
+                    [
+                        "age",
+                        data_values.PIPELINES.WASTING_EXPOSURE,
+                        data_values.PIPELINES.UNDERWEIGHT_EXPOSURE,
+                    ],
+                )
+                age = pop["age"]
+                wasting = pop[data_values.PIPELINES.WASTING_EXPOSURE]
+                underweight = pop[data_values.PIPELINES.UNDERWEIGHT_EXPOSURE]
 
                 in_mam_state = (wasting == "cat2") | (wasting == "cat2.5")
                 in_worse_mam_state = wasting == "cat2"
@@ -141,15 +152,14 @@ class WastingTreatment(Risk):
                 # return either all or none covered
                 exposure_value = coverage_to_exposure_map[mam_coverage]
                 exposure = pd.Series(exposure_value, index=index)
-                age = self.population_view.get(index)["age"]
+                age = self.population_view.get_attributes(index, "age")
                 exposure.loc[age < 0.5] = "cat1"
                 return exposure
 
         else:  # we're in the SAM treatment component
             sam_coverage = self.scenario.sam_tx_coverage
             if sam_coverage == "baseline":
-                propensity = self.propensity(index)
-                return pd.Series(self.exposure_distribution.ppf(propensity), index=index)
+                return self.exposure_distribution.exposure_ppf(index)
             else:
                 exposure = coverage_to_exposure_map[sam_coverage]
                 return pd.Series(exposure, index=index)

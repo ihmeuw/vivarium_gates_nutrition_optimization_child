@@ -91,22 +91,20 @@ class ResultsStratifier(ResultsStratifier_):
         #     is_vectorized=True,
         #     requires_attributes=["maternal_bmi_anemia_exposure"],
         # )
-        # SBACHMEI - REENABLE WHEN WE ADD WASTINGTREATMENT
-        # builder.results.register_stratification(
-        #     "sam_treatment",
-        #     ["covered", "uncovered"],
-        #     mapper=self.map_wasting_treatment,
-        #     is_vectorized=True,
-        #     requires_attributes=[f"{data_keys.SAM_TREATMENT.name}.exposure"],
-        # )
-        # SBACHMEI - REENABLE WHEN WE ADD WASTINGTREATMENT
-        # builder.results.register_stratification(
-        #     "mam_treatment",
-        #     ["covered", "uncovered"],
-        #     mapper=self.map_wasting_treatment,
-        #     is_vectorized=True,
-        #     requires_attributes=[f"{data_keys.MAM_TREATMENT.name}.exposure"],
-        # )
+        builder.results.register_stratification(
+            "sam_treatment",
+            ["covered", "uncovered"],
+            mapper=self.map_wasting_treatment,
+            is_vectorized=True,
+            requires_attributes=[f"{data_keys.SAM_TREATMENT.name}.exposure"],
+        )
+        builder.results.register_stratification(
+            "mam_treatment",
+            ["covered", "uncovered"],
+            mapper=self.map_wasting_treatment,
+            is_vectorized=True,
+            requires_attributes=[f"{data_keys.MAM_TREATMENT.name}.exposure"],
+        )
         # SBACHMEI - REENABLE WHEN WE ADD SQLNS
         # builder.results.register_stratification(
         #     "sqlns_coverage",

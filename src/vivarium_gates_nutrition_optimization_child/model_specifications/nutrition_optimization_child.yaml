@@ -32,8 +32,8 @@ components:
             - LBWSGLineList()
             - ChildWasting()
             - ChildWastingObserver()
-    #         - WastingTreatment('risk_factor.severe_acute_malnutrition_treatment')
-    #         - WastingTreatment('risk_factor.moderate_acute_malnutrition_treatment')
+            - WastingTreatment('risk_factor.severe_acute_malnutrition_treatment')
+            - WastingTreatment('risk_factor.moderate_acute_malnutrition_treatment')
     #         - SQLNSTreatment()
             - MaternalCharacteristics()
             - ChildUnderweight()
@@ -93,7 +93,7 @@ configuration:
 
     intervention:
 
-        child_scenario: 'baseline'
+        # child_scenario: 'baseline'
         # child_scenario: 'scenario_0_zero_coverage'
         # child_scenario: 'scenario_1_sam_tx'
         # child_scenario: 'scenario_2_mam_tx'
@@ -101,7 +101,7 @@ configuration:
         # child_scenario: 'scenario_5_sam_and_mam'
         # child_scenario: 'scenario_6_sam_and_sqlns'
         # child_scenario: 'scenario_7_mam_and_sqlns'
-        # child_scenario: 'scenario_8_all'
+        child_scenario: 'scenario_8_all'
         # child_scenario: 'scenario_9_targeted_sqlns'
         # child_scenario: 'scenario_10_targeted_sqlns_sam'
         # child_scenario: 'scenario_11_targeted_sqlns_mam'
@@ -152,9 +152,7 @@ configuration:
             - 'age_group'
             - 'sex'
         child_wasting:
-            # SBACHMEI - REENABLE WHEN WE ADD WASTINGTREATMENT
-            # include: ['sam_treatment', 'mam_treatment']
-            include: []
+            include: ['sam_treatment', 'mam_treatment']
         # child_stunting:
               # SBACHMEI - REENABLE WHEN WE ADD SQLNS
         #     include: ['sqlns_coverage']
@@ -163,7 +161,7 @@ configuration:
                 - 'stillborn'
             disability:
                 - 'all_causes'
-                # - 'mild_child_wasting'
-                # - 'better_moderate_acute_malnutrition'
-                # - 'worse_moderate_acute_malnutrition'
-                # - 'severe_acute_malnutrition'
+                - 'mild_child_wasting'
+                - 'better_moderate_acute_malnutrition'
+                - 'worse_moderate_acute_malnutrition'
+                - 'severe_acute_malnutrition'
