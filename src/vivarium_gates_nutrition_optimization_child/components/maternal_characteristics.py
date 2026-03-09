@@ -347,15 +347,20 @@ class BEPEffectOnBirthweight(AdditiveRiskEffect):
 class BirthWeightShiftEffect(Component):
     def __init__(self):
         super().__init__()
-        self.ifa_effect_pipeline_name = f"{IFA_SUPPLEMENTATION.name}_on_birth_weight.effect"
-        self.mmn_effect_pipeline_name = f"{MMN_SUPPLEMENTATION.name}_on_birth_weight.effect"
-        self.bep_effect_pipeline_name = f"{BEP_SUPPLEMENTATION.name}_on_birth_weight.effect"
+        self.ifa_effect_name = f"{IFA_SUPPLEMENTATION.name}_on_birth_weight.effect"
+        self.mmn_effect_name = f"{MMN_SUPPLEMENTATION.name}_on_birth_weight.effect"
+        self.bep_effect_name = f"{BEP_SUPPLEMENTATION.name}_on_birth_weight.effect"
+        self.effect_pipeline_names = [
+            self.ifa_effect_name,
+            self.mmn_effect_name,
+            self.bep_effect_name,
+        ]
 
-        self.stunting_exposure_parameters_pipeline_name = (
+        self.stunting_exposure_parameters_name = (
             f"risk_factor.{STUNTING.name}.exposure_parameters"
         )
 
-        self.wasting_exposure_parameters_pipeline_name = (
+        self.wasting_exposure_parameters_name = (
             f"risk_factor.{WASTING.name}.exposure_parameters"
         )
 
@@ -368,25 +373,16 @@ class BirthWeightShiftEffect(Component):
         self.stunting_effect_per_gram = self._get_stunting_effect_per_gram(builder)
         self.wasting_effect_per_gram = data_values.LBWSG.WASTING_EFFECT_PER_GRAM
 
-        self.pipelines = {
-            pipeline_name: builder.value.get_value(pipeline_name)
-            for pipeline_name in [
-                self.ifa_effect_pipeline_name,
-                self.mmn_effect_pipeline_name,
-                self.bep_effect_pipeline_name,
-            ]
-        }
-
-        builder.value.register_value_modifier(
-            self.stunting_exposure_parameters_pipeline_name,
+        builder.value.register_attribute_modifier(
+            self.stunting_exposure_parameters_name,
             modifier=self._modify_stunting_exposure_parameters,
-            requires_values=list(self.pipelines.keys()),
+            required_resources=self.effect_pipeline_names,
         )
 
-        builder.value.register_value_modifier(
-            self.wasting_exposure_parameters_pipeline_name,
+        builder.value.register_attribute_modifier(
+            self.wasting_exposure_parameters_name,
             modifier=self._modify_wasting_exposure_parameters,
-            requires_values=list(self.pipelines.keys()),
+            required_resources=self.effect_pipeline_names,
         )
 
     ##################################
@@ -415,7 +411,11 @@ class BirthWeightShiftEffect(Component):
 
     def _get_total_birth_weight_shift(self, index: pd.Index) -> pd.Series:
         return pd.concat(
-            [pipeline(index) for pipeline in self.pipelines.values()], axis=1
+            [
+                self.population_view.get_attributes(index, name)
+                for name in self.effect_pipeline_names
+            ],
+            axis=1,
         ).sum(axis=1)
 
     # noinspection PyMethodMayBeStatic
