@@ -768,37 +768,21 @@
 766,Benishangul-Gumuz,0.8333333333333334,1.5,mild_to_mam_rate,0.85,0.91,0.98,44857,179,standard
 767,Benishangul-Gumuz,0.8333333333333334,1.5,tmrel_to_mild_rate,0.81,0.86,0.92,44857,179,standard
 768,Dire Dawa,0.0,5.0,moderate_stunting_prevalence_ratio,0.78,0.83,0.93,44862,179,modified
-769,Dire Dawa,0.0,5.0,moderate_stunting_prevalence_ratio,0.78,0.83,0.93,69741,179,modified
 770,Dire Dawa,0.0,5.0,severe_stunting_prevalence_ratio,0.65,0.78,0.89,44862,179,modified
-771,Dire Dawa,0.0,5.0,severe_stunting_prevalence_ratio,0.65,0.78,0.89,69741,179,modified
 772,Dire Dawa,0.0,5.0,moderate_stunting_prevalence_ratio,0.83,0.86,0.89,44862,179,standard
-773,Dire Dawa,0.0,5.0,moderate_stunting_prevalence_ratio,0.83,0.86,0.89,69741,179,standard
 774,Dire Dawa,0.0,5.0,severe_stunting_prevalence_ratio,0.78,0.83,0.9,44862,179,standard
-775,Dire Dawa,0.0,5.0,severe_stunting_prevalence_ratio,0.78,0.83,0.9,69741,179,standard
 776,Dire Dawa,0.5,0.8333333333333334,mam_to_sam_rate,0.05,0.23,0.67,44862,179,modified
-777,Dire Dawa,0.5,0.8333333333333334,mam_to_sam_rate,0.05,0.23,0.67,69741,179,modified
 778,Dire Dawa,0.5,0.8333333333333334,mild_to_mam_rate,0.51,0.65,0.83,44862,179,modified
-779,Dire Dawa,0.5,0.8333333333333334,mild_to_mam_rate,0.51,0.65,0.83,69741,179,modified
 780,Dire Dawa,0.5,0.8333333333333334,tmrel_to_mild_rate,0.67,0.79,0.95,44862,179,modified
-781,Dire Dawa,0.5,0.8333333333333334,tmrel_to_mild_rate,0.67,0.79,0.95,69741,179,modified
 782,Dire Dawa,0.5,0.8333333333333334,mam_to_sam_rate,0.05,0.35,0.6900000000000001,44862,179,standard
-783,Dire Dawa,0.5,0.8333333333333334,mam_to_sam_rate,0.05,0.35,0.6900000000000001,69741,179,standard
 784,Dire Dawa,0.5,0.8333333333333334,mild_to_mam_rate,0.55,0.71,0.89,44862,179,standard
-785,Dire Dawa,0.5,0.8333333333333334,mild_to_mam_rate,0.55,0.71,0.89,69741,179,standard
 786,Dire Dawa,0.5,0.8333333333333334,tmrel_to_mild_rate,0.73,0.81,0.89,44862,179,standard
-787,Dire Dawa,0.5,0.8333333333333334,tmrel_to_mild_rate,0.73,0.81,0.89,69741,179,standard
 788,Dire Dawa,0.8333333333333334,1.5,mam_to_sam_rate,0.61,0.75,0.91,44862,179,modified
-789,Dire Dawa,0.8333333333333334,1.5,mam_to_sam_rate,0.61,0.75,0.91,69741,179,modified
 790,Dire Dawa,0.8333333333333334,1.5,mild_to_mam_rate,0.87,0.9,0.93,44862,179,modified
-791,Dire Dawa,0.8333333333333334,1.5,mild_to_mam_rate,0.87,0.9,0.93,69741,179,modified
 792,Dire Dawa,0.8333333333333334,1.5,tmrel_to_mild_rate,0.75,0.84,0.97,44862,179,modified
-793,Dire Dawa,0.8333333333333334,1.5,tmrel_to_mild_rate,0.75,0.84,0.97,69741,179,modified
 794,Dire Dawa,0.8333333333333334,1.5,mam_to_sam_rate,0.68,0.79,0.9,44862,179,standard
-795,Dire Dawa,0.8333333333333334,1.5,mam_to_sam_rate,0.68,0.79,0.9,69741,179,standard
 796,Dire Dawa,0.8333333333333334,1.5,mild_to_mam_rate,0.86,0.92,0.99,44862,179,standard
-797,Dire Dawa,0.8333333333333334,1.5,mild_to_mam_rate,0.86,0.92,0.99,69741,179,standard
 798,Dire Dawa,0.8333333333333334,1.5,tmrel_to_mild_rate,0.81,0.86,0.92,44862,179,standard
-799,Dire Dawa,0.8333333333333334,1.5,tmrel_to_mild_rate,0.81,0.86,0.92,69741,179,standard
 800,Gambella,0.0,5.0,moderate_stunting_prevalence_ratio,0.78,0.83,0.93,44860,179,modified
 801,Gambella,0.0,5.0,severe_stunting_prevalence_ratio,0.65,0.78,0.89,44860,179,modified
 802,Gambella,0.0,5.0,moderate_stunting_prevalence_ratio,0.83,0.86,0.89,44860,179,standard
@@ -832,37 +816,21 @@
 830,Harari,0.8333333333333334,1.5,mild_to_mam_rate,0.86,0.92,0.98,44859,179,standard
 831,Harari,0.8333333333333334,1.5,tmrel_to_mild_rate,0.84,0.88,0.93,44859,179,standard
 832,Oromia,0.0,5.0,moderate_stunting_prevalence_ratio,0.77,0.87,1.02,44855,179,modified
-833,Oromia,0.0,5.0,moderate_stunting_prevalence_ratio,0.77,0.87,1.02,69734,179,modified
 834,Oromia,0.0,5.0,severe_stunting_prevalence_ratio,0.83,0.92,0.98,44855,179,modified
-835,Oromia,0.0,5.0,severe_stunting_prevalence_ratio,0.83,0.92,0.98,69734,179,modified
 836,Oromia,0.0,5.0,moderate_stunting_prevalence_ratio,0.83,0.86,0.89,44855,179,standard
-837,Oromia,0.0,5.0,moderate_stunting_prevalence_ratio,0.83,0.86,0.89,69734,179,standard
 838,Oromia,0.0,5.0,severe_stunting_prevalence_ratio,0.78,0.83,0.9,44855,179,standard
-839,Oromia,0.0,5.0,severe_stunting_prevalence_ratio,0.78,0.83,0.9,69734,179,standard
 840,Oromia,0.5,0.8333333333333334,mam_to_sam_rate,0.05,0.57,1.43,44855,179,modified
-841,Oromia,0.5,0.8333333333333334,mam_to_sam_rate,0.05,0.57,1.43,69734,179,modified
 842,Oromia,0.5,0.8333333333333334,mild_to_mam_rate,0.6299999999999999,0.93,1.27,44855,179,modified
-843,Oromia,0.5,0.8333333333333334,mild_to_mam_rate,0.6299999999999999,0.93,1.27,69734,179,modified
 844,Oromia,0.5,0.8333333333333334,tmrel_to_mild_rate,0.65,0.89,1.1900000000000002,44855,179,modified
-845,Oromia,0.5,0.8333333333333334,tmrel_to_mild_rate,0.65,0.89,1.1900000000000002,69734,179,modified
 846,Oromia,0.5,0.8333333333333334,mam_to_sam_rate,0.05,0.31,0.6900000000000001,44855,179,standard
-847,Oromia,0.5,0.8333333333333334,mam_to_sam_rate,0.05,0.31,0.6900000000000001,69734,179,standard
 848,Oromia,0.5,0.8333333333333334,mild_to_mam_rate,0.59,0.73,0.91,44855,179,standard
-849,Oromia,0.5,0.8333333333333334,mild_to_mam_rate,0.59,0.73,0.91,69734,179,standard
 850,Oromia,0.5,0.8333333333333334,tmrel_to_mild_rate,0.79,0.85,0.91,44855,179,standard
-851,Oromia,0.5,0.8333333333333334,tmrel_to_mild_rate,0.79,0.85,0.91,69734,179,standard
 852,Oromia,0.8333333333333334,1.5,mam_to_sam_rate,0.65,0.83,1.07,44855,179,modified
-853,Oromia,0.8333333333333334,1.5,mam_to_sam_rate,0.65,0.83,1.07,69734,179,modified
 854,Oromia,0.8333333333333334,1.5,mild_to_mam_rate,0.97,1.02,1.06,44855,179,modified
-855,Oromia,0.8333333333333334,1.5,mild_to_mam_rate,0.97,1.02,1.06,69734,179,modified
 856,Oromia,0.8333333333333334,1.5,tmrel_to_mild_rate,0.71,0.91,1.21,44855,179,modified
-857,Oromia,0.8333333333333334,1.5,tmrel_to_mild_rate,0.71,0.91,1.21,69734,179,modified
 858,Oromia,0.8333333333333334,1.5,mam_to_sam_rate,0.68,0.79,0.9,44855,179,standard
-859,Oromia,0.8333333333333334,1.5,mam_to_sam_rate,0.68,0.79,0.9,69734,179,standard
 860,Oromia,0.8333333333333334,1.5,mild_to_mam_rate,0.86,0.92,0.99,44855,179,standard
-861,Oromia,0.8333333333333334,1.5,mild_to_mam_rate,0.86,0.92,0.99,69734,179,standard
 862,Oromia,0.8333333333333334,1.5,tmrel_to_mild_rate,0.83,0.88,0.93,44855,179,standard
-863,Oromia,0.8333333333333334,1.5,tmrel_to_mild_rate,0.83,0.88,0.93,69734,179,standard
 864,Somali,0.0,5.0,moderate_stunting_prevalence_ratio,0.78,0.83,0.93,44856,179,modified
 865,Somali,0.0,5.0,severe_stunting_prevalence_ratio,0.65,0.78,0.89,44856,179,modified
 866,Somali,0.0,5.0,moderate_stunting_prevalence_ratio,0.83,0.86,0.89,44856,179,standard
@@ -879,22 +847,6 @@
 877,Somali,0.8333333333333334,1.5,mam_to_sam_rate,0.7,0.81,0.92,44856,179,standard
 878,Somali,0.8333333333333334,1.5,mild_to_mam_rate,0.85,0.91,0.99,44856,179,standard
 879,Somali,0.8333333333333334,1.5,tmrel_to_mild_rate,0.77,0.83,0.9,44856,179,standard
-880,"Southern Nations, Nationalities, and Peoples",0.0,5.0,moderate_stunting_prevalence_ratio,0.78,0.83,0.93,95069,179,modified
-881,"Southern Nations, Nationalities, and Peoples",0.0,5.0,severe_stunting_prevalence_ratio,0.65,0.78,0.89,95069,179,modified
-882,"Southern Nations, Nationalities, and Peoples",0.0,5.0,moderate_stunting_prevalence_ratio,0.83,0.86,0.89,95069,179,standard
-883,"Southern Nations, Nationalities, and Peoples",0.0,5.0,severe_stunting_prevalence_ratio,0.78,0.83,0.9,95069,179,standard
-884,"Southern Nations, Nationalities, and Peoples",0.5,0.8333333333333334,mam_to_sam_rate,0.05,0.15,0.67,95069,179,modified
-885,"Southern Nations, Nationalities, and Peoples",0.5,0.8333333333333334,mild_to_mam_rate,0.49,0.6099999999999999,0.83,95069,179,modified
-886,"Southern Nations, Nationalities, and Peoples",0.5,0.8333333333333334,tmrel_to_mild_rate,0.73,0.81,0.95,95069,179,modified
-887,"Southern Nations, Nationalities, and Peoples",0.5,0.8333333333333334,mam_to_sam_rate,0.05,0.29,0.6900000000000001,95069,179,standard
-888,"Southern Nations, Nationalities, and Peoples",0.5,0.8333333333333334,mild_to_mam_rate,0.51,0.67,0.89,95069,179,standard
-889,"Southern Nations, Nationalities, and Peoples",0.5,0.8333333333333334,tmrel_to_mild_rate,0.79,0.85,0.91,95069,179,standard
-890,"Southern Nations, Nationalities, and Peoples",0.8333333333333334,1.5,mam_to_sam_rate,0.61,0.75,0.91,95069,179,modified
-891,"Southern Nations, Nationalities, and Peoples",0.8333333333333334,1.5,mild_to_mam_rate,0.84,0.88,0.92,95069,179,modified
-892,"Southern Nations, Nationalities, and Peoples",0.8333333333333334,1.5,tmrel_to_mild_rate,0.78,0.86,0.98,95069,179,modified
-893,"Southern Nations, Nationalities, and Peoples",0.8333333333333334,1.5,mam_to_sam_rate,0.69,0.79,0.9,95069,179,standard
-894,"Southern Nations, Nationalities, and Peoples",0.8333333333333334,1.5,mild_to_mam_rate,0.84,0.9,0.98,95069,179,standard
-895,"Southern Nations, Nationalities, and Peoples",0.8333333333333334,1.5,tmrel_to_mild_rate,0.83,0.88,0.93,95069,179,standard
 896,Tigray,0.0,5.0,moderate_stunting_prevalence_ratio,0.78,0.83,0.93,44852,179,modified
 897,Tigray,0.0,5.0,severe_stunting_prevalence_ratio,0.65,0.78,0.89,44852,179,modified
 898,Tigray,0.0,5.0,moderate_stunting_prevalence_ratio,0.83,0.86,0.89,44852,179,standard
