@@ -1,13 +1,13 @@
 input_draw_count: 10
 random_seed_count: 5
 
-input_draws: [457, 169, 323, 392, 346, 480, 258, 446, 356, 273]
+input_draws: [8, 13, 41, 103, 139, 177, 192, 199, 216, 221]
 random_seeds: [4344, 5616, 6810, 2787, 2284]
 
 branches:
   - intervention:
       child_scenario:
-        - 'baseline'
+        # - 'baseline'
         # - 'scenario_0_zero_coverage'
         # - 'scenario_1_sam_tx'
         # - 'scenario_2_mam_tx'
@@ -27,9 +27,9 @@ branches:
         # - 'scenario_17_targeted_mam_targeted_sqlns'
         # - 'scenario_18_targeted_mam_targeted_sqlns_sam'
       maternal_scenario:
-        - 'baseline'
+        # - 'baseline'
         # - 'zero_coverage'
-        # - 'mms'
+        - 'mms'
         # - 'ifa'
         #- 'targeted_bep_ifa'
         # - 'targeted_bep_mms'
@@ -39,4 +39,4 @@ branches:
         - 'All'
     input_data:
       artifact_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization_child/artifacts/model_15.0/pakistan.hdf'
-      fertility_input_data_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization/results/vivarium_v4.0_vph_v5.0_update/vv_round_3/pakistan/2026_03_04_09_08_18/results/births'
+      fertility_input_data_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization/results/vivarium_v4.0_vph_v5.0_update/match_model18_draws/pakistan/2026_03_20_14_38_57/results/births'
