@@ -125,7 +125,7 @@ class PopulationLineList(BasePopulation):
             else:
                 new_simulants["subnational"] = self.subnational
 
-        self.population_view.update(new_simulants)
+        self.population_view.initialize(new_simulants)
 
     def _get_location(self, builder: Builder) -> Dict[str, str]:
         return builder.data.load("population.location")
@@ -174,7 +174,7 @@ class MortalityLineList(Mortality):
             pop_update.loc[is_stillborn, "is_alive"] = False
             pop_update.loc[is_stillborn, self.cause_of_death_column_name] = "stillborn"
 
-        self.population_view.update(pop_update)
+        self.population_view.initialize(pop_update)
 
 
 class EvenlyDistributedPopulation(BasePopulation):
@@ -212,7 +212,7 @@ class EvenlyDistributedPopulation(BasePopulation):
 
         if self.subnational == "All":
             self._distribute_subnational_locations(population.index)
-            self.population_view.update(population)
+            self.population_view.initialize(population)
         else:
             population["subnational"] = self.subnational
 

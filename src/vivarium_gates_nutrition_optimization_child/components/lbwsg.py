@@ -92,27 +92,25 @@ class LBWSGLineList(LBWSGRisk):
                 self.birth_weight_status_column_name,
             ]
             new_simulants = pd.DataFrame(columns=columns, index=pop_data.index)
-            self.population_view.update(new_simulants)
+            self.population_view.initialize(new_simulants)
         else:
             self.new_births = pop_data.user_data["new_births"]
             self.new_births.index = pop_data.index
             # add raw gestational age exposure to state table
             gestational_age = pop_data.user_data["new_births"]["gestational_age"].copy()
             gestational_age.name = self.raw_gestational_age_exposure_column_name
-            self.population_view.update(gestational_age)
+            self.population_view.initialize(gestational_age)
             super().initialize_exposure(pop_data)
 
             # add birth weight status to state table
-            birth_weight = self.population_view.get_attributes(
-                pop_data.index, "birth_weight.exposure"
-            )
+            birth_weight = self.population_view.get(pop_data.index, "birth_weight.exposure")
             birth_weight_status = np.where(
                 birth_weight <= 2500, "low_birth_weight", "adequate_birth_weight"
             )
             birth_weight_status = pd.Series(
                 birth_weight_status, name=self.birth_weight_status_column_name
             )
-            self.population_view.update(birth_weight_status)
+            self.population_view.initialize(birth_weight_status)
 
     ##################################
     # Pipeline sources and modifiers #
@@ -177,7 +175,7 @@ class LBWSGPAFCalculationExposure(LBWSGRisk):
 
         assigned_categories = list(lbwsg_categories) * (2 * num_repeats)
         pop["lbwsg_category"] = assigned_categories
-        self.population_view.update(pop[["age_bin", "lbwsg_category"]])
+        self.population_view.initialize(pop[["age_bin", "lbwsg_category"]])
 
         birth_exposures = {
             self.get_exposure_column_name(axis): self.birth_exposures[
@@ -185,7 +183,7 @@ class LBWSGPAFCalculationExposure(LBWSGRisk):
             ](pop_data.index)
             for axis in AXES
         }
-        self.population_view.update(pd.DataFrame(birth_exposures))
+        self.population_view.initialize(pd.DataFrame(birth_exposures))
 
     ##################################
     # Pipeline sources and modifiers #
