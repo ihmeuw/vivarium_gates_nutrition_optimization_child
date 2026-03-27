@@ -360,7 +360,7 @@ def ChildWasting() -> ChildWastingModel:
     return ChildWastingModel(
         models.WASTING.MODEL_NAME,
         cause_specific_mortality_rate=0.0,
-        states=[severe, worse_moderate, better_moderate, mild, tmrel],
+        states=[severe, better_moderate, worse_moderate, mild, tmrel],
     )
 
 
