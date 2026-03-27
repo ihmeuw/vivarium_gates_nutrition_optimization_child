@@ -7,19 +7,20 @@ This module contains a component for creating a base population from line list d
 
 """
 
-from typing import Dict, List
+from typing import Any, Dict, List
 
 import numpy as np
 import pandas as pd
 from vivarium.framework.engine import Builder
 from vivarium.framework.population import SimulantData
 from vivarium.framework.time import get_time_stamp
-from vivarium_public_health.population.base_population import BasePopulation
+from vivarium_public_health.population.base_population import BasePopulation, Disability
 from vivarium_public_health.population.data_transformations import (
     assign_demographic_proportions,
-    load_population_structure,
 )
+from vivarium_public_health.population.mortality import Mortality
 
+from vivarium_gates_nutrition_optimization_child import utilities as utils
 from vivarium_gates_nutrition_optimization_child.constants import data_keys
 from vivarium_gates_nutrition_optimization_child.constants.paths import (
     SUBNATIONAL_PERCENTAGES,
@@ -32,24 +33,27 @@ class PopulationLineList(BasePopulation):
     """
 
     @property
-    def columns_created(self) -> List[str]:
-        return [
-            "age",
-            "sex",
-            "alive",
-            "subnational",
-            "location",
-            "entrance_time",
-            "exit_time",
-            "maternal_id",
-        ]
-
-    @property
     def time_step_priority(self) -> int:
         return 8
 
+    def __init__(self):
+        """Remove AgeOutSimulants and replace Mortality in subcomponents."""
+        super().__init__()
+        self._sub_components = [MortalityLineList(), Disability()]
+
     # noinspection PyAttributeOutsideInit
     def setup(self, builder: Builder) -> None:
+        """Modifies the BasePopulation set up component.
+
+        Specifically, we need to modify the initializers. We are unable call the
+        super().setup() for the default `initialize_population` initializer (which
+        creates age, sex, location, and entrance/exit times) and then register a
+        second initializer for the new subnational and maternal_id columns because
+        we need to register the maternal_id column as a randomness key column (along
+        with the age column).
+        """
+
+        # Copy/paste from BasePopulation modulo the initializer registration.
         self.config = builder.configuration.population
         self.key_columns = builder.configuration.randomness.key_columns
         if self.config.include_sex not in ["Male", "Female", "Both"]:
@@ -59,36 +63,44 @@ class PopulationLineList(BasePopulation):
                 f"Provided value: {self.config.include_sex}."
             )
 
-        source_population_structure = load_population_structure(builder)
-        self.population_data = assign_demographic_proportions(
+        # TODO: Remove this when we remove deprecated keys.
+        # Validate configuration for deprecated keys
+        self._validate_config_for_deprecated_keys()
+
+        source_population_structure = self._load_population_structure(builder)
+        self.demographic_proportions = assign_demographic_proportions(
             source_population_structure,
             include_sex=self.config.include_sex,
         )
-
-        self.randomness = {
-            "general_purpose": builder.randomness.get_stream("population_generation"),
-            "bin_selection": builder.randomness.get_stream(
-                "bin_selection", initializes_crn_attributes=True
-            ),
-            "age_smoothing": builder.randomness.get_stream(
-                "age_smoothing", initializes_crn_attributes=True
-            ),
-            "age_smoothing_age_bounds": builder.randomness.get_stream(
-                "age_smoothing_age_bounds", initializes_crn_attributes=True
-            ),
-        }
+        self.randomness = self.get_randomness_streams(builder)
         self.register_simulants = builder.randomness.register_simulants
 
+        # Additional attributes
         self.start_time = get_time_stamp(builder.configuration.time.start)
         self.location = self._get_location(builder)
         self.subnational = builder.configuration.intervention.subnational
 
-    def on_initialize_simulants(self, pop_data: SimulantData) -> None:
+        self._created_columns = [
+            "age",
+            "sex",
+            "alive",
+            "subnational",
+            "location",
+            "entrance_time",
+            "exit_time",
+            "maternal_id",
+        ]
+        builder.population.register_initializer(
+            self.initialize_population,
+            columns=self._created_columns,
+        )
+
+    def initialize_population(self, pop_data: SimulantData) -> None:
         """
         Creates simulants based on their birth date from the line list data.  Their demographic characteristics are also
         determined by the input data.
         """
-        new_simulants = pd.DataFrame(columns=self.columns_created, index=pop_data.index)
+        new_simulants = pd.DataFrame(columns=self._created_columns, index=pop_data.index)
 
         if pop_data.creation_time >= self.start_time:
             new_births = pop_data.user_data["new_births"]
@@ -130,6 +142,39 @@ class PopulationLineList(BasePopulation):
             additional_key="subnational_location_choice",
         )
         return location_choices
+
+
+class MortalityLineList(Mortality):
+    @property
+    def configuration_defaults(self) -> dict[str, Any]:
+        # Change the name from super to self.name
+        config_defaults = super().configuration_defaults
+        config_defaults[self.name] = config_defaults.pop("mortality")
+        return config_defaults
+
+    def initialize_mortality(self, pop_data: SimulantData) -> None:
+        """Initialize mortality include stillbirths based on the line list data."""
+        pop_update = pd.DataFrame(
+            index=pop_data.index,
+            columns=[
+                "is_alive",
+                self.cause_of_death_column_name,
+                self.years_of_life_lost_column_name,
+            ],
+        )
+        if not pop_data.index.empty:
+            pop_update["is_alive"] = True
+            pop_update[self.cause_of_death_column_name] = "not_dead"
+            pop_update[self.years_of_life_lost_column_name] = 0.0
+
+            # Update stillbirths
+            is_stillborn = (
+                pop_data.user_data["new_births"]["pregnancy_outcome"] == "stillbirth"
+            )
+            pop_update.loc[is_stillborn, "is_alive"] = False
+            pop_update.loc[is_stillborn, self.cause_of_death_column_name] = "stillborn"
+
+        self.population_view.update(pop_update)
 
 
 class EvenlyDistributedPopulation(BasePopulation):

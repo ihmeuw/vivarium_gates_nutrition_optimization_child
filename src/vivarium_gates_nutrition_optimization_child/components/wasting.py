@@ -41,14 +41,6 @@ class WastingTreatment(Risk):
         self.treated_state = self._get_treated_state()
         self.previous_treatment_column = f"previous_{self.treated_state}_treatment"
 
-    @property
-    def columns_created(self) -> List[str]:
-        return [self.propensity_column_name, self.previous_treatment_column]
-
-    @property
-    def columns_required(self) -> Optional[List[str]]:
-        return ["age", self.previous_wasting_column, self.wasting_column]
-
     ##########################
     # Initialization methods #
     ##########################
@@ -65,37 +57,36 @@ class WastingTreatment(Risk):
         self.scenario = scenarios.INTERVENTION_SCENARIOS[
             builder.configuration.intervention.child_scenario
         ]
-        self.wasting_exposure = builder.value.get_value(
-            data_values.PIPELINES.WASTING_EXPOSURE
-        )
-        self.underweight_exposure = builder.value.get_value(
-            data_values.PIPELINES.UNDERWEIGHT_EXPOSURE
+
+        builder.population.register_initializer(
+            self.initialize_previous_treatment_column, self.previous_treatment_column
         )
 
     ########################
     # Event-driven methods #
     ########################
 
-    def on_initialize_simulants(self, pop_data: SimulantData) -> None:
-        # propensity
-        self.population_view.update(
-            pd.Series(
-                self.randomness.get_draw(pop_data.index), name=self.propensity_column_name
-            )
-        )
-        # previous treatment (initialize as uncovered)
+    def initialize_previous_treatment_column(self, pop_data: SimulantData) -> None:
         self.population_view.update(
             pd.Series("cat1", index=pop_data.index, name=self.previous_treatment_column)
         )
 
     def on_time_step_prepare(self, event: Event):
         """define previous_treatment and redraw propensities upon transition to new wasting state"""
-        pop = self.population_view.get(event.index)
+        pop = self.population_view.get_attributes(
+            event.index,
+            [
+                self.wasting_column,
+                self.previous_wasting_column,
+                self.propensity_name,
+                self.exposure_name,
+            ],
+        )
         # previous treatment column (for results stratification)
-        previous_treatment = self.exposure(pop.index)
+        previous_treatment = pop[self.exposure_name]
         previous_treatment.name = self.previous_treatment_column
         # update propensity
-        propensity = pop[self.propensity_column_name]
+        propensity = pop[self.propensity_name].copy()
         remitted_mask = (pop[self.previous_wasting_column] == self.treated_state) & pop[
             self.wasting_column
         ] != self.treated_state
@@ -106,23 +97,43 @@ class WastingTreatment(Risk):
     # Pipeline sources and modifiers #
     ##################################
 
+    def register_exposure_pipeline(self, builder):
+        builder.value.register_attribute_producer(
+            self.exposure_name,
+            source=self.get_current_exposure,
+            preferred_post_processor=get_exposure_post_processor(builder, self.name),
+        )
+
     def get_current_exposure(self, index: pd.Index) -> pd.Series:
+        if index.empty:
+            return pd.Series(index=index)
+
+        # Convert RangeIndex into Index if needed
+        if isinstance(index, pd.RangeIndex):
+            index = pd.Index(index.to_list())
+
         is_mam_component = self.risk.name == "moderate_acute_malnutrition_treatment"
         coverage_to_exposure_map = {"none": "cat1", "full": "cat2"}
 
         if is_mam_component:
             mam_coverage = self.scenario.mam_tx_coverage
             if mam_coverage == "baseline":  # return standard exposure if baseline
-                propensity = self.propensity(index)
-                return pd.Series(self.exposure_distribution.ppf(propensity), index=index)
+                return self.exposure_distribution.exposure_ppf(index)
             elif mam_coverage == "targeted":
                 # initialize exposures as cat1 (untreated)
                 exposures = pd.Series("cat1", index=index)
-
                 # define relevant booleans
-                wasting = self.wasting_exposure(index)
-                age = self.population_view.get(index)["age"]
-                underweight = self.underweight_exposure(index)
+                pop = self.population_view.get_attributes(
+                    index,
+                    [
+                        "age",
+                        data_values.PIPELINES.WASTING_EXPOSURE,
+                        data_values.PIPELINES.UNDERWEIGHT_EXPOSURE,
+                    ],
+                )
+                age = pop["age"]
+                wasting = pop[data_values.PIPELINES.WASTING_EXPOSURE]
+                underweight = pop[data_values.PIPELINES.UNDERWEIGHT_EXPOSURE]
 
                 in_mam_state = (wasting == "cat2") | (wasting == "cat2.5")
                 in_worse_mam_state = wasting == "cat2"
@@ -141,15 +152,14 @@ class WastingTreatment(Risk):
                 # return either all or none covered
                 exposure_value = coverage_to_exposure_map[mam_coverage]
                 exposure = pd.Series(exposure_value, index=index)
-                age = self.population_view.get(index)["age"]
+                age = self.population_view.get_attributes(index, "age")
                 exposure.loc[age < 0.5] = "cat1"
                 return exposure
 
         else:  # we're in the SAM treatment component
             sam_coverage = self.scenario.sam_tx_coverage
             if sam_coverage == "baseline":
-                propensity = self.propensity(index)
-                return pd.Series(self.exposure_distribution.ppf(propensity), index=index)
+                return self.exposure_distribution.exposure_ppf(index)
             else:
                 exposure = coverage_to_exposure_map[sam_coverage]
                 return pd.Series(exposure, index=index)
@@ -170,91 +180,83 @@ class ChildWastingModel(DiseaseModel):
         }
         return {**disease_config, **risk_config}
 
-    @property
-    def columns_created(self) -> List[str]:
-        return [self.state_column, f"initial_{self.state_column}_propensity"]
-
-    @property
-    def columns_required(self) -> Optional[List[str]]:
-        return ["age", "sex", "birth_weight_status"]
-
-    @property
-    def initialization_requirements(self) -> Dict[str, List[str]]:
-        return {
-            "requires_columns": ["age", "sex", "birth_weight_status"],
-            "requires_values": [],
-            "requires_streams": [],
-        }
-
     def setup(self, builder):
         """Perform this component's setup."""
-        super(DiseaseModel, self).setup(builder)
+
+        self.initialization_weights_pipelines = [
+            state.birth_prevalence_pipeline for state in self.states
+        ]
 
         self.configuration_age_start = builder.configuration.population.initialization_age_min
         self.configuration_age_end = builder.configuration.population.initialization_age_max
         self.randomness = builder.randomness.get_stream(f"{self.state_column}_initial_states")
 
-        self.exposure = builder.value.register_value_producer(
+        builder.value.register_attribute_producer(
             f"{self.state_column}.exposure",
             source=self.get_current_exposure,
-            requires_columns=["age", "alive", self.state_column],
+            required_resources=["age", "alive", self.state_column],
             preferred_post_processor=get_exposure_post_processor(
                 builder, EntityString(f"risk_factor.{self.state_column}")
             ),
         )
 
-        builder.value.register_value_modifier(
+        self.csmr_table = self.build_lookup_table(builder, "cause_specific_mortality_rate")
+        builder.value.register_attribute_modifier(
             "cause_specific_mortality_rate",
             self.adjust_cause_specific_mortality_rate,
-            requires_columns=["age", "sex"],
+            required_resources=["age", "sex"],
         )
 
-    def on_initialize_simulants(self, pop_data):
+        builder.population.register_initializer(
+            self.initialize_wasting,
+            [
+                self.state_column,
+                f"initial_{self.state_column}_propensity",
+            ],
+            required_resources=[
+                self.randomness,
+                *self.initialization_weights_pipelines,
+            ],
+        )
+
+    def initialize_wasting(self, pop_data):
         initial_propensity = self.randomness.get_draw(pop_data.index).rename(
             f"initial_{self.state_column}_propensity"
         )
-        population = self.population_view.subview(["age", "sex"]).get(pop_data.index)
 
-        assert self.initial_state in {s.state_id for s in self.states}
+        birth_prevalence = self.population_view.get_attributes(
+            pop_data.index, self.initialization_weights_pipelines
+        )
 
-        state_names, weights_bins = self.get_state_weights(pop_data.index, "birth_prevalence")
-
-        if state_names and not population.empty:
-            # only do this if there are states in the model that supply prevalence data
-            population["sex_id"] = population.sex.apply({"Male": 1, "Female": 2}.get)
-
-            condition_column = self.assign_initial_status_to_simulants(
-                population,
-                state_names,
-                weights_bins,
+        if not pop_data.index.empty:
+            condition = self.assign_initial_status_to_simulants(
+                pop_data.index,
+                birth_prevalence,
                 initial_propensity,
             )
-
-            condition_column = condition_column.rename(
-                columns={"condition_state": self.state_column}
-            )
+            condition.name = self.state_column
         else:
-            condition_column = pd.Series(
-                self.initial_state, index=population.index, name=self.state_column
+            condition = pd.Series(
+                self.residual_state.state_id, index=pop_data.index, name=self.state_column
             )
-        self.population_view.update(pd.concat([condition_column, initial_propensity], axis=1))
+        self.population_view.update(pd.concat([condition, initial_propensity], axis=1))
 
     @staticmethod
     def assign_initial_status_to_simulants(
-        simulants_df, state_names, weights_bins, propensities
-    ) -> pd.DataFrame:
-        simulants = simulants_df[["age", "sex"]].copy()
-
-        choice_index = (propensities.values[np.newaxis].T > weights_bins).sum(axis=1)
-        initial_states = pd.Series(np.array(state_names)[choice_index], index=simulants.index)
-
-        simulants.loc[:, "condition_state"] = initial_states
-        return simulants
+        pop_index, birth_prevalence, propensities
+    ) -> pd.Series:
+        state_names = birth_prevalence.columns.tolist()
+        state_names = [name.replace(".birth_prevalence", "") for name in state_names]
+        weights = birth_prevalence.to_numpy()
+        cumulative_weights = np.cumsum(weights, axis=1)
+        choice_index = (propensities.values[np.newaxis].T > cumulative_weights).sum(axis=1)
+        initial_states = pd.Series(np.array(state_names)[choice_index], index=pop_index)
+        return initial_states
 
     def get_current_exposure(self, index: pd.Index) -> pd.Series:
-        pop = self.population_view.get(index)
-        exposure = pop[self.state_column].apply(self.get_risk_category)
-        return exposure
+        return self.population_view.get_attributes(index, self.state_column).apply(
+            self.get_risk_category
+        )
 
     @staticmethod
     def get_risk_category(state_name: str) -> str:
@@ -273,127 +275,91 @@ def ChildWasting() -> ChildWastingModel:
     mild = DiseaseState(
         models.WASTING.MILD_STATE_NAME,
         cause_type="sequela",
-        get_data_functions={
-            "prevalence": load_mild_wasting_exposure,
-            "disability_weight": lambda *_: 0,
-            "excess_mortality_rate": lambda *_: 0,
-            "birth_prevalence": load_mild_wasting_birth_prevalence,
-        },
+        prevalence=lambda builder: load_mild_wasting_exposure(builder),
+        disability_weight=0.0,
+        excess_mortality_rate=0.0,
+        birth_prevalence=lambda builder: load_mild_wasting_birth_prevalence(builder),
     )
     better_moderate = DiseaseState(
         models.WASTING.BETTER_MODERATE_STATE_NAME,
         cause_type="sequela",
-        get_data_functions={
-            "prevalence": load_better_mam_exposure,
-            "disability_weight": lambda *_: 0,
-            "excess_mortality_rate": lambda *_: 0,
-            "birth_prevalence": load_better_mam_birth_prevalence,
-        },
+        prevalence=lambda builder: load_better_mam_exposure(builder),
+        disability_weight=0.0,
+        excess_mortality_rate=0.0,
+        birth_prevalence=lambda builder: load_better_mam_birth_prevalence(builder),
     )
     worse_moderate = DiseaseState(
         models.WASTING.WORSE_MODERATE_STATE_NAME,
         cause_type="sequela",
-        get_data_functions={
-            "prevalence": load_worse_mam_exposure,
-            "disability_weight": lambda *_: 0,
-            "excess_mortality_rate": lambda *_: 0,
-            "birth_prevalence": load_worse_mam_birth_prevalence,
-        },
+        prevalence=lambda builder: load_worse_mam_exposure(builder),
+        disability_weight=0.0,
+        excess_mortality_rate=0.0,
+        birth_prevalence=lambda builder: load_worse_mam_birth_prevalence(builder),
     )
     severe = DiseaseState(
         models.WASTING.SEVERE_STATE_NAME,
         cause_type="sequela",
-        get_data_functions={
-            "prevalence": load_sam_exposure,
-            "disability_weight": lambda *_: 0,
-            "excess_mortality_rate": lambda *_: 0,
-            "birth_prevalence": load_sam_birth_prevalence,
-        },
+        prevalence=lambda builder: load_sam_exposure(builder),
+        disability_weight=0.0,
+        excess_mortality_rate=0.0,
+        birth_prevalence=lambda builder: load_sam_birth_prevalence(builder),
     )
-
     # Add transitions for tmrel
-    tmrel.allow_self_transitions()
     tmrel.add_rate_transition(
         mild,
-        get_data_functions={
-            "incidence_rate": load_wasting_rate,
-        },
+        transition_rate=lambda builder: get_transition_data(builder, "inc_rate_mild"),
     )
 
     # Add transitions for mild
-    mild.allow_self_transitions()
     mild.add_rate_transition(
         better_moderate,
-        get_data_functions={
-            "transition_rate": load_wasting_rate,
-        },
+        transition_rate=lambda builder: get_transition_data(builder, "inc_rate_better_mam"),
     )
     mild.add_rate_transition(
         worse_moderate,
-        get_data_functions={
-            "transition_rate": load_wasting_rate,
-        },
+        transition_rate=lambda builder: get_transition_data(builder, "inc_rate_worse_mam"),
     )
     mild.add_rate_transition(
         tmrel,
-        get_data_functions={
-            "remission_rate": load_mild_remission_rate,
-        },
+        transition_rate=lambda builder: get_transition_data(builder, "rem_rate_mild"),
     )
 
     # Add transitions for moderate
-    better_moderate.allow_self_transitions()
     better_moderate.add_rate_transition(
         severe,
-        get_data_functions={
-            "transition_rate": load_wasting_rate,
-        },
+        transition_rate=lambda builder: get_transition_data(builder, "inc_rate_sam"),
     )
     better_moderate.add_rate_transition(
         mild,
-        get_data_functions={
-            "transition_rate": load_wasting_rate,
-        },
+        transition_rate=lambda builder: get_transition_data(builder, "rem_rate_mam"),
     )
 
-    worse_moderate.allow_self_transitions()
     worse_moderate.add_rate_transition(
         severe,
-        get_data_functions={
-            "transition_rate": load_wasting_rate,
-        },
+        transition_rate=lambda builder: get_transition_data(builder, "inc_rate_sam"),
     )
     worse_moderate.add_rate_transition(
         mild,
-        get_data_functions={
-            "transition_rate": load_wasting_rate,
-        },
+        transition_rate=lambda builder: get_transition_data(builder, "rem_rate_mam"),
     )
 
     # Add transitions for severe
-    severe.allow_self_transitions()
     severe.add_rate_transition(
         better_moderate,
-        get_data_functions={
-            "transition_rate": load_wasting_rate,
-        },
+        transition_rate=lambda builder: get_transition_data(builder, "sam_to_better_mam"),
     )
     severe.add_rate_transition(
         worse_moderate,
-        get_data_functions={
-            "transition_rate": load_wasting_rate,
-        },
+        transition_rate=lambda builder: get_transition_data(builder, "sam_to_worse_mam"),
     )
     severe.add_rate_transition(
         mild,
-        get_data_functions={
-            "transition_rate": load_wasting_rate,
-        },
+        transition_rate=lambda builder: get_transition_data(builder, "tx_rem_rate_sam"),
     )
 
     return ChildWastingModel(
         models.WASTING.MODEL_NAME,
-        get_data_functions={"cause_specific_mortality_rate": lambda *_: 0},
+        cause_specific_mortality_rate=0.0,
         states=[severe, better_moderate, worse_moderate, mild, tmrel],
     )
 
@@ -404,12 +370,12 @@ def load_pem_excess_mortality_rate(builder: Builder, cause: str) -> pd.DataFrame
 
 
 # noinspection PyUnusedLocal
-def load_mild_wasting_birth_prevalence(builder: Builder, cause: str) -> pd.DataFrame:
+def load_mild_wasting_birth_prevalence(builder: Builder) -> pd.DataFrame:
     return load_child_wasting_birth_prevalence(builder, data_keys.WASTING.CAT3)
 
 
 # noinspection PyUnusedLocal
-def load_mild_wasting_exposure(builder: Builder, cause: str) -> Union[float, pd.DataFrame]:
+def load_mild_wasting_exposure(builder: Builder) -> Union[float, pd.DataFrame]:
     exposure = load_child_wasting_exposures(builder)
     if isinstance(exposure, pd.DataFrame):
         exposure = (
@@ -420,33 +386,8 @@ def load_mild_wasting_exposure(builder: Builder, cause: str) -> Union[float, pd.
     return exposure
 
 
-def load_wasting_rate(builder: Builder, *wasting_states) -> pd.DataFrame:
-    states_to_transition_map = {
-        ("mild_child_wasting",): "inc_rate_mild",
-        ("mild_child_wasting", "better_moderate_acute_malnutrition"): "inc_rate_better_mam",
-        ("mild_child_wasting", "worse_moderate_acute_malnutrition"): "inc_rate_worse_mam",
-        ("better_moderate_acute_malnutrition", "severe_acute_malnutrition"): "inc_rate_sam",
-        ("worse_moderate_acute_malnutrition", "severe_acute_malnutrition"): "inc_rate_sam",
-        ("susceptible_to_child_wasting",): "rem_rate_mild",
-        ("better_moderate_acute_malnutrition", "mild_child_wasting"): "rem_rate_mam",
-        ("worse_moderate_acute_malnutrition", "mild_child_wasting"): "rem_rate_mam",
-        ("severe_acute_malnutrition", "mild_child_wasting"): "tx_rem_rate_sam",
-        (
-            "severe_acute_malnutrition",
-            "better_moderate_acute_malnutrition",
-        ): "sam_to_better_mam",
-        (
-            "severe_acute_malnutrition",
-            "worse_moderate_acute_malnutrition",
-        ): "sam_to_worse_mam",
-    }
-    transition = states_to_transition_map[wasting_states]
-    data = get_transition_data(builder, transition)
-    return data
-
-
-def load_mild_remission_rate(builder: Builder, input_state) -> pd.DataFrame:
-    return get_transition_data(builder, "rem_rate_mild")
+# def load_mild_remission_rate(builder: Builder, input_state) -> pd.DataFrame:
+#     return get_transition_data(builder, "rem_rate_mild")
 
 
 def get_transition_data(builder: Builder, transition: str) -> pd.DataFrame:
@@ -458,17 +399,17 @@ def get_transition_data(builder: Builder, transition: str) -> pd.DataFrame:
 
 
 # noinspection PyUnusedLocal
-def load_better_mam_birth_prevalence(builder: Builder, cause: str) -> pd.DataFrame:
+def load_better_mam_birth_prevalence(builder: Builder) -> pd.DataFrame:
     return load_child_wasting_birth_prevalence(builder, data_keys.WASTING.CAT25)
 
 
 # noinspection PyUnusedLocal
-def load_worse_mam_birth_prevalence(builder: Builder, cause: str) -> pd.DataFrame:
+def load_worse_mam_birth_prevalence(builder: Builder) -> pd.DataFrame:
     return load_child_wasting_birth_prevalence(builder, data_keys.WASTING.CAT2)
 
 
 # noinspection PyUnusedLocal
-def load_better_mam_exposure(builder: Builder, cause: str) -> Union[float, pd.DataFrame]:
+def load_better_mam_exposure(builder: Builder) -> Union[float, pd.DataFrame]:
     exposure = load_child_wasting_exposures(builder)
     if isinstance(exposure, pd.DataFrame):
         exposure = (
@@ -480,7 +421,7 @@ def load_better_mam_exposure(builder: Builder, cause: str) -> Union[float, pd.Da
 
 
 # noinspection PyUnusedLocal
-def load_worse_mam_exposure(builder: Builder, cause: str) -> Union[float, pd.DataFrame]:
+def load_worse_mam_exposure(builder: Builder) -> Union[float, pd.DataFrame]:
     exposure = load_child_wasting_exposures(builder)
     if isinstance(exposure, pd.DataFrame):
         exposure = (
@@ -492,12 +433,12 @@ def load_worse_mam_exposure(builder: Builder, cause: str) -> Union[float, pd.Dat
 
 
 # noinspection PyUnusedLocal
-def load_sam_birth_prevalence(builder: Builder, cause: str) -> pd.DataFrame:
+def load_sam_birth_prevalence(builder: Builder) -> pd.DataFrame:
     return load_child_wasting_birth_prevalence(builder, data_keys.WASTING.CAT1)
 
 
 # noinspection PyUnusedLocal
-def load_sam_exposure(builder: Builder, cause: str) -> Union[float, pd.DataFrame]:
+def load_sam_exposure(builder: Builder) -> Union[float, pd.DataFrame]:
     exposure = load_child_wasting_exposures(builder)
     if isinstance(exposure, pd.DataFrame):
         exposure = (

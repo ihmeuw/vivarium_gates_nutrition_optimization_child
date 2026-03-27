@@ -1,5 +1,5 @@
 import itertools
-from typing import Any, Callable, Dict
+from typing import Any, Dict
 
 import pandas as pd
 from vivarium.framework.engine import Builder
@@ -8,7 +8,6 @@ from vivarium_public_health.risks import Risk, RiskEffect
 from vivarium_public_health.risks.data_transformations import (
     get_exposure_post_processor,
 )
-from vivarium_public_health.risks.distributions import RiskExposureDistribution
 from vivarium_public_health.utilities import EntityString
 
 from vivarium_gates_nutrition_optimization_child.components import (
@@ -33,26 +32,22 @@ class ChildUnderweight(Risk):
     # noinspection PyAttributeOutsideInit
     def setup(self, builder: Builder) -> None:
         super().setup(builder)
-        self.stunting = builder.value.get_value(data_values.PIPELINES.STUNTING_EXPOSURE)
-        self.wasting = builder.value.get_value(data_values.PIPELINES.WASTING_EXPOSURE)
         self.distributions = self._get_distributions(builder)
 
-    def build_all_lookup_tables(self, builder: Builder) -> None:
+    def get_distribution_type(self, builder: Builder) -> None:
         pass
 
-    def get_distribution_type(self, builder: Builder) -> str:
+    def get_exposure_distribution(self, builder: Builder) -> None:
         pass
 
-    def get_exposure_distribution(self, builder: Builder) -> RiskExposureDistribution:
-        pass
-
-    def get_exposure_pipeline(self, builder: Builder) -> Pipeline:
-        return builder.value.register_value_producer(
-            self.exposure_pipeline_name,
+    def register_exposure_pipeline(self, builder: Builder) -> Pipeline:
+        builder.value.register_attribute_producer(
+            self.exposure_name,
             source=self.get_current_exposure,
-            requires_columns=["age", "sex"],
-            requires_values=[
-                self.propensity_pipeline_name,
+            required_resources=[
+                "age",
+                "sex",
+                self.propensity_name,
                 data_values.PIPELINES.STUNTING_EXPOSURE,
                 data_values.PIPELINES.WASTING_EXPOSURE,
             ],
@@ -84,7 +79,10 @@ class ChildUnderweight(Risk):
                 EntityString(key), distribution_data
             )
         for dist in distributions.values():
+            # HACK / FIXME [MIC-6756]
+            self._components._manager._current_component = dist
             dist.setup_component(builder)
+            self._components._manager._current_component = self
         return distributions
 
     ##################################
@@ -94,13 +92,22 @@ class ChildUnderweight(Risk):
     def get_current_exposure(self, index: pd.Index) -> pd.Series:
         """Calculate exposures separately for each joint stunting and wasting state and concatenate."""
         if len(index) == 0:
-            return pd.Series(
-                index=index
-            )  # only happens on first time step when there's no simulants
-        propensity = self.propensity(index).rename("propensity")
-        wasting = self.wasting(index).rename("wasting")
-        stunting = self.stunting(index).rename("stunting")
-        pop = pd.concat([stunting, wasting, propensity], axis=1)
+            # only happens on first time step when there's no simulants
+            return pd.Series(index=index)
+
+        pop = self.population_view.get_attributes(
+            index,
+            [
+                data_values.PIPELINES.STUNTING_EXPOSURE,
+                data_values.PIPELINES.WASTING_EXPOSURE,
+                self.propensity_name,
+            ],
+        ).rename(
+            columns={
+                data_values.PIPELINES.STUNTING_EXPOSURE: "stunting",
+                data_values.PIPELINES.WASTING_EXPOSURE: "wasting",
+            }
+        )
 
         exposures = []
         for group, group_df in pop.groupby(["stunting", "wasting"]):
@@ -110,7 +117,7 @@ class ChildUnderweight(Risk):
             distribution = self.distributions[
                 f"risk_factor.stunting_{stunting_category}_wasting_{wasting_category}_underweight"
             ]
-            exposure = distribution.ppf(group_df["propensity"])
+            exposure = distribution.exposure_ppf(group_df.index)
             exposures.append(exposure)
         return pd.concat(exposures).sort_index()
 
@@ -161,50 +168,55 @@ class CGFRiskEffect(RiskEffect):
         ]
         # This is to access to the distribution type before setup
         self._exposure_distribution_type = "ordered_polytomous"
+        # Override relative risk name to include the measure to avoid collisions
+        # between instances targeting the same entity with different measures
+        self.relative_risk_name = (
+            f"{self.risk.name}_on_{self.target.name}.{self.target.measure}.relative_risk"
+        )
 
-    def build_all_lookup_tables(self, builder: Builder) -> None:
+    def setup(self, builder: Builder) -> None:
+        self.sub_exposure_names = {risk: f"{risk.name}.exposure" for risk in self.cgf_models}
+        self.sub_risk_rr_tables = {}
+        super().setup(builder)
+
+    def build_rr_lookup_table(self, builder) -> None:
         for risk in self.cgf_models:
-            rr_data = self.get_relative_risk_data(builder, self.configuration.sub_risks[risk])
+            rr_data = self.load_relative_risk(builder, self.configuration.sub_risks[risk])
             rr_value_columns = None
             if self.is_exposure_categorical:
                 rr_data, rr_value_columns = self.process_categorical_data(builder, rr_data)
-            self.lookup_tables[f"{risk.name}_relative_risk"] = self.build_lookup_table(
-                builder, rr_data, rr_value_columns
+            self.sub_risk_rr_tables[risk] = self.build_lookup_table(
+                builder, f"{risk.name}_relative_risk", rr_data, rr_value_columns
             )
-
-        paf_data = self.get_filtered_data(
-            builder, self.configuration.data_sources.population_attributable_fraction
-        )
-        self.lookup_tables["population_attributable_fraction"] = self.build_lookup_table(
-            builder, paf_data
-        )
 
     def get_distribution_type(self, builder: Builder) -> str:
         return self._exposure_distribution_type
 
-    def get_risk_exposure(self, builder: Builder) -> Dict[str, Pipeline]:
-        return {
-            risk: builder.value.get_value(f"{risk.name}.exposure") for risk in self.cgf_models
-        }
+    def register_relative_risk_pipeline(self, builder):
+        builder.value.register_attribute_producer(
+            self.relative_risk_name,
+            source=self._relative_risk_source,
+            required_resources=list(self.sub_exposure_names.values()),
+        )
 
-    def get_target_modifier(
-        self, builder: Builder
-    ) -> Callable[[pd.Index, pd.Series], pd.Series]:
-        def adjust_target(index: pd.Index, target: pd.Series) -> pd.Series:
-            exposures = self.exposure
-            for risk in self.cgf_models:
-                index_columns = ["index", risk.name]
-                rr = self.lookup_tables[f"{risk.name}_relative_risk"](index)
-                exposure = exposures[risk](index).reset_index()
-                exposure.columns = index_columns
-                exposure = exposure.set_index(index_columns)
-
-                relative_risk = rr.stack().reset_index()
-                relative_risk.columns = index_columns + ["value"]
-                relative_risk = relative_risk.set_index(index_columns)
-
-                effect = relative_risk.loc[exposure.index, "value"].droplevel(risk.name)
-                target *= effect
+    def adjust_target(self, index: pd.Index, target: pd.Series) -> pd.Series:
+        exposures = self.population_view.get_attributes(
+            index, list(self.sub_exposure_names.values())
+        )
+        if index.empty:
             return target
 
-        return adjust_target
+        for risk in self.cgf_models:
+            index_columns = ["index", risk.name]
+            rr = self.sub_risk_rr_tables[risk](index)
+            exposure = exposures[self.sub_exposure_names[risk]].reset_index()
+            exposure.columns = index_columns
+            exposure = exposure.set_index(index_columns)
+
+            relative_risk = rr.stack().reset_index()
+            relative_risk.columns = index_columns + ["value"]
+            relative_risk = relative_risk.set_index(index_columns)
+
+            effect = relative_risk.loc[exposure.index, "value"].droplevel(risk.name)
+            target *= effect
+        return target
