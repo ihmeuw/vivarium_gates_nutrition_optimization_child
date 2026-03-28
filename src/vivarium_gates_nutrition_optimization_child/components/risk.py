@@ -95,7 +95,7 @@ class ChildUnderweight(Risk):
             # only happens on first time step when there's no simulants
             return pd.Series(index=index)
 
-        pop = self.population_view.get_attributes(
+        pop = self.population_view.get(
             index,
             [
                 data_values.PIPELINES.STUNTING_EXPOSURE,
@@ -200,9 +200,7 @@ class CGFRiskEffect(RiskEffect):
         )
 
     def adjust_target(self, index: pd.Index, target: pd.Series) -> pd.Series:
-        exposures = self.population_view.get_attributes(
-            index, list(self.sub_exposure_names.values())
-        )
+        exposures = self.population_view.get(index, list(self.sub_exposure_names.values()))
         if index.empty:
             return target
 

@@ -91,34 +91,31 @@ class MaternalCharacteristics(Component):
                 "joint_bmi_anemia_category"
             ]
 
-        self.population_view.update(new_simulants)
+        self.population_view.initialize(new_simulants)
 
     ##################################
     # Pipeline sources and modifiers #
     ##################################
     def _get_bep_exposure(self, index: pd.Index) -> pd.Series:
-        has_bep = (
-            self.population_view.get_attributes(index, self.supplementation_exposure_name)
-            == "bep"
-        )
+        has_bep = self.population_view.get(index, self.supplementation_exposure_name) == "bep"
 
         exposure = pd.Series(BEP_SUPPLEMENTATION.CAT1, index=index)
         exposure[has_bep] = BEP_SUPPLEMENTATION.CAT2
         return exposure
 
     def _get_ifa_exposure(self, index: pd.Index) -> pd.Series:
-        has_ifa = self.population_view.get_attributes(
-            index, self.supplementation_exposure_name
-        ).isin(["ifa", "mms", "bep"])
+        has_ifa = self.population_view.get(index, self.supplementation_exposure_name).isin(
+            ["ifa", "mms", "bep"]
+        )
 
         exposure = pd.Series(IFA_SUPPLEMENTATION.CAT1, index=index)
         exposure[has_ifa] = IFA_SUPPLEMENTATION.CAT2
         return exposure
 
     def _get_mmn_exposure(self, index: pd.Index) -> pd.Series:
-        has_mmn = self.population_view.get_attributes(
-            index, self.supplementation_exposure_name
-        ).isin(["mms", "bep"])
+        has_mmn = self.population_view.get(index, self.supplementation_exposure_name).isin(
+            ["mms", "bep"]
+        )
 
         exposure = pd.Series(MMN_SUPPLEMENTATION.CAT1, index=index)
         exposure[has_mmn] = MMN_SUPPLEMENTATION.CAT2
@@ -174,7 +171,7 @@ class AdditiveRiskEffect(RiskEffect):
         )
 
     def adjust_target(self, index: pd.Index, target: pd.DataFrame) -> pd.Series:
-        effect = self.population_view.get_attributes(index, self.effect_name)
+        effect = self.population_view.get(index, self.effect_name)
         target["birth_weight"] += effect
         return target
 
@@ -201,9 +198,7 @@ class AdditiveRiskEffect(RiskEffect):
     def get_effect(self, index: pd.Index) -> pd.Series:
         index_columns = ["index", self.risk.name]
         excess_shift = self.excess_shift(index)
-        exposure = self.population_view.get_attributes(
-            index, self.exposure_name
-        ).reset_index()
+        exposure = self.population_view.get(index, self.exposure_name).reset_index()
         exposure.columns = index_columns
         exposure = exposure.set_index(index_columns)
 
@@ -278,7 +273,7 @@ class MMSEffectOnGestationalAge(AdditiveRiskEffect):
         pass
 
     def get_excess_shift(self, builder: Builder) -> Callable:
-        return lambda index: self.population_view.get_attribute_frame(
+        return lambda index: self.population_view.get_frame(
             index, self.excess_shift_pipeline_name
         )
 
@@ -290,12 +285,10 @@ class MMSEffectOnGestationalAge(AdditiveRiskEffect):
         return self.build_lookup_table(builder, "risk_specific_shift", 0)
 
     def get_excess_shift_source(self, index: pd.Index) -> pd.Series:
-        raw_gestational_age = self.population_view.get_attributes(
+        raw_gestational_age = self.population_view.get(
             index, self.raw_gestational_age_exposure_column_name
         )
-        effect = self.population_view.get_attributes(
-            index, self.ifa_on_gestational_age.effect_name
-        )
+        effect = self.population_view.get(index, self.ifa_on_gestational_age.effect_name)
         ifa_shifted_gestational_age = raw_gestational_age + effect
         # excess shift is (mms_shift_1 + mms_shift_2) for subpop_2 and mms_shift_1 for subpop_1
         mms_shift_2 = (
@@ -411,10 +404,7 @@ class BirthWeightShiftEffect(Component):
 
     def _get_total_birth_weight_shift(self, index: pd.Index) -> pd.Series:
         return pd.concat(
-            [
-                self.population_view.get_attributes(index, name)
-                for name in self.effect_pipeline_names
-            ],
+            [self.population_view.get(index, name) for name in self.effect_pipeline_names],
             axis=1,
         ).sum(axis=1)
 

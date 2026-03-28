@@ -126,13 +126,13 @@ class SQLNSTreatment(Component):
         )
 
     def initialize_propensity(self, pop_data):
-        self.population_view.update(
+        self.population_view.initialize(
             pd.Series(self.randomness.get_draw(pop_data.index), name=self.propensity_name)
         )
 
     def get_current_coverage(self, index: pd.Index) -> pd.Series:
-        pop = self.population_view.get_attributes(index, ["age", "subnational"])
-        propensity = self.population_view.get_attributes(index, self.propensity_name)
+        pop = self.population_view.get(index, ["age", "subnational"])
+        propensity = self.population_view.get(index, self.propensity_name)
         # Targeted ghi will be yes if we want to have similuants covered for specific subnationals
         ghi = pd.Series(
             data=self.sqlns_targeted_ghi["targeted_ghi"].to_list(),
@@ -161,7 +161,7 @@ class SQLNSTreatment(Component):
     def apply_tmrel_to_mild_wasting_treatment(
         self, index: pd.Index, target: pd.Series
     ) -> pd.Series:
-        covered = self.population_view.get_attributes(index, self.coverage_name) == "covered"
+        covered = self.population_view.get(index, self.coverage_name) == "covered"
         target[covered] = target[covered] * self.tmrel_to_mild_wasting_risk_ratio_table(index)
 
         return target
@@ -169,7 +169,7 @@ class SQLNSTreatment(Component):
     def apply_mild_to_mam_wasting_treatment(
         self, index: pd.Index, target: pd.Series
     ) -> pd.Series:
-        covered = self.population_view.get_attributes(index, self.coverage_name) == "covered"
+        covered = self.population_view.get(index, self.coverage_name) == "covered"
         target[covered] = target[covered] * self.mild_to_mam_wasting_risk_ratio_table(index)
 
         return target
@@ -177,7 +177,7 @@ class SQLNSTreatment(Component):
     def apply_mam_to_sam_wasting_treatment(
         self, index: pd.Index, target: pd.Series
     ) -> pd.Series:
-        covered = self.population_view.get_attributes(index, self.coverage_name) == "covered"
+        covered = self.population_view.get(index, self.coverage_name) == "covered"
         target[covered] = target[covered] * self.mam_to_sam_wasting_risk_ratio_table(index)
 
         return target
@@ -190,7 +190,7 @@ class SQLNSTreatment(Component):
             1 - self.moderate_stunting_risk_ratio_table(index)
         )
 
-        coverages = self.population_view.get_attributes(index, self.coverage_name)
+        coverages = self.population_view.get(index, self.coverage_name)
         covered = coverages != "uncovered"
 
         target.loc[covered, "cat1"] = target.loc[covered, "cat1"] - cat1_decrease.loc[covered]
