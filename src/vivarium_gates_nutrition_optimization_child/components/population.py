@@ -191,18 +191,11 @@ class EvenlyDistributedPopulation(BasePopulation):
         self.subnational = builder.configuration.intervention.subnational
 
         builder.population.register_initializer(
-            self.initialize_evenly_distributed_population,
-            columns=[
-                "age",
-                "sex",
-                "location",
-                "entrance_time",
-                "exit_time",
-                "subnational",
-            ],
+            self.initialize_subnational,
+            columns=["subnational"],
         )
 
-    def initialize_evenly_distributed_population(self, pop_data: SimulantData) -> None:
+    def initialize_population(self, pop_data: SimulantData) -> None:
         age_start = pop_data.user_data.get("age_start", self.config.initialization_age_min)
         age_end = pop_data.user_data.get("age_end", self.config.initialization_age_max)
 
@@ -216,12 +209,16 @@ class EvenlyDistributedPopulation(BasePopulation):
         population["sex"] = "Female"
         population.loc[population.index % 2 == 1, "sex"] = "Male"
         self.register_simulants(population[list(self.key_columns)])
+        self.population_view.initialize(population)
 
+    def initialize_subnational(self, pop_data: SimulantData) -> None:
         if self.subnational == "All":
-            self._distribute_subnational_locations(population.index)
-            self.population_view.initialize(population)
+            subnational = self._distribute_subnational_locations(pop_data.index)
         else:
-            population["subnational"] = self.subnational
+            subnational = pd.Series(
+                self.subnational, index=pop_data.index, name="subnational"
+            )
+        self.population_view.initialize(subnational)
 
     def _distribute_subnational_locations(self, pop_index: pd.Index) -> pd.Series:
         subnational_locations = pd.read_csv(SUBNATIONAL_PERCENTAGES)
@@ -238,6 +235,4 @@ class EvenlyDistributedPopulation(BasePopulation):
             extra_fill = subnational_locations[:remainder]
             filled_subnationals = np.append(filled_subnationals, extra_fill)
 
-        subnational_choices = pd.Series(filled_subnationals, index=pop_index)
-
-        return subnational_choices
+        return pd.Series(filled_subnationals, index=pop_index, name="subnational")
