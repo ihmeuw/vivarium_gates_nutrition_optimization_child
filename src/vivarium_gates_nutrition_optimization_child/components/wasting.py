@@ -82,12 +82,12 @@ class WastingTreatment(Risk):
                 self.exposure_name,
             ],
         )
-        remitted_mask = (pop[self.previous_wasting_column] == self.treated_state) & (
-            pop[self.wasting_column] != self.treated_state
-        )
 
         def _modifier(current: pd.DataFrame) -> pd.DataFrame:
             current[self.previous_treatment_column] = pop[self.exposure_name].values
+            remitted_mask = (pop[self.previous_wasting_column] == self.treated_state) & (
+                pop[self.wasting_column] != self.treated_state
+            )
             current.loc[remitted_mask, self.propensity_name] = self.randomness.get_draw(
                 remitted_mask.index
             )
