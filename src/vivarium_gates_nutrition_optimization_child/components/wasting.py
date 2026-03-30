@@ -67,13 +67,13 @@ class WastingTreatment(Risk):
     ########################
 
     def initialize_previous_treatment_column(self, pop_data: SimulantData) -> None:
-        self.population_view.update(
+        self.population_view.initialize(
             pd.Series("cat1", index=pop_data.index, name=self.previous_treatment_column)
         )
 
     def on_time_step_prepare(self, event: Event):
         """define previous_treatment and redraw propensities upon transition to new wasting state"""
-        pop = self.population_view.get_attributes(
+        pop = self.population_view.get(
             event.index,
             [
                 self.wasting_column,
@@ -82,16 +82,20 @@ class WastingTreatment(Risk):
                 self.exposure_name,
             ],
         )
-        # previous treatment column (for results stratification)
-        previous_treatment = pop[self.exposure_name]
-        previous_treatment.name = self.previous_treatment_column
-        # update propensity
-        propensity = pop[self.propensity_name].copy()
-        remitted_mask = (pop[self.previous_wasting_column] == self.treated_state) & pop[
-            self.wasting_column
-        ] != self.treated_state
-        propensity.loc[remitted_mask] = self.randomness.get_draw(remitted_mask.index)
-        self.population_view.update(pd.concat([previous_treatment, propensity], axis=1))
+
+        def _modifier(current: pd.DataFrame) -> pd.DataFrame:
+            current[self.previous_treatment_column] = pop[self.exposure_name].values
+            remitted_mask = (pop[self.previous_wasting_column] == self.treated_state) & (
+                pop[self.wasting_column] != self.treated_state
+            )
+            current.loc[remitted_mask, self.propensity_name] = self.randomness.get_draw(
+                remitted_mask.index
+            )
+            return current
+
+        self.population_view.update(
+            [self.previous_treatment_column, self.propensity_name], _modifier
+        )
 
     ##################################
     # Pipeline sources and modifiers #
@@ -123,7 +127,7 @@ class WastingTreatment(Risk):
                 # initialize exposures as cat1 (untreated)
                 exposures = pd.Series("cat1", index=index)
                 # define relevant booleans
-                pop = self.population_view.get_attributes(
+                pop = self.population_view.get(
                     index,
                     [
                         "age",
@@ -152,7 +156,7 @@ class WastingTreatment(Risk):
                 # return either all or none covered
                 exposure_value = coverage_to_exposure_map[mam_coverage]
                 exposure = pd.Series(exposure_value, index=index)
-                age = self.population_view.get_attributes(index, "age")
+                age = self.population_view.get(index, "age")
                 exposure.loc[age < 0.5] = "cat1"
                 return exposure
 
@@ -224,7 +228,7 @@ class ChildWastingModel(DiseaseModel):
             f"initial_{self.state_column}_propensity"
         )
 
-        birth_prevalence = self.population_view.get_attributes(
+        birth_prevalence = self.population_view.get(
             pop_data.index, self.initialization_weights_pipelines
         )
 
@@ -239,7 +243,7 @@ class ChildWastingModel(DiseaseModel):
             condition = pd.Series(
                 self.residual_state.state_id, index=pop_data.index, name=self.state_column
             )
-        self.population_view.update(pd.concat([condition, initial_propensity], axis=1))
+        self.population_view.initialize(pd.concat([condition, initial_propensity], axis=1))
 
     @staticmethod
     def assign_initial_status_to_simulants(
@@ -254,7 +258,7 @@ class ChildWastingModel(DiseaseModel):
         return initial_states
 
     def get_current_exposure(self, index: pd.Index) -> pd.Series:
-        return self.population_view.get_attributes(index, self.state_column).apply(
+        return self.population_view.get(index, self.state_column).apply(
             self.get_risk_category
         )
 

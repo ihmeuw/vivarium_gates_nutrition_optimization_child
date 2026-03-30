@@ -125,7 +125,7 @@ class PopulationLineList(BasePopulation):
             else:
                 new_simulants["subnational"] = self.subnational
 
-        self.population_view.update(new_simulants)
+        self.population_view.initialize(new_simulants)
 
     def _get_location(self, builder: Builder) -> Dict[str, str]:
         return builder.data.load("population.location")
@@ -174,7 +174,7 @@ class MortalityLineList(Mortality):
             pop_update.loc[is_stillborn, "is_alive"] = False
             pop_update.loc[is_stillborn, self.cause_of_death_column_name] = "stillborn"
 
-        self.population_view.update(pop_update)
+        self.population_view.initialize(pop_update)
 
 
 class EvenlyDistributedPopulation(BasePopulation):
@@ -184,24 +184,24 @@ class EvenlyDistributedPopulation(BasePopulation):
     male and female.
     """
 
-    @property
-    def columns_created(self) -> List[str]:
-        return super().columns_created + ["subnational"]
-
     # noinspection PyAttributeOutsideInit
     def setup(self, builder: Builder) -> None:
         super().setup(builder)
         self.location = builder.data.load(data_keys.POPULATION.LOCATION)
         self.subnational = builder.configuration.intervention.subnational
 
-    def on_initialize_simulants(self, pop_data: SimulantData) -> None:
+        builder.population.register_initializer(
+            self.initialize_subnational,
+            columns=["subnational"],
+        )
+
+    def initialize_population(self, pop_data: SimulantData) -> None:
         age_start = pop_data.user_data.get("age_start", self.config.initialization_age_min)
         age_end = pop_data.user_data.get("age_end", self.config.initialization_age_max)
 
         population = pd.DataFrame(index=pop_data.index)
         population["entrance_time"] = pop_data.creation_time
         population["exit_time"] = pd.NaT
-        population["alive"] = "alive"
         population["location"] = self.location
         population["age"] = np.linspace(
             age_start, age_end, num=len(population) + 1, endpoint=False
@@ -209,12 +209,16 @@ class EvenlyDistributedPopulation(BasePopulation):
         population["sex"] = "Female"
         population.loc[population.index % 2 == 1, "sex"] = "Male"
         self.register_simulants(population[list(self.key_columns)])
+        self.population_view.initialize(population)
 
+    def initialize_subnational(self, pop_data: SimulantData) -> None:
         if self.subnational == "All":
-            self._distribute_subnational_locations(population.index)
-            self.population_view.update(population)
+            subnational = self._distribute_subnational_locations(pop_data.index)
         else:
-            population["subnational"] = self.subnational
+            subnational = pd.Series(
+                self.subnational, index=pop_data.index, name="subnational"
+            )
+        self.population_view.initialize(subnational)
 
     def _distribute_subnational_locations(self, pop_index: pd.Index) -> pd.Series:
         subnational_locations = pd.read_csv(SUBNATIONAL_PERCENTAGES)
@@ -231,6 +235,4 @@ class EvenlyDistributedPopulation(BasePopulation):
             extra_fill = subnational_locations[:remainder]
             filled_subnationals = np.append(filled_subnationals, extra_fill)
 
-        subnational_choices = pd.Series(filled_subnationals, index=pop_index)
-
-        return subnational_choices
+        return pd.Series(filled_subnationals, index=pop_index, name="subnational")
