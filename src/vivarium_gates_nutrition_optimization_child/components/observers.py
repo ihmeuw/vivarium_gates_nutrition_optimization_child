@@ -27,44 +27,45 @@ class ResultsStratifier(ResultsStratifier_):
     final column labels for the subgroups.
     """
 
-    def get_age_bins(self, builder: Builder) -> pd.DataFrame:
-        """Define final age groups for production runs."""
-        age_bins = super().get_age_bins(builder)
-        data_dict = {
-            "age_start": [
-                0.0,
-                0.5,
-                0.833333,
-                1.5,
-            ],  # [0.0, 0.019178, 0.076712, 0.5, 1.0, 2.0],
-            "age_end": [0.5, 0.833333, 1.5, 5],  # [0.019178, 0.076712, 0.5, 1.0, 2.0, 5.0],
-            "age_group_name": [
-                # "early_neonatal",
-                # "late_neonatal",
-                # "1-5_months",
-                # "6-11_months",
-                # "12_to_23_months",
-                # "2_to_4",
-                "0_to_6_months",
-                "6_to_10_months",
-                "10_to_18_months",
-                "18_to_59_months",
-            ],
-        }
+    # UNCOMMENT THIS OUT IF YOU WANT SOMETHING OTHER THAN GBD AGE MAPPING!
+    # def get_age_bins(self, builder: Builder) -> pd.DataFrame:
+    #     """Define final age groups for production runs."""
+    #     age_bins = super().get_age_bins(builder)
+    #     data_dict = {
+    #         "age_start": [
+    #             0.0,
+    #             0.5,
+    #             0.833333,
+    #             1.5,
+    #         ],  # [0.0, 0.019178, 0.076712, 0.5, 1.0, 2.0],
+    #         "age_end": [0.5, 0.833333, 1.5, 5],  # [0.019178, 0.076712, 0.5, 1.0, 2.0, 5.0],
+    #         "age_group_name": [
+    #             # "early_neonatal",
+    #             # "late_neonatal",
+    #             # "1-5_months",
+    #             # "6-11_months",
+    #             # "12_to_23_months",
+    #             # "2_to_4",
+    #             "0_to_6_months",
+    #             "6_to_10_months",
+    #             "10_to_18_months",
+    #             "18_to_59_months",
+    #         ],
+    #     }
 
-        return pd.DataFrame(data_dict)
+    #     return pd.DataFrame(data_dict)
 
     def register_stratifications(self, builder: Builder) -> None:
         """Register each desired stratification with calls to _setup_stratification"""
         super().register_stratifications(builder)
 
-        # builder.results.register_stratification(
-        #     "wasting_state",
-        #     [category.value for category in data_keys.ChildWastingCategories],
-        #     mapper=self.child_wasting_stratification_mapper,
-        #     is_vectorized=True,
-        #     requires_attributes=["child_wasting.exposure"],
-        # )
+        builder.results.register_stratification(
+            "wasting_state",
+            [category.value for category in data_keys.ChildWastingCategories],
+            mapper=self.child_wasting_stratification_mapper,
+            is_vectorized=True,
+            requires_attributes=["child_wasting.exposure"],
+        )
         # builder.results.register_stratification(
         #     "stunting_state",
         #     [category.value for category in data_keys.CGFCategories],
@@ -140,16 +141,16 @@ class ResultsStratifier(ResultsStratifier_):
     #     }
     #     return pop.squeeze(axis=1).map(mapper)
 
-    # def child_wasting_stratification_mapper(self, pop: pd.DataFrame) -> pd.Series:
-    #     # applicable to stunting and wasting
-    #     mapper = {
-    #         "cat4": data_keys.ChildWastingCategories.UNEXPOSED.value,
-    #         "cat3": data_keys.ChildWastingCategories.MILD.value,
-    #         "cat2.5": data_keys.ChildWastingCategories.BETTER_MODERATE.value,
-    #         "cat2": data_keys.ChildWastingCategories.WORSE_MODERATE.value,
-    #         "cat1": data_keys.ChildWastingCategories.SEVERE.value,
-    #     }
-    #     return pop.squeeze(axis=1).map(mapper)
+    def child_wasting_stratification_mapper(self, pop: pd.DataFrame) -> pd.Series:
+        # applicable to stunting and wasting
+        mapper = {
+            "cat4": data_keys.ChildWastingCategories.UNEXPOSED.value,
+            "cat3": data_keys.ChildWastingCategories.MILD.value,
+            "cat2.5": data_keys.ChildWastingCategories.BETTER_MODERATE.value,
+            "cat2": data_keys.ChildWastingCategories.WORSE_MODERATE.value,
+            "cat1": data_keys.ChildWastingCategories.SEVERE.value,
+        }
+        return pop.squeeze(axis=1).map(mapper)
 
     def map_wasting_treatment(self, pop: pd.DataFrame) -> pd.Series:
         # Both SAM and MAM treatments
