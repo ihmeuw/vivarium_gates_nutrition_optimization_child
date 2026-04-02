@@ -148,6 +148,10 @@ class AdditiveRiskEffect(RiskEffect):
         self._exposure_distribution_type = "ordered_polytomous"
         return self.build_lookup_table(builder, "relative_risk", 1)
 
+    def get_relative_risk_source(self, builder: Builder) -> Callable[[pd.Index], pd.Series]:
+        """Return constant RR of 1.0; this component uses excess_shift instead."""
+        return lambda index: pd.Series(1.0, index=index)
+
     def build_paf_lookup_table(self, builder: Builder) -> LookupTable:
         return self.build_lookup_table(builder, "paf", 0)
 
