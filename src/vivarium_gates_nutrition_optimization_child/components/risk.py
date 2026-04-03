@@ -1,4 +1,5 @@
 import itertools
+from collections.abc import Callable
 from typing import Any, Dict
 
 import pandas as pd
@@ -192,29 +193,37 @@ class CGFRiskEffect(RiskEffect):
     def get_distribution_type(self, builder: Builder) -> str:
         return self._exposure_distribution_type
 
+    def get_relative_risk_source(self, builder: Builder) -> Callable[[pd.Index], pd.Series]:
+        """Compute combined relative risk from all sub-risk lookup tables."""
+
+        def generate_relative_risk(index: pd.Index) -> pd.Series:
+            exposures = self.population_view.get(
+                index, list(self.sub_exposure_names.values())
+            )
+            combined_rr = pd.Series(1.0, index=index)
+            if index.empty:
+                return combined_rr
+
+            for risk in self.cgf_models:
+                index_columns = ["index", risk.name]
+                rr = self.sub_risk_rr_tables[risk](index)
+                exposure = exposures[self.sub_exposure_names[risk]].reset_index()
+                exposure.columns = index_columns
+                exposure = exposure.set_index(index_columns)
+
+                relative_risk = rr.stack().reset_index()
+                relative_risk.columns = index_columns + ["value"]
+                relative_risk = relative_risk.set_index(index_columns)
+
+                effect = relative_risk.loc[exposure.index, "value"].droplevel(risk.name)
+                combined_rr *= effect
+            return combined_rr
+
+        return generate_relative_risk
+
     def register_relative_risk_pipeline(self, builder):
         builder.value.register_attribute_producer(
             self.relative_risk_name,
             source=self._relative_risk_source,
             required_resources=list(self.sub_exposure_names.values()),
         )
-
-    def adjust_target(self, index: pd.Index, target: pd.Series) -> pd.Series:
-        exposures = self.population_view.get(index, list(self.sub_exposure_names.values()))
-        if index.empty:
-            return target
-
-        for risk in self.cgf_models:
-            index_columns = ["index", risk.name]
-            rr = self.sub_risk_rr_tables[risk](index)
-            exposure = exposures[self.sub_exposure_names[risk]].reset_index()
-            exposure.columns = index_columns
-            exposure = exposure.set_index(index_columns)
-
-            relative_risk = rr.stack().reset_index()
-            relative_risk.columns = index_columns + ["value"]
-            relative_risk = relative_risk.set_index(index_columns)
-
-            effect = relative_risk.loc[exposure.index, "value"].droplevel(risk.name)
-            target *= effect
-        return target
