@@ -119,7 +119,7 @@ configuration:
         sqlns_effect_size: 'standard'
         subnational: 'All'
     
-    mortality:
+    mortality_line_list:
         unmodeled_causes:
             - "upper_respiratory_infections"
             - "otitis_media"
