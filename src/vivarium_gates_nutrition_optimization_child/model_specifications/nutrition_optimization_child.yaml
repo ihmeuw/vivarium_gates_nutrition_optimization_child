@@ -1,7 +1,5 @@
 components:
     vivarium_public_health:
-        population:
-            - Mortality()
         disease:
             - SIS_fixed_duration('measles', '10.0')
             - SIS('lower_respiratory_infections')
@@ -47,11 +45,11 @@ components:
             - CGFRiskEffect('cause.measles.excess_mortality_rate')
             - CGFRiskEffect('cause.lower_respiratory_infections.excess_mortality_rate')
             - CGFRiskEffect('cause.malaria.excess_mortality_rate')
-            - AdditiveRiskEffect('risk_factor.iron_folic_acid_supplementation', 'risk_factor.birth_weight.birth_exposure')
-            - AdditiveRiskEffect('risk_factor.multiple_micronutrient_supplementation', 'risk_factor.birth_weight.birth_exposure')
+            - LBWSGAdditiveRiskEffect('risk_factor.iron_folic_acid_supplementation', 'risk_factor.birth_weight.birth_exposure')
+            - LBWSGAdditiveRiskEffect('risk_factor.multiple_micronutrient_supplementation', 'risk_factor.birth_weight.birth_exposure')
             - BEPEffectOnBirthweight()
-            - AdditiveRiskEffect('risk_factor.maternal_bmi_anemia', 'risk_factor.birth_weight.birth_exposure')
-            - AdditiveRiskEffect('risk_factor.iron_folic_acid_supplementation', 'risk_factor.gestational_age.birth_exposure')
+            - LBWSGAdditiveRiskEffect('risk_factor.maternal_bmi_anemia', 'risk_factor.birth_weight.birth_exposure')
+            - LBWSGAdditiveRiskEffect('risk_factor.iron_folic_acid_supplementation', 'risk_factor.gestational_age.birth_exposure')
             - MMSEffectOnGestationalAge()
             - BirthWeightShiftEffect()
             - SIS_with_birth_prevalence('diarrheal_diseases')
@@ -64,8 +62,8 @@ configuration:
     input_data:
         input_draw_number: 457
         # Artifact can also be defined at runtime using -i flag
-        artifact_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization_child/artifacts/model_15.0/ethiopia.hdf'
-        fertility_input_data_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization/results/model12.0/ethiopia/2024_04_08_10_17_27/child_data'
+        # artifact_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization_child/artifacts/model_15.0/ethiopia.hdf'
+        # fertility_input_data_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization/results/model12.0/ethiopia/2024_04_08_10_17_27/child_data'
     interpolation:
         order: 0
         extrapolate: True
@@ -90,12 +88,38 @@ configuration:
         untracking_age: 5
 
     intervention:
-        child_scenario: 'baseline'
+
+        # child_scenario: 'baseline'
+        # child_scenario: 'scenario_0_zero_coverage'
+        # child_scenario: 'scenario_1_sam_tx'
+        # child_scenario: 'scenario_2_mam_tx'
+        # child_scenario: 'scenario_3_sqlns'
+        # child_scenario: 'scenario_5_sam_and_mam'
+        # child_scenario: 'scenario_6_sam_and_sqlns'
+        # child_scenario: 'scenario_7_mam_and_sqlns'
+        child_scenario: 'scenario_8_all'
+        # child_scenario: 'scenario_9_targeted_sqlns'
+        # child_scenario: 'scenario_10_targeted_sqlns_sam'
+        # child_scenario: 'scenario_11_targeted_sqlns_mam'
+        # child_scenario: 'scenario_12_targeted_sqlns_sam_mam'
+        # child_scenario: 'scenario_13_targeted_mam'
+        # child_scenario: 'scenario_14_sam_and_targeted_mam'
+        # child_scenario: 'scenario_15_sqlns_and_targeted_mam'
+        # child_scenario: 'scenario_16_sqlns_and_sam_targeted_mam'
+        # child_scenario: 'scenario_17_targeted_mam_targeted_sqlns'
+        # child_scenario: 'scenario_18_targeted_mam_targeted_sqlns_sam'
+
         maternal_scenario: 'baseline'
+        # maternal_scenario: 'zero_coverage'
+        # maternal_scenario: 'mms'
+        # maternal_scenario: 'ifa'
+        # maternal_scenario: 'targeted_bep_ifa'
+        # maternal_scenario: 'targeted_bep_mms'
+
         sqlns_effect_size: 'standard'
         subnational: 'All'
     
-    mortality:
+    mortality_line_list:
         unmodeled_causes:
             - "upper_respiratory_infections"
             - "otitis_media"
