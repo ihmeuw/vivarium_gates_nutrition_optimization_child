@@ -122,7 +122,7 @@ class MaternalCharacteristics(Component):
         return exposure
 
 
-class AdditiveRiskEffect(RiskEffect):
+class LBWSGAdditiveRiskEffect(RiskEffect):
     def __init__(self, risk: str, target: str):
         super().__init__(risk, target)
         self.effect_name = f"{self.risk.name}_on_{self.target.name}.effect"
@@ -176,7 +176,7 @@ class AdditiveRiskEffect(RiskEffect):
 
     def adjust_target(self, index: pd.Index, target: pd.DataFrame) -> pd.Series:
         effect = self.population_view.get(index, self.effect_name)
-        target["birth_weight"] += effect
+        target[self.target.name] += effect
         return target
 
     def get_risk_specific_shift_lookup_table(self, builder: Builder) -> LookupTable:
@@ -217,7 +217,7 @@ class AdditiveRiskEffect(RiskEffect):
         return effect
 
 
-class MMSEffectOnGestationalAge(AdditiveRiskEffect):
+class MMSEffectOnGestationalAge(LBWSGAdditiveRiskEffect):
     """Model effect of multiple micronutrient supplementation on gestational age.
     Unique component because the excess shift value depends on IFA-shifted gestational age."""
 
@@ -315,7 +315,7 @@ class MMSEffectOnGestationalAge(AdditiveRiskEffect):
         return excess_shift
 
 
-class BEPEffectOnBirthweight(AdditiveRiskEffect):
+class BEPEffectOnBirthweight(LBWSGAdditiveRiskEffect):
     """Model effect of BEP on birthweight. Unique component because effect of BEP depends
     on mother's BMI status."""
 
