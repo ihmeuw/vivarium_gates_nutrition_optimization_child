@@ -15,9 +15,9 @@ from vivarium_gates_nutrition_optimization_child.components.lbwsg import (
     LBWSGPAFObserver,
 )
 from vivarium_gates_nutrition_optimization_child.components.maternal_characteristics import (
-    AdditiveRiskEffect,
     BEPEffectOnBirthweight,
     BirthWeightShiftEffect,
+    LBWSGAdditiveRiskEffect,
     MaternalCharacteristics,
     MMSEffectOnGestationalAge,
 )
