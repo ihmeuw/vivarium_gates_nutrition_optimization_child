@@ -176,7 +176,7 @@ class LBWSGAdditiveRiskEffect(RiskEffect):
 
     def adjust_target(self, index: pd.Index, target: pd.DataFrame) -> pd.Series:
         effect = self.population_view.get(index, self.effect_name)
-        target["birth_weight"] += effect
+        target[self.target.name] += effect
         return target
 
     def get_risk_specific_shift_lookup_table(self, builder: Builder) -> LookupTable:
