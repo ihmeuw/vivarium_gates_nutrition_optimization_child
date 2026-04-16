@@ -7,9 +7,9 @@ components:
         risks:
             - Risk('risk_factor.child_stunting')
 
-            - RiskEffect('risk_factor.severe_acute_malnutrition_treatment', 'risk_factor.severe_acute_malnutrition_to_mild_child_wasting.transition_rate')
-            - RiskEffect('risk_factor.severe_acute_malnutrition_treatment', 'risk_factor.severe_acute_malnutrition_to_better_moderate_acute_malnutrition.transition_rate')
-            - RiskEffect('risk_factor.severe_acute_malnutrition_treatment', 'risk_factor.severe_acute_malnutrition_to_worse_moderate_acute_malnutrition.transition_rate')
+            - RiskEffect('risk_factor.severe_acute_malnutrition_treatment', 'risk_factor.uncomplicated_severe_acute_malnutrition_to_mild_child_wasting.transition_rate')
+            - RiskEffect('risk_factor.severe_acute_malnutrition_treatment', 'risk_factor.uncomplicated_severe_acute_malnutrition_to_better_moderate_acute_malnutrition.transition_rate')
+            - RiskEffect('risk_factor.severe_acute_malnutrition_treatment', 'risk_factor.uncomplicated_severe_acute_malnutrition_to_worse_moderate_acute_malnutrition.transition_rate')
             - RiskEffect('risk_factor.moderate_acute_malnutrition_treatment', 'risk_factor.better_moderate_acute_malnutrition_to_mild_child_wasting.transition_rate')
             - RiskEffect('risk_factor.moderate_acute_malnutrition_treatment', 'risk_factor.worse_moderate_acute_malnutrition_to_mild_child_wasting.transition_rate')
 
@@ -113,7 +113,7 @@ configuration:
         mortality: True
         recoverable: True
     risk_attributable_disease.severe_protein_energy_malnutrition:
-        threshold: ['cat1']
+        threshold: ['cat1_uncomplicated', 'cat1_complicated']
         mortality: True
         recoverable: True
 
@@ -133,4 +133,5 @@ configuration:
                 - 'mild_child_wasting'
                 - 'better_moderate_acute_malnutrition'
                 - 'worse_moderate_acute_malnutrition'
-                - 'severe_acute_malnutrition'
+                - 'uncomplicated_severe_acute_malnutrition'
+                - 'complicated_severe_acute_malnutrition'
