@@ -1,7 +1,5 @@
 components:
     vivarium_public_health:
-        population:
-            - Mortality()
         disease:
             - SIS_fixed_duration('measles', '10.0')
             - SIS('lower_respiratory_infections')
