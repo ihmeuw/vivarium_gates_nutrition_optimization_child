@@ -46,7 +46,11 @@ class WastingTreatment(Risk):
     ##########################
 
     def _get_treated_state(self) -> str:
-        return self.risk.name.split("_treatment")[0]
+        base_state = self.risk.name.split("_treatment")[0]
+        # SAM treatment targets uncomplicated SAM specifically
+        if base_state == "severe_acute_malnutrition":
+            return models.WASTING.UNCOMPLICATED_SAM_STATE_NAME
+        return base_state
 
     #################
     # Setup methods #
@@ -301,13 +305,21 @@ def ChildWasting() -> ChildWastingModel:
         excess_mortality_rate=0.0,
         birth_prevalence=lambda builder: load_worse_mam_birth_prevalence(builder),
     )
-    severe = DiseaseState(
-        models.WASTING.SEVERE_STATE_NAME,
+    uncomplicated_severe = DiseaseState(
+        models.WASTING.UNCOMPLICATED_SAM_STATE_NAME,
         cause_type="sequela",
-        prevalence=lambda builder: load_sam_exposure(builder),
+        prevalence=lambda builder: load_uncomplicated_sam_exposure(builder),
         disability_weight=0.0,
         excess_mortality_rate=0.0,
-        birth_prevalence=lambda builder: load_sam_birth_prevalence(builder),
+        birth_prevalence=lambda builder: load_uncomplicated_sam_birth_prevalence(builder),
+    )
+    complicated_severe = DiseaseState(
+        models.WASTING.COMPLICATED_SAM_STATE_NAME,
+        cause_type="sequela",
+        prevalence=lambda builder: load_complicated_sam_exposure(builder),
+        disability_weight=0.0,
+        excess_mortality_rate=0.0,
+        birth_prevalence=lambda builder: load_complicated_sam_birth_prevalence(builder),
     )
     # Add transitions for tmrel
     tmrel.add_rate_transition(
@@ -331,7 +343,7 @@ def ChildWasting() -> ChildWastingModel:
 
     # Add transitions for moderate
     better_moderate.add_rate_transition(
-        severe,
+        uncomplicated_severe,
         transition_rate=lambda builder: get_transition_data(builder, "inc_rate_sam"),
     )
     better_moderate.add_rate_transition(
@@ -340,7 +352,7 @@ def ChildWasting() -> ChildWastingModel:
     )
 
     worse_moderate.add_rate_transition(
-        severe,
+        uncomplicated_severe,
         transition_rate=lambda builder: get_transition_data(builder, "inc_rate_sam"),
     )
     worse_moderate.add_rate_transition(
@@ -348,24 +360,34 @@ def ChildWasting() -> ChildWastingModel:
         transition_rate=lambda builder: get_transition_data(builder, "rem_rate_mam"),
     )
 
-    # Add transitions for severe
-    severe.add_rate_transition(
+    # Add transitions for uncomplicated severe (cat1u)
+    uncomplicated_severe.add_rate_transition(
         better_moderate,
         transition_rate=lambda builder: get_transition_data(builder, "sam_to_better_mam"),
     )
-    severe.add_rate_transition(
+    uncomplicated_severe.add_rate_transition(
         worse_moderate,
         transition_rate=lambda builder: get_transition_data(builder, "sam_to_worse_mam"),
     )
-    severe.add_rate_transition(
+    uncomplicated_severe.add_rate_transition(
         mild,
         transition_rate=lambda builder: get_transition_data(builder, "tx_rem_rate_sam"),
+    )
+    uncomplicated_severe.add_rate_transition(
+        complicated_severe,
+        transition_rate=lambda builder: get_transition_data(builder, "inc_rate_complicated_sam"),
+    )
+
+    # Add transitions for complicated severe (cat1c)
+    complicated_severe.add_rate_transition(
+        uncomplicated_severe,
+        transition_rate=lambda builder: get_transition_data(builder, "rem_rate_complicated_sam"),
     )
 
     return ChildWastingModel(
         models.WASTING.MODEL_NAME,
         cause_specific_mortality_rate=0.0,
-        states=[severe, better_moderate, worse_moderate, mild, tmrel],
+        states=[uncomplicated_severe, complicated_severe, better_moderate, worse_moderate, mild, tmrel],
     )
 
 
@@ -438,18 +460,35 @@ def load_worse_mam_exposure(builder: Builder) -> Union[float, pd.DataFrame]:
 
 
 # noinspection PyUnusedLocal
-def load_sam_birth_prevalence(builder: Builder) -> pd.DataFrame:
-    return load_child_wasting_birth_prevalence(builder, data_keys.WASTING.CAT1)
+def load_uncomplicated_sam_birth_prevalence(builder: Builder) -> pd.DataFrame:
+    return load_child_wasting_birth_prevalence(builder, data_keys.WASTING.CAT1_UNCOMPLICATED)
 
 
 # noinspection PyUnusedLocal
-def load_sam_exposure(builder: Builder) -> Union[float, pd.DataFrame]:
+def load_uncomplicated_sam_exposure(builder: Builder) -> Union[float, pd.DataFrame]:
     exposure = load_child_wasting_exposures(builder)
     if isinstance(exposure, pd.DataFrame):
         exposure = (
-            exposure[data_keys.WASTING.CAT1]
+            exposure[data_keys.WASTING.CAT1_UNCOMPLICATED]
             .reset_index()
-            .rename(columns={data_keys.WASTING.CAT1: "value"})
+            .rename(columns={data_keys.WASTING.CAT1_UNCOMPLICATED: "value"})
+        )
+    return exposure
+
+
+# noinspection PyUnusedLocal
+def load_complicated_sam_birth_prevalence(builder: Builder) -> pd.DataFrame:
+    return load_child_wasting_birth_prevalence(builder, data_keys.WASTING.CAT1_COMPLICATED)
+
+
+# noinspection PyUnusedLocal
+def load_complicated_sam_exposure(builder: Builder) -> Union[float, pd.DataFrame]:
+    exposure = load_child_wasting_exposures(builder)
+    if isinstance(exposure, pd.DataFrame):
+        exposure = (
+            exposure[data_keys.WASTING.CAT1_COMPLICATED]
+            .reset_index()
+            .rename(columns={data_keys.WASTING.CAT1_COMPLICATED: "value"})
         )
     return exposure
 

@@ -62,13 +62,13 @@ class SQLNSTreatment(Component):
         )
 
         builder.value.register_attribute_modifier(
-            f"{models.WASTING.BETTER_MODERATE_STATE_NAME}_to_{models.WASTING.SEVERE_STATE_NAME}.transition_rate",
+            f"{models.WASTING.BETTER_MODERATE_STATE_NAME}_to_{models.WASTING.UNCOMPLICATED_SAM_STATE_NAME}.transition_rate",
             modifier=self.apply_mam_to_sam_wasting_treatment,
             required_resources=[self.coverage_name],
         )
 
         builder.value.register_attribute_modifier(
-            f"{models.WASTING.WORSE_MODERATE_STATE_NAME}_to_{models.WASTING.SEVERE_STATE_NAME}.transition_rate",
+            f"{models.WASTING.WORSE_MODERATE_STATE_NAME}_to_{models.WASTING.UNCOMPLICATED_SAM_STATE_NAME}.transition_rate",
             modifier=self.apply_mam_to_sam_wasting_treatment,
             required_resources=[self.coverage_name],
         )
