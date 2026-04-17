@@ -541,7 +541,7 @@ def expand_data(data: pd.DataFrame, column_name: str, column_values: List) -> pd
 def load_wasting_birth_prevalence(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
     ## Returns something subnational
     wasting_prevalence = (
-        get_data(data_keys.WASTING.EXPOSURE, location)
+        _load_oedema_adjusted_wasting_exposure(location)
         .query("age_end == 0.5")
         .droplevel(["age_start", "age_end"])
     )
