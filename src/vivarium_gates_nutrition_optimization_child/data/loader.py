@@ -677,8 +677,32 @@ def load_wasting_birth_prevalence(key: str, location: Union[str, List[int]]) -> 
         .replace({"parameter": {"cat2": "cat2.5"}})
         .set_index(birth_prevalence.index.names)
     )
-
     birth_prevalence = pd.concat([birth_prevalence, cat25_rows]).sort_index()
+
+    # --- Distribute SAM superstate amongst uncomplicated and complicated ---
+    comp_frac = _load_complicated_sam_fraction(national_location_id)
+    # Filter to the age group used for birth initialization
+    comp_frac_birth = comp_frac.query(
+        "age_start >= 0.07 and age_start <= 0.08"
+    ).drop(columns=["age_start", "age_end"]).set_index(
+        ["location", "sex", "year_start", "year_end"]
+    )
+
+    cat1_rows = birth_prevalence.query("parameter=='cat1'")
+    # droplevel parameter and birth_weight_status so comp_frac_birth broadcasts
+    cat1_vals = cat1_rows.droplevel(["parameter", "birth_weight_status"])
+
+    cat1_unc = cat1_vals * (1 - comp_frac_birth)
+    cat1_unc.index = cat1_rows.index.set_levels(["cat1_uncomplicated"], level="parameter")
+
+    cat1_comp = cat1_vals * comp_frac_birth
+    cat1_comp.index = cat1_rows.index.set_levels(["cat1_complicated"], level="parameter")
+
+    # Remove cat1 superstate rows, add substates
+    birth_prevalence = birth_prevalence.query("parameter != 'cat1'")
+    birth_prevalence = pd.concat(
+        [birth_prevalence, cat1_unc, cat1_comp]
+    ).sort_index()
 
     return birth_prevalence
 
