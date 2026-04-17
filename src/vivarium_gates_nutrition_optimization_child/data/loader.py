@@ -1014,28 +1014,31 @@ def load_gbd_2021_exposure(key: str, location: Union[str, List[int]]) -> pd.Data
             .reset_index()
         )
 
-        # distribute probability of entering MAM state amongst worse MAM (cat2) and better MAM (cat2.5)
-        rows_to_keep = data.query("parameter != 'cat2'")
-        cat2_rows = data.query("age_start.isin([0., 0.01917808, 0.07671233, 0.5, 1.,2.])")
-        cat2_rows = cat2_rows.query("parameter=='cat2'").copy().sort_index().reset_index()
+        # distribute adjusted cat2 superstate amongst worse MAM and better MAM
+        non_malnourished_states = data.query("parameter != 'cat2' and parameter != 'cat1'")
+        cat2_super_adj_rows = data.query("age_start.isin([0., 0.01917808, 0.07671233, 0.5, 1.,2.])")
+        cat2_super_adj_rows = cat2_super_adj_rows.query("parameter=='cat2'").copy().sort_index().reset_index()
         assert probabilities[metadata.DEMOGRAPHIC_COLUMNS].equals(
-            cat2_rows[metadata.DEMOGRAPHIC_COLUMNS]
+            cat2_super_adj_rows[metadata.DEMOGRAPHIC_COLUMNS]
         )
 
-        new_cat2_rows = cat2_rows.copy()
-        new_cat2_rows[metadata.ARTIFACT_COLUMNS] = (
-            cat2_rows[metadata.ARTIFACT_COLUMNS] * probabilities[metadata.ARTIFACT_COLUMNS]
+        # cat2.0_worse = cat2_superstate * worse_fraction
+        cat20_worse_rows = cat2_super_adj_rows.copy()
+        cat20_worse_rows["parameter"] = "cat2.0_worse"
+        cat20_worse_rows[metadata.ARTIFACT_COLUMNS] = (
+            cat2_super_adj_rows[metadata.ARTIFACT_COLUMNS] * probabilities[metadata.ARTIFACT_COLUMNS]
         )
-        new_cat2_rows = new_cat2_rows.set_index(
+        cat20_worse_rows = cat20_worse_rows.set_index(
             metadata.ARTIFACT_INDEX_COLUMNS + ["parameter"]
         ).sort_index()
 
-        cat25_rows = cat2_rows.copy()
-        cat25_rows["parameter"] = "cat2.5"
-        cat25_rows[metadata.ARTIFACT_COLUMNS] = cat2_rows[metadata.ARTIFACT_COLUMNS] * (
+        # cat2.5_better = cat2_superstate * (1 - worse_fraction)
+        cat25_better_rows = cat2_super_adj_rows.copy()
+        cat25_better_rows["parameter"] = "cat2.5_better"
+        cat25_better_rows[metadata.ARTIFACT_COLUMNS] = cat2_super_adj_rows[metadata.ARTIFACT_COLUMNS] * (
             1 - probabilities[metadata.ARTIFACT_COLUMNS]
         )
-        cat25_rows = cat25_rows.set_index(
+        cat25_better_rows = cat25_better_rows.set_index(
             metadata.ARTIFACT_INDEX_COLUMNS + ["parameter"]
         ).sort_index()
 
