@@ -454,8 +454,19 @@ def load_wasting_transition_rates(key: str, location: Union[str, List[int]]) -> 
     """Read in wasting transition rates from flat file and expand to include all years."""
     national_location_id = get_national_location_id(location[0])
     demography = get_data(data_keys.POPULATION.DEMOGRAPHY, national_location_id)
-    rates = pd.read_csv(paths.WASTING_TRANSITIONS_DATA_DIR / f"{national_location_id}.csv")
+    rates = pd.read_csv(
+        paths.WASTING_TRANSITIONS_COMPLICATED_SAM_DATA_DIR / f"{national_location_id}.csv"
+    )
     rates = rates.rename({"parameter": "transition"}, axis=1)
+
+    # Keep only transition rate parameters; filter out complicated_fraction,
+    # mortality rates, and cost parameters which are used elsewhere.
+    transition_parameters = [
+        "inc_rate_sam", "inc_rate_mam", "inc_rate_mild",
+        "ux_rem_rate_sam", "tx_rem_rate_sam", "rem_rate_mam", "rem_rate_mild",
+        "inc_rate_complicated_sam", "rem_rate_complicated_sam",
+    ]
+    rates = rates.query("transition in @transition_parameters")
 
     # explicitly add the youngest ages data with values of 0
     min_age = rates.reset_index()["age_start"].min()

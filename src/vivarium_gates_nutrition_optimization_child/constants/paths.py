@@ -19,6 +19,9 @@ MMS_GA_SHIFT_1_DATA_DIR = RAW_DATA_DIR / "mms_gestational_age_shifts/shift1"
 MMS_GA_SHIFT_2_DATA_DIR = RAW_DATA_DIR / "mms_gestational_age_shifts/shift2"
 SQLNS_RISK_RATIOS = RAW_DATA_DIR / "modified_and_standard_subnational_sqlns_effects_v1.csv"
 WASTING_TRANSITIONS_DATA_DIR = RAW_DATA_DIR / "wasting_transition_rates/subnational"
+WASTING_TRANSITIONS_COMPLICATED_SAM_DATA_DIR = (
+    RAW_DATA_DIR / "wasting_transition_rates_complicated_sam"
+)
 WASTING_TREATMENT_PARAMETERS_DIR = RAW_DATA_DIR / "wasting_treatment_parameters"
 WASTING_RELATIVE_RISKS = (
     CLUSTER_BASE_DIR / "raw_data/wasting_rrs_with_subcategories_only_locations.csv"
