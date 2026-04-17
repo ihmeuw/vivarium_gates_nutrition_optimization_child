@@ -1051,9 +1051,38 @@ def load_gbd_2021_exposure(key: str, location: Union[str, List[int]]) -> pd.Data
         metadata.ARTIFACT_INDEX_COLUMNS + ["parameter"]
     ).sort_index()
 
-        data = pd.concat([rows_to_keep, new_cat2_rows, cat25_rows]).sort_index()
+    # --- SAM substate split (cat1 → cat1_uncomplicated / cat1_complicated) ---
+    # Load comp_frac from transition rate CSV
+    comp_frac = _load_complicated_sam_fraction(national_location_id)
 
-    return data
+    cat1_super_adj_rows = data_trimmed.query("parameter=='cat1'").copy().sort_index().reset_index()
+
+    # cat1_complicated = cat1_superstate * comp_frac
+    cat1_complicated_rows = cat1_super_adj_rows.copy()
+    cat1_complicated_rows["parameter"] = "cat1_complicated"
+    cat1_complicated_rows[metadata.ARTIFACT_COLUMNS] = (
+        cat1_super_adj_rows[metadata.ARTIFACT_COLUMNS].values
+        * comp_frac[metadata.ARTIFACT_COLUMNS].values
+    )
+    cat1_complicated_rows = cat1_complicated_rows.set_index(
+        metadata.ARTIFACT_INDEX_COLUMNS + ["parameter"]
+    ).sort_index()
+
+    # cat1_uncomplicated = cat1_superstate * (1 - comp_frac)
+    cat1_uncomplicated_rows = cat1_super_adj_rows.copy()
+    cat1_uncomplicated_rows["parameter"] = "cat1_uncomplicated"
+    cat1_uncomplicated_rows[metadata.ARTIFACT_COLUMNS] = (
+        cat1_super_adj_rows[metadata.ARTIFACT_COLUMNS].values
+        * (1 - comp_frac[metadata.ARTIFACT_COLUMNS].values)
+    )
+    cat1_uncomplicated_rows = cat1_uncomplicated_rows.set_index(
+        metadata.ARTIFACT_INDEX_COLUMNS + ["parameter"]
+    ).sort_index()
+
+    return pd.concat(
+        [non_malnourished_states,
+         cat20_worse_rows, cat25_better_rows, cat1_uncomplicated_rows, cat1_complicated_rows]
+    ).sort_index()
 
 
 def _load_complicated_sam_fraction(national_location_id: int) -> pd.DataFrame:
