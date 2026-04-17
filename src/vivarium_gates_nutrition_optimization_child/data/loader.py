@@ -980,76 +980,76 @@ def load_gbd_2021_exposure(key: str, location: Union[str, List[int]]) -> pd.Data
     data = _load_oedema_adjusted_wasting_exposure(location)
     location_names = data.reset_index().location.unique()
 
-        # --- MAM substate split (cat2 → cat2.0 worse / cat2.5 better) ---
-        # format probabilities of entering worse MAM state
-        probabilities = pd.read_csv(paths.PROBABILITIES_OF_WORSE_MAM_EXPOSURE)
-        # add early neonatal rows by duplicating late neonatal data
-        probabilities = probabilities.query("location_id==@national_location_id").drop(
-            ["Unnamed: 0", "location_id"], axis=1
+    # --- MAM substate split (cat2 → cat2.0 worse / cat2.5 better) ---
+    # format probabilities of entering worse MAM state
+    probabilities = pd.read_csv(paths.PROBABILITIES_OF_WORSE_MAM_EXPOSURE)
+    # add early neonatal rows by duplicating late neonatal data
+    probabilities = probabilities.query("location_id==@national_location_id").drop(
+        ["Unnamed: 0", "location_id"], axis=1
+    )
+
+    probabilities = expand_data(probabilities, "location", location_names)
+
+    sex_list = ["Female", "Male"]
+    probabilities = expand_data(probabilities, "sex", sex_list)
+    # probabilities["sex"] = probabilities["sex"].str.capitalize()
+
+    # get age start and end from age group ID
+    probabilities = expand_data(
+        probabilities, "age_group_id", list(metadata.AGE_GROUP.GBD_2021)
+    )
+    enn_rows = probabilities.query("age_group_id==3").copy()
+    enn_rows["age_group_id"] = 2
+    probabilities = pd.concat([probabilities, enn_rows])
+
+    age_bins = get_data(data_keys.POPULATION.AGE_BINS, location).reset_index()
+    age_bins["age_group_id"] = list(metadata.AGE_GROUP.GBD_2021)
+    age_bins = age_bins.drop("age_group_name", axis=1)
+    probabilities = probabilities.merge(age_bins, on="age_group_id").drop(
+        "age_group_id", axis=1
+    )
+    # add year data
+    probabilities["year_start"] = 2021
+    probabilities["year_end"] = probabilities["year_start"] + 1
+
+    probabilities = (
+        pd.pivot_table(
+            probabilities,
+            values="exposure",
+            index=["location", "sex", "age_start", "age_end", "year_start", "year_end"],
+            columns="draw",
         )
+        .sort_index()
+        .reset_index()
+    )
 
-        probabilities = expand_data(probabilities, "location", location_names)
+    # distribute adjusted cat2 superstate amongst worse MAM and better MAM
+    data_trimmed = data.query("age_start.isin([0., 0.01917808, 0.07671233, 0.5, 1.,2.])")
+    non_malnourished_states = data_trimmed.query("parameter != 'cat2' and parameter != 'cat1'")
+    cat2_super_adj_rows = data_trimmed.query("parameter=='cat2'").copy().sort_index().reset_index()
+    assert probabilities[metadata.DEMOGRAPHIC_COLUMNS].equals(
+        cat2_super_adj_rows[metadata.DEMOGRAPHIC_COLUMNS]
+    )
 
-        sex_list = ["Female", "Male"]
-        probabilities = expand_data(probabilities, "sex", sex_list)
-        # probabilities["sex"] = probabilities["sex"].str.capitalize()
+    # cat2.0_worse = cat2_superstate * worse_fraction
+    cat20_worse_rows = cat2_super_adj_rows.copy()
+    cat20_worse_rows["parameter"] = "cat2.0"
+    cat20_worse_rows[metadata.ARTIFACT_COLUMNS] = (
+        cat2_super_adj_rows[metadata.ARTIFACT_COLUMNS] * probabilities[metadata.ARTIFACT_COLUMNS]
+    )
+    cat20_worse_rows = cat20_worse_rows.set_index(
+        metadata.ARTIFACT_INDEX_COLUMNS + ["parameter"]
+    ).sort_index()
 
-        # get age start and end from age group ID
-        probabilities = expand_data(
-            probabilities, "age_group_id", list(metadata.AGE_GROUP.GBD_2021)
-        )
-        enn_rows = probabilities.query("age_group_id==3").copy()
-        enn_rows["age_group_id"] = 2
-        probabilities = pd.concat([probabilities, enn_rows])
-
-        age_bins = get_data(data_keys.POPULATION.AGE_BINS, location).reset_index()
-        age_bins["age_group_id"] = list(metadata.AGE_GROUP.GBD_2021)
-        age_bins = age_bins.drop("age_group_name", axis=1)
-        probabilities = probabilities.merge(age_bins, on="age_group_id").drop(
-            "age_group_id", axis=1
-        )
-        # add year data
-        probabilities["year_start"] = 2021
-        probabilities["year_end"] = probabilities["year_start"] + 1
-
-        probabilities = (
-            pd.pivot_table(
-                probabilities,
-                values="exposure",
-                index=["location", "sex", "age_start", "age_end", "year_start", "year_end"],
-                columns="draw",
-            )
-            .sort_index()
-            .reset_index()
-        )
-
-        # distribute adjusted cat2 superstate amongst worse MAM and better MAM
-        non_malnourished_states = data.query("parameter != 'cat2' and parameter != 'cat1'")
-        cat2_super_adj_rows = data.query("age_start.isin([0., 0.01917808, 0.07671233, 0.5, 1.,2.])")
-        cat2_super_adj_rows = cat2_super_adj_rows.query("parameter=='cat2'").copy().sort_index().reset_index()
-        assert probabilities[metadata.DEMOGRAPHIC_COLUMNS].equals(
-            cat2_super_adj_rows[metadata.DEMOGRAPHIC_COLUMNS]
-        )
-
-        # cat2.0_worse = cat2_superstate * worse_fraction
-        cat20_worse_rows = cat2_super_adj_rows.copy()
-        cat20_worse_rows["parameter"] = "cat2.0_worse"
-        cat20_worse_rows[metadata.ARTIFACT_COLUMNS] = (
-            cat2_super_adj_rows[metadata.ARTIFACT_COLUMNS] * probabilities[metadata.ARTIFACT_COLUMNS]
-        )
-        cat20_worse_rows = cat20_worse_rows.set_index(
-            metadata.ARTIFACT_INDEX_COLUMNS + ["parameter"]
-        ).sort_index()
-
-        # cat2.5_better = cat2_superstate * (1 - worse_fraction)
-        cat25_better_rows = cat2_super_adj_rows.copy()
-        cat25_better_rows["parameter"] = "cat2.5_better"
-        cat25_better_rows[metadata.ARTIFACT_COLUMNS] = cat2_super_adj_rows[metadata.ARTIFACT_COLUMNS] * (
-            1 - probabilities[metadata.ARTIFACT_COLUMNS]
-        )
-        cat25_better_rows = cat25_better_rows.set_index(
-            metadata.ARTIFACT_INDEX_COLUMNS + ["parameter"]
-        ).sort_index()
+    # cat2.5_better = cat2_superstate * (1 - worse_fraction)
+    cat25_better_rows = cat2_super_adj_rows.copy()
+    cat25_better_rows["parameter"] = "cat2.5"
+    cat25_better_rows[metadata.ARTIFACT_COLUMNS] = cat2_super_adj_rows[metadata.ARTIFACT_COLUMNS] * (
+        1 - probabilities[metadata.ARTIFACT_COLUMNS]
+    )
+    cat25_better_rows = cat25_better_rows.set_index(
+        metadata.ARTIFACT_INDEX_COLUMNS + ["parameter"]
+    ).sort_index()
 
         data = pd.concat([rows_to_keep, new_cat2_rows, cat25_rows]).sort_index()
 
