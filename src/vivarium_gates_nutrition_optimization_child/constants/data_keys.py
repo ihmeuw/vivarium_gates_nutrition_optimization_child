@@ -251,9 +251,12 @@ class __Wasting(NamedTuple):
     # Useful keys not for the artifact - distinguished by not using the colon type declaration
     CAT4 = "cat4"
     CAT3 = "cat3"
-    CAT25 = "cat2.5"
-    CAT2 = "cat2"
-    CAT1 = "cat1"
+    CAT25_BETTER = "cat2.5"
+    CAT20_WORSE = "cat2.0"
+    CAT2_SUPERSTATE = "cat2"
+    CAT1_SUPERSTATE = "cat1"
+    CAT1_UNCOMPLICATED = "cat1_uncomplicated"
+    CAT1_COMPLICATED = "cat1_complicated"
 
     @property
     def name(self):
@@ -472,7 +475,8 @@ class ChildWastingCategories(Enum):
     MILD = "mild"
     BETTER_MODERATE = "better_moderate"
     WORSE_MODERATE = "worse_moderate"
-    SEVERE = "severe"
+    UNCOMPLICATED_SEVERE = "uncomplicated_severe"
+    COMPLICATED_SEVERE = "complicated_severe"
 
 
 class __AdditiveRisk(NamedTuple):

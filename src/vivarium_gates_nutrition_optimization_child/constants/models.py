@@ -10,7 +10,8 @@ class __WastingModel:
     MILD_STATE_NAME: str = f"mild_{MODEL_NAME}"
     BETTER_MODERATE_STATE_NAME = "better_moderate_acute_malnutrition"
     WORSE_MODERATE_STATE_NAME = "worse_moderate_acute_malnutrition"
-    SEVERE_STATE_NAME = "severe_acute_malnutrition"
+    UNCOMPLICATED_SAM_STATE_NAME = "uncomplicated_severe_acute_malnutrition"
+    COMPLICATED_SAM_STATE_NAME = "complicated_severe_acute_malnutrition"
 
 
 WASTING = __WastingModel()

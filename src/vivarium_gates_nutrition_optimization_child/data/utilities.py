@@ -662,12 +662,12 @@ def get_treatment_efficacy(
     demography: pd.DataFrame, treatment_type: str, location: str
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
     baseline_efficacy = {
-        data_keys.WASTING.CAT1: get_wasting_treatment_parameter_data("e_sam", location),
-        data_keys.WASTING.CAT2: get_wasting_treatment_parameter_data("e_mam", location),
+        data_keys.WASTING.CAT1_UNCOMPLICATED: get_wasting_treatment_parameter_data("e_sam", location),
+        data_keys.WASTING.CAT20_WORSE: get_wasting_treatment_parameter_data("e_mam", location),
     }
     alternative_efficacy = {
-        data_keys.WASTING.CAT1: data_values.WASTING.SAM_TX_ALTERNATIVE_EFFICACY,
-        data_keys.WASTING.CAT2: data_values.WASTING.MAM_TX_ALTERNATIVE_EFFICACY,
+        data_keys.WASTING.CAT1_UNCOMPLICATED: data_values.WASTING.SAM_TX_ALTERNATIVE_EFFICACY,
+        data_keys.WASTING.CAT20_WORSE: data_values.WASTING.MAM_TX_ALTERNATIVE_EFFICACY,
     }
     idx_as_frame = demography.merge(
         pd.DataFrame({"parameter": [f"cat{i}" for i in range(1, 4)]}), how="cross"

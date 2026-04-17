@@ -267,9 +267,10 @@ class ChildWastingModel(DiseaseModel):
         return {
             models.WASTING.SUSCEPTIBLE_STATE_NAME: data_keys.WASTING.CAT4,
             models.WASTING.MILD_STATE_NAME: data_keys.WASTING.CAT3,
-            models.WASTING.BETTER_MODERATE_STATE_NAME: data_keys.WASTING.CAT25,
-            models.WASTING.WORSE_MODERATE_STATE_NAME: data_keys.WASTING.CAT2,
-            models.WASTING.SEVERE_STATE_NAME: data_keys.WASTING.CAT1,
+            models.WASTING.BETTER_MODERATE_STATE_NAME: data_keys.WASTING.CAT25_BETTER,
+            models.WASTING.WORSE_MODERATE_STATE_NAME: data_keys.WASTING.CAT20_WORSE,
+            models.WASTING.UNCOMPLICATED_SAM_STATE_NAME: data_keys.WASTING.CAT1_UNCOMPLICATED,
+            models.WASTING.COMPLICATED_SAM_STATE_NAME: data_keys.WASTING.CAT1_COMPLICATED,
         }[state_name]
 
 
@@ -404,12 +405,12 @@ def get_transition_data(builder: Builder, transition: str) -> pd.DataFrame:
 
 # noinspection PyUnusedLocal
 def load_better_mam_birth_prevalence(builder: Builder) -> pd.DataFrame:
-    return load_child_wasting_birth_prevalence(builder, data_keys.WASTING.CAT25)
+    return load_child_wasting_birth_prevalence(builder, data_keys.WASTING.CAT25_BETTER)
 
 
 # noinspection PyUnusedLocal
 def load_worse_mam_birth_prevalence(builder: Builder) -> pd.DataFrame:
-    return load_child_wasting_birth_prevalence(builder, data_keys.WASTING.CAT2)
+    return load_child_wasting_birth_prevalence(builder, data_keys.WASTING.CAT20_WORSE)
 
 
 # noinspection PyUnusedLocal
@@ -417,9 +418,9 @@ def load_better_mam_exposure(builder: Builder) -> Union[float, pd.DataFrame]:
     exposure = load_child_wasting_exposures(builder)
     if isinstance(exposure, pd.DataFrame):
         exposure = (
-            exposure[data_keys.WASTING.CAT25]
+            exposure[data_keys.WASTING.CAT25_BETTER]
             .reset_index()
-            .rename(columns={data_keys.WASTING.CAT25: "value"})
+            .rename(columns={data_keys.WASTING.CAT25_BETTER: "value"})
         )
     return exposure
 
@@ -429,9 +430,9 @@ def load_worse_mam_exposure(builder: Builder) -> Union[float, pd.DataFrame]:
     exposure = load_child_wasting_exposures(builder)
     if isinstance(exposure, pd.DataFrame):
         exposure = (
-            exposure[data_keys.WASTING.CAT2]
+            exposure[data_keys.WASTING.CAT20_WORSE]
             .reset_index()
-            .rename(columns={data_keys.WASTING.CAT2: "value"})
+            .rename(columns={data_keys.WASTING.CAT20_WORSE: "value"})
         )
     return exposure
 
