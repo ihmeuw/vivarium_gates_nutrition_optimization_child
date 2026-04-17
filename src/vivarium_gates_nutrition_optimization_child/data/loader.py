@@ -398,8 +398,13 @@ def load_metadata(key: str, location: Union[str, List[int]]):
     if hasattr(entity_metadata, "to_dict"):
         entity_metadata = entity_metadata.to_dict()
     if key == data_keys.WASTING.CATEGORIES:
-        entity_metadata["cat2"] = "Wasting Between -3 SD and -2.5 SD (post-ensemble)"
-        entity_metadata["cat2.5"] = "Wasting Between -2.5 SD and -2 SD (post-ensemble)"
+        # Replace GBD superstates with substates
+        del entity_metadata["cat1"]
+        entity_metadata["cat1_uncomplicated"] = "Uncomplicated Severe Acute Malnutrition"
+        entity_metadata["cat1_complicated"] = "Complicated Severe Acute Malnutrition"
+        del entity_metadata["cat2"]
+        entity_metadata["cat2.0"] = "Wasting Between -3 SD and -2.5 SD (worse MAM)"
+        entity_metadata["cat2.5"] = "Wasting Between -2.5 SD and -2 SD (better MAM)"
     return entity_metadata
 
 
@@ -909,14 +914,34 @@ def load_underweight_exposure(key: str, location: Union[str, List[int]]) -> pd.D
         + ["stunting_parameter", "wasting_parameter", "parameter"]
     )
 
-    # add wasting cat2.5 data by duplicating wasting cat2 data
+    # Split wasting cat2 into cat2.0 (worse MAM) and cat2.5 (better MAM)
     cat2_rows = df.query("wasting_parameter=='cat2'").copy()
-    new_cat_rows = (
+    cat20_rows = (
+        cat2_rows.reset_index()
+        .replace({"wasting_parameter": {"cat2": "cat2.0"}})
+        .set_index(df.index.names)
+    )
+    cat25_rows = (
         cat2_rows.reset_index()
         .replace({"wasting_parameter": {"cat2": "cat2.5"}})
         .set_index(df.index.names)
     )
-    df = pd.concat([df, new_cat_rows]).sort_index()
+    # Split wasting cat1 into uncomplicated and complicated SAM
+    cat1_rows = df.query("wasting_parameter=='cat1'").copy()
+    cat1_unc_rows = (
+        cat1_rows.reset_index()
+        .replace({"wasting_parameter": {"cat1": "cat1_uncomplicated"}})
+        .set_index(df.index.names)
+    )
+    cat1_comp_rows = (
+        cat1_rows.reset_index()
+        .replace({"wasting_parameter": {"cat1": "cat1_complicated"}})
+        .set_index(df.index.names)
+    )
+    df = pd.concat([
+        df.query("wasting_parameter not in ['cat1', 'cat2']"),
+        cat1_unc_rows, cat1_comp_rows, cat20_rows, cat25_rows,
+    ]).sort_index()
     index_names = df.index.names
 
     # create missing rows and fill with 0
@@ -934,7 +959,7 @@ def load_underweight_exposure(key: str, location: Union[str, List[int]]) -> pd.D
         "year_start": list([2021]),
         "location": df.reset_index().location.unique(),
         "stunting_parameter": ["cat1", "cat2", "cat3", "cat4"],
-        "wasting_parameter": ["cat1", "cat2", "cat2.5", "cat3", "cat4"],
+        "wasting_parameter": ["cat1_uncomplicated", "cat1_complicated", "cat2.0", "cat2.5", "cat3", "cat4"],
         "parameter": ["cat1", "cat2", "cat3", "cat4"],
     }
     complete_index = cartesian_product(index_elements)
@@ -1165,15 +1190,35 @@ def load_wasting_rr(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
 
     data = pd.concat([inc, emr])
 
+    # Split cat1 (SAM) into uncomplicated and complicated substates (identical RR values)
+    cat1_rows = data.query("parameter=='cat1'")
+    cat1_unc = cat1_rows.copy().rename(index={"cat1": "cat1_uncomplicated"}, level="parameter")
+    cat1_comp = cat1_rows.copy().rename(index={"cat1": "cat1_complicated"}, level="parameter")
+    # Split cat2 (MAM) into worse and better substates (identical RR values)
+    cat2_rows = data.query("parameter=='cat2'")
+    cat20 = cat2_rows.copy().rename(index={"cat2": "cat2.0"}, level="parameter")
+    cat25 = cat2_rows.copy().rename(index={"cat2": "cat2.5"}, level="parameter")
+    data = pd.concat([
+        data.query("parameter not in ['cat1', 'cat2']"),
+        cat1_unc, cat1_comp, cat20, cat25,
+    ]).sort_index()
+
     # add neonatal data with relative risks of 1
     # use stunting to get neonatal data
     neonatal_data = get_data(data_keys.STUNTING.RELATIVE_RISK, location).query(
         "age_start < .05"
     )
-    cat25_rows = neonatal_data.query("parameter=='cat2'").copy().reset_index("parameter")
-    cat25_rows["parameter"] = "cat2.5"
-    cat25_rows = cat25_rows.set_index("parameter", append=True)
-    neonatal_data = pd.concat([neonatal_data, cat25_rows]).sort_index()
+    # Stunting neonatal RR has cat1-cat4; duplicate into wasting substates
+    neo_cat1 = neonatal_data.query("parameter=='cat1'")
+    neo_cat1_unc = neo_cat1.copy().rename(index={"cat1": "cat1_uncomplicated"}, level="parameter")
+    neo_cat1_comp = neo_cat1.copy().rename(index={"cat1": "cat1_complicated"}, level="parameter")
+    neo_cat2 = neonatal_data.query("parameter=='cat2'")
+    neo_cat20 = neo_cat2.copy().rename(index={"cat2": "cat2.0"}, level="parameter")
+    neo_cat25 = neo_cat2.copy().rename(index={"cat2": "cat2.5"}, level="parameter")
+    neonatal_data = pd.concat([
+        neonatal_data.query("parameter not in ['cat1', 'cat2']"),
+        neo_cat1_unc, neo_cat1_comp, neo_cat20, neo_cat25,
+    ]).sort_index()
     data = pd.concat([data, neonatal_data]).sort_index()
 
     return data
