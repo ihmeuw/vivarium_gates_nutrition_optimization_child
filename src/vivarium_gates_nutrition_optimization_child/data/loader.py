@@ -568,15 +568,12 @@ def load_wasting_birth_prevalence(key: str, location: Union[str, List[int]]) -> 
         ["age_start", "age_end", "year_start", "year_end"]
     )
 
-    # calculate prevalences
+    # Oedema-adjusted data has GBD superstates (cat1, cat2, cat3, cat4).
+    # Use superstates for the LBW/ABW calculation, then split to substates below.
     prev_cat1 = wasting_prevalence.query("parameter=='cat1'")
+    prev_cat2 = wasting_prevalence.query("parameter=='cat2'")
     prev_cat3 = wasting_prevalence.query("parameter=='cat3'")
     prev_cat4 = wasting_prevalence.query("parameter=='cat4'")
-    # sum cat2 and cat2.5 for MAM
-    prev_cat2 = wasting_prevalence.query("parameter=='cat2' or parameter=='cat2.5'")
-    prev_cat2 = prev_cat2.groupby(["location", "sex", "year_start", "year_end"]).sum()
-    prev_cat2["parameter"] = "cat2"
-    prev_cat2 = prev_cat2.set_index(["parameter"], append=True)
 
     # relative risk of LBW on wasting
     relative_risk_draws = get_random_variable_draws(
@@ -661,14 +658,19 @@ def load_wasting_birth_prevalence(key: str, location: Union[str, List[int]]) -> 
         "birth_weight_status", append=True
     ).sort_index()
 
-    # distribute probability of being initialized in MAM state
-    # amongst worse MAM (cat2) and better MAM (cat2.5)
+    # --- Distribute MAM superstate amongst worse MAM (cat2.0) and better MAM (cat2.5) ---
     cat2_rows = birth_prevalence.query("parameter=='cat2'").copy()
-    # update cat2 rows
+    # update cat2 rows to cat2.0 (worse MAM)
     birth_prevalence.loc[birth_prevalence.query("parameter=='cat2'").index] = (
         cat2_rows * data_values.WASTING.PROBABILITY_OF_CAT2
     )
-    # create cat2.5 rows
+    # rename cat2 -> cat2.0
+    birth_prevalence = (
+        birth_prevalence.reset_index()
+        .replace({"parameter": {"cat2": "cat2.0"}})
+        .set_index(birth_prevalence.index.names)
+    )
+    # create cat2.5 (better MAM) rows
     cat25_rows = cat2_rows * (1 - data_values.WASTING.PROBABILITY_OF_CAT2)
     cat25_rows = (
         cat25_rows.reset_index()
