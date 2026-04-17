@@ -958,6 +958,20 @@ def load_gbd_2021_exposure(key: str, location: Union[str, List[int]]) -> pd.Data
     location_names = data.reset_index().location.unique()
 
     if entity_key == data_keys.WASTING.EXPOSURE:
+        # --- Oedema adjustment ---
+        oedema = load_moderate_wasting_with_oedema_prevalence(location)
+
+        cat1_super = data.query("parameter=='cat1'")
+        cat2_super = data.query("parameter=='cat2'")
+
+        cat1_adjusted = cat1_super.droplevel("parameter") + oedema
+        cat2_adjusted = (cat2_super.droplevel("parameter") - oedema).clip(lower=0)
+
+        # Write adjusted values back using the original index (with parameter)
+        data.loc[cat1_super.index] = cat1_adjusted.values
+        data.loc[cat2_super.index] = cat2_adjusted.values
+
+        # --- MAM substate split (cat2 → cat2.0 worse / cat2.5 better) ---
         # format probabilities of entering worse MAM state
         probabilities = pd.read_csv(paths.PROBABILITIES_OF_WORSE_MAM_EXPOSURE)
         # add early neonatal rows by duplicating late neonatal data
