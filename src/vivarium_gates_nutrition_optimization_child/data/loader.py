@@ -1012,6 +1012,24 @@ def load_gbd_2021_exposure(key: str, location: Union[str, List[int]]) -> pd.Data
     return data
 
 
+def _load_complicated_sam_fraction(national_location_id: int) -> pd.DataFrame:
+    """Load the complicated SAM fraction from the transition rate CSV.
+
+    Returns a DataFrame with demographic columns + draw columns,
+    aligned for element-wise multiplication with cat1 exposure data.
+    """
+    rates = pd.read_csv(
+        paths.WASTING_TRANSITIONS_COMPLICATED_SAM_DATA_DIR / f"{national_location_id}.csv"
+    )
+    comp_frac = rates.query("parameter == 'complicated_fraction'").copy()
+    comp_frac = comp_frac.drop("parameter", axis=1)
+    comp_frac["year_start"] = 2021
+    comp_frac["year_end"] = 2022
+    comp_frac = comp_frac.sort_values(metadata.DEMOGRAPHIC_COLUMNS).reset_index(drop=True)
+
+    return comp_frac
+
+
 def load_wasting_rr(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
     if type(location) != int:
         location_id = utility_data.get_location_id(location)
