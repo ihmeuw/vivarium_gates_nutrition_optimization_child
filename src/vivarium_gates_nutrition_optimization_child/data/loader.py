@@ -931,6 +931,24 @@ def load_underweight_exposure(key: str, location: Union[str, List[int]]) -> pd.D
     return df.fillna(0)
 
 
+def load_moderate_wasting_with_oedema_prevalence(
+    location: Union[str, List[int]],
+) -> pd.DataFrame:
+    """Load prevalence of moderate wasting with oedema sequela from GBD.
+
+    This prevalence is subtracted from MAM (cat2) and added to SAM (cat1) superstates
+    to account for oedema cases being reclassified from moderate to severe.
+    """
+    oedema_prevalence = interface.get_measure(
+        sequelae.moderate_wasting_with_edema,
+        "prevalence",
+        location,
+        metadata.GBD_EXTRACT_YEAR,
+    )
+    oedema_prevalence = filter_population(oedema_prevalence)
+    return oedema_prevalence
+
+
 def load_gbd_2021_exposure(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
     # Get national location id to use national data probabilities
     entity_key = EntityKey(key)
