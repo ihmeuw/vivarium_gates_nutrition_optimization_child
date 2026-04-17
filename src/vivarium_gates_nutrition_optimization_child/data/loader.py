@@ -949,6 +949,26 @@ def load_moderate_wasting_with_oedema_prevalence(
     return oedema_prevalence
 
 
+def _load_oedema_adjusted_wasting_exposure(
+    location: Union[str, List[int]],
+) -> pd.DataFrame:
+    """Load GBD wasting exposure with oedema reclassification applied.
+
+    Shifts moderate-wasting-with-oedema prevalence from MAM (cat2) to SAM (cat1).
+    Returns all four GBD parameters (cat1, cat2, cat3, cat4) with cat1/cat2 adjusted.
+    """
+    data = load_standard_data(data_keys.WASTING.EXPOSURE, location)
+    oedema = load_moderate_wasting_with_oedema_prevalence(location)
+
+    cat1 = data.query("parameter=='cat1'")
+    cat2 = data.query("parameter=='cat2'")
+
+    data.loc[cat1.index] = (cat1.droplevel("parameter") + oedema).values
+    data.loc[cat2.index] = (cat2.droplevel("parameter") - oedema).clip(lower=0).values
+
+    return data
+
+
 def load_gbd_2021_exposure(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
     # Get national location id to use national data probabilities
     entity_key = EntityKey(key)
