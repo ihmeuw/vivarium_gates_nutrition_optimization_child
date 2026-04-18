@@ -1208,30 +1208,25 @@ def load_wasting_rr(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
     cat1_rows = data.query("parameter=='cat1'")
     cat1_unc = cat1_rows.copy().rename(index={"cat1": "cat1_uncomplicated"}, level="parameter")
     cat1_comp = cat1_rows.copy().rename(index={"cat1": "cat1_complicated"}, level="parameter")
-    # Split cat2 (MAM) into worse and better substates (identical RR values)
-    cat2_rows = data.query("parameter=='cat2'")
-    cat20 = cat2_rows.copy().rename(index={"cat2": "cat2.0"}, level="parameter")
-    cat25 = cat2_rows.copy().rename(index={"cat2": "cat2.5"}, level="parameter")
+    # Rename cat2 → cat2.0 (cat2.5 already exists in the raw CSV data)
+    data = data.rename(index={"cat2": "cat2.0"}, level="parameter")
     data = pd.concat([
-        data.query("parameter not in ['cat1', 'cat2']"),
-        cat1_unc, cat1_comp, cat20, cat25,
+        data.query("parameter not in ['cat1']"),
+        cat1_unc, cat1_comp,
     ]).sort_index()
 
     # add neonatal data with relative risks of 1
-    # use stunting to get neonatal data
+    # use stunting to get neonatal data for cat1 substates, cat3, cat4
+    # (cat2.0 and cat2.5 neonatal data already exists in the CSV)
     neonatal_data = get_data(data_keys.STUNTING.RELATIVE_RISK, location).query(
         "age_start < .05"
     )
-    # Stunting neonatal RR has cat1-cat4; duplicate into wasting substates
     neo_cat1 = neonatal_data.query("parameter=='cat1'")
     neo_cat1_unc = neo_cat1.copy().rename(index={"cat1": "cat1_uncomplicated"}, level="parameter")
     neo_cat1_comp = neo_cat1.copy().rename(index={"cat1": "cat1_complicated"}, level="parameter")
-    neo_cat2 = neonatal_data.query("parameter=='cat2'")
-    neo_cat20 = neo_cat2.copy().rename(index={"cat2": "cat2.0"}, level="parameter")
-    neo_cat25 = neo_cat2.copy().rename(index={"cat2": "cat2.5"}, level="parameter")
     neonatal_data = pd.concat([
         neonatal_data.query("parameter not in ['cat1', 'cat2']"),
-        neo_cat1_unc, neo_cat1_comp, neo_cat20, neo_cat25,
+        neo_cat1_unc, neo_cat1_comp,
     ]).sort_index()
     data = pd.concat([data, neonatal_data]).sort_index()
 
