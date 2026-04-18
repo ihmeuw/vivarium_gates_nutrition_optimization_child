@@ -1013,7 +1013,7 @@ def _load_oedema_adjusted_wasting_exposure(
     cat2 = data.query("parameter=='cat2'")
 
     data.loc[cat1.index] = (cat1.droplevel("parameter") + oedema).values
-    data.loc[cat2.index] = (cat2.droplevel("parameter") - oedema).clip(lower=0).values
+    data.loc[cat2.index] = (cat2.droplevel("parameter") - oedema).values
 
     return data
 
@@ -1131,8 +1131,8 @@ def load_gbd_2021_exposure(key: str, location: Union[str, List[int]]) -> pd.Data
         [non_malnourished_states,
          cat20_worse_rows, cat25_better_rows, cat1_uncomplicated_rows, cat1_complicated_rows]
     ).sort_index()
-    data_trimmed = data.query("age_start.isin([0., 0.01917808, 0.07671233, 0.5, 1.,2.])")
-    return data_trimmed
+
+    return data
 
 
 def _load_complicated_sam_fraction(national_location_id: int) -> pd.DataFrame:
