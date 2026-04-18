@@ -689,9 +689,7 @@ def load_wasting_birth_prevalence(key: str, location: Union[str, List[int]]) -> 
     # Filter to the age group used for birth initialization
     comp_frac_birth = comp_frac.query(
         "age_start >= 0.07 and age_start <= 0.08"
-    ).drop(columns=["age_start", "age_end"]).set_index(
-        ["location", "sex", "year_start", "year_end"]
-    )
+    ).droplevel(["age_start", "age_end"])
 
     cat1_rows = birth_prevalence.query("parameter=='cat1'")
     # droplevel parameter and birth_weight_status so comp_frac_birth broadcasts
