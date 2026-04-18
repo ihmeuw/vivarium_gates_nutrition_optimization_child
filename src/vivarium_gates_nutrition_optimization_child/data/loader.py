@@ -1075,9 +1075,8 @@ def load_gbd_2021_exposure(key: str, location: Union[str, List[int]]) -> pd.Data
     )
 
     # distribute adjusted cat2 superstate amongst worse MAM and better MAM
-    data_trimmed = data.query("age_start.isin([0., 0.01917808, 0.07671233, 0.5, 1.,2.])")
-    non_malnourished_states = data_trimmed.query("parameter != 'cat2' and parameter != 'cat1'")
-    cat2_super_adj_rows = data_trimmed.query("parameter=='cat2'").copy().sort_index().reset_index()
+    non_malnourished_states = data.query("parameter != 'cat2' and parameter != 'cat1'")
+    cat2_super_adj_rows = data.query("parameter=='cat2'").copy().sort_index().reset_index()
     assert probabilities[metadata.DEMOGRAPHIC_COLUMNS].equals(
         cat2_super_adj_rows[metadata.DEMOGRAPHIC_COLUMNS]
     )
@@ -1106,7 +1105,7 @@ def load_gbd_2021_exposure(key: str, location: Union[str, List[int]]) -> pd.Data
     # Load comp_frac from transition rate CSV
     comp_frac = _load_complicated_sam_fraction(national_location_id)
 
-    cat1_super_adj_rows = data_trimmed.query("parameter=='cat1'").copy().sort_index().reset_index()
+    cat1_super_adj_rows = data.query("parameter=='cat1'").copy().sort_index().reset_index()
 
     # cat1_complicated = cat1_superstate * comp_frac
     cat1_complicated_rows = cat1_super_adj_rows.copy()
@@ -1130,10 +1129,12 @@ def load_gbd_2021_exposure(key: str, location: Union[str, List[int]]) -> pd.Data
         metadata.ARTIFACT_INDEX_COLUMNS + ["parameter"]
     ).sort_index()
 
-    return pd.concat(
+    data =  pd.concat(
         [non_malnourished_states,
          cat20_worse_rows, cat25_better_rows, cat1_uncomplicated_rows, cat1_complicated_rows]
     ).sort_index()
+    data_trimmed = data.query("age_start.isin([0., 0.01917808, 0.07671233, 0.5, 1.,2.])")
+    return data_trimmed
 
 
 def _load_complicated_sam_fraction(national_location_id: int) -> pd.DataFrame:
@@ -1151,7 +1152,7 @@ def _load_complicated_sam_fraction(national_location_id: int) -> pd.DataFrame:
     comp_frac["year_end"] = 2022
     comp_frac = comp_frac.sort_values(metadata.DEMOGRAPHIC_COLUMNS).reset_index(drop=True)
 
-    return comp_frac
+    return filter_population(comp_frac)
 
 
 def load_wasting_rr(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
