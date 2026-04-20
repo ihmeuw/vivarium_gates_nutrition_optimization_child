@@ -1216,19 +1216,24 @@ def load_wasting_rr(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
     ]).sort_index()
 
     # add neonatal data with relative risks of 1
-    # use stunting to get neonatal data for cat1 substates, cat3, cat4
-    # (cat2.0 and cat2.5 neonatal data already exists in the CSV)
+    # use stunting to get neonatal data for cat1 substates, cat2 substates, cat3, cat4
     neonatal_data = get_data(data_keys.STUNTING.RELATIVE_RISK, location).query(
         "age_start < .05"
     )
     neo_cat1 = neonatal_data.query("parameter=='cat1'")
     neo_cat1_unc = neo_cat1.copy().rename(index={"cat1": "cat1_uncomplicated"}, level="parameter")
     neo_cat1_comp = neo_cat1.copy().rename(index={"cat1": "cat1_complicated"}, level="parameter")
+    # Copilot Suggested Debug
+    neo_cat2 = neonatal_data.query("parameter=='cat2'")
+    neo_cat2_0 = neo_cat2.copy().rename(index={"cat2": "cat2.0"}, level="parameter")
+    neo_cat2_5 = neo_cat2.copy().rename(index={"cat2": "cat2.5"}, level="parameter")
     neonatal_data = pd.concat([
         neonatal_data.query("parameter not in ['cat1', 'cat2']"),
         neo_cat1_unc, neo_cat1_comp,
+        neo_cat2_0, neo_cat2_5,
     ]).sort_index()
     data = pd.concat([data, neonatal_data]).sort_index()
+    data = data[~data.index.duplicated(keep='first')]
 
     return data
 
