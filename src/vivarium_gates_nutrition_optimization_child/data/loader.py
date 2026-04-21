@@ -549,7 +549,11 @@ def load_wasting_birth_prevalence(key: str, location: Union[str, List[int]]) -> 
         .query("age_end == 0.5")
         .droplevel(["age_start", "age_end"])
     )
-
+    wasting_prevalence_superstates = (
+        _load_oedema_adjusted_wasting_exposure(location)
+        .query("age_end == 0.5")
+        .droplevel(["age_start", "age_end"])
+    )
     # Returns something national
     # read and process prevalence of low birth weight amongst infants who survive to 30 days
     national_location_id = get_national_location_id(location[0])
@@ -573,7 +577,7 @@ def load_wasting_birth_prevalence(key: str, location: Union[str, List[int]]) -> 
     )
 
     # calculate prevalences
-    prev_cat1 = wasting_prevalence.query("parameter=='cat1'")
+    prev_cat1 = wasting_prevalence_superstates.query("parameter=='cat1'")
     prev_cat3 = wasting_prevalence.query("parameter=='cat3'")
     prev_cat4 = wasting_prevalence.query("parameter=='cat4'")
     # sum cat2 and cat2.5 for MAM
@@ -581,8 +585,7 @@ def load_wasting_birth_prevalence(key: str, location: Union[str, List[int]]) -> 
     prev_cat2 = prev_cat2.groupby(["location", "sex", "year_start", "year_end"]).sum()
     prev_cat2["parameter"] = "cat2"
     prev_cat2 = prev_cat2.set_index(["parameter"], append=True)
-    prev_cat3 = wasting_prevalence.query("parameter=='cat3'")
-    prev_cat4 = wasting_prevalence.query("parameter=='cat4'")
+    
 
     # relative risk of LBW on wasting
     relative_risk_draws = get_random_variable_draws(
