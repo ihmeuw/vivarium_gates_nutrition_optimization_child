@@ -1442,7 +1442,7 @@ def load_mam_treatment_rr(key: str, location: str) -> pd.DataFrame:
 
     demography = get_data(data_keys.POPULATION.DEMOGRAPHY, location).reset_index()
     mam_tx_efficacy, mam_tx_efficacy_tmrel = utilities.get_treatment_efficacy(
-        demography, data_keys.WASTING.CAT2, location
+        demography, data_keys.WASTING.CAT20_WORSE, location
     )
     index = mam_tx_efficacy.index
 
