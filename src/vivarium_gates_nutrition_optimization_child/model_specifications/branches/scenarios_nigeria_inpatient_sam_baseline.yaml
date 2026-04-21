@@ -1,0 +1,5 @@
+input_draw_count: 4
+random_seed_count: 5
+
+input_draws: [0, 8, 13, 41]
+random_seeds: [4344, 5616, 6810, 2787, 2284]
