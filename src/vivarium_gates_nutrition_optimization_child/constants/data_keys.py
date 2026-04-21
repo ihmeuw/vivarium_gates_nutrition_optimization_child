@@ -252,9 +252,7 @@ class __Wasting(NamedTuple):
     CAT4 = "cat4"
     CAT3 = "cat3"
     CAT25_BETTER = "cat2.5"
-    CAT20_WORSE = "cat2.0"
-    CAT2_SUPERSTATE = "cat2"
-    CAT1_SUPERSTATE = "cat1"
+    CAT20_WORSE = "cat2"
     CAT1_UNCOMPLICATED = "cat1_uncomplicated"
     CAT1_COMPLICATED = "cat1_complicated"
 

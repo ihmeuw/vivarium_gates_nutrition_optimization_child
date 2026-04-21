@@ -402,8 +402,7 @@ def load_metadata(key: str, location: Union[str, List[int]]):
         del entity_metadata["cat1"]
         entity_metadata["cat1_uncomplicated"] = "Uncomplicated Severe Acute Malnutrition"
         entity_metadata["cat1_complicated"] = "Complicated Severe Acute Malnutrition"
-        del entity_metadata["cat2"]
-        entity_metadata["cat2.0"] = "Wasting Between -3 SD and -2.5 SD (worse MAM)"
+        entity_metadata["cat2"] = "Wasting Between -3 SD and -2.5 SD (worse MAM)"
         entity_metadata["cat2.5"] = "Wasting Between -2.5 SD and -2 SD (better MAM)"
     return entity_metadata
 
@@ -663,17 +662,11 @@ def load_wasting_birth_prevalence(key: str, location: Union[str, List[int]]) -> 
         "birth_weight_status", append=True
     ).sort_index()
 
-    # --- Distribute MAM superstate amongst worse MAM (cat2.0) and better MAM (cat2.5) ---
+    # --- Distribute MAM superstate amongst worse MAM (cat2) and better MAM (cat2.5) ---
     cat2_rows = birth_prevalence.query("parameter=='cat2'").copy()
-    # update cat2 rows to cat2.0 (worse MAM)
+    # update cat2 rows to worse MAM (cat2)
     birth_prevalence.loc[birth_prevalence.query("parameter=='cat2'").index] = (
         cat2_rows * data_values.WASTING.PROBABILITY_OF_CAT2
-    )
-    # rename cat2 -> cat2.0
-    birth_prevalence = (
-        birth_prevalence.reset_index()
-        .replace({"parameter": {"cat2": "cat2.0"}})
-        .set_index(birth_prevalence.index.names)
     )
     # create cat2.5 (better MAM) rows
     cat25_rows = cat2_rows * (1 - data_values.WASTING.PROBABILITY_OF_CAT2)
@@ -912,13 +905,8 @@ def load_underweight_exposure(key: str, location: Union[str, List[int]]) -> pd.D
         + ["stunting_parameter", "wasting_parameter", "parameter"]
     )
 
-    # Split wasting cat2 into cat2.0 (worse MAM) and cat2.5 (better MAM)
+    # Split wasting cat2 into cat2 (worse MAM) and cat2.5 (better MAM)
     cat2_rows = df.query("wasting_parameter=='cat2'").copy()
-    cat20_rows = (
-        cat2_rows.reset_index()
-        .replace({"wasting_parameter": {"cat2": "cat2.0"}})
-        .set_index(df.index.names)
-    )
     cat25_rows = (
         cat2_rows.reset_index()
         .replace({"wasting_parameter": {"cat2": "cat2.5"}})
@@ -938,7 +926,7 @@ def load_underweight_exposure(key: str, location: Union[str, List[int]]) -> pd.D
     )
     df = pd.concat([
         df.query("wasting_parameter not in ['cat1', 'cat2']"),
-        cat1_unc_rows, cat1_comp_rows, cat20_rows, cat25_rows,
+        cat1_unc_rows, cat1_comp_rows, cat2_rows, cat25_rows,
     ]).sort_index()
     index_names = df.index.names
 
@@ -957,7 +945,7 @@ def load_underweight_exposure(key: str, location: Union[str, List[int]]) -> pd.D
         "year_start": list([2021]),
         "location": df.reset_index().location.unique(),
         "stunting_parameter": ["cat1", "cat2", "cat3", "cat4"],
-        "wasting_parameter": ["cat1_uncomplicated", "cat1_complicated", "cat2.0", "cat2.5", "cat3", "cat4"],
+        "wasting_parameter": ["cat1_uncomplicated", "cat1_complicated", "cat2", "cat2.5", "cat3", "cat4"],
         "parameter": ["cat1", "cat2", "cat3", "cat4"],
     }
     complete_index = cartesian_product(index_elements)
@@ -1029,7 +1017,7 @@ def load_gbd_2021_exposure(key: str, location: Union[str, List[int]]) -> pd.Data
     data = _load_oedema_adjusted_wasting_exposure(location)
     location_names = data.reset_index().location.unique()
 
-    # --- MAM substate split (cat2 → cat2.0 worse / cat2.5 better) ---
+    # --- MAM substate split (cat2 → cat2 worse / cat2.5 better) ---
     # format probabilities of entering worse MAM state
     probabilities = pd.read_csv(paths.PROBABILITIES_OF_WORSE_MAM_EXPOSURE)
     # add early neonatal rows by duplicating late neonatal data
@@ -1079,13 +1067,12 @@ def load_gbd_2021_exposure(key: str, location: Union[str, List[int]]) -> pd.Data
         cat2_super_adj_rows[metadata.DEMOGRAPHIC_COLUMNS]
     )
 
-    # cat2.0_worse = cat2_superstate * worse_fraction
-    cat20_worse_rows = cat2_super_adj_rows.copy()
-    cat20_worse_rows["parameter"] = "cat2.0"
-    cat20_worse_rows[metadata.ARTIFACT_COLUMNS] = (
+    # cat2_worse = cat2_superstate * worse_fraction
+    cat2_worse_rows = cat2_super_adj_rows.copy()
+    cat2_worse_rows[metadata.ARTIFACT_COLUMNS] = (
         cat2_super_adj_rows[metadata.ARTIFACT_COLUMNS] * probabilities[metadata.ARTIFACT_COLUMNS]
     )
-    cat20_worse_rows = cat20_worse_rows.set_index(
+    cat2_worse_rows = cat2_worse_rows.set_index(
         metadata.ARTIFACT_INDEX_COLUMNS + ["parameter"]
     ).sort_index()
 
@@ -1129,7 +1116,7 @@ def load_gbd_2021_exposure(key: str, location: Union[str, List[int]]) -> pd.Data
 
     data =  pd.concat(
         [non_malnourished_states,
-         cat20_worse_rows, cat25_better_rows, cat1_uncomplicated_rows, cat1_complicated_rows]
+         cat2_worse_rows, cat25_better_rows, cat1_uncomplicated_rows, cat1_complicated_rows]
     ).sort_index()
 
     return data
@@ -1208,8 +1195,7 @@ def load_wasting_rr(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
     cat1_rows = data.query("parameter=='cat1'")
     cat1_unc = cat1_rows.copy().rename(index={"cat1": "cat1_uncomplicated"}, level="parameter")
     cat1_comp = cat1_rows.copy().rename(index={"cat1": "cat1_complicated"}, level="parameter")
-    # Rename cat2 → cat2.0 (cat2.5 already exists in the raw CSV data)
-    data = data.rename(index={"cat2": "cat2.0"}, level="parameter")
+    # cat2.5 already exists in the raw CSV data; cat2 stays as cat2 (worse MAM)
     data = pd.concat([
         data.query("parameter not in ['cat1']"),
         cat1_unc, cat1_comp,
@@ -1223,14 +1209,13 @@ def load_wasting_rr(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
     neo_cat1 = neonatal_data.query("parameter=='cat1'")
     neo_cat1_unc = neo_cat1.copy().rename(index={"cat1": "cat1_uncomplicated"}, level="parameter")
     neo_cat1_comp = neo_cat1.copy().rename(index={"cat1": "cat1_complicated"}, level="parameter")
-    # Copilot Suggested Debug
-    neo_cat2 = neonatal_data.query("parameter=='cat2'")
-    neo_cat2_0 = neo_cat2.copy().rename(index={"cat2": "cat2.0"}, level="parameter")
-    neo_cat2_5 = neo_cat2.copy().rename(index={"cat2": "cat2.5"}, level="parameter")
+    neo_cat2_5 = neonatal_data.query("parameter=='cat2'").copy().rename(
+        index={"cat2": "cat2.5"}, level="parameter"
+    )
     neonatal_data = pd.concat([
-        neonatal_data.query("parameter not in ['cat1', 'cat2']"),
+        neonatal_data.query("parameter not in ['cat1']"),
         neo_cat1_unc, neo_cat1_comp,
-        neo_cat2_0, neo_cat2_5,
+        neo_cat2_5,
     ]).sort_index()
     data = pd.concat([data, neonatal_data]).sort_index()
     data = data[~data.index.duplicated(keep='first')]
@@ -1444,7 +1429,7 @@ def load_mam_treatment_rr(key: str, location: str) -> pd.DataFrame:
 
     demography = get_data(data_keys.POPULATION.DEMOGRAPHY, location).reset_index()
     mam_tx_efficacy, mam_tx_efficacy_tmrel = utilities.get_treatment_efficacy(
-        demography, data_keys.WASTING.CAT20_WORSE, location
+        demography, data_keys.WASTING.CAT2, location
     )
     index = mam_tx_efficacy.index
 
