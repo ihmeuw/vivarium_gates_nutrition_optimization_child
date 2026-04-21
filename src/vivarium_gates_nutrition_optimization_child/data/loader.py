@@ -1199,10 +1199,14 @@ def load_wasting_rr(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
 
     data = pd.concat([inc, emr])
 
-    # Split cat1 (SAM) into uncomplicated and complicated substates (identical RR values)
+    # Split cat1 (SAM) into uncomplicated and complicated substates
+    # Incidence rate RRs: use cat1 superstate value for both substates
+    # EMR RRs: set to zero for both SAM substates
     cat1_rows = data.query("parameter=='cat1'")
     cat1_unc = cat1_rows.copy().rename(index={"cat1": "cat1_uncomplicated"}, level="parameter")
     cat1_comp = cat1_rows.copy().rename(index={"cat1": "cat1_complicated"}, level="parameter")
+    cat1_unc.loc[cat1_unc.query('affected_measure == "excess_mortality_rate"').index] = 0
+    cat1_comp.loc[cat1_comp.query('affected_measure == "excess_mortality_rate"').index] = 0
     # cat2.5 already exists in the raw CSV data; cat2 stays as cat2 (worse MAM)
     data = pd.concat([
         data.query("parameter not in ['cat1']"),
