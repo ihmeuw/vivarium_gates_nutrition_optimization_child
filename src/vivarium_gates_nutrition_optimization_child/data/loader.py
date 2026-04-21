@@ -1135,8 +1135,8 @@ def _load_complicated_sam_fraction(national_location_id: int) -> pd.DataFrame:
 
     Returns a DataFrame with demographic columns + draw columns,
     aligned for element-wise multiplication with cat1 exposure data.
-    The CSV only has post-neonatal ages; neonatal ages are backfilled
-    with the 1-5 month values (the youngest available age group).
+    The CSV only has post-neonatal ages; neonatal ages are filled
+    with NaN.
     """
     rates = pd.read_csv(
         paths.WASTING_TRANSITIONS_COMPLICATED_SAM_DATA_DIR / f"{national_location_id}.csv"
@@ -1146,17 +1146,17 @@ def _load_complicated_sam_fraction(national_location_id: int) -> pd.DataFrame:
     comp_frac["year_start"] = 2021
     comp_frac["year_end"] = 2022
 
-    # Backfill neonatal age groups using the youngest available (1-5 month) values
-    min_age = comp_frac["age_start"].min()
-    youngest = comp_frac.query("age_start == @min_age")
+    # Add neonatal age groups with NaN draw values
     neonatal_ages = [(0.0, 0.01917808), (0.01917808, 0.07671233)]
+    draw_cols = [c for c in comp_frac.columns if c.startswith("draw_")]
     neonatal_rows = []
     for age_start, age_end in neonatal_ages:
-        row = youngest.copy()
-        row["age_start"] = age_start
-        row["age_end"] = age_end
-        neonatal_rows.append(row)
-    comp_frac = pd.concat([*neonatal_rows, comp_frac])
+        for sex in comp_frac["sex"].unique():
+            row = {"sex": sex, "age_start": age_start, "age_end": age_end,
+                   "year_start": 2021, "year_end": 2022}
+            row.update({c: np.nan for c in draw_cols})
+            neonatal_rows.append(row)
+    comp_frac = pd.concat([pd.DataFrame(neonatal_rows), comp_frac])
 
     comp_frac = comp_frac.sort_values(metadata.DEMOGRAPHIC_COLUMNS).reset_index(drop=True)
 
