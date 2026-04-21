@@ -545,7 +545,7 @@ def expand_data(data: pd.DataFrame, column_name: str, column_values: List) -> pd
 def load_wasting_birth_prevalence(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
     ## Returns something subnational
     wasting_prevalence = (
-        _load_oedema_adjusted_wasting_exposure(location)
+        get_data(data_keys.WASTING.EXPOSURE, location)
         .query("age_end == 0.5")
         .droplevel(["age_start", "age_end"])
     )
@@ -572,10 +572,15 @@ def load_wasting_birth_prevalence(key: str, location: Union[str, List[int]]) -> 
         ["age_start", "age_end", "year_start", "year_end"]
     )
 
-    # Oedema-adjusted data has GBD superstates (cat1, cat2, cat3, cat4).
-    # Use superstates for the LBW/ABW calculation, then split to substates below.
+    # calculate prevalences
     prev_cat1 = wasting_prevalence.query("parameter=='cat1'")
-    prev_cat2 = wasting_prevalence.query("parameter=='cat2'")
+    prev_cat3 = wasting_prevalence.query("parameter=='cat3'")
+    prev_cat4 = wasting_prevalence.query("parameter=='cat4'")
+    # sum cat2 and cat2.5 for MAM
+    prev_cat2 = wasting_prevalence.query("parameter=='cat2' or parameter=='cat2.5'")
+    prev_cat2 = prev_cat2.groupby(["location", "sex", "year_start", "year_end"]).sum()
+    prev_cat2["parameter"] = "cat2"
+    prev_cat2 = prev_cat2.set_index(["parameter"], append=True)
     prev_cat3 = wasting_prevalence.query("parameter=='cat3'")
     prev_cat4 = wasting_prevalence.query("parameter=='cat4'")
 
