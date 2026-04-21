@@ -1151,11 +1151,12 @@ def _load_complicated_sam_fraction(national_location_id: int) -> pd.DataFrame:
     draw_cols = [c for c in comp_frac.columns if c.startswith("draw_")]
     neonatal_rows = []
     for age_start, age_end in neonatal_ages:
-        for sex in comp_frac["sex"].unique():
-            row = {"sex": sex, "age_start": age_start, "age_end": age_end,
-                   "year_start": 2021, "year_end": 2022}
-            row.update({c: np.nan for c in draw_cols})
-            neonatal_rows.append(row)
+        for location in comp_frac["location"].unique():
+            for sex in comp_frac["sex"].unique():
+                row = {"sex": sex, "age_start": age_start, "age_end": age_end,
+                       "location": location, "year_start": 2021, "year_end": 2022}
+                row.update({c: np.nan for c in draw_cols})
+                neonatal_rows.append(row)
     comp_frac = pd.concat([pd.DataFrame(neonatal_rows), comp_frac])
 
     comp_frac = comp_frac.sort_values(metadata.DEMOGRAPHIC_COLUMNS).reset_index(drop=True)
