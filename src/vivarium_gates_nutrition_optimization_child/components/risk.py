@@ -59,7 +59,7 @@ class ChildUnderweight(Risk):
         """Store and setup distributions for each joint stunting and wasting state."""
         distributions = {}
         stunting_categories = [f"cat{i+1}" for i in range(4)]
-        wasting_categories = ["cat1_uncomplicated", "cat1_complicated", "cat2.0", "cat2.5", "cat3", "cat4"]
+        wasting_categories = ["cat1_uncomplicated", "cat1_complicated", "cat2", "cat2.5", "cat3", "cat4"]
         all_distribution_data = builder.data.load(data_keys.UNDERWEIGHT.EXPOSURE)
 
         for stunting_cat, wasting_cat in itertools.product(
