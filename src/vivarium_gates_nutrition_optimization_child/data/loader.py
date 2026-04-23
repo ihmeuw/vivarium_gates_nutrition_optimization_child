@@ -291,7 +291,6 @@ def get_data(
         data = mapping[lookup_key](lookup_key, subnational_ids)
 
     if isinstance(data, pd.DataFrame) and data.isna().any().any():
-        breakpoint()
         raise ValueError(f"NaN values found in data for key '{lookup_key}'.")
 
     return data
