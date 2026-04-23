@@ -291,6 +291,7 @@ def get_data(
         data = mapping[lookup_key](lookup_key, subnational_ids)
 
     if isinstance(data, pd.DataFrame) and data.isna().any().any():
+        breakpoint()
         raise ValueError(f"NaN values found in data for key '{lookup_key}'.")
 
     return data
@@ -319,6 +320,8 @@ def load_population_structure(key: str, location: Union[str, List[int]]) -> pd.D
 
 def filter_population(unfiltered: pd.DataFrame) -> pd.DataFrame:
     unfiltered = unfiltered.reset_index()
+    if "index" in unfiltered.columns:
+        unfiltered = unfiltered.drop(columns="index")
     filtered_pop = unfiltered[(unfiltered.age_end <= 5)]
     filtered_pop = filtered_pop.set_index(ARTIFACT_INDEX_COLUMNS)
 
@@ -616,7 +619,7 @@ def load_wasting_birth_prevalence(key: str, location: Union[str, List[int]]) -> 
         )
         * prev_cat3
         / (prev_cat3 + prev_cat4.droplevel("parameter"))
-    )
+    ).fillna(0)
     adequate_birth_weight_cat4_probability = prev_cat4 + (
         (
             prev_cat1.droplevel("parameter")
@@ -626,7 +629,7 @@ def load_wasting_birth_prevalence(key: str, location: Union[str, List[int]]) -> 
         )
         * prev_cat4
         / (prev_cat3.droplevel("parameter") + prev_cat4)
-    )
+    ).fillna(0)
 
     low_birth_weight_cat1_probability = adequate_birth_weight_cat1_probability * relative_risk
     low_birth_weight_cat2_probability = adequate_birth_weight_cat2_probability * relative_risk
@@ -639,7 +642,7 @@ def load_wasting_birth_prevalence(key: str, location: Union[str, List[int]]) -> 
         )
         * prev_cat3
         / (prev_cat3 + prev_cat4.droplevel("parameter"))
-    )
+    ).fillna(0)
     low_birth_weight_cat4_probability = prev_cat4 + (
         (
             prev_cat1.droplevel("parameter")
@@ -649,7 +652,7 @@ def load_wasting_birth_prevalence(key: str, location: Union[str, List[int]]) -> 
         )
         * prev_cat4
         / (prev_cat3.droplevel("parameter") + prev_cat4)
-    )
+    ).fillna(0)
 
     adequate_bw_prevalence = pd.concat(
         [
