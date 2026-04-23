@@ -8,11 +8,9 @@ branches:
   - intervention:
       child_scenario:
         - 'baseline'
-        - 'scenario_0_zero_coverage'
-        - 'scenario_8_all'
       maternal_scenario:
         - 'baseline'
       sqlns_effect_size: 
         - 'standard'
       subnational: 
-        - 'All'
+        - 'Kano'
