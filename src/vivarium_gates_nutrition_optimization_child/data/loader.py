@@ -1295,8 +1295,10 @@ def _load_mortality_rates(location: Union[str, List[int]]) -> Dict[str, pd.DataF
     Reads mort_rate_complicated_sam, mort_rate_uncomplicated_sam, and
     mort_rate_other_causes from the CSV. Fills neonatal ages with zeros.
 
-    Returns a dict mapping parameter name to a DataFrame with
-    ARTIFACT_INDEX_COLUMNS index and ARTIFACT_COLUMNS (draw columns).
+    Returns a dict mapping parameter name to a DataFrame indexed by
+    sex, age_start, age_end, year_start, year_end (no location) with
+    ARTIFACT_COLUMNS (draw columns). Location is excluded so the rates
+    broadcast correctly against subnational prevalence data.
     """
     national_location_id = get_national_location_id(location[0])
 
@@ -1313,21 +1315,21 @@ def _load_mortality_rates(location: Union[str, List[int]]) -> Dict[str, pd.DataF
     ]
     mort_rates = rates.query("parameter in @mortality_params").copy()
     mort_rates = mort_rates.rename({"parameter": "rate_name"}, axis=1)
+    mort_rates = mort_rates.drop(columns="location")
     mort_rates["year_start"] = 2021
     mort_rates["year_end"] = 2022
 
     # Fill neonatal ages with zeros
+    non_location_index = [c for c in metadata.ARTIFACT_INDEX_COLUMNS if c != "location"]
     min_age = mort_rates["age_start"].min()
-    neonatal_demography = demography.query("age_start < @min_age")
+    neonatal_demography = demography.query("age_start < @min_age").droplevel("location")
     youngest_ages_data = pd.DataFrame(
         0.0, columns=metadata.ARTIFACT_COLUMNS, index=neonatal_demography.index
     )
     youngest_ages_data = expand_data(youngest_ages_data, "rate_name", mortality_params)
-
-    mort_rates = mort_rates[youngest_ages_data.columns]
     mort_rates = pd.concat([youngest_ages_data, mort_rates])
     mort_rates = mort_rates.set_index(
-        metadata.ARTIFACT_INDEX_COLUMNS + ["rate_name"]
+        non_location_index + ["rate_name"]
     ).sort_index()
 
     result = {}
