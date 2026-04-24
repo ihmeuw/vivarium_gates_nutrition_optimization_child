@@ -482,17 +482,17 @@ def load_wasting_transition_rates(key: str, location: Union[str, List[int]]) -> 
 
     # explicitly add the youngest ages data with values of 0
     min_age = rates.reset_index()["age_start"].min()
-    demography = demography.query("age_start < @min_age")
-    youngest_ages_data = pd.DataFrame(
-        0, columns=metadata.ARTIFACT_COLUMNS, index=demography.index
-    )
-    # add all transitions
+    location_names = rates["location"].unique().tolist()
     transitions = rates.reset_index()["transition"].unique()
+    neonatal_demography = demography.query("age_start < @min_age").droplevel("location")
+    youngest_ages_data = pd.DataFrame(
+        0.0, columns=metadata.ARTIFACT_COLUMNS, index=neonatal_demography.index
+    )
     youngest_ages_data = expand_data(youngest_ages_data, "transition", transitions)
+    youngest_ages_data = expand_data(youngest_ages_data, "location", location_names)
 
     rates["year_start"] = 2021
     rates["year_end"] = 2022
-    rates = rates[youngest_ages_data.columns]
     rates = pd.concat([youngest_ages_data, rates])
 
     # update rate transitions into MAM to substates
