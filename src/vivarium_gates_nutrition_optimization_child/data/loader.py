@@ -75,8 +75,9 @@ NATIONAL_LEVEL_DATA_KEYS = [
     data_keys.UNDERWEIGHT.DISTRIBUTION,
     data_keys.UNDERWEIGHT.CATEGORIES,
     data_keys.PEM.RESTRICTIONS,
-    data_keys.MODERATE_PEM.RESTRICTIONS,
-    data_keys.SEVERE_PEM.RESTRICTIONS,
+    data_keys.OTHER_PEM.RESTRICTIONS,
+    data_keys.UNCOMPLICATED_SEVERE_PEM.RESTRICTIONS,
+    data_keys.COMPLICATED_SEVERE_PEM.RESTRICTIONS,
     data_keys.SAM_TREATMENT.EXPOSURE,
     data_keys.SAM_TREATMENT.DISTRIBUTION,
     data_keys.SAM_TREATMENT.CATEGORIES,
@@ -215,14 +216,16 @@ def get_data(
         data_keys.PEM.EMR: load_pem_emr,
         data_keys.PEM.CSMR: load_pem_csmr,
         data_keys.PEM.RESTRICTIONS: load_pem_restrictions,
-        data_keys.MODERATE_PEM.DISABILITY_WEIGHT: load_pem_disability_weight,
-        data_keys.MODERATE_PEM.EMR: load_pem_emr,
-        data_keys.MODERATE_PEM.CSMR: load_pem_csmr,
-        data_keys.MODERATE_PEM.RESTRICTIONS: load_pem_restrictions,
-        data_keys.SEVERE_PEM.DISABILITY_WEIGHT: load_pem_disability_weight,
-        data_keys.SEVERE_PEM.EMR: load_pem_emr,
-        data_keys.SEVERE_PEM.CSMR: load_pem_csmr,
-        data_keys.SEVERE_PEM.RESTRICTIONS: load_pem_restrictions,
+        data_keys.OTHER_PEM.EMR: load_pem_emr,
+        data_keys.OTHER_PEM.CSMR: load_pem_csmr,
+        data_keys.OTHER_PEM.RESTRICTIONS: load_pem_restrictions,
+        
+        data_keys.UNCOMPLICATED_SEVERE_PEM.EMR: load_pem_emr,
+        data_keys.UNCOMPLICATED_SEVERE_PEM.CSMR: load_pem_csmr,
+        data_keys.UNCOMPLICATED_SEVERE_PEM.RESTRICTIONS: load_pem_restrictions,
+        data_keys.COMPLICATED_SEVERE_PEM.EMR: load_pem_emr,
+        data_keys.COMPLICATED_SEVERE_PEM.CSMR: load_pem_csmr,
+        data_keys.COMPLICATED_SEVERE_PEM.RESTRICTIONS: load_pem_restrictions,
         data_keys.SAM_TREATMENT.EXPOSURE: load_wasting_treatment_exposure,
         data_keys.SAM_TREATMENT.DISTRIBUTION: load_wasting_treatment_distribution,
         data_keys.SAM_TREATMENT.CATEGORIES: load_wasting_treatment_categories,
@@ -1281,46 +1284,118 @@ def load_cgf_paf(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
     return data.sort_index()
 
 
-def load_pem_disability_weight(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
-    try:
-        pem_sequelae = {
-            data_keys.MODERATE_PEM.DISABILITY_WEIGHT: [
-                sequelae.moderate_wasting_with_edema,
-                sequelae.moderate_wasting_without_edema,
-            ],
-            data_keys.SEVERE_PEM.DISABILITY_WEIGHT: [
-                sequelae.severe_wasting_with_edema,
-                sequelae.severe_wasting_without_edema,
-            ],
-        }[key]
-    except KeyError:
-        raise ValueError(f"Unrecognized key {key}")
+def _load_mortality_rates(location: Union[str, List[int]]) -> Dict[str, pd.DataFrame]:
+    """Load custom mortality rates from the wasting transition CSV.
 
-    prevalence_disability_weight = []
-    state_prevalence = []
-    for s in pem_sequelae:
-        sequela_prevalence = interface.get_measure(
-            s, "prevalence", location, metadata.GBD_EXTRACT_YEAR
-        )
-        sequela_disability_weight = interface.get_measure(
-            s, "disability_weight", location, metadata.GBD_EXTRACT_YEAR
-        )
+    Reads mort_rate_complicated_sam, mort_rate_uncomplicated_sam, and
+    mort_rate_other_causes from the CSV. Fills neonatal ages with zeros.
 
-        prevalence_disability_weight += [sequela_prevalence * sequela_disability_weight]
-        state_prevalence += [sequela_prevalence]
+    Returns a dict mapping parameter name to a DataFrame with
+    ARTIFACT_INDEX_COLUMNS index and ARTIFACT_COLUMNS (draw columns).
+    """
+    national_location_id = get_national_location_id(location[0])
 
-    disability_weight = (sum(prevalence_disability_weight) / sum(state_prevalence)).fillna(0)
-    return disability_weight
+    demography = get_data(data_keys.POPULATION.DEMOGRAPHY, national_location_id)
+
+    rates = pd.read_csv(
+        paths.WASTING_TRANSITIONS_COMPLICATED_SAM_DATA_DIR / f"{national_location_id}.csv"
+    )
+
+    mortality_params = [
+        "mort_rate_complicated_sam",
+        "mort_rate_uncomplicated_sam",
+        "mort_rate_other_causes",
+    ]
+    mort_rates = rates.query("parameter in @mortality_params").copy()
+    mort_rates = mort_rates.rename({"parameter": "rate_name"}, axis=1)
+    mort_rates["year_start"] = 2021
+    mort_rates["year_end"] = 2022
+
+    # Fill neonatal ages with zeros
+    min_age = mort_rates["age_start"].min()
+    neonatal_demography = demography.query("age_start < @min_age")
+    youngest_ages_data = pd.DataFrame(
+        0.0, columns=metadata.ARTIFACT_COLUMNS, index=neonatal_demography.index
+    )
+    youngest_ages_data = expand_data(youngest_ages_data, "rate_name", mortality_params)
+
+    mort_rates = mort_rates[youngest_ages_data.columns]
+    mort_rates = pd.concat([youngest_ages_data, mort_rates])
+    mort_rates = mort_rates.set_index(
+        metadata.ARTIFACT_INDEX_COLUMNS + ["rate_name"]
+    ).sort_index()
+
+    result = {}
+    for param in mortality_params:
+        param_data = mort_rates.xs(param, level="rate_name")
+        result[param] = param_data[metadata.ARTIFACT_COLUMNS]
+
+    return result
 
 
 def load_pem_emr(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
-    emr = load_standard_data(data_keys.PEM.EMR, location)
-    return emr
+    """Load state-specific mortality rates as EMR for PEM causes.
 
+    Routes to the appropriate custom mortality rate based on the key:
+    - OTHER_PEM.EMR -> mort_rate_other_causes
+    - UNCOMPLICATED_SEVERE_PEM.EMR -> mort_rate_uncomplicated_sam
+    - COMPLICATED_SEVERE_PEM.EMR -> mort_rate_complicated_sam
+    - PEM.EMR -> weighted sum (population-level EMR)
+    """
+    mort_rates = _load_mortality_rates(location)
+
+    emr_mapping = {
+        data_keys.OTHER_PEM.EMR: "mort_rate_other_causes",
+        data_keys.UNCOMPLICATED_SEVERE_PEM.EMR: "mort_rate_uncomplicated_sam",
+        data_keys.COMPLICATED_SEVERE_PEM.EMR: "mort_rate_complicated_sam",
+    }
+
+    if key in emr_mapping:
+        return mort_rates[emr_mapping[key]]
+    elif key == data_keys.PEM.EMR:
+        # Return the standard GBD EMR for backward compatibility
+        return load_standard_data(data_keys.PEM.EMR, location)
+    else:
+        raise ValueError(f"Unrecognized key {key}")
 
 def load_pem_csmr(key: str, location: Union[str, List[int]]) -> pd.DataFrame:
-    csmr = load_standard_data(data_keys.PEM.CSMR, location)
-    return csmr
+    """Compute PEM CSMR from custom mortality rates and wasting prevalence.
+
+    csmr_pem = mort_rate_complicated_sam * prev_cat1_complicated
+             + mort_rate_uncomplicated_sam * prev_cat1_uncomplicated
+             + mort_rate_other_causes * (prev_cat4 + prev_cat3 + prev_cat2.5 + prev_cat2)
+    """
+    mort_rates = _load_mortality_rates(location)
+    wasting_exposure = get_data(data_keys.WASTING.EXPOSURE, location)
+
+    # Extract prevalence for a single wasting state (cross-section on parameter level)
+    def _get_prev(parameter_name):
+        prev = wasting_exposure.xs(parameter_name, level="parameter")
+        return prev[metadata.ARTIFACT_COLUMNS]
+
+    prev_cat1_complicated = _get_prev("cat1_complicated")
+    prev_cat1_uncomplicated = _get_prev("cat1_uncomplicated")
+    prev_cat4 = _get_prev("cat4")
+    prev_cat3 = _get_prev("cat3")
+    prev_cat25 = _get_prev("cat2.5")
+    prev_cat2 = _get_prev("cat2")
+    prev_non_sam = prev_cat4 + prev_cat3 + prev_cat25 + prev_cat2
+
+    csmr_complicated = mort_rates["mort_rate_complicated_sam"] * prev_cat1_complicated
+    csmr_uncomplicated = mort_rates["mort_rate_uncomplicated_sam"] * prev_cat1_uncomplicated
+    csmr_other = mort_rates["mort_rate_other_causes"] * prev_non_sam
+
+    csmr_mapping = {
+        data_keys.COMPLICATED_SEVERE_PEM.CSMR: csmr_complicated,
+        data_keys.UNCOMPLICATED_SEVERE_PEM.CSMR: csmr_uncomplicated,
+        data_keys.OTHER_PEM.CSMR: csmr_other,
+        data_keys.PEM.CSMR: csmr_complicated + csmr_uncomplicated + csmr_other,
+    }
+
+    if key not in csmr_mapping:
+        raise ValueError(f"Unrecognized key {key}")
+
+    return csmr_mapping[key]
 
 
 def load_pem_restrictions(key: str, location: str) -> pd.DataFrame:

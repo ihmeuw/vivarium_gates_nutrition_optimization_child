@@ -53,8 +53,9 @@ components:
             - MMSEffectOnGestationalAge()
             - BirthWeightShiftEffect()
             - SIS_with_birth_prevalence('diarrheal_diseases')
-            - RiskAttributableDisease('cause.moderate_protein_energy_malnutrition', 'risk_factor.child_wasting')
-            - RiskAttributableDisease('cause.severe_protein_energy_malnutrition', 'risk_factor.child_wasting')
+            - RiskAttributableDisease('cause.other_protein_energy_malnutrition', 'risk_factor.child_wasting')
+            - RiskAttributableDisease('cause.uncomplicated_severe_protein_energy_malnutrition', 'risk_factor.child_wasting')
+            - RiskAttributableDisease('cause.complicated_severe_protein_energy_malnutrition', 'risk_factor.child_wasting')
             - MortalityObserver()
             - ResultsStratifier()
 
@@ -62,7 +63,7 @@ configuration:
     input_data:
         input_draw_number: 0
         # Artifact can also be defined at runtime using -i flag
-        artifact_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_inpatient_sam/artifacts/model_1.0/nigeria.hdf'
+        artifact_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_inpatient_sam/artifacts/model_2.1/nigeria.hdf'
         fertility_input_data_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization/results/vivarium_v4.0_vph_v5.0_update/v3/nigeria/2026_03_31_12_55_44/results'
     interpolation:
         order: 0
@@ -108,12 +109,22 @@ configuration:
             - "neonatal_lower_respiratory_infections"
             - "neonatal_diarrheal_diseases"
 
-    risk_attributable_disease.moderate_protein_energy_malnutrition:
-        threshold: ['cat2','cat2.5']
+    risk_attributable_disease.other_protein_energy_malnutrition:
+        data_sources:
+            raw_disability_weight: 0.0
+        threshold: ['cat2','cat2.5','cat3','cat4']
         mortality: True
         recoverable: True
-    risk_attributable_disease.severe_protein_energy_malnutrition:
-        threshold: ['cat1_uncomplicated', 'cat1_complicated']
+    risk_attributable_disease.uncomplicated_severe_protein_energy_malnutrition:
+        data_sources:
+            raw_disability_weight: 0.0
+        threshold: ['cat1_uncomplicated']
+        mortality: True
+        recoverable: True
+    risk_attributable_disease.complicated_severe_protein_energy_malnutrition:
+        data_sources:
+            raw_disability_weight: 0.0
+        threshold: ['cat1_complicated']
         mortality: True
         recoverable: True
 
@@ -125,13 +136,15 @@ configuration:
             include: ['sam_treatment', 'mam_treatment']
         child_stunting:
             include: ['sqlns_coverage']
-        excluded_categories:
-            cause_of_death:
-                - 'stillborn'
-            disability:
-                - 'all_causes'
-                - 'mild_child_wasting'
-                - 'better_moderate_acute_malnutrition'
-                - 'worse_moderate_acute_malnutrition'
-                - 'uncomplicated_severe_acute_malnutrition'
-                - 'complicated_severe_acute_malnutrition'
+        mortality:
+            include: ['wasting_state']
+        measles:
+            include: ['wasting_state']
+        lower_respiratory_infections:
+            include: ['wasting_state']
+        malaria:
+            include: ['wasting_state']
+        diarrheal_diseases:
+            include: ['wasting_state']
+        disability:
+            include: ['wasting_state']
