@@ -1456,7 +1456,7 @@ def load_wasting_treatment_exposure(key: str, location: str) -> pd.DataFrame:
         raise ValueError(f"Unrecognized key {key}")
 
     # Read coverage from the transition rates CSV (aggregated to national level)
-    treatment_coverage = utilities.get_csv_treatment_parameter(parameter, location)
+    treatment_coverage = utilities.get_wasting_treatment_parameter_data(parameter, location)
 
     idx = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index
     cat3 = pd.DataFrame({f"draw_{i}": 0.0 for i in range(0, metadata.DRAW_COUNT)}, index=idx)
@@ -1542,8 +1542,8 @@ def load_mam_treatment_rr(key: str, location: str) -> pd.DataFrame:
     index = mam_tx_efficacy.index
 
     # Read tx and ux rates from the transition rates CSV (aggregated to national level)
-    tx_rate = utilities.get_csv_treatment_parameter("tx_rem_rate_mam", location)
-    ux_rate = utilities.get_csv_treatment_parameter("ux_rem_rate_mam", location)
+    tx_rate = utilities.get_wasting_treatment_parameter_data("tx_rem_rate_mam", location)
+    ux_rate = utilities.get_wasting_treatment_parameter_data("ux_rem_rate_mam", location)
 
     # Broadcast rate data (indexed by sex/age) to the full efficacy index
     tx_rate_df = pd.DataFrame(index=index).join(
@@ -1595,7 +1595,7 @@ def load_complicated_sam_treatment_exposure(key: str, location: str) -> pd.DataF
         raise ValueError(f"Unrecognized key {key}")
 
     # Read coverage from the transition rates CSV (aggregated to national level)
-    treatment_coverage = utilities.get_csv_treatment_parameter("c_sam_inpatient", location)
+    treatment_coverage = utilities.get_wasting_treatment_parameter_data("c_sam_inpatient", location)
 
     idx = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index
     cat3 = pd.DataFrame(
@@ -1642,10 +1642,10 @@ def load_complicated_sam_treatment_rr(key: str, location: str) -> pd.DataFrame:
     index = complicated_sam_tx_efficacy.index
 
     # Read tx and ux rates from the transition rates CSV (aggregated to national level)
-    tx_rate = utilities.get_csv_treatment_parameter(
+    tx_rate = utilities.get_wasting_treatment_parameter_data(
         "tx_rem_rate_complicated_sam", location
     )
-    ux_rate = utilities.get_csv_treatment_parameter(
+    ux_rate = utilities.get_wasting_treatment_parameter_data(
         "ux_rem_rate_complicated_sam", location
     )
 

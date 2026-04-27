@@ -664,9 +664,9 @@ def get_treatment_efficacy(
     # Efficacy values are constant across all age/sex rows in the CSV;
     # extract the first row as a Series of draws for broadcasting.
     baseline_efficacy = {
-        data_keys.WASTING.CAT1_UNCOMPLICATED: get_csv_treatment_parameter("e_sam", location).iloc[0],
-        data_keys.WASTING.CAT20_WORSE: get_csv_treatment_parameter("e_mam", location).iloc[0],
-        data_keys.WASTING.CAT1_COMPLICATED: get_csv_treatment_parameter("e_sam_inpatient", location).iloc[0],
+        data_keys.WASTING.CAT1_UNCOMPLICATED: get_wasting_treatment_parameter_data("e_sam", location).iloc[0],
+        data_keys.WASTING.CAT20_WORSE: get_wasting_treatment_parameter_data("e_mam", location).iloc[0],
+        data_keys.WASTING.CAT1_COMPLICATED: get_wasting_treatment_parameter_data("e_sam_inpatient", location).iloc[0],
     }
     alternative_efficacy = {
         data_keys.WASTING.CAT1_UNCOMPLICATED: data_values.WASTING.SAM_TX_ALTERNATIVE_EFFICACY,
@@ -693,37 +693,7 @@ def get_treatment_efficacy(
     return efficacy, tmrel_efficacy
 
 
-def get_wasting_treatment_parameter_data(parameter: str, location: str) -> pd.Series:
-    """Get coverage or efficacy values for SAM or MAM treatment for all draws."""
-    draws = pd.read_csv(paths.WASTING_TREATMENT_PARAMETERS_DIR / f"{location.lower()}.csv")
-    draws = draws.query("parameter==@parameter").drop("parameter", axis=1)
-    draws = draws.T.squeeze()  # transpose and convert to series
-    return draws
-
-
-def get_transition_rates_csv_parameter(
-    parameter: str, national_location_id: int
-) -> pd.DataFrame:
-    """Read a parameter from the wasting transition rates CSV with full
-    age/sex/location granularity.
-
-    Returns a DataFrame indexed by (sex, age_start, age_end, year_start,
-    year_end, subnational) with draw columns.
-    """
-    raw = pd.read_csv(
-        paths.WASTING_TRANSITIONS_COMPLICATED_SAM_DATA_DIR / f"{national_location_id}.csv"
-    )
-    data = raw.query("parameter == @parameter").drop("parameter", axis=1)
-    data = data.rename(columns={"location": "subnational"})
-    data["year_start"] = 2021
-    data["year_end"] = 2022
-    idx_cols = ["sex", "age_start", "age_end", "year_start", "year_end", "subnational"]
-    data = data.set_index(idx_cols).sort_index()
-    data = data[ARTIFACT_COLUMNS]
-    return data
-
-
-def get_csv_treatment_parameter(parameter: str, location: str) -> pd.DataFrame:
+def get_wasting_treatment_parameter_data(parameter: str, location: str) -> pd.DataFrame:
     """Read a treatment parameter from the transition rates CSV, aggregated
     to national level.
 
