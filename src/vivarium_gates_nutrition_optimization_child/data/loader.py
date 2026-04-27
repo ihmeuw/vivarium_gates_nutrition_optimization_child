@@ -88,6 +88,11 @@ NATIONAL_LEVEL_DATA_KEYS = [
     data_keys.MAM_TREATMENT.CATEGORIES,
     data_keys.MAM_TREATMENT.RELATIVE_RISK,
     data_keys.MAM_TREATMENT.PAF,
+    data_keys.COMPLICATED_SAM_TREATMENT.EXPOSURE,
+    data_keys.COMPLICATED_SAM_TREATMENT.DISTRIBUTION,
+    data_keys.COMPLICATED_SAM_TREATMENT.CATEGORIES,
+    data_keys.COMPLICATED_SAM_TREATMENT.RELATIVE_RISK,
+    data_keys.COMPLICATED_SAM_TREATMENT.PAF,
     data_keys.LBWSG.DISTRIBUTION,
     data_keys.LBWSG.CATEGORIES,
     data_keys.LBWSG.EXPOSURE,
@@ -236,6 +241,11 @@ def get_data(
         data_keys.MAM_TREATMENT.CATEGORIES: load_wasting_treatment_categories,
         data_keys.MAM_TREATMENT.RELATIVE_RISK: load_mam_treatment_rr,
         data_keys.MAM_TREATMENT.PAF: load_categorical_paf,
+        data_keys.COMPLICATED_SAM_TREATMENT.EXPOSURE: load_complicated_sam_treatment_exposure,
+        data_keys.COMPLICATED_SAM_TREATMENT.DISTRIBUTION: load_wasting_treatment_distribution,
+        data_keys.COMPLICATED_SAM_TREATMENT.CATEGORIES: load_wasting_treatment_categories,
+        data_keys.COMPLICATED_SAM_TREATMENT.RELATIVE_RISK: load_complicated_sam_treatment_rr,
+        data_keys.COMPLICATED_SAM_TREATMENT.PAF: load_categorical_paf,
         data_keys.LBWSG.DISTRIBUTION: load_metadata,
         data_keys.LBWSG.CATEGORIES: load_metadata,
         data_keys.LBWSG.EXPOSURE: load_lbwsg_exposure,  ## Still 2019 age bins, but doesn't have effect past NN
@@ -422,6 +432,7 @@ def load_categorical_paf(key: str, location: Union[str, List[int]]) -> pd.DataFr
             data_keys.STUNTING.PAF: data_keys.STUNTING,
             data_keys.SAM_TREATMENT.PAF: data_keys.SAM_TREATMENT,
             data_keys.MAM_TREATMENT.PAF: data_keys.MAM_TREATMENT,
+            data_keys.COMPLICATED_SAM_TREATMENT.PAF: data_keys.COMPLICATED_SAM_TREATMENT,
         }[key]
     except KeyError:
         raise ValueError(f"Unrecognized key {key}")
@@ -1414,7 +1425,11 @@ def load_pem_restrictions(key: str, location: str) -> pd.DataFrame:
 
 # noinspection PyUnusedLocal
 def load_wasting_treatment_distribution(key: str, location: str) -> str:
-    if key in [data_keys.SAM_TREATMENT.DISTRIBUTION, data_keys.MAM_TREATMENT.DISTRIBUTION]:
+    if key in [
+        data_keys.SAM_TREATMENT.DISTRIBUTION,
+        data_keys.MAM_TREATMENT.DISTRIBUTION,
+        data_keys.COMPLICATED_SAM_TREATMENT.DISTRIBUTION,
+    ]:
         return data_values.WASTING.DISTRIBUTION
     else:
         raise ValueError(f"Unrecognized key {key}")
@@ -1422,7 +1437,11 @@ def load_wasting_treatment_distribution(key: str, location: str) -> str:
 
 # noinspection PyUnusedLocal
 def load_wasting_treatment_categories(key: str, location: str) -> str:
-    if key in [data_keys.SAM_TREATMENT.CATEGORIES, data_keys.MAM_TREATMENT.CATEGORIES]:
+    if key in [
+        data_keys.SAM_TREATMENT.CATEGORIES,
+        data_keys.MAM_TREATMENT.CATEGORIES,
+        data_keys.COMPLICATED_SAM_TREATMENT.CATEGORIES,
+    ]:
         return data_values.WASTING.CATEGORIES
     else:
         raise ValueError(f"Unrecognized key {key}")
@@ -1436,13 +1455,14 @@ def load_wasting_treatment_exposure(key: str, location: str) -> pd.DataFrame:
     else:
         raise ValueError(f"Unrecognized key {key}")
 
-    treatment_coverage = utilities.get_wasting_treatment_parameter_data(parameter, location)
+    # Read coverage from the transition rates CSV (aggregated to national level)
+    treatment_coverage = utilities.get_csv_treatment_parameter(parameter, location)
 
     idx = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index
     cat3 = pd.DataFrame({f"draw_{i}": 0.0 for i in range(0, metadata.DRAW_COUNT)}, index=idx)
-    cat2 = (
-        pd.DataFrame({f"draw_{i}": 1.0 for i in range(0, metadata.DRAW_COUNT)}, index=idx)
-        * treatment_coverage
+    # Broadcast coverage (indexed by sex/age) to the full demography index
+    cat2 = pd.DataFrame(index=idx).join(
+        treatment_coverage, on=["sex", "age_start", "age_end"]
     )
     cat1 = 1 - cat2
 
@@ -1521,27 +1541,23 @@ def load_mam_treatment_rr(key: str, location: str) -> pd.DataFrame:
     )
     index = mam_tx_efficacy.index
 
-    mam_ux_duration = data_values.WASTING.MAM_UX_RECOVERY_TIME_OVER_6MO
-    mam_tx_duration = pd.Series(index=index)
-    mam_tx_duration[
-        index.get_level_values("age_start") < 0.5
-    ] = data_values.WASTING.MAM_TX_RECOVERY_TIME_UNDER_6MO
-    mam_tx_duration[0.5 <= index.get_level_values("age_start")] = get_random_variable_draws(
-        mam_tx_duration[0.5 <= index.get_level_values("age_start")].index,
-        *data_values.WASTING.MAM_TX_RECOVERY_TIME_OVER_6MO,
-    )
-    mam_tx_duration = pd.DataFrame(
-        {f"draw_{i}": 1 for i in range(0, metadata.DRAW_COUNT)}, index=index
-    ).multiply(mam_tx_duration, axis="index")
+    # Read tx and ux rates from the transition rates CSV (aggregated to national level)
+    tx_rate = utilities.get_csv_treatment_parameter("tx_rem_rate_mam", location)
+    ux_rate = utilities.get_csv_treatment_parameter("ux_rem_rate_mam", location)
 
-    # rr_r3 = r3 / r3_tmrel
-    #       = (mam_tx_efficacy / mam_tx_duration) + (1 - mam_tx_efficacy / mam_ux_duration)
-    #           / (mam_tx_efficacy_tmrel / mam_tx_duration) + (1 - mam_tx_efficacy_tmrel / mam_ux_duration)
-    #       = (mam_tx_efficacy * mam_ux_duration + (1 - mam_tx_efficacy) * mam_tx_duration)
-    #           / (mam_tx_efficacy_tmrel * mam_ux_duration + (1 - mam_tx_efficacy_tmrel) * mam_tx_duration)
-    rr = (mam_tx_efficacy * mam_ux_duration + (1 - mam_tx_efficacy) * mam_tx_duration) / (
-        mam_tx_efficacy_tmrel * mam_ux_duration
-        + (1 - mam_tx_efficacy_tmrel) * mam_tx_duration
+    # Broadcast rate data (indexed by sex/age) to the full efficacy index
+    tx_rate_df = pd.DataFrame(index=index).join(
+        tx_rate, on=["sex", "age_start", "age_end"]
+    )
+    ux_rate_df = pd.DataFrame(index=index).join(
+        ux_rate, on=["sex", "age_start", "age_end"]
+    )
+
+    # rr = (e * tx_rate + (1 - e) * ux_rate) / (e_tmrel * tx_rate + (1 - e_tmrel) * ux_rate)
+    rr = (
+        mam_tx_efficacy * tx_rate_df + (1 - mam_tx_efficacy) * ux_rate_df
+    ) / (
+        mam_tx_efficacy_tmrel * tx_rate_df + (1 - mam_tx_efficacy_tmrel) * ux_rate_df
     )
 
     better_mam_rows = rr.copy()
@@ -1554,6 +1570,106 @@ def load_mam_treatment_rr(key: str, location: str) -> pd.DataFrame:
     ] = "worse_moderate_acute_malnutrition_to_mild_child_wasting"
     rr = pd.concat([better_mam_rows, worse_mam_rows])
 
+    rr["affected_measure"] = "transition_rate"
+    rr = rr.set_index(["affected_entity", "affected_measure"], append=True)
+    rr.index = rr.index.reorder_levels(
+        [col for col in rr.index.names if col != "parameter"] + ["parameter"]
+    )
+
+    # no effect for simulants younger than 6 months
+    rr.loc[rr.query("age_start < .5").index] = 1
+    rr = rr[metadata.ARTIFACT_COLUMNS]
+
+    return rr.sort_index()
+
+
+def load_complicated_sam_treatment_exposure(key: str, location: str) -> pd.DataFrame:
+    """Load complicated SAM treatment coverage from the transition rates CSV.
+
+    Reads `c_sam_inpatient` which has age/sex/subnational granularity,
+    aggregated to national level (mean across subnationals).
+    Produces the same 3-category (cat1/cat2/cat3) exposure format as the
+    existing wasting treatment exposure loaders.
+    """
+    if key != data_keys.COMPLICATED_SAM_TREATMENT.EXPOSURE:
+        raise ValueError(f"Unrecognized key {key}")
+
+    # Read coverage from the transition rates CSV (aggregated to national level)
+    treatment_coverage = utilities.get_csv_treatment_parameter("c_sam_inpatient", location)
+
+    idx = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index
+    cat3 = pd.DataFrame(
+        {f"draw_{i}": 0.0 for i in range(0, metadata.DRAW_COUNT)}, index=idx
+    )
+    # Broadcast coverage (indexed by sex/age) to the full demography index
+    cat2 = pd.DataFrame(index=idx).join(
+        treatment_coverage, on=["sex", "age_start", "age_end"]
+    )
+    cat1 = 1 - cat2
+
+    cat1["parameter"] = "cat1"
+    cat2["parameter"] = "cat2"
+    cat3["parameter"] = "cat3"
+
+    exposure = pd.concat([cat1, cat2, cat3]).set_index("parameter", append=True).sort_index()
+
+    # infants under 6 months of age should not receive treatment
+    under_6_months_unexposed_idx = exposure.query("age_start < .5 & parameter=='cat1'").index
+    under_6_months_exposed_idx = exposure.query("age_start < .5 & parameter!='cat1'").index
+    exposure.loc[under_6_months_unexposed_idx] = 1
+    exposure.loc[under_6_months_exposed_idx] = 0
+    exposure = exposure[metadata.ARTIFACT_COLUMNS]
+
+    return exposure
+
+
+def load_complicated_sam_treatment_rr(key: str, location: str) -> pd.DataFrame:
+    """Load complicated SAM treatment relative risk.
+
+    Uses the same rate-based RR structure as the MAM treatment RR, affecting
+    the complicated_severe_acute_malnutrition_to_uncomplicated_severe_acute_malnutrition
+    transition rate.
+    """
+    if key != data_keys.COMPLICATED_SAM_TREATMENT.RELATIVE_RISK:
+        raise ValueError(f"Unrecognized key {key}")
+
+    demography = get_data(data_keys.POPULATION.DEMOGRAPHY, location).reset_index()
+    complicated_sam_tx_efficacy, complicated_sam_tx_efficacy_tmrel = (
+        utilities.get_treatment_efficacy(
+            demography, data_keys.WASTING.CAT1_COMPLICATED, location
+        )
+    )
+    index = complicated_sam_tx_efficacy.index
+
+    # Read tx and ux rates from the transition rates CSV (aggregated to national level)
+    tx_rate = utilities.get_csv_treatment_parameter(
+        "tx_rem_rate_complicated_sam", location
+    )
+    ux_rate = utilities.get_csv_treatment_parameter(
+        "ux_rem_rate_complicated_sam", location
+    )
+
+    # Broadcast rate data (indexed by sex/age) to the full efficacy index
+    tx_rate_df = pd.DataFrame(index=index).join(
+        tx_rate, on=["sex", "age_start", "age_end"]
+    )
+    ux_rate_df = pd.DataFrame(index=index).join(
+        ux_rate, on=["sex", "age_start", "age_end"]
+    )
+
+    # rr = (e * tx_rate + (1 - e) * ux_rate) / (e_tmrel * tx_rate + (1 - e_tmrel) * ux_rate)
+    rr = (
+        complicated_sam_tx_efficacy * tx_rate_df
+        + (1 - complicated_sam_tx_efficacy) * ux_rate_df
+    ) / (
+        complicated_sam_tx_efficacy_tmrel * tx_rate_df
+        + (1 - complicated_sam_tx_efficacy_tmrel) * ux_rate_df
+    )
+
+    rr["affected_entity"] = (
+        "complicated_severe_acute_malnutrition"
+        "_to_uncomplicated_severe_acute_malnutrition"
+    )
     rr["affected_measure"] = "transition_rate"
     rr = rr.set_index(["affected_entity", "affected_measure"], append=True)
     rr.index = rr.index.reorder_levels(

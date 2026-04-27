@@ -388,6 +388,9 @@ def _get_wasting_treatment_keys(treatment_type: str) -> __WastingTreatment:
 
 SAM_TREATMENT = _get_wasting_treatment_keys("severe_acute_malnutrition_treatment")
 MAM_TREATMENT = _get_wasting_treatment_keys("moderate_acute_malnutrition_treatment")
+COMPLICATED_SAM_TREATMENT = _get_wasting_treatment_keys(
+    "complicated_severe_acute_malnutrition_treatment"
+)
 
 
 class __LowBirthWeightShortGestation(NamedTuple):
@@ -603,6 +606,7 @@ MAKE_ARTIFACT_KEY_GROUPS = [
     COMPLICATED_SEVERE_PEM,
     SAM_TREATMENT,
     MAM_TREATMENT,
+    COMPLICATED_SAM_TREATMENT,
     LBWSG,
     AFFECTED_UNMODELED_CAUSES,
     IFA_SUPPLEMENTATION,
