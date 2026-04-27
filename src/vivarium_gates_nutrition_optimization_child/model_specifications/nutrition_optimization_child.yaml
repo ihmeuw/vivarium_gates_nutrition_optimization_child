@@ -12,6 +12,7 @@ components:
             - RiskEffect('risk_factor.severe_acute_malnutrition_treatment', 'risk_factor.uncomplicated_severe_acute_malnutrition_to_worse_moderate_acute_malnutrition.transition_rate')
             - RiskEffect('risk_factor.moderate_acute_malnutrition_treatment', 'risk_factor.better_moderate_acute_malnutrition_to_mild_child_wasting.transition_rate')
             - RiskEffect('risk_factor.moderate_acute_malnutrition_treatment', 'risk_factor.worse_moderate_acute_malnutrition_to_mild_child_wasting.transition_rate')
+            - RiskEffect('risk_factor.complicated_severe_acute_malnutrition_treatment', 'risk_factor.complicated_severe_acute_malnutrition_to_uncomplicated_severe_acute_malnutrition.transition_rate')
 
             - LBWSGRiskEffect('cause.diarrheal_diseases.excess_mortality_rate')
             - LBWSGRiskEffect('cause.lower_respiratory_infections.excess_mortality_rate')
@@ -34,6 +35,7 @@ components:
             - ChildWastingObserver()
             - WastingTreatment('risk_factor.severe_acute_malnutrition_treatment')
             - WastingTreatment('risk_factor.moderate_acute_malnutrition_treatment')
+            - WastingTreatment('risk_factor.complicated_severe_acute_malnutrition_treatment')
             - SQLNSTreatment()
             - MaternalCharacteristics()
             - ChildUnderweight()
@@ -133,7 +135,7 @@ configuration:
             - 'age_group'
             - 'sex'
         child_wasting:
-            include: ['sam_treatment', 'mam_treatment']
+            include: ['sam_treatment', 'mam_treatment', 'complicated_sam_treatment']
         child_stunting:
             include: ['sqlns_coverage']
         mortality:

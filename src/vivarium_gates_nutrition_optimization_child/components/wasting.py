@@ -41,6 +41,16 @@ class WastingTreatment(Risk):
         self.treated_state = self._get_treated_state()
         self.previous_treatment_column = f"previous_{self.treated_state}_treatment"
 
+        self.is_mam_component = self.risk.name == "moderate_acute_malnutrition_treatment"
+        self.is_complicated_sam_component = (
+            self.risk.name == "complicated_severe_acute_malnutrition_treatment"
+        )
+        self.is_uncomplicated_sam_component = (
+            self.risk.name == "severe_acute_malnutrition_treatment"
+        )
+        # Column to track auto-enrollment for complicated SAM recovery scenarios
+        self.auto_enrolled_column = "auto_enrolled_sam_treatment"
+
     ##########################
     # Initialization methods #
     ##########################
@@ -66,6 +76,12 @@ class WastingTreatment(Risk):
             self.initialize_previous_treatment_column, self.previous_treatment_column
         )
 
+        # Register auto-enrollment column for recovery scenarios
+        if self.is_uncomplicated_sam_component:
+            builder.population.register_initializer(
+                self.initialize_auto_enrolled_column, self.auto_enrolled_column
+            )
+
     ########################
     # Event-driven methods #
     ########################
@@ -75,17 +91,26 @@ class WastingTreatment(Risk):
             pd.Series("cat1", index=pop_data.index, name=self.previous_treatment_column)
         )
 
+    def initialize_auto_enrolled_column(self, pop_data: SimulantData) -> None:
+        self.population_view.initialize(
+            pd.Series(False, index=pop_data.index, name=self.auto_enrolled_column)
+        )
+
     def on_time_step_prepare(self, event: Event):
         """define previous_treatment and redraw propensities upon transition to new wasting state"""
-        pop = self.population_view.get(
-            event.index,
-            [
-                self.wasting_column,
-                self.previous_wasting_column,
-                self.propensity_name,
-                self.exposure_name,
-            ],
-        )
+        columns = [
+            self.wasting_column,
+            self.previous_wasting_column,
+            self.propensity_name,
+            self.exposure_name,
+        ]
+        if self.is_uncomplicated_sam_component:
+            columns.append(self.auto_enrolled_column)
+        pop = self.population_view.get(event.index, columns)
+
+        update_columns = [self.previous_treatment_column, self.propensity_name]
+        if self.is_uncomplicated_sam_component:
+            update_columns.append(self.auto_enrolled_column)
 
         def _modifier(current: pd.DataFrame) -> pd.DataFrame:
             current[self.previous_treatment_column] = pop[self.exposure_name].values
@@ -95,11 +120,24 @@ class WastingTreatment(Risk):
             current.loc[remitted_mask, self.propensity_name] = self.randomness.get_draw(
                 remitted_mask.index
             )
+
+            # Auto-enrollment for complicated SAM recovery scenarios
+            if self.is_uncomplicated_sam_component:
+                complicated_sam_state = models.WASTING.COMPLICATED_SAM_STATE_NAME
+                uncomplicated_sam_state = models.WASTING.UNCOMPLICATED_SAM_STATE_NAME
+                # Detect simulants transitioning from complicated → uncomplicated SAM
+                transitioning = (
+                    (pop[self.previous_wasting_column] == complicated_sam_state)
+                    & (pop[self.wasting_column] == uncomplicated_sam_state)
+                )
+                current.loc[transitioning, self.auto_enrolled_column] = True
+                # Reset auto-enrollment for simulants who left uncomplicated SAM
+                left_uncomplicated = pop[self.wasting_column] != uncomplicated_sam_state
+                current.loc[left_uncomplicated, self.auto_enrolled_column] = False
+
             return current
 
-        self.population_view.update(
-            [self.previous_treatment_column, self.propensity_name], _modifier
-        )
+        self.population_view.update(update_columns, _modifier)
 
     ##################################
     # Pipeline sources and modifiers #
@@ -120,10 +158,9 @@ class WastingTreatment(Risk):
         if isinstance(index, pd.RangeIndex):
             index = pd.Index(index.to_list())
 
-        is_mam_component = self.risk.name == "moderate_acute_malnutrition_treatment"
         coverage_to_exposure_map = {"none": "cat1", "full": "cat2"}
 
-        if is_mam_component:
+        if self.is_mam_component:
             mam_coverage = self.scenario.mam_tx_coverage
             if mam_coverage == "baseline":  # return standard exposure if baseline
                 return self.exposure_distribution.exposure_ppf(index)
@@ -164,13 +201,51 @@ class WastingTreatment(Risk):
                 exposure.loc[age < 0.5] = "cat1"
                 return exposure
 
-        else:  # we're in the SAM treatment component
-            sam_coverage = self.scenario.sam_tx_coverage
-            if sam_coverage == "baseline":
+        elif self.is_complicated_sam_component:
+            csam_type = self.scenario.complicated_sam_tx_type
+            if csam_type == "none":
+                # No complicated SAM treatment — return baseline coverage
                 return self.exposure_distribution.exposure_ppf(index)
+            elif csam_type in ("stabilization", "recovery"):
+                # Full coverage for complicated SAM treatment
+                exposure = pd.Series("cat2", index=index)
+                age = self.population_view.get(index, "age")
+                exposure.loc[age < 0.5] = "cat1"
+                return exposure
             else:
-                exposure = coverage_to_exposure_map[sam_coverage]
-                return pd.Series(exposure, index=index)
+                raise ValueError(
+                    f"Unrecognized complicated_sam_tx_type: {csam_type}"
+                )
+
+        else:  # uncomplicated SAM treatment component
+            sam_coverage = self.scenario.sam_tx_coverage
+            csam_type = self.scenario.complicated_sam_tx_type
+
+            if sam_coverage == "baseline" and csam_type != "recovery":
+                return self.exposure_distribution.exposure_ppf(index)
+            elif sam_coverage == "full":
+                # Full coverage for all uncomplicated SAM cases
+                exposure = pd.Series("cat2", index=index)
+                age = self.population_view.get(index, "age")
+                exposure.loc[age < 0.5] = "cat1"
+                return exposure
+            elif sam_coverage == "none" and csam_type == "recovery":
+                # Auto-enrollment only: only simulants who transitioned from
+                # complicated SAM get covered
+                pop = self.population_view.get(
+                    index, ["age", self.auto_enrolled_column]
+                )
+                exposure = pd.Series("cat1", index=index)
+                exposure.loc[pop[self.auto_enrolled_column]] = "cat2"
+                exposure.loc[pop["age"] < 0.5] = "cat1"
+                return exposure
+            elif sam_coverage == "none":
+                return pd.Series("cat1", index=index)
+            else:
+                raise ValueError(
+                    f"Unrecognized sam_tx_coverage/complicated_sam_tx_type "
+                    f"combination: {sam_coverage}/{csam_type}"
+                )
 
 
 class ChildWastingModel(DiseaseModel):
