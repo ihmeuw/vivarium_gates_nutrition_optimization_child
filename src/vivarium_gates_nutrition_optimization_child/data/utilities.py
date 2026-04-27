@@ -659,20 +659,26 @@ def apply_artifact_index(data: pd.DataFrame) -> pd.DataFrame:
 
 
 def get_treatment_efficacy(
-    demography: pd.DataFrame, treatment_type: str, location: str
+    demography: pd.DataFrame, treatment_type: str, location: Union[str, int]
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
-    # Efficacy values are constant across all age/sex rows in the CSV;
-    # extract the first row as a Series of draws for broadcasting.
-    baseline_efficacy = {
-        data_keys.WASTING.CAT1_UNCOMPLICATED: get_wasting_treatment_parameter_data("e_sam", location).iloc[0],
-        data_keys.WASTING.CAT20_WORSE: get_wasting_treatment_parameter_data("e_mam", location).iloc[0],
-        data_keys.WASTING.CAT1_COMPLICATED: get_wasting_treatment_parameter_data("e_sam_inpatient", location).iloc[0],
-    }
+    """Compute treatment efficacy DataFrames for the given demography.
+
+    Reads efficacy data from the CSV (preserving subnational granularity)
+    and broadcasts it onto the full demography x parameter index.
+    """
+    efficacy_parameter = {
+        data_keys.WASTING.CAT1_UNCOMPLICATED: "e_sam",
+        data_keys.WASTING.CAT20_WORSE: "e_mam",
+        data_keys.WASTING.CAT1_COMPLICATED: "e_sam_inpatient",
+    }[treatment_type]
     alternative_efficacy = {
         data_keys.WASTING.CAT1_UNCOMPLICATED: data_values.WASTING.SAM_TX_ALTERNATIVE_EFFICACY,
         data_keys.WASTING.CAT20_WORSE: data_values.WASTING.MAM_TX_ALTERNATIVE_EFFICACY,
         data_keys.WASTING.CAT1_COMPLICATED: data_values.WASTING.COMPLICATED_SAM_TX_ALTERNATIVE_EFFICACY,
-    }
+    }[treatment_type]
+
+    baseline_efficacy = get_wasting_treatment_parameter_data(efficacy_parameter, location)
+
     idx_as_frame = demography.merge(
         pd.DataFrame({"parameter": [f"cat{i}" for i in range(1, 4)]}), how="cross"
     )
@@ -680,12 +686,15 @@ def get_treatment_efficacy(
 
     efficacy = pd.DataFrame({f"draw_{i}": 1.0 for i in range(0, 1000)}, index=index)
     efficacy[index.get_level_values("parameter") == "cat1"] *= 0.0
-    efficacy[index.get_level_values("parameter") == "cat2"] *= baseline_efficacy[
-        treatment_type
-    ]
-    efficacy[index.get_level_values("parameter") == "cat3"] *= alternative_efficacy[
-        treatment_type
-    ]
+
+    # Join baseline efficacy (indexed by sex/age/location) onto cat2 rows
+    cat2_mask = index.get_level_values("parameter") == "cat2"
+    cat2_efficacy = pd.DataFrame(index=index[cat2_mask]).join(
+        baseline_efficacy, on=["sex", "age_start", "age_end", "location"]
+    )
+    efficacy.loc[cat2_mask] *= cat2_efficacy.values
+
+    efficacy[index.get_level_values("parameter") == "cat3"] *= alternative_efficacy
 
     tmrel_efficacy = efficacy[
         efficacy.index.get_level_values("parameter") == data_keys.MAM_TREATMENT.TMREL_CATEGORY
@@ -693,21 +702,30 @@ def get_treatment_efficacy(
     return efficacy, tmrel_efficacy
 
 
-def get_wasting_treatment_parameter_data(parameter: str, location: str) -> pd.DataFrame:
-    """Read a treatment parameter from the transition rates CSV, aggregated
-    to national level.
+def get_wasting_treatment_parameter_data(
+    parameter: str, location: Union[str, int]
+) -> pd.DataFrame:
+    """Read a treatment parameter from the transition rates CSV.
 
-    Returns a DataFrame indexed by (sex, age_start, age_end) with draw
-    columns, suitable for use in national-level loader functions. Subnational
-    values are averaged.
+    Parameters
+    ----------
+    parameter
+        The parameter name to filter from the CSV (e.g. "c_sam", "e_sam").
+    location
+        Either a location name (str) or a national location ID (int).
+
+    Returns a DataFrame indexed by (sex, age_start, age_end, location) with
+    draw columns, preserving subnational granularity.
     """
-    location_id = utility_data.get_location_id(location)
+    if isinstance(location, str):
+        location_id = utility_data.get_location_id(location)
+    else:
+        location_id = location
     raw = pd.read_csv(
         paths.WASTING_TRANSITIONS_COMPLICATED_SAM_DATA_DIR / f"{location_id}.csv"
     )
     data = raw.query("parameter == @parameter").drop("parameter", axis=1)
-    draw_cols = [c for c in data.columns if c.startswith("draw_")]
-    data = data.groupby(["sex", "age_start", "age_end"])[draw_cols].mean()
+    data = data.set_index(["sex", "age_start", "age_end", "location"])
     return data.sort_index()
 
 
