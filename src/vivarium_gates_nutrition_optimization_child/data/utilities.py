@@ -35,6 +35,7 @@ from vivarium_gates_nutrition_optimization_child.constants.metadata import (  # 
     AGE_GROUP,
     ARTIFACT_COLUMNS,
     ARTIFACT_INDEX_COLUMNS,
+    DRAW_COUNT,
     GBD_2021_ROUND_ID,
     LOCATIONS,
     NEONATAL_END_AGE,
@@ -684,7 +685,7 @@ def get_treatment_efficacy(
     )
     index = idx_as_frame.set_index(list(idx_as_frame.columns)).index
 
-    efficacy = pd.DataFrame({f"draw_{i}": 1.0 for i in range(0, 1000)}, index=index)
+    efficacy = pd.DataFrame({f"draw_{i}": 1.0 for i in range(0, DRAW_COUNT)}, index=index)
     efficacy[index.get_level_values("parameter") == "cat1"] *= 0.0
 
     # Join baseline efficacy (indexed by sex/age/location) onto cat2 rows
