@@ -41,15 +41,15 @@ class WastingTreatment(Risk):
         self.treated_state = self._get_treated_state()
         self.previous_treatment_column = f"previous_{self.treated_state}_treatment"
 
-        self.is_mam_component = self.risk.name == "moderate_acute_malnutrition_treatment"
+        self.is_mam_component = self.risk.name == data_keys.MAM_TREATMENT.name
         self.is_complicated_sam_component = (
-            self.risk.name == "complicated_severe_acute_malnutrition_treatment"
+            self.risk.name == data_keys.COMPLICATED_SAM_TREATMENT.name
         )
         self.is_uncomplicated_sam_component = (
-            self.risk.name == "severe_acute_malnutrition_treatment"
+            self.risk.name == data_keys.SAM_TREATMENT.namne
         )
         # Column to track auto-enrollment for complicated SAM recovery scenarios
-        self.auto_enrolled_column = "auto_enrolled_sam_treatment"
+        self.post_discharge_column = "post_discharge_sam_treatment"
 
     ##########################
     # Initialization methods #
@@ -79,7 +79,7 @@ class WastingTreatment(Risk):
         # Register auto-enrollment column for recovery scenarios
         if self.is_uncomplicated_sam_component:
             builder.population.register_initializer(
-                self.initialize_auto_enrolled_column, self.auto_enrolled_column
+                self.initialize_auto_enrolled_column, self.post_discharge_column
             )
 
     ########################
@@ -93,7 +93,7 @@ class WastingTreatment(Risk):
 
     def initialize_auto_enrolled_column(self, pop_data: SimulantData) -> None:
         self.population_view.initialize(
-            pd.Series(False, index=pop_data.index, name=self.auto_enrolled_column)
+            pd.Series(False, index=pop_data.index, name=self.post_discharge_column)
         )
 
     def on_time_step_prepare(self, event: Event):
@@ -104,13 +104,12 @@ class WastingTreatment(Risk):
             self.propensity_name,
             self.exposure_name,
         ]
-        if self.is_uncomplicated_sam_component:
-            columns.append(self.auto_enrolled_column)
-        pop = self.population_view.get(event.index, columns)
-
         update_columns = [self.previous_treatment_column, self.propensity_name]
         if self.is_uncomplicated_sam_component:
-            update_columns.append(self.auto_enrolled_column)
+            columns.append(self.post_discharge_column)
+            update_columns.append(self.post_discharge_column)
+            
+        pop = self.population_view.get(event.index, columns)
 
         def _modifier(current: pd.DataFrame) -> pd.DataFrame:
             current[self.previous_treatment_column] = pop[self.exposure_name].values
@@ -130,10 +129,10 @@ class WastingTreatment(Risk):
                     (pop[self.previous_wasting_column] == complicated_sam_state)
                     & (pop[self.wasting_column] == uncomplicated_sam_state)
                 )
-                current.loc[transitioning, self.auto_enrolled_column] = True
+                current.loc[transitioning, self.post_discharge_column] = True
                 # Reset auto-enrollment for simulants who left uncomplicated SAM
                 left_uncomplicated = pop[self.wasting_column] != uncomplicated_sam_state
-                current.loc[left_uncomplicated, self.auto_enrolled_column] = False
+                current.loc[left_uncomplicated, self.post_discharge_column] = False
 
             return current
 
@@ -204,7 +203,8 @@ class WastingTreatment(Risk):
         elif self.is_complicated_sam_component:
             csam_type = self.scenario.complicated_sam_tx_type
             if csam_type == "none":
-                # No complicated SAM treatment — return baseline coverage
+                # No complicated SAM treatment
+                # Should this be baseline coverage, or zero?
                 return self.exposure_distribution.exposure_ppf(index)
             elif csam_type in ("stabilization", "recovery"):
                 # Full coverage for complicated SAM treatment
@@ -233,10 +233,10 @@ class WastingTreatment(Risk):
                 # Auto-enrollment only: only simulants who transitioned from
                 # complicated SAM get covered
                 pop = self.population_view.get(
-                    index, ["age", self.auto_enrolled_column]
+                    index, ["age", self.post_discharge_column]
                 )
                 exposure = pd.Series("cat1", index=index)
-                exposure.loc[pop[self.auto_enrolled_column]] = "cat2"
+                exposure.loc[pop[self.post_discharge_column]] = "cat2"
                 exposure.loc[pop["age"] < 0.5] = "cat1"
                 return exposure
             elif sam_coverage == "none":
