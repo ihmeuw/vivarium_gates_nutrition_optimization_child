@@ -110,6 +110,13 @@ class ResultsStratifier(ResultsStratifier_):
             requires_attributes=[f"{data_keys.MAM_TREATMENT.name}.exposure"],
         )
         builder.results.register_stratification(
+            "complicated_sam_treatment",
+            ["covered", "uncovered"],
+            mapper=self.map_wasting_treatment,
+            is_vectorized=True,
+            requires_attributes=[f"{data_keys.COMPLICATED_SAM_TREATMENT.name}.exposure"],
+        )
+        builder.results.register_stratification(
             "sqlns_coverage",
             ["covered", "uncovered", "received"],
             is_vectorized=True,
