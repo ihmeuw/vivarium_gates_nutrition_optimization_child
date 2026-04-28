@@ -46,7 +46,7 @@ class WastingTreatment(Risk):
             self.risk.name == data_keys.COMPLICATED_SAM_TREATMENT.name
         )
         self.is_uncomplicated_sam_component = (
-            self.risk.name == data_keys.SAM_TREATMENT.namne
+            self.risk.name == data_keys.SAM_TREATMENT.name
         )
         # Column to track auto-enrollment for complicated SAM recovery scenarios
         self.post_discharge_column = "post_discharge_sam_treatment"
