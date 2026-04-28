@@ -113,9 +113,9 @@ class __Wasting(NamedTuple):
     ALTERNATIVE_TX_COVERAGE: float = 0.7
 
     # Wasting treatment efficacy
-    SAM_TX_ALTERNATIVE_EFFICACY: float = 0.75
-    MAM_TX_ALTERNATIVE_EFFICACY: float = 0.75
-    COMPLICATED_SAM_TX_ALTERNATIVE_EFFICACY: float = 0.95
+    SAM_TX_ALTERNATIVE_EFFICACY: float = 1.0
+    MAM_TX_ALTERNATIVE_EFFICACY: float = 1.0
+    COMPLICATED_SAM_TX_ALTERNATIVE_EFFICACY: float = 1.0
 
     # Untreated time to recovery in days
     MAM_UX_RECOVERY_TIME_OVER_6MO: float = 147.0
