@@ -14,7 +14,7 @@ class InterventionScenario:
         sam_tx_coverage: str = "baseline",
         mam_tx_coverage: str = "baseline",
         sqlns_coverage: str = "baseline",
-        complicated_sam_tx_type: str = "none",
+        complicated_sam_tx_type: str = "baseline",
     ):
         self.name = name
         self.sam_tx_coverage = sam_tx_coverage
