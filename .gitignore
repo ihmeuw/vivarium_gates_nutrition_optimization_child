@@ -126,3 +126,6 @@ dmypy.json
 # Pycharm project settings
 .idea/
 .vscode/
+
+# AI
+.claude/
