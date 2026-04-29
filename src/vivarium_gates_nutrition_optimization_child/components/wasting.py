@@ -204,8 +204,8 @@ class WastingTreatment(Risk):
             csam_type = self.scenario.complicated_sam_tx_type
             if csam_type == "baseline":
                 # Sample baseline exposure
-                self.exposure_distribution.exposure_ppf(index)
-            if csam_type == "none":
+                return self.exposure_distribution.exposure_ppf(index)
+            elif csam_type == "none":
                 # No complicated SAM treatment
                 return pd.Series("cat1", index=index)
             elif csam_type in ("stabilization", "recovery"):
