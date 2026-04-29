@@ -30,18 +30,9 @@ class ResultsStratifier(ResultsStratifier_):
     def get_age_bins(self, builder: Builder) -> pd.DataFrame:
         """Define final age groups for production runs."""
         age_bins = super().get_age_bins(builder)
-        data_dict = {
-            "age_start": 
-                # [
-            #     0.0,
-            #     0.5,
-            #     0.833333,
-            #     1.5,
-            # ],  
-            [0.0, 0.019178, 0.076712, 0.5, 1.0, 2.0],
-            "age_end": 
-                # [0.5, 0.833333, 1.5, 5],  
-            [0.019178, 0.076712, 0.5, 1.0, 2.0, 5.0],
+        gbd_bins = {
+            "age_start": [0.0, 0.019178, 0.076712, 0.5, 1.0, 2.0],
+            "age_end": [0.019178, 0.076712, 0.5, 1.0, 2.0, 5.0],
             "age_group_name": [
                 "early_neonatal",
                 "late_neonatal",
@@ -49,14 +40,40 @@ class ResultsStratifier(ResultsStratifier_):
                 "6-11_months",
                 "12_to_23_months",
                 "2_to_4",
-                # "0_to_6_months",
-                # "6_to_10_months",
-                # "10_to_18_months",
-                # "18_to_59_months",
             ],
         }
-
-        return pd.DataFrame(data_dict)
+        custom_bins = {
+            "age_start": [0.0, 0.5, 0.833333, 1.5],
+            "age_end": [0.5, 0.833333, 1.5, 5],
+            "age_group_name": [
+                "0_to_6_months",
+                "6_to_10_months",
+                "10_to_18_months",
+                "18_to_59_months",
+            ],
+        }
+        hybrid_bins = {
+            # Early neonatal (GBD) 
+            # Late neonatal (GBD)
+            # 1-5 months (GBD)
+            # 6-12 months (GBD)
+            # 12-18 months (Custom for SQLNS eligible age)
+            # 18-24 months (Custom for SQLNS eligible age)
+            # 2-4 years (GBD)
+                "age_start": [0.0, 0.019178, 0.076712, 0.5, 1.0, 1.5, 2.0],
+                "age_end": [0.019178, 0.076712, 0.5, 1.0, 1.5, 2.0, 5.0],
+                "age_group_name": [
+                    "early_neonatal",
+                    "late_neonatal",
+                    "1-5_months",
+                    "6-11_months",
+                    "12_to_17_months",
+                    "18_to_23_months",
+                    "2_to_4",
+                ],
+            
+        }
+        return pd.DataFrame(hybrid_bins)
 
     def register_stratifications(self, builder: Builder) -> None:
         """Register each desired stratification with calls to _setup_stratification"""
