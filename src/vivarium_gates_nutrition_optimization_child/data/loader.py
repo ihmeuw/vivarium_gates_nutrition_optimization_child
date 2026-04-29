@@ -1553,6 +1553,8 @@ def load_mam_treatment_rr(key: str, location: Union[str, List[int]]) -> pd.DataF
     ) / (
         mam_tx_efficacy_tmrel * tx_rate_df + (1 - mam_tx_efficacy_tmrel) * ux_rate_df
     )
+    # When both tx and ux rates are zero the transition doesn't exist, so RR = 1
+    rr = rr.fillna(1.0)
 
     better_mam_rows = rr.copy()
     worse_mam_rows = rr.copy()
@@ -1660,6 +1662,8 @@ def load_complicated_sam_treatment_rr(key: str, location: Union[str, List[int]])
         complicated_sam_tx_efficacy_tmrel * tx_rate_df
         + (1 - complicated_sam_tx_efficacy_tmrel) * ux_rate_df
     )
+    # When both tx and ux rates are zero the transition doesn't exist, so RR = 1
+    rr = rr.fillna(1.0)
 
     rr["affected_entity"] = (
         "complicated_severe_acute_malnutrition"
