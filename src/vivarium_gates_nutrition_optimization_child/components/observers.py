@@ -13,7 +13,7 @@ from vivarium_public_health.results.stratification import (
     ResultsStratifier as ResultsStratifier_,
 )
 
-from vivarium_gates_nutrition_optimization_child.constants import data_keys, data_values
+from vivarium_gates_nutrition_optimization_child.constants import data_keys, data_values, models
 from vivarium_gates_nutrition_optimization_child.constants.metadata import (
     SUBNATIONAL_LOCATION_DICT,
 )
@@ -85,6 +85,13 @@ class ResultsStratifier(ResultsStratifier_):
             mapper=self.child_wasting_stratification_mapper,
             is_vectorized=True,
             requires_attributes=["child_wasting.exposure"],
+        )
+        builder.results.register_stratification(
+            "previous_wasting_state",
+            [category.value for category in data_keys.ChildWastingCategories],
+            mapper=self.previous_child_wasting_stratification_mapper,
+            is_vectorized=True,
+            requires_attributes=["previous_child_wasting"],
         )
         # builder.results.register_stratification(
         #     "stunting_state",
@@ -177,6 +184,18 @@ class ResultsStratifier(ResultsStratifier_):
             "cat2": data_keys.ChildWastingCategories.WORSE_MODERATE.value,
             "cat1_uncomplicated": data_keys.ChildWastingCategories.UNCOMPLICATED_SEVERE.value,
             "cat1_complicated": data_keys.ChildWastingCategories.COMPLICATED_SEVERE.value,
+        }
+        return pop.squeeze(axis=1).map(mapper)
+
+    def previous_child_wasting_stratification_mapper(self, pop: pd.DataFrame) -> pd.Series:
+        """Map disease model state names to wasting category values."""
+        mapper = {
+            models.WASTING.SUSCEPTIBLE_STATE_NAME: data_keys.ChildWastingCategories.UNEXPOSED.value,
+            models.WASTING.MILD_STATE_NAME: data_keys.ChildWastingCategories.MILD.value,
+            models.WASTING.BETTER_MODERATE_STATE_NAME: data_keys.ChildWastingCategories.BETTER_MODERATE.value,
+            models.WASTING.WORSE_MODERATE_STATE_NAME: data_keys.ChildWastingCategories.WORSE_MODERATE.value,
+            models.WASTING.UNCOMPLICATED_SAM_STATE_NAME: data_keys.ChildWastingCategories.UNCOMPLICATED_SEVERE.value,
+            models.WASTING.COMPLICATED_SAM_STATE_NAME: data_keys.ChildWastingCategories.COMPLICATED_SEVERE.value,
         }
         return pop.squeeze(axis=1).map(mapper)
 
