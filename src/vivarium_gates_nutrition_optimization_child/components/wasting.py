@@ -45,10 +45,8 @@ class WastingTreatment(Risk):
         self.is_complicated_sam_component = (
             self.risk.name == data_keys.COMPLICATED_SAM_TREATMENT.name
         )
-        self.is_uncomplicated_sam_component = (
-            self.risk.name == data_keys.SAM_TREATMENT.name
-        )
-        # Column to track auto-enrollment for complicated SAM recovery scenarios
+        self.is_uncomplicated_sam_component = self.risk.name == data_keys.SAM_TREATMENT.name
+        # Column to track post-discharge for complicated SAM recovery scenarios
         self.post_discharge_column = "post_discharge_sam_treatment"
 
     ##########################
@@ -76,10 +74,10 @@ class WastingTreatment(Risk):
             self.initialize_previous_treatment_column, self.previous_treatment_column
         )
 
-        # Register auto-enrollment column for recovery scenarios
+        # Register post-discharge column for recovery scenarios
         if self.is_uncomplicated_sam_component:
             builder.population.register_initializer(
-                self.initialize_auto_enrolled_column, self.post_discharge_column
+                self.initialize_post_discharge_column, self.post_discharge_column
             )
 
     ########################
@@ -91,7 +89,7 @@ class WastingTreatment(Risk):
             pd.Series("cat1", index=pop_data.index, name=self.previous_treatment_column)
         )
 
-    def initialize_auto_enrolled_column(self, pop_data: SimulantData) -> None:
+    def initialize_post_discharge_column(self, pop_data: SimulantData) -> None:
         self.population_view.initialize(
             pd.Series(False, index=pop_data.index, name=self.post_discharge_column)
         )
@@ -105,10 +103,7 @@ class WastingTreatment(Risk):
             self.exposure_name,
         ]
         update_columns = [self.previous_treatment_column, self.propensity_name]
-        if self.is_uncomplicated_sam_component:
-            columns.append(self.post_discharge_column)
-            update_columns.append(self.post_discharge_column)
-            
+
         pop = self.population_view.get(event.index, columns)
 
         def _modifier(current: pd.DataFrame) -> pd.DataFrame:
@@ -119,25 +114,34 @@ class WastingTreatment(Risk):
             current.loc[remitted_mask, self.propensity_name] = self.randomness.get_draw(
                 remitted_mask.index
             )
-
-            # Auto-enrollment for complicated SAM recovery scenarios
-            if self.is_uncomplicated_sam_component:
-                complicated_sam_state = models.WASTING.COMPLICATED_SAM_STATE_NAME
-                uncomplicated_sam_state = models.WASTING.UNCOMPLICATED_SAM_STATE_NAME
-                # Detect simulants transitioning from complicated → uncomplicated SAM
-                transitioning = (
-                    (pop[self.previous_wasting_column] == complicated_sam_state)
-                    & (pop[self.wasting_column] == uncomplicated_sam_state)
-                )
-                current.loc[transitioning, self.post_discharge_column] = True
-                # Reset auto-enrollment for simulants who left uncomplicated SAM
-                left_uncomplicated = pop[self.wasting_column] != uncomplicated_sam_state
-                current.loc[left_uncomplicated, self.post_discharge_column] = False
-
             return current
 
         self.population_view.update(update_columns, _modifier)
 
+    def on_time_step_cleanup(self, event: Event) -> None:
+        """Update post-discharge column after wasting transitions have occurred."""
+        if not self.is_uncomplicated_sam_component:
+            return
+
+        pop = self.population_view.get(
+            event.index,
+            [self.wasting_column, self.previous_wasting_column, self.post_discharge_column],
+        )
+
+        def _modifier(current: pd.DataFrame) -> pd.DataFrame:
+            complicated_sam_state = models.WASTING.COMPLICATED_SAM_STATE_NAME
+            uncomplicated_sam_state = models.WASTING.UNCOMPLICATED_SAM_STATE_NAME
+            # Detect simulants transitioning from complicated → uncomplicated SAM
+            transitioning = (
+                pop[self.previous_wasting_column] == complicated_sam_state
+            ) & (pop[self.wasting_column] == uncomplicated_sam_state)
+            current.loc[transitioning, self.post_discharge_column] = True
+            # Reset post-discharge for simulants who left uncomplicated SAM
+            left_uncomplicated = pop[self.wasting_column] != uncomplicated_sam_state
+            current.loc[left_uncomplicated, self.post_discharge_column] = False
+            return current
+
+        self.population_view.update([self.post_discharge_column], _modifier)
     ##################################
     # Pipeline sources and modifiers #
     ##################################
@@ -215,9 +219,7 @@ class WastingTreatment(Risk):
                 exposure.loc[age < 0.5] = "cat1"
                 return exposure
             else:
-                raise ValueError(
-                    f"Unrecognized complicated_sam_tx_type: {csam_type}"
-                )
+                raise ValueError(f"Unrecognized complicated_sam_tx_type: {csam_type}")
 
         else:  # uncomplicated SAM treatment component
             sam_coverage = self.scenario.sam_tx_coverage
@@ -232,11 +234,9 @@ class WastingTreatment(Risk):
                 exposure.loc[age < 0.5] = "cat1"
                 return exposure
             elif sam_coverage == "none" and csam_type == "recovery":
-                # Auto-enrollment only: only simulants who transitioned from
+                # post-discharge only: only simulants who transitioned from
                 # complicated SAM get covered
-                pop = self.population_view.get(
-                    index, ["age", self.post_discharge_column]
-                )
+                pop = self.population_view.get(index, ["age", self.post_discharge_column])
                 exposure = pd.Series("cat1", index=index)
                 exposure.loc[pop[self.post_discharge_column]] = "cat2"
                 exposure.loc[pop["age"] < 0.5] = "cat1"
@@ -452,19 +452,30 @@ def ChildWasting() -> ChildWastingModel:
     )
     uncomplicated_severe.add_rate_transition(
         complicated_severe,
-        transition_rate=lambda builder: get_transition_data(builder, "inc_rate_complicated_sam"),
+        transition_rate=lambda builder: get_transition_data(
+            builder, "inc_rate_complicated_sam"
+        ),
     )
 
     # Add transitions for complicated severe (cat1c)
     complicated_severe.add_rate_transition(
         uncomplicated_severe,
-        transition_rate=lambda builder: get_transition_data(builder, "rem_rate_complicated_sam"),
+        transition_rate=lambda builder: get_transition_data(
+            builder, "rem_rate_complicated_sam"
+        ),
     )
 
     return ChildWastingModel(
         models.WASTING.MODEL_NAME,
         cause_specific_mortality_rate=0.0,
-        states=[uncomplicated_severe, complicated_severe, better_moderate, worse_moderate, mild, tmrel],
+        states=[
+            uncomplicated_severe,
+            complicated_severe,
+            better_moderate,
+            worse_moderate,
+            mild,
+            tmrel,
+        ],
     )
 
 
