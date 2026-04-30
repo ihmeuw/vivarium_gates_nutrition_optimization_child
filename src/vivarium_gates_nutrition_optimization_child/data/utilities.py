@@ -723,7 +723,8 @@ def get_wasting_treatment_parameter_data(
     else:
         location_id = location
     raw = pd.read_csv(
-        paths.WASTING_TRANSITIONS_COMPLICATED_SAM_DATA_DIR / f"{location_id}.csv"
+        paths.WASTING_TRANSITIONS_COMPLICATED_SAM_DATA_DIR / f"{location_id}.csv",
+        index_col=0,
     )
     data = raw.query("parameter == @parameter").drop("parameter", axis=1)
     data = data.set_index(["sex", "age_start", "age_end", "location"])

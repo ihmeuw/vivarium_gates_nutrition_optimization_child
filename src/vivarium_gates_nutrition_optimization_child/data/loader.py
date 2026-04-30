@@ -469,7 +469,8 @@ def load_wasting_transition_rates(key: str, location: Union[str, List[int]]) -> 
     national_location_id = get_national_location_id(location[0])
     demography = get_data(data_keys.POPULATION.DEMOGRAPHY, national_location_id)
     rates = pd.read_csv(
-        paths.WASTING_TRANSITIONS_COMPLICATED_SAM_DATA_DIR / f"{national_location_id}.csv"
+        paths.WASTING_TRANSITIONS_COMPLICATED_SAM_DATA_DIR / f"{national_location_id}.csv",
+        index_col=0,
     )
     rates = rates.rename({"parameter": "transition"}, axis=1)
 
@@ -1145,7 +1146,8 @@ def _load_complicated_sam_fraction(national_location_id: int) -> pd.DataFrame:
     with the 1-5 month values (the youngest available age group).
     """
     rates = pd.read_csv(
-        paths.WASTING_TRANSITIONS_COMPLICATED_SAM_DATA_DIR / f"{national_location_id}.csv"
+        paths.WASTING_TRANSITIONS_COMPLICATED_SAM_DATA_DIR / f"{national_location_id}.csv",
+        index_col=0,
     )
     comp_frac = rates.query("parameter == 'complicated_fraction'").copy()
     comp_frac = comp_frac.drop("parameter", axis=1)
@@ -1304,7 +1306,8 @@ def _load_mortality_rates(location: Union[str, List[int]]) -> Dict[str, pd.DataF
     demography = get_data(data_keys.POPULATION.DEMOGRAPHY, national_location_id)
 
     rates = pd.read_csv(
-        paths.WASTING_TRANSITIONS_COMPLICATED_SAM_DATA_DIR / f"{national_location_id}.csv"
+        paths.WASTING_TRANSITIONS_COMPLICATED_SAM_DATA_DIR / f"{national_location_id}.csv",
+        index_col=0,
     )
 
     mortality_params = [
