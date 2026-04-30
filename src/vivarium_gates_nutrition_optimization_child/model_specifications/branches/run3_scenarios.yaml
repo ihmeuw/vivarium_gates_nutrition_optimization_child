@@ -1,7 +1,7 @@
 # Run 3.0 — Intervention model updates
 #
 # All child scenarios on baseline maternal scenario.
-# Scenarios: baseline, 0-7, 36, 45
+
 
 input_draw_count: 10
 random_seed_count: 5
