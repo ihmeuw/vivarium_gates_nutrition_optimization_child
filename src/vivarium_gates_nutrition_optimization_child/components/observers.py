@@ -13,7 +13,11 @@ from vivarium_public_health.results.stratification import (
     ResultsStratifier as ResultsStratifier_,
 )
 
-from vivarium_gates_nutrition_optimization_child.constants import data_keys, data_values, models
+from vivarium_gates_nutrition_optimization_child.constants import (
+    data_keys,
+    data_values,
+    models,
+)
 from vivarium_gates_nutrition_optimization_child.constants.metadata import (
     SUBNATIONAL_LOCATION_DICT,
 )
@@ -53,25 +57,24 @@ class ResultsStratifier(ResultsStratifier_):
             ],
         }
         hybrid_bins = {
-            # Early neonatal (GBD) 
+            # Early neonatal (GBD)
             # Late neonatal (GBD)
             # 1-5 months (GBD)
             # 6-12 months (GBD)
             # 12-18 months (Custom for SQLNS eligible age)
             # 18-24 months (Custom for SQLNS eligible age)
             # 2-4 years (GBD)
-                "age_start": [0.0, 0.019178, 0.076712, 0.5, 1.0, 1.5, 2.0],
-                "age_end": [0.019178, 0.076712, 0.5, 1.0, 1.5, 2.0, 5.0],
-                "age_group_name": [
-                    "early_neonatal",
-                    "late_neonatal",
-                    "1-5_months",
-                    "6-11_months",
-                    "12_to_17_months",
-                    "18_to_23_months",
-                    "2_to_4",
-                ],
-            
+            "age_start": [0.0, 0.019178, 0.076712, 0.5, 1.0, 1.5, 2.0],
+            "age_end": [0.019178, 0.076712, 0.5, 1.0, 1.5, 2.0, 5.0],
+            "age_group_name": [
+                "early_neonatal",
+                "late_neonatal",
+                "1-5_months",
+                "6-11_months",
+                "12_to_17_months",
+                "18_to_23_months",
+                "2_to_4",
+            ],
         }
         return pd.DataFrame(hybrid_bins)
 
@@ -87,11 +90,10 @@ class ResultsStratifier(ResultsStratifier_):
             requires_attributes=["child_wasting.exposure"],
         )
         builder.results.register_stratification(
-            "previous_wasting_state",
-            [category.value for category in data_keys.ChildWastingCategories],
-            mapper=self.previous_child_wasting_stratification_mapper,
+            "post_discharge_sam_treatment",
+            [True, False],
             is_vectorized=True,
-            requires_attributes=["previous_child_wasting"],
+            requires_attributes=["post_discharge_sam_treatment"],
         )
         # builder.results.register_stratification(
         #     "stunting_state",
