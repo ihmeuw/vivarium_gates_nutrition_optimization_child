@@ -6,7 +6,7 @@
 input_draw_count: 10
 random_seed_count: 5
 
-input_draws: [8, 13, 41, 103, 139, 177, 192, 199, 216, 221]
+input_draws:  [80, 13, 64, 74, 29, 52, 91, 60, 1, 83] #, 16, 26, 12, 28, 44, 88, 72, 35, 53, 47]
 random_seeds: [4344, 5616, 6810, 2787, 2284]
 
 branches:
@@ -46,6 +46,7 @@ branches:
       
       maternal_scenario:
         - 'baseline'
+        - 'mms_at_anc1'
       sqlns_effect_size:
         - 'standard'
       subnational:
