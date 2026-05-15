@@ -2199,33 +2199,40 @@ def load_sqlns_risk_ratios(key: str, location: Union[str, List[int]]) -> pd.Data
     if key != data_keys.SQLNS_TREATMENT.RISK_RATIOS:
         raise ValueError(f"Unrecognized key {key}")
 
-    raw = pd.read_csv(paths.SQLNS_RISK_RATIOS).drop("Unnamed: 0", axis=1)
-    key_cols = ["location", "age_start", "age_end", "affected_outcome"]
-
-    standard = raw[key_cols + ["lcl_standard", "mean_standard", "ucl_standard"]].rename(
-        columns={"lcl_standard": "lower", "mean_standard": "median", "ucl_standard": "upper"}
+    raw = pd.read_csv(paths.SQLNS_RISK_RATIOS).drop("Unnamed: 0", axis=1).rename(
+        columns={"location": "subnational"}
     )
-    standard["effect_size"] = "standard"
-    modified = raw[key_cols + ["lcl_modified", "mean_modified", "ucl_modified"]].rename(
-        columns={"lcl_modified": "lower", "mean_modified": "median", "ucl_modified": "upper"}
-    )
-    modified["effect_size"] = "modified"
-    risk_ratios = pd.concat([standard, modified], ignore_index=True)
+    key_cols = ["subnational", "age_start", "age_end", "affected_outcome"]
+    index_cols = key_cols + ["effect_size"]
 
+    # Only Kano + standard has non-unit effects; everything else is 1.0.
+    # Build the full frame at 1.0 and overwrite Kano-standard rows with sampled draws.
+    standard = raw[key_cols].assign(effect_size="standard")
+    modified = raw[key_cols].assign(effect_size="modified")
+    keys = pd.concat([standard, modified], ignore_index=True)
+    ones = pd.DataFrame(
+        1.0, index=keys.index, columns=list(metadata.ARTIFACT_COLUMNS)
+    )
+    data = pd.concat([keys, ones], axis=1)
+
+    kano_standard = raw.query("subnational == 'Kano'").reset_index(drop=True)
     distributions = get_lognorm_from_quantiles(
-        risk_ratios["median"], risk_ratios["lower"], risk_ratios["upper"]
+        kano_standard["mean_standard"],
+        kano_standard["lcl_standard"],
+        kano_standard["ucl_standard"],
     )
     draws = get_random_variable_draws(
         metadata.ARTIFACT_COLUMNS, "sqlns_risk_ratios", distributions
     )
+    kano_draws = pd.DataFrame(draw for draw in draws).T
+    kano_draws.columns = metadata.ARTIFACT_COLUMNS
+    kano_full = pd.concat(
+        [kano_standard[key_cols].assign(effect_size="standard"), kano_draws], axis=1
+    )
 
-    # reshape
-    index_cols = key_cols + ["effect_size"]
-    draw_columns = pd.DataFrame(draw for draw in draws).T
-    draw_columns.columns = metadata.ARTIFACT_COLUMNS
-    data = pd.concat([risk_ratios[index_cols], draw_columns], axis=1).set_index(index_cols)
-
-    return data
+    data = data.set_index(index_cols)
+    data.loc[kano_full.set_index(index_cols).index] = kano_full.set_index(index_cols).values
+    return data.sort_index()
 
 
 def reshape_to_vivarium_format(df, location):
