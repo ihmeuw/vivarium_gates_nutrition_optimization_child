@@ -2199,14 +2199,19 @@ def load_sqlns_risk_ratios(key: str, location: Union[str, List[int]]) -> pd.Data
     if key != data_keys.SQLNS_TREATMENT.RISK_RATIOS:
         raise ValueError(f"Unrecognized key {key}")
 
-    # generate draws using distribution parameters for each row
-    risk_ratios = pd.read_csv(paths.SQLNS_RISK_RATIOS)
-    national_location_id = get_national_location_id(location[0])
-    risk_ratios = (
-        risk_ratios.query("national_id==@national_location_id")
-        .drop(["national_id", "location_id", "Unnamed: 0"], axis=1)
-        .reset_index()
+    raw = pd.read_csv(paths.SQLNS_RISK_RATIOS).drop("Unnamed: 0", axis=1)
+    key_cols = ["location", "age_start", "age_end", "affected_outcome"]
+
+    standard = raw[key_cols + ["lcl_standard", "mean_standard", "ucl_standard"]].rename(
+        columns={"lcl_standard": "lower", "mean_standard": "median", "ucl_standard": "upper"}
     )
+    standard["effect_size"] = "standard"
+    modified = raw[key_cols + ["lcl_modified", "mean_modified", "ucl_modified"]].rename(
+        columns={"lcl_modified": "lower", "mean_modified": "median", "ucl_modified": "upper"}
+    )
+    modified["effect_size"] = "modified"
+    risk_ratios = pd.concat([standard, modified], ignore_index=True)
+
     distributions = get_lognorm_from_quantiles(
         risk_ratios["median"], risk_ratios["lower"], risk_ratios["upper"]
     )
@@ -2215,7 +2220,7 @@ def load_sqlns_risk_ratios(key: str, location: Union[str, List[int]]) -> pd.Data
     )
 
     # reshape
-    index_cols = ["location", "age_start", "age_end", "affected_outcome", "effect_size"]
+    index_cols = key_cols + ["effect_size"]
     draw_columns = pd.DataFrame(draw for draw in draws).T
     draw_columns.columns = metadata.ARTIFACT_COLUMNS
     data = pd.concat([risk_ratios[index_cols], draw_columns], axis=1).set_index(index_cols)
