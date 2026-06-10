@@ -29,7 +29,6 @@ class SQLNSTreatment(Component):
             ["location", "targeted_ghi"]
         ]
 
-    # noinspection PyAttributeOutsideInit
     def setup(self, builder: Builder):
         self.randomness = builder.randomness.get_stream(f"initial_{self.name}_propensity")
         self.scenario = scenarios.INTERVENTION_SCENARIOS[
@@ -158,29 +157,26 @@ class SQLNSTreatment(Component):
 
         return coverage
 
-    def apply_tmrel_to_mild_wasting_treatment(
-        self, index: pd.Index, target: pd.Series
-    ) -> pd.Series:
-        covered = self.population_view.get(index, self.coverage_name) == "covered"
-        target[covered] = target[covered] * self.tmrel_to_mild_wasting_risk_ratio_table(index)
+    def apply_tmrel_to_mild_wasting_treatment(self, index: pd.Index) -> pd.Series:
+        coverage = self.population_view.get(index, self.coverage_name)
+        covered = coverage[coverage == "covered"].index
+        treatment_effect = pd.Series(1, index=index)
+        treatment_effect[covered] = self.tmrel_to_mild_wasting_risk_ratio_table(covered)
+        return treatment_effect
 
-        return target
+    def apply_mild_to_mam_wasting_treatment(self, index: pd.Index) -> pd.Series:
+        coverage = self.population_view.get(index, self.coverage_name)
+        covered = coverage[coverage == "covered"].index
+        treatment_effect = pd.Series(1, index=index)
+        treatment_effect[covered] = self.mild_to_mam_wasting_risk_ratio_table(covered)
+        return treatment_effect
 
-    def apply_mild_to_mam_wasting_treatment(
-        self, index: pd.Index, target: pd.Series
-    ) -> pd.Series:
-        covered = self.population_view.get(index, self.coverage_name) == "covered"
-        target[covered] = target[covered] * self.mild_to_mam_wasting_risk_ratio_table(index)
-
-        return target
-
-    def apply_mam_to_sam_wasting_treatment(
-        self, index: pd.Index, target: pd.Series
-    ) -> pd.Series:
-        covered = self.population_view.get(index, self.coverage_name) == "covered"
-        target[covered] = target[covered] * self.mam_to_sam_wasting_risk_ratio_table(index)
-
-        return target
+    def apply_mam_to_sam_wasting_treatment(self, index: pd.Index) -> pd.Series:
+        coverage = self.population_view.get(index, self.coverage_name)
+        covered = coverage[coverage == "covered"].index
+        treatment_effect = pd.Series(1, index=index)
+        treatment_effect[covered] = self.mam_to_sam_wasting_risk_ratio_table(covered)
+        return treatment_effect
 
     def apply_stunting_treatment(self, index: pd.Index, target: pd.DataFrame) -> pd.DataFrame:
         cat1_decrease = target.loc[:, "cat1"] * (

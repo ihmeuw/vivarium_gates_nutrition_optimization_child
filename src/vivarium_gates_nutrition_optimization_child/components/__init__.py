@@ -41,4 +41,5 @@ from vivarium_gates_nutrition_optimization_child.components.treatment import (
 from vivarium_gates_nutrition_optimization_child.components.wasting import (
     ChildWasting,
     WastingTreatment,
+    WastingTreatmentEffect,
 )

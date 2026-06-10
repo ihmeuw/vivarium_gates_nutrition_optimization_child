@@ -5,10 +5,8 @@ from typing import Any, Dict
 import pandas as pd
 from vivarium.framework.engine import Builder
 from vivarium.framework.values import Pipeline
+from vivarium_public_health.causal_factor.utilities import get_exposure_post_processor
 from vivarium_public_health.risks import Risk, RiskEffect
-from vivarium_public_health.risks.data_transformations import (
-    get_exposure_post_processor,
-)
 from vivarium_public_health.utilities import EntityString
 
 from vivarium_gates_nutrition_optimization_child.components import (
@@ -76,14 +74,11 @@ class ChildUnderweight(Risk):
             wasting_cat = wasting_cat.replace(".", "")
             key = f"risk_factor.stunting_{stunting_cat}_wasting_{wasting_cat}_underweight"
 
-            distributions[key] = CGFPolytomousDistribution(
+            distribution = CGFPolytomousDistribution(
                 EntityString(key), distribution_data
             )
-        for dist in distributions.values():
-            # HACK / FIXME [MIC-6756]
-            self._components._manager._current_component = dist
-            dist.setup_component(builder)
-            self._components._manager._current_component = self
+            distribution.setup_component(builder)
+            distributions[key] = distribution
         return distributions
 
     ##################################
@@ -167,8 +162,6 @@ class CGFRiskEffect(RiskEffect):
                 data_keys.STUNTING.name,
             ]
         ]
-        # This is to access to the distribution type before setup
-        self._exposure_distribution_type = "ordered_polytomous"
         # Override relative risk name to include the measure to avoid collisions
         # between instances targeting the same entity with different measures
         self.relative_risk_name = (
@@ -191,7 +184,7 @@ class CGFRiskEffect(RiskEffect):
             )
 
     def get_distribution_type(self, builder: Builder) -> str:
-        return self._exposure_distribution_type
+        return "ordered_polytomous"
 
     def get_relative_risk_source(self, builder: Builder) -> Callable[[pd.Index], pd.Series]:
         """Compute combined relative risk from all sub-risk lookup tables."""
