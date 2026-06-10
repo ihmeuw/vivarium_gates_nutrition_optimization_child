@@ -7,7 +7,7 @@ This module contains a component for creating a base population from line list d
 
 """
 
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 import numpy as np
 import pandas as pd
@@ -20,7 +20,6 @@ from vivarium_public_health.population.data_transformations import (
 )
 from vivarium_public_health.population.mortality import Mortality
 
-from vivarium_gates_nutrition_optimization_child import utilities as utils
 from vivarium_gates_nutrition_optimization_child.constants import data_keys
 from vivarium_gates_nutrition_optimization_child.constants.paths import (
     SUBNATIONAL_PERCENTAGES,

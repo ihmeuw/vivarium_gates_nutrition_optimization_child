@@ -13,7 +13,8 @@ from vivarium.framework.lookup import LookupTable
 from vivarium.framework.population import SimulantData
 from vivarium.framework.time import get_time_stamp
 from vivarium.framework.values import Pipeline
-from vivarium_public_health.risks import RiskEffect
+from vivarium_public_health.causal_factor.utilities import pivot_categorical
+from vivarium_public_health.utilities import EntityString, TargetString
 
 from vivarium_gates_nutrition_optimization_child.constants import data_keys, data_values
 from vivarium_gates_nutrition_optimization_child.constants.data_keys import (
@@ -122,9 +123,17 @@ class MaternalCharacteristics(Component):
         return exposure
 
 
-class LBWSGAdditiveRiskEffect(RiskEffect):
+class LBWSGAdditiveRiskEffect(Component):
+    @property
+    def name(self) -> str:
+        return f"risk_effect.{self.risk.name}_on_{self.target}"
+
     def __init__(self, risk: str, target: str):
-        super().__init__(risk, target)
+        super().__init__()
+        self.risk = EntityString(risk)
+        self.target = TargetString(target)
+
+        self.exposure_name = f"{self.risk.name}.exposure"
         self.effect_name = f"{self.risk.name}_on_{self.target.name}.effect"
 
     #################
@@ -133,7 +142,6 @@ class LBWSGAdditiveRiskEffect(RiskEffect):
 
     # noinspection PyAttributeOutsideInit
     def setup(self, builder: Builder) -> None:
-        super().setup(builder)
         self.excess_shift_table = self.get_excess_shift_lookup_table(builder)
         self.risk_specific_shift_table = self.get_risk_specific_shift_lookup_table(builder)
         self.excess_shift = self.get_excess_shift(builder)
@@ -143,17 +151,11 @@ class LBWSGAdditiveRiskEffect(RiskEffect):
             source=self.get_effect,
             required_resources=[self.exposure_name],
         )
-
-    def build_rr_lookup_table(self, builder: Builder) -> LookupTable:
-        self._exposure_distribution_type = "ordered_polytomous"
-        return self.build_lookup_table(builder, "relative_risk", 1)
-
-    def get_relative_risk_source(self, builder: Builder) -> Callable[[pd.Index], pd.Series]:
-        """Return constant RR of 1.0; this component uses excess_shift instead."""
-        return lambda index: pd.Series(1.0, index=index)
-
-    def build_paf_lookup_table(self, builder: Builder) -> LookupTable:
-        return self.build_lookup_table(builder, "paf", 0)
+        builder.value.register_attribute_modifier(
+            "low_birth_weight_and_short_gestation.birth_exposure",
+            modifier=self.adjust_target,
+            required_resources=[self.effect_name],
+        )
 
     def get_excess_shift_lookup_table(self, builder: Builder) -> LookupTable:
         excess_shift_data = builder.data.load(
@@ -167,18 +169,6 @@ class LBWSGAdditiveRiskEffect(RiskEffect):
         )
         return self.build_lookup_table(builder, "excess_shift", excess_shift_data, value_cols)
 
-    def register_target_modifier(self, builder: Builder) -> None:
-        builder.value.register_attribute_modifier(
-            "low_birth_weight_and_short_gestation.birth_exposure",
-            modifier=self.adjust_target,
-            required_resources=[self.relative_risk_name],
-        )
-
-    def adjust_target(self, index: pd.Index, target: pd.DataFrame) -> pd.Series:
-        effect = self.population_view.get(index, self.effect_name)
-        target[self.target.name] += effect
-        return target
-
     def get_risk_specific_shift_lookup_table(self, builder: Builder) -> LookupTable:
         risk_specific_shift_data = builder.data.load(
             f"{self.risk}.risk_specific_shift",
@@ -189,15 +179,34 @@ class LBWSGAdditiveRiskEffect(RiskEffect):
             builder, "risk_specific_shift", risk_specific_shift_data, "value"
         )
 
-    def register_paf_modifier(self, builder: Builder) -> None:
-        pass
-
     def get_excess_shift(self, builder: Builder) -> Union[LookupTable, Pipeline]:
         return self.excess_shift_table
+
+    def process_categorical_data(
+        self, builder: Builder, data: Union[str, float, pd.DataFrame]
+    ) -> tuple[pd.DataFrame, list[str]]:
+        if not isinstance(data, pd.DataFrame):
+            cat1 = builder.data.load("population.demographic_dimensions")
+            cat1["parameter"] = "cat1"
+            cat1["value"] = data
+            cat2 = cat1.copy()
+            cat2["parameter"] = "cat2"
+            cat2["value"] = 1
+            data = pd.concat([cat1, cat2], ignore_index=True)
+        if "parameter" in data.index.names:
+            data = data.reset_index("parameter")
+        value_cols = list(data["parameter"].unique())
+        data = pivot_categorical(data, "parameter")
+        return data, value_cols
 
     ##################################
     # Pipeline sources and modifiers #
     ##################################
+
+    def adjust_target(self, index: pd.Index, target: pd.DataFrame) -> pd.DataFrame:
+        effect = self.population_view.get(index, self.effect_name)
+        target[self.target.name] += effect
+        return target
 
     def get_effect(self, index: pd.Index) -> pd.Series:
         index_columns = ["index", self.risk.name]
