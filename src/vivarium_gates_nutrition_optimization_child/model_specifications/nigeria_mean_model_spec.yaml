@@ -6,9 +6,6 @@ components:
             - SIS('malaria')
         risks:
             - Risk('risk_factor.child_stunting')
-
-            - LBWSGRiskEffect('cause.diarrheal_diseases.excess_mortality_rate')
-            - LBWSGRiskEffect('cause.lower_respiratory_infections.excess_mortality_rate')
             - LBWSGRiskEffect('cause.affected_unmodeled.cause_specific_mortality_rate')
         results:
             - DiseaseObserver('diarrheal_diseases')
@@ -44,6 +41,8 @@ components:
             - CGFRiskEffect('cause.measles.excess_mortality_rate')
             - CGFRiskEffect('cause.lower_respiratory_infections.excess_mortality_rate')
             - CGFRiskEffect('cause.malaria.excess_mortality_rate')
+            - LBWSGRiskEffectOneMinusPAFModifier('cause.diarrheal_diseases.excess_mortality_rate')
+            - LBWSGRiskEffectOneMinusPAFModifier('cause.lower_respiratory_infections.excess_mortality_rate')
             - LBWSGAdditiveRiskEffect('risk_factor.iron_folic_acid_supplementation', 'risk_factor.birth_weight.birth_exposure')
             - LBWSGAdditiveRiskEffect('risk_factor.multiple_micronutrient_supplementation', 'risk_factor.birth_weight.birth_exposure')
             - BEPEffectOnBirthweight()

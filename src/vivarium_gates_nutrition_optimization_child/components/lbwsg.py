@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 from vivarium.component import Component
 from vivarium.framework.engine import Builder
-from vivarium.framework.lookup import LookupTable
+from vivarium.framework.lookup import DEFAULT_VALUE_COLUMN, LookupTable
 from vivarium.framework.population import SimulantData
 from vivarium.framework.time import get_time_stamp
 from vivarium.framework.values import Pipeline
@@ -122,6 +122,31 @@ class LBWSGPAFCalculationRiskEffect(LBWSGRiskEffect):
 
     def get_population_attributable_fraction_source(self, builder: Builder) -> LookupTable:
         return 0, []
+
+
+class LBWSGRiskEffectOneMinusPAFModifier(LBWSGRiskEffect):
+    """LBWSGRiskEffect that applies its ``(1 - PAF)`` calibration as a per-simulant
+    multiplicative modifier on the target rate, instead of contributing the raw PAF
+    to the shared ``{target}.calibration_constant`` union. Use this on a target rate
+    that is *also* calibrated by another risk effect whose PAF is binned/stratified
+    differently.
+    """
+
+    def register_calibration_constant_modifier(self, builder: Builder) -> None:
+        calibration_factor = self.paf_data
+        if isinstance(calibration_factor, pd.DataFrame):
+            calibration_factor = calibration_factor.copy()
+            calibration_factor[DEFAULT_VALUE_COLUMN] = (
+                1 - calibration_factor[DEFAULT_VALUE_COLUMN]
+            )
+        else:
+            calibration_factor = 1 - calibration_factor
+        self._calibration_factor_table = self.build_lookup_table(
+            builder, "calibration_factor", data_source=calibration_factor
+        )
+        builder.value.register_attribute_modifier(
+            self.target_name, modifier=self._calibration_factor_table
+        )
 
 
 class LBWSGPAFCalculationExposure(LBWSGRisk):

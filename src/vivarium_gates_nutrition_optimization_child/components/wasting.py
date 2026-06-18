@@ -27,13 +27,11 @@ class WastingTreatment(Intervention):
         # The treatment exposure and distribution data live under the legacy
         # ``risk_factor.*`` artifact keys, so source them from there rather than
         # the default ``intervention.*`` keys this component would otherwise use.
-        treatment_name = self.causal_factor.name
+        treatment_name = self.intervention.name
         config[self.name]["data_sources"][
             "exposure"
         ] = f"risk_factor.{treatment_name}.exposure"
-        config[self.name][
-            "distribution_type"
-        ] = f"risk_factor.{treatment_name}.distribution"
+        config[self.name]["distribution_type"] = f"risk_factor.{treatment_name}.distribution"
         return config
 
     @property
@@ -54,7 +52,7 @@ class WastingTreatment(Intervention):
     ##########################
 
     def _get_treated_state(self) -> str:
-        return self.risk.name.split("_treatment")[0]
+        return self.intervention.name.split("_treatment")[0]
 
     #################
     # Setup methods #
@@ -124,7 +122,7 @@ class WastingTreatment(Intervention):
         if isinstance(index, pd.RangeIndex):
             index = pd.Index(index.to_list())
 
-        is_mam_component = self.risk.name == "moderate_acute_malnutrition_treatment"
+        is_mam_component = self.intervention.name == "moderate_acute_malnutrition_treatment"
         coverage_to_exposure_map = {"none": "cat1", "full": "cat2"}
 
         if is_mam_component:
@@ -188,7 +186,7 @@ class WastingTreatmentEffect(InterventionEffect):
     @property
     def configuration_defaults(self) -> Dict[str, Any]:
         config = super().configuration_defaults
-        treatment_name = self.causal_factor.name
+        treatment_name = self.intervention.name
         config[self.name]["data_sources"][
             "relative_risk"
         ] = f"risk_factor.{treatment_name}.relative_risk"
@@ -248,6 +246,10 @@ class ChildWastingModel(DiseaseModel):
             ],
             required_resources=[
                 self.randomness,
+                # birth_weight_status is created by LBWSGLineList's initializer and is a
+                # key column of the birth_prevalence lookup tables read below, so it must
+                # exist before this initializer runs.
+                "birth_weight_status",
                 *self.initialization_weights_pipelines,
             ],
         )
