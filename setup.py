@@ -44,7 +44,7 @@ if __name__ == "__main__":
         long_description = f.read()
 
     install_requirements = [
-        "vivarium_build_utils>=3.0.2,<4.0.0",
+        "vivarium_build_utils>=3.0.2,<3.3.3",
         "gbd_mapping>=4.0.0, <5.0.0",
         "vivarium>=4.1.0",
         "vivarium_public_health>=5.1.5",
