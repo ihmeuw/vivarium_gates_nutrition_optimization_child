@@ -246,9 +246,6 @@ class ChildWastingModel(DiseaseModel):
             ],
             required_resources=[
                 self.randomness,
-                # birth_weight_status is created by LBWSGLineList's initializer and is a
-                # key column of the birth_prevalence lookup tables read below, so it must
-                # exist before this initializer runs.
                 "birth_weight_status",
                 *self.initialization_weights_pipelines,
             ],
