@@ -1414,9 +1414,12 @@ def load_mam_treatment_rr(
 def load_lbwsg_exposure(
     key: str, location: str, years: Optional[Union[int, str, List[int]]] = None
 ) -> pd.DataFrame:
+    key = EntityKey(key)
+    entity = utilities.get_entity(key)
 
     # Get exposure for all age groups except birth age group
-    exposure = load_standard_data(key, location)
+    exposure = interface.get_measure(entity, key.measure, location, 2021)
+    exposure = exposure.query("year_start == 2021")
     # Sometimes there are data values on the order of 10e-300 that cause
     # floating point headaches, so clip everything to reasonable values
     exposure = exposure.clip(lower=vi_globals.MINIMUM_EXPOSURE_VALUE)
@@ -1429,6 +1432,7 @@ def load_lbwsg_exposure(
         .set_index(metadata.ARTIFACT_INDEX_COLUMNS + ["parameter"])
         .sort_index()
     )
+    exposure = reshape_to_vivarium_format(exposure, location)
     return exposure
 
 
