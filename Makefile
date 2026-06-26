@@ -92,7 +92,10 @@ build-env: # Create a new environment with installed packages
 	
 	conda create -n $(name) python=$(py) --yes
 # 	Bootstrap vivarium_build_utils into the new environment
-	conda run -n $(name) pip install vivarium_build_utils
+# 	Pin to <3.0.0 to match this repo's cluster_tools 2.x line
+#	NOTE: cluster_tools 2.x transitively requires vbu<3.0.0, so installing a v3.x or v4.x
+#		wheel here would just be downgraded by `make install` and break the in-flight build.
+	conda run -n $(name) pip install "vivarium_build_utils<3.0.0"
 #	Install packages based on type
 	@if [ "$(type)" = "simulation" ]; then \
 		conda run -n $(name) make install ENV_REQS=dev; \
