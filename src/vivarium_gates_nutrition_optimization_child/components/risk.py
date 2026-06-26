@@ -74,9 +74,7 @@ class ChildUnderweight(Risk):
             wasting_cat = wasting_cat.replace(".", "")
             key = f"risk_factor.stunting_{stunting_cat}_wasting_{wasting_cat}_underweight"
 
-            distribution = CGFPolytomousDistribution(
-                EntityString(key), distribution_data
-            )
+            distribution = CGFPolytomousDistribution(EntityString(key), distribution_data)
             distribution.setup_component(builder)
             distributions[key] = distribution
         return distributions
