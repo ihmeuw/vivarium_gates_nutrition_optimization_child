@@ -124,6 +124,11 @@ class PopulationLineList(BasePopulation):
             else:
                 new_simulants["subnational"] = self.subnational
 
+        # Coerce the object-dtype time columns (NaT/Timestamp) to datetime64 so
+        # initialize() can cast them to the population's column dtype.
+        for time_column in ["entrance_time", "exit_time"]:
+            new_simulants[time_column] = pd.to_datetime(new_simulants[time_column])
+
         self.population_view.initialize(new_simulants)
 
     def _get_location(self, builder: Builder) -> Dict[str, str]:

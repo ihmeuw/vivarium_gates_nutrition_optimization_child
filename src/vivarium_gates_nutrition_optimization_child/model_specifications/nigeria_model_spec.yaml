@@ -6,10 +6,9 @@ components:
             - SIS('malaria')
         risks:
             - Risk('risk_factor.child_stunting')
-
+            - LBWSGRiskEffect('cause.affected_unmodeled.cause_specific_mortality_rate')
             - LBWSGRiskEffect('cause.diarrheal_diseases.excess_mortality_rate')
             - LBWSGRiskEffect('cause.lower_respiratory_infections.excess_mortality_rate')
-            - LBWSGRiskEffect('cause.affected_unmodeled.cause_specific_mortality_rate')
         results:
             - DiseaseObserver('diarrheal_diseases')
             - DiseaseObserver('measles')
