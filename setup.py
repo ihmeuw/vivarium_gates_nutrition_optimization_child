@@ -74,7 +74,8 @@ if __name__ == "__main__":
     ]
 
     setup(
-        name=about["__title__"],
+        # name is declared statically in pyproject.toml's [project] block.
+        # Setuptools errors if it's also passed here.
         version=about["__version__"],
         description=about["__summary__"],
         long_description=long_description,
@@ -93,8 +94,9 @@ if __name__ == "__main__":
             "dev": test_requirements + cluster_requirements + lint_requirements,
         },
         zip_safe=False,
-        entry_points="""
-            [console_scripts]
-            make_artifacts=vivarium_gates_nutrition_optimization_child.tools.cli:make_artifacts
-        """,
+        entry_points={
+            "console_scripts": [
+                "make_artifacts=vivarium_gates_nutrition_optimization_child.tools.cli:make_artifacts",
+            ],
+        },
     )
