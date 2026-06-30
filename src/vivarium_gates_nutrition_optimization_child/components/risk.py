@@ -3,11 +3,11 @@ from collections.abc import Callable
 from typing import Any, Dict
 
 import pandas as pd
-from vivarium.framework.engine import Builder
-from vivarium.framework.values import Pipeline
-from vivarium_public_health.causal_factor.utilities import get_exposure_post_processor
-from vivarium_public_health.risks import Risk, RiskEffect
-from vivarium_public_health.utilities import EntityString
+from vivarium.engine.framework.engine import Builder
+from vivarium.engine.framework.values import Pipeline
+from vivarium.public_health.causal_factor.utilities import get_exposure_post_processor
+from vivarium.public_health.risks import Risk, RiskEffect
+from vivarium.public_health.utilities import EntityString
 
 from vivarium_gates_nutrition_optimization_child.components import (
     CGFPolytomousDistribution,

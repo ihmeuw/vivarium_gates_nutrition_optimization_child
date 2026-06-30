@@ -7,14 +7,14 @@ from typing import Union
 
 import numpy as np
 import pandas as pd
-from vivarium import Component
-from vivarium.framework.engine import Builder
-from vivarium.framework.lookup import LookupTable
-from vivarium.framework.population import SimulantData
-from vivarium.framework.time import get_time_stamp
-from vivarium.framework.values import Pipeline
-from vivarium_public_health.causal_factor.utilities import pivot_categorical
-from vivarium_public_health.utilities import EntityString, TargetString
+from vivarium.engine import Component
+from vivarium.engine.framework.engine import Builder
+from vivarium.engine.framework.lookup import LookupTable
+from vivarium.engine.framework.population import SimulantData
+from vivarium.engine.framework.time import get_time_stamp
+from vivarium.engine.framework.values import Pipeline
+from vivarium.public_health.causal_factor.utilities import pivot_categorical
+from vivarium.public_health.utilities import EntityString, TargetString
 
 from vivarium_gates_nutrition_optimization_child.constants import data_keys, data_values
 from vivarium_gates_nutrition_optimization_child.constants.data_keys import (

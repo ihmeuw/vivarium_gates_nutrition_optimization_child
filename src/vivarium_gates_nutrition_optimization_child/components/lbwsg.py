@@ -14,20 +14,20 @@ from typing import Dict
 
 import numpy as np
 import pandas as pd
-from vivarium.component import Component
-from vivarium.framework.engine import Builder
-from vivarium.framework.lookup import LookupTable
-from vivarium.framework.population import SimulantData
-from vivarium.framework.time import get_time_stamp
-from vivarium.framework.values import Pipeline
-from vivarium_public_health.causal_factor.utilities import get_exposure_post_processor
-from vivarium_public_health.risks.implementations.low_birth_weight_and_short_gestation import (
+from vivarium.engine.component import Component
+from vivarium.engine.framework.engine import Builder
+from vivarium.engine.framework.lookup import LookupTable
+from vivarium.engine.framework.population import SimulantData
+from vivarium.engine.framework.time import get_time_stamp
+from vivarium.engine.framework.values import Pipeline
+from vivarium.public_health.causal_factor.utilities import get_exposure_post_processor
+from vivarium.public_health.risks.implementations.low_birth_weight_and_short_gestation import (
     AXES,
     LBWSGRisk,
     LBWSGRiskEffect,
     Risk,
 )
-from vivarium_public_health.utilities import TargetString
+from vivarium.public_health.utilities import TargetString
 
 from vivarium_gates_nutrition_optimization_child.constants import data_keys
 

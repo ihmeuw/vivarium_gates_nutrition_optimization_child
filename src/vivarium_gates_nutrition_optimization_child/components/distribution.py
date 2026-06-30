@@ -2,10 +2,10 @@ from typing import Optional
 
 import numpy as np
 import pandas as pd
-from layered_config_tree import LayeredConfigTree
-from vivarium.framework.engine import Builder
-from vivarium_public_health.causal_factor.distributions import PolytomousDistribution
-from vivarium_public_health.utilities import EntityString
+from vivarium.config_tree import LayeredConfigTree
+from vivarium.engine.framework.engine import Builder
+from vivarium.public_health.causal_factor.distributions import PolytomousDistribution
+from vivarium.public_health.utilities import EntityString
 
 
 class CGFPolytomousDistribution(PolytomousDistribution):
