@@ -19,6 +19,15 @@ endif
 # Set the package name as the last part of this file's parent directory path
 PACKAGE_NAME = $(notdir $(CURDIR))
 
+# --- TEMPORARY: revert once setup.py points at a released vivarium-engine ---
+# vivarium-engine is pinned to the unreleased rmudambi/mic-7116/lookup-table-multiindex
+# branch, so setuptools-scm derives ~5.0.4 there, but the released vivarium-public-health
+# requires vivarium-engine>=5.1.1, so resolution fails. Pretend the engine is 5.1.6
+# (its version on main) to satisfy the constraint while still building the branch code.
+# TODO(hjafari): revert this line once setup.py pins a released vivarium-engine.
+export SETUPTOOLS_SCM_PRETEND_VERSION_FOR_VIVARIUM_ENGINE := 5.1.6
+# --- END TEMPORARY ---
+
 # TODO: remove after monorepo migration
 # Explicit PyPI distribution name. Without this, vivarium_build_utils' base.mk
 # falls back to PACKAGE_NAME for `--config-settings-package` (vbu>=3.3.0), which

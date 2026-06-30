@@ -44,10 +44,18 @@ if __name__ == "__main__":
         long_description = f.read()
 
     install_requirements = [
-        "vivarium_build_utils>=3.0.2,<3.3.3",
         "gbd_mapping>=4.0.0, <5.0.0",
-        "vivarium>=4.1.0",
-        "vivarium_public_health>=5.1.5",
+        # Pinned to the exact commit that was validated against this model code.
+        # Branch: rmudambi/mic-7116/lookup-table-multiindex (tip as of 2026-06-29)
+        # Commit 9d84a881: "Add 5.3.0 CHANGELOG entry for indexed lookup inputs".
+        # TODO(hjafari): switch to a released vivarium-engine once one is published.
+        "vivarium-engine @ git+ssh://git@github.com/ihmeuw/vivarium-suite.git@9d84a8811708b80f0a70e220e74e6f857c38cec5#subdirectory=libs/engine",
+        "vivarium-public-health==6.2.0",
+        "vivarium-config-tree",
+        "vivarium-risk-distributions",
+        # The monorepo vivarium-engine and vivarium-public-health both require
+        # vivarium-build-utils 4.x, so match that range here.
+        "vivarium_build_utils>=4.0.0,<5.0.0",
         "click",
         "jinja2",
         "loguru",
@@ -56,7 +64,6 @@ if __name__ == "__main__":
         "pyyaml",
         "scipy",
         "tables",
-        "layered_config_tree<5.0.0",
     ]
 
     # use "pip install -e .[dev]" to install required components + extra components
@@ -64,7 +71,9 @@ if __name__ == "__main__":
         "vivarium_inputs>=5.0.0, <7.0.0",
         "vivarium_gbd_access>=4.0.0, <5.0.0",
     ]
-    cluster_requirements = ["vivarium_cluster_tools>=2.0.0, <3.0.0"]
+    # vivarium-cluster-tools 4.x is the monorepo-native line (depends on
+    # vivarium-engine / vivarium-config-tree / vbu 4.x, not the old `vivarium`).
+    cluster_requirements = ["vivarium_cluster_tools>=4.0.0, <5.0.0"]
 
     test_requirements = [
         "pytest",
