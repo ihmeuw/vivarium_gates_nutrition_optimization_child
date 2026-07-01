@@ -29,6 +29,9 @@ from vivarium.public_health.risks.implementations.low_birth_weight_and_short_ges
 )
 from vivarium.public_health.utilities import TargetString
 
+from vivarium_gates_nutrition_optimization_child.components.calibration_paf import (
+    harmonize_calibration_paf,
+)
 from vivarium_gates_nutrition_optimization_child.constants import data_keys
 
 
@@ -122,6 +125,20 @@ class LBWSGPAFCalculationRiskEffect(LBWSGRiskEffect):
 
     def get_population_attributable_fraction_source(self, builder: Builder) -> LookupTable:
         return 0, []
+
+
+class HarmonizedLBWSGRiskEffect(LBWSGRiskEffect):
+    """LBWSGRiskEffect whose calibration PAF is reindexed to the shared grid.
+
+    Use in place of ``LBWSGRiskEffect`` where LBWSG shares a target rate with
+    the subnational, post-neonatal CGF effect (diarrheal/LRI excess mortality)
+    so vph's ``raw_union`` can align the two PAFs.
+    """
+
+    def get_calibration_constant_data(self, builder: Builder) -> pd.DataFrame:
+        """Broadcast the national, neonatal-only LBWSG PAF onto the shared grid."""
+        paf = super().get_calibration_constant_data(builder)
+        return harmonize_calibration_paf(builder, paf)
 
 
 class LBWSGPAFCalculationExposure(LBWSGRisk):
