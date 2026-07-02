@@ -45,12 +45,8 @@ if __name__ == "__main__":
 
     install_requirements = [
         "gbd_mapping>=4.0.0, <5.0.0",
-        # Pinned to the exact commit that was validated against this model code.
-        # Branch: rmudambi/mic-7116/lookup-table-multiindex (tip as of 2026-06-29)
-        # Commit 9d84a881: "Add 5.3.0 CHANGELOG entry for indexed lookup inputs".
-        # TODO(hjafari): switch to a released vivarium-engine once one is published.
-        "vivarium-engine @ git+ssh://git@github.com/ihmeuw/vivarium-suite.git@9d84a8811708b80f0a70e220e74e6f857c38cec5#subdirectory=libs/engine",
-        "vivarium-public-health==6.2.0",
+        "vivarium-engine>=5.3.0,<5.4.0",
+        "vivarium-public-health>=6.3.1,<6.4.0",
         "vivarium-config-tree",
         "vivarium-risk-distributions",
         # The monorepo vivarium-engine and vivarium-public-health both require
