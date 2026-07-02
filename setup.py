@@ -49,8 +49,6 @@ if __name__ == "__main__":
         "vivarium-public-health>=6.3.1,<6.4.0",
         "vivarium-config-tree",
         "vivarium-risk-distributions",
-        # The monorepo vivarium-engine and vivarium-public-health both require
-        # vivarium-build-utils 4.x, so match that range here.
         "vivarium_build_utils>=4.0.0,<5.0.0",
         "click",
         "jinja2",
@@ -67,14 +65,13 @@ if __name__ == "__main__":
         "vivarium_inputs>=5.0.0, <7.0.0",
         "vivarium_gbd_access>=4.0.0, <5.0.0",
     ]
-    # vivarium-cluster-tools 4.x is the monorepo-native line (depends on
-    # vivarium-engine / vivarium-config-tree / vbu 4.x, not the old `vivarium`).
     cluster_requirements = ["vivarium_cluster_tools>=4.0.0, <5.0.0"]
 
     test_requirements = [
         "pytest",
         "pytest-cov",
         "pytest-mock",
+        "pytest-xdist",
     ]
     lint_requirements = [
         "black==22.3.0",
