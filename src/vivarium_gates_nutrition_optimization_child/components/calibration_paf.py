@@ -1,7 +1,7 @@
 """
-===========================
-Calibration PAF harmonization
-===========================
+================================
+Calibration PAF subnational fill
+================================
 
 Reindex a RiskEffect's calibration-constant (PAF) table onto a shared grid.
 
@@ -29,7 +29,7 @@ _DIMENSION_COLUMNS = [
 ]
 
 
-def harmonize_calibration_paf(builder: Builder, paf: pd.DataFrame) -> pd.DataFrame:
+def fill_subnational_paf_rows(builder: Builder, paf: pd.DataFrame) -> pd.DataFrame:
     """Reindex a PAF table onto the shared subnational x sex x under-5 age x year grid.
 
     Missing rows are 0-filled. When ``paf`` lacks a subnational level its values
@@ -66,6 +66,6 @@ def harmonize_calibration_paf(builder: Builder, paf: pd.DataFrame) -> pd.DataFra
     )
 
     merge_keys = [c for c in _DIMENSION_COLUMNS if c in paf.columns]
-    harmonized = grid.merge(paf, on=merge_keys, how="left")
-    harmonized[value_columns] = harmonized[value_columns].fillna(0.0)
-    return harmonized[_DIMENSION_COLUMNS + value_columns]
+    filled = grid.merge(paf, on=merge_keys, how="left")
+    filled[value_columns] = filled[value_columns].fillna(0.0)
+    return filled[_DIMENSION_COLUMNS + value_columns]

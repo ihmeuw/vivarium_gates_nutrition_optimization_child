@@ -13,7 +13,7 @@ from vivarium_gates_nutrition_optimization_child.components import (
     CGFPolytomousDistribution,
 )
 from vivarium_gates_nutrition_optimization_child.components.calibration_paf import (
-    harmonize_calibration_paf,
+    fill_subnational_paf_rows,
 )
 from vivarium_gates_nutrition_optimization_child.constants import data_keys, data_values
 
@@ -175,14 +175,14 @@ class CGFRiskEffect(RiskEffect):
         super().setup(builder)
 
     def get_calibration_constant_data(self, builder: Builder) -> pd.DataFrame:
-        """Harmonize the CGF PAF onto the shared grid so it aligns with LBWSG.
+        """Fill subnational rows of the CGF PAF so it aligns with LBWSG.
 
         Adds 0-valued neonatal age bins to the subnational, post-neonatal CGF
         PAF so vph's ``raw_union`` can combine it with the neonatal-only LBWSG
         PAF on shared targets (diarrheal/LRI excess mortality).
         """
         paf = super().get_calibration_constant_data(builder)
-        return harmonize_calibration_paf(builder, paf)
+        return fill_subnational_paf_rows(builder, paf)
 
     def build_rr_lookup_table(self, builder) -> None:
         for risk in self.cgf_models:
