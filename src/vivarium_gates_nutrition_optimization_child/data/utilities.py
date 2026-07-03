@@ -13,7 +13,7 @@ from gbd_mapping import (
     covariates,
     risk_factors,
 )
-from vivarium.framework.artifact import EntityKey
+from vivarium.artifact import EntityKey
 from vivarium_gbd_access import constants as gbd_constants
 from vivarium_gbd_access import gbd
 from vivarium_gbd_access.utilities import get_draws, query

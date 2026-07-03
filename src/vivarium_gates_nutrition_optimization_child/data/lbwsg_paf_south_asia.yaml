@@ -1,5 +1,5 @@
 components:
-    vivarium_public_health:
+    vivarium.public_health:
         population:
             - BasePopulation()
         risks:

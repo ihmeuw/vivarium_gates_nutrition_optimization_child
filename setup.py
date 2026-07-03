@@ -44,10 +44,12 @@ if __name__ == "__main__":
         long_description = f.read()
 
     install_requirements = [
-        "vivarium_build_utils>2.0.3,<3.0.0",
         "gbd_mapping>=4.0.0, <5.0.0",
-        "vivarium>=4.0.0, <4.1.0",
-        "vivarium_public_health>=5.0.0, <5.1.0",
+        "vivarium-engine>=5.3.0,<5.4.0",
+        "vivarium-public-health>=6.3.1,<6.4.0",
+        "vivarium-config-tree",
+        "vivarium-risk-distributions",
+        "vivarium_build_utils>=4.0.0,<5.0.0",
         "click",
         "jinja2",
         "loguru",
@@ -56,17 +58,20 @@ if __name__ == "__main__":
         "pyyaml",
         "scipy",
         "tables",
-        "layered_config_tree<5.0.0",
     ]
 
     # use "pip install -e .[dev]" to install required components + extra components
-    data_requirements = ["vivarium_inputs>=5.0.0, <7.0.0", "vivarium_gbd_access>=4.0.0, <5.0.0"]
-    cluster_requirements = ["vivarium_cluster_tools>=2.0.0, <3.0.0"]
+    data_requirements = [
+        "vivarium_inputs>=5.0.0, <7.0.0",
+        "vivarium_gbd_access>=4.0.0, <5.0.0",
+    ]
+    cluster_requirements = ["vivarium_cluster_tools>=4.0.0, <5.0.0"]
 
     test_requirements = [
         "pytest",
         "pytest-cov",
         "pytest-mock",
+        "pytest-xdist",
     ]
     lint_requirements = [
         "black==22.3.0",

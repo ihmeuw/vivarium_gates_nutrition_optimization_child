@@ -1,5 +1,5 @@
 components:
-    vivarium_public_health:
+    vivarium.public_health:
         metrics:
             - ResultsStratifier()
     vivarium_gates_nutrition_optimization_child:

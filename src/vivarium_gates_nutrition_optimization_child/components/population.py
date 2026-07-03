@@ -7,20 +7,19 @@ This module contains a component for creating a base population from line list d
 
 """
 
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 import numpy as np
 import pandas as pd
-from vivarium.framework.engine import Builder
-from vivarium.framework.population import SimulantData
-from vivarium.framework.time import get_time_stamp
-from vivarium_public_health.population.base_population import BasePopulation, Disability
-from vivarium_public_health.population.data_transformations import (
+from vivarium.engine.framework.engine import Builder
+from vivarium.engine.framework.population import SimulantData
+from vivarium.engine.framework.time import get_time_stamp
+from vivarium.public_health.population.base_population import BasePopulation, Disability
+from vivarium.public_health.population.data_transformations import (
     assign_demographic_proportions,
 )
-from vivarium_public_health.population.mortality import Mortality
+from vivarium.public_health.population.mortality import Mortality
 
-from vivarium_gates_nutrition_optimization_child import utilities as utils
 from vivarium_gates_nutrition_optimization_child.constants import data_keys
 from vivarium_gates_nutrition_optimization_child.constants.paths import (
     SUBNATIONAL_PERCENTAGES,
@@ -124,6 +123,11 @@ class PopulationLineList(BasePopulation):
                 )
             else:
                 new_simulants["subnational"] = self.subnational
+
+        # Coerce the object-dtype time columns (NaT/Timestamp) to datetime64 so
+        # initialize() can cast them to the population's column dtype.
+        for time_column in ["entrance_time", "exit_time"]:
+            new_simulants[time_column] = pd.to_datetime(new_simulants[time_column])
 
         self.population_view.initialize(new_simulants)
 

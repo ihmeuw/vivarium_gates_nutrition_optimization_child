@@ -1,20 +1,11 @@
 components:
-    vivarium_public_health:
+    vivarium.public_health:
         disease:
             - SIS_fixed_duration('measles', '10.0')
             - SIS('lower_respiratory_infections')
             - SIS('malaria')
         risks:
             - Risk('risk_factor.child_stunting')
-
-            - RiskEffect('risk_factor.severe_acute_malnutrition_treatment', 'risk_factor.severe_acute_malnutrition_to_mild_child_wasting.transition_rate')
-            - RiskEffect('risk_factor.severe_acute_malnutrition_treatment', 'risk_factor.severe_acute_malnutrition_to_better_moderate_acute_malnutrition.transition_rate')
-            - RiskEffect('risk_factor.severe_acute_malnutrition_treatment', 'risk_factor.severe_acute_malnutrition_to_worse_moderate_acute_malnutrition.transition_rate')
-            - RiskEffect('risk_factor.moderate_acute_malnutrition_treatment', 'risk_factor.better_moderate_acute_malnutrition_to_mild_child_wasting.transition_rate')
-            - RiskEffect('risk_factor.moderate_acute_malnutrition_treatment', 'risk_factor.worse_moderate_acute_malnutrition_to_mild_child_wasting.transition_rate')
-
-            - LBWSGRiskEffect('cause.diarrheal_diseases.excess_mortality_rate')
-            - LBWSGRiskEffect('cause.lower_respiratory_infections.excess_mortality_rate')
             - LBWSGRiskEffect('cause.affected_unmodeled.cause_specific_mortality_rate')
         results:
             - DiseaseObserver('diarrheal_diseases')
@@ -32,8 +23,13 @@ components:
             - LBWSGLineList()
             - ChildWasting()
             - ChildWastingObserver()
-            - WastingTreatment('risk_factor.severe_acute_malnutrition_treatment')
-            - WastingTreatment('risk_factor.moderate_acute_malnutrition_treatment')
+            - WastingTreatment('intervention.severe_acute_malnutrition_treatment')
+            - WastingTreatment('intervention.moderate_acute_malnutrition_treatment')
+            - WastingTreatmentEffect('intervention.severe_acute_malnutrition_treatment', 'risk_factor.severe_acute_malnutrition_to_mild_child_wasting.transition_rate')
+            - WastingTreatmentEffect('intervention.severe_acute_malnutrition_treatment', 'risk_factor.severe_acute_malnutrition_to_better_moderate_acute_malnutrition.transition_rate')
+            - WastingTreatmentEffect('intervention.severe_acute_malnutrition_treatment', 'risk_factor.severe_acute_malnutrition_to_worse_moderate_acute_malnutrition.transition_rate')
+            - WastingTreatmentEffect('intervention.moderate_acute_malnutrition_treatment', 'risk_factor.better_moderate_acute_malnutrition_to_mild_child_wasting.transition_rate')
+            - WastingTreatmentEffect('intervention.moderate_acute_malnutrition_treatment', 'risk_factor.worse_moderate_acute_malnutrition_to_mild_child_wasting.transition_rate')
             - SQLNSTreatment()
             - MaternalCharacteristics()
             - ChildUnderweight()
@@ -45,6 +41,8 @@ components:
             - CGFRiskEffect('cause.measles.excess_mortality_rate')
             - CGFRiskEffect('cause.lower_respiratory_infections.excess_mortality_rate')
             - CGFRiskEffect('cause.malaria.excess_mortality_rate')
+            - SubnationalLBWSGRiskEffect('cause.diarrheal_diseases.excess_mortality_rate')
+            - SubnationalLBWSGRiskEffect('cause.lower_respiratory_infections.excess_mortality_rate')
             - LBWSGAdditiveRiskEffect('risk_factor.iron_folic_acid_supplementation', 'risk_factor.birth_weight.birth_exposure')
             - LBWSGAdditiveRiskEffect('risk_factor.multiple_micronutrient_supplementation', 'risk_factor.birth_weight.birth_exposure')
             - BEPEffectOnBirthweight()
@@ -60,17 +58,17 @@ components:
 
 configuration:
     input_data:
-        input_draw_number: 457
+        input_draw_number: 216
         # Artifact can also be defined at runtime using -i flag
-        artifact_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization_child/artifacts/model_15.0/nigeria.hdf'
-        fertility_input_data_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization/results/model12.0/nigeria/2024_04_05_12_18_41/child_data'
+        artifact_path: "/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization_child/artifacts/model_15.0/nigeria.hdf"
+        fertility_input_data_path: "/home/rmudambi/scratch/0000.parquet"
     interpolation:
         order: 0
         extrapolate: True
     randomness:
         map_size: 1_000_000
-        key_columns: ['entrance_time', 'age', 'maternal_id']
-        random_seed: 4344
+        key_columns: ["entrance_time", "age", "maternal_id"]
+        random_seed: 2284
     time:
         start:
             year: 2025
@@ -88,11 +86,11 @@ configuration:
         untracking_age: 5
 
     intervention:
-        child_scenario: 'baseline'
-        maternal_scenario: 'baseline'
-        sqlns_effect_size: 'standard'
-        subnational: 'All'
-    
+        child_scenario: "baseline"
+        maternal_scenario: "baseline"
+        sqlns_effect_size: "standard"
+        subnational: "All"
+
     mortality_line_list:
         unmodeled_causes:
             - "upper_respiratory_infections"
@@ -109,28 +107,28 @@ configuration:
             - "neonatal_diarrheal_diseases"
 
     risk_attributable_disease.moderate_protein_energy_malnutrition:
-        threshold: ['cat2','cat2.5']
+        threshold: ["cat2", "cat2.5"]
         mortality: True
         recoverable: True
     risk_attributable_disease.severe_protein_energy_malnutrition:
-        threshold: ['cat1']
+        threshold: ["cat1"]
         mortality: True
         recoverable: True
 
     stratification:
         default:
-            - 'age_group'
-            - 'sex'
+            - "age_group"
+            - "sex"
         child_wasting:
-            include: ['sam_treatment', 'mam_treatment']
+            include: ["sam_treatment", "mam_treatment"]
         child_stunting:
-            include: ['sqlns_coverage']
+            include: ["sqlns_coverage"]
         excluded_categories:
             cause_of_death:
-                - 'stillborn'
+                - "stillborn"
             disability:
-                - 'all_causes'
-                - 'mild_child_wasting'
-                - 'better_moderate_acute_malnutrition'
-                - 'worse_moderate_acute_malnutrition'
-                - 'severe_acute_malnutrition'
+                - "all_causes"
+                - "mild_child_wasting"
+                - "better_moderate_acute_malnutrition"
+                - "worse_moderate_acute_malnutrition"
+                - "severe_acute_malnutrition"
