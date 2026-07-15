@@ -6,8 +6,8 @@ import numpy as np
 import pandas as pd
 from loguru import logger
 from vivarium.artifact import Artifact
-from vivarium.engine import InteractiveContext
 from vivarium.cluster_tools.utilities import mkdir
+from vivarium.engine import InteractiveContext
 from vivarium_gbd_access import gbd
 
 from vivarium_gates_nutrition_optimization_child.constants import data_keys, metadata
