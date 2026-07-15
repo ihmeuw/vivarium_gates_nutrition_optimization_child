@@ -2,10 +2,10 @@ from typing import Optional
 
 import numpy as np
 import pandas as pd
-from layered_config_tree import LayeredConfigTree
-from vivarium.framework.engine import Builder
-from vivarium_public_health.causal_factor.distributions import PolytomousDistribution
-from vivarium_public_health.utilities import EntityString
+from vivarium.config_tree import ConfigTree
+from vivarium.engine.framework.engine import Builder
+from vivarium.public_health.causal_factor.distributions import PolytomousDistribution
+from vivarium.public_health.utilities import EntityString
 
 
 class CGFPolytomousDistribution(PolytomousDistribution):
@@ -17,7 +17,7 @@ class CGFPolytomousDistribution(PolytomousDistribution):
         super().__init__(risk, "ordered_polytomous", exposure_data)
         self.causal_factor_propensity = "child_underweight.propensity"
 
-    def get_configuration(self, builder: "Builder") -> Optional[LayeredConfigTree]:
+    def get_configuration(self, builder: "Builder") -> Optional[ConfigTree]:
         pass
 
     def register_exposure_ppf_pipeline(self, builder: Builder) -> None:

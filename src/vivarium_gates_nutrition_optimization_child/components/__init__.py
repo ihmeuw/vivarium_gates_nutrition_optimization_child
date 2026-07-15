@@ -13,6 +13,7 @@ from vivarium_gates_nutrition_optimization_child.components.lbwsg import (
     LBWSGPAFCalculationExposure,
     LBWSGPAFCalculationRiskEffect,
     LBWSGPAFObserver,
+    SubnationalLBWSGRiskEffect,
 )
 from vivarium_gates_nutrition_optimization_child.components.maternal_characteristics import (
     BEPEffectOnBirthweight,

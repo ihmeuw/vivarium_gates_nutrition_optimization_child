@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import NamedTuple
 
-from vivarium_public_health.utilities import TargetString
+from vivarium.public_health.utilities import TargetString
 
 #############
 # Data Keys #
