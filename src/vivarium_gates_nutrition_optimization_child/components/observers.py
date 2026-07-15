@@ -1,15 +1,15 @@
 from typing import Any, Dict
 
 import pandas as pd
-from vivarium.framework.engine import Builder
-from vivarium_public_health.disease import DiseaseState
-from vivarium_public_health.results import COLUMNS
-from vivarium_public_health.results.disease import DiseaseObserver
-from vivarium_public_health.results.mortality import (
+from vivarium.engine.framework.engine import Builder
+from vivarium.public_health.disease import DiseaseState
+from vivarium.public_health.results import COLUMNS
+from vivarium.public_health.results.disease import DiseaseObserver
+from vivarium.public_health.results.mortality import (
     MortalityObserver as MortalityObserver_,
 )
-from vivarium_public_health.results.simple_cause import SimpleCause
-from vivarium_public_health.results.stratification import (
+from vivarium.public_health.results.simple_cause import SimpleCause
+from vivarium.public_health.results.stratification import (
     ResultsStratifier as ResultsStratifier_,
 )
 

@@ -3,9 +3,9 @@
 from typing import Dict, List, Optional
 
 import pandas as pd
-from vivarium import Component
-from vivarium.framework.engine import Builder
-from vivarium.framework.lookup import LookupTable
+from vivarium.engine import Component
+from vivarium.engine.framework.engine import Builder
+from vivarium.engine.framework.lookup import LookupTable
 
 from vivarium_gates_nutrition_optimization_child.constants import (
     data_keys,

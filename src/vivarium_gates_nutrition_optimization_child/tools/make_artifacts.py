@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Tuple, Union
 
 import click
-import vivarium_cluster_tools as vct
+import vivarium.cluster_tools as vct
 from loguru import logger
 
 from vivarium_gates_nutrition_optimization_child.constants import data_keys, metadata
@@ -111,7 +111,7 @@ def build_artifacts(
         How noisy the logger should be.
     """
 
-    import vivarium_cluster_tools as vct
+    import vivarium.cluster_tools as vct
 
     output_dir = Path(output_dir)
     vct.mkdir(output_dir, parents=True, exists_ok=True)
@@ -149,7 +149,10 @@ def build_all_artifacts(output_dir: Path, verbose: int, fetch_subnationals: bool
         called by the :func:`build_artifacts` function located in the same
         module.
     """
-    from vivarium_cluster_tools.utilities import get_drmaa
+    # NOTE: get_drmaa was removed from vivarium-cluster-tools in the 4.x monorepo
+    # line. The subnational parallel-build (DRMAA) path below needs a follow-up to
+    # the new API. Out of scope here (artifact building); left as-is intentionally.
+    from vivarium.cluster_tools.utilities import get_drmaa
 
     drmaa = get_drmaa()
 

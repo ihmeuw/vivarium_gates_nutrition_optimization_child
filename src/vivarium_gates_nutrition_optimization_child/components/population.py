@@ -11,14 +11,14 @@ from typing import Any, Dict
 
 import numpy as np
 import pandas as pd
-from vivarium.framework.engine import Builder
-from vivarium.framework.population import SimulantData
-from vivarium.framework.time import get_time_stamp
-from vivarium_public_health.population.base_population import BasePopulation, Disability
-from vivarium_public_health.population.data_transformations import (
+from vivarium.engine.framework.engine import Builder
+from vivarium.engine.framework.population import SimulantData
+from vivarium.engine.framework.time import get_time_stamp
+from vivarium.public_health.population.base_population import BasePopulation, Disability
+from vivarium.public_health.population.data_transformations import (
     assign_demographic_proportions,
 )
-from vivarium_public_health.population.mortality import Mortality
+from vivarium.public_health.population.mortality import Mortality
 
 from vivarium_gates_nutrition_optimization_child.constants import data_keys
 from vivarium_gates_nutrition_optimization_child.constants.paths import (

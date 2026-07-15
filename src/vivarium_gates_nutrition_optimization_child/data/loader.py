@@ -20,7 +20,8 @@ import numpy as np
 import pandas as pd
 from gbd_mapping import Cause, RiskFactor, sequelae
 from scipy.interpolate import RectBivariateSpline, griddata
-from vivarium.framework.artifact import EntityKey
+from vivarium.artifact import EntityKey
+from vivarium.public_health.utilities import TargetString
 from vivarium_gbd_access import constants as gbd_constants
 from vivarium_gbd_access import gbd
 from vivarium_inputs import extract
@@ -30,7 +31,6 @@ from vivarium_inputs import utilities as vi_utils
 from vivarium_inputs import utility_data
 from vivarium_inputs.globals import DEMOGRAPHIC_COLUMNS, DRAW_COLUMNS
 from vivarium_inputs.mapping_extension import AlternativeRiskFactor
-from vivarium_public_health.utilities import TargetString
 
 from vivarium_gates_nutrition_optimization_child.constants import (
     data_keys,

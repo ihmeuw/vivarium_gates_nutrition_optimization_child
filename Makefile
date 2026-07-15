@@ -3,14 +3,14 @@ ifdef JENKINS_URL
 # 	Files are already in workspace from shared library
 	MAKE_INCLUDES := .
 else
-# 	For local dev, use the installed vivarium_build_utils package if it exists
-# 	First, check if we can import vivarium_build_utils and assign 'yes' or 'no'.
+# 	For local dev, use the installed vivarium.build_utils package if it exists
+# 	First, check if we can import vivarium.build_utils and assign 'yes' or 'no'.
 # 	We do this by importing the package in python and redirecting stderr to the null device.
 # 	If the import is successful (&&), it will print 'yes', otherwise (||) it will print 'no'.
-	VIVARIUM_BUILD_UTILS_AVAILABLE := $(shell python -c "import vivarium_build_utils" 2>/dev/null && echo "yes" || echo "no")
-# 	If vivarium_build_utils is available, get the makefiles path or else set it to empty
+	VIVARIUM_BUILD_UTILS_AVAILABLE := $(shell python -c "import vivarium.build_utils" 2>/dev/null && echo "yes" || echo "no")
+# 	If vivarium.build_utils is available, get the makefiles path or else set it to empty
 	ifeq ($(VIVARIUM_BUILD_UTILS_AVAILABLE),yes)
-		MAKE_INCLUDES := $(shell python -c "from vivarium_build_utils.resources import get_makefiles_path; print(get_makefiles_path())")
+		MAKE_INCLUDES := $(shell python -c "from vivarium.build_utils.resources import get_makefiles_path; print(get_makefiles_path())")
 	else
 		MAKE_INCLUDES :=
 	endif
@@ -18,14 +18,6 @@ endif
 
 # Set the package name as the last part of this file's parent directory path
 PACKAGE_NAME = $(notdir $(CURDIR))
-
-# TODO: remove after monorepo migration
-# Explicit PyPI distribution name. Without this, vivarium_build_utils' base.mk
-# falls back to PACKAGE_NAME for `--config-settings-package` (vbu>=3.3.0), which
-# in a Jenkins PR workspace is the dir basename (e.g. "..._PR-207-head@2") and is
-# rejected by uv as an invalid package name. Remove once pyproject.toml declares
-# a [project] table with `name = "vivarium_gates_nutrition_optimization_child"`.
-DIST_NAME := vivarium_gates_nutrition_optimization_child
 
 # Helper function for validating enum arguments
 validate_arg = $(if $(filter-out $(2),$(1)),$(error Error: '$(3)' must be one of: $(2), got '$(1)'))
@@ -100,10 +92,7 @@ build-env: # Create a new environment with installed packages
 	
 	conda create -n $(name) python=$(py) --yes
 # 	Bootstrap vivarium_build_utils into the new environment
-# 	Pin to <3.0.0 to match this repo's cluster_tools 2.x line
-#	NOTE: cluster_tools 2.x transitively requires vbu<3.0.0, so installing a v3.x or v4.x
-#		wheel here would just be downgraded by `make install` and break the in-flight build.
-	conda run -n $(name) pip install "vivarium_build_utils<3.0.0"
+	conda run -n $(name) pip install "vivarium_build_utils>=4.0.0,<5.0.0"
 #	Install packages based on type
 	@if [ "$(type)" = "simulation" ]; then \
 		conda run -n $(name) make install ENV_REQS=dev; \

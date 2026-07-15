@@ -3,14 +3,17 @@ from collections.abc import Callable
 from typing import Any, Dict
 
 import pandas as pd
-from vivarium.framework.engine import Builder
-from vivarium.framework.values import Pipeline
-from vivarium_public_health.causal_factor.utilities import get_exposure_post_processor
-from vivarium_public_health.risks import Risk, RiskEffect
-from vivarium_public_health.utilities import EntityString
+from vivarium.engine.framework.engine import Builder
+from vivarium.engine.framework.values import Pipeline
+from vivarium.public_health.causal_factor.utilities import get_exposure_post_processor
+from vivarium.public_health.risks import Risk, RiskEffect
+from vivarium.public_health.utilities import EntityString
 
 from vivarium_gates_nutrition_optimization_child.components import (
     CGFPolytomousDistribution,
+)
+from vivarium_gates_nutrition_optimization_child.components.calibration_paf import (
+    fill_subnational_paf_rows,
 )
 from vivarium_gates_nutrition_optimization_child.constants import data_keys, data_values
 
@@ -170,6 +173,16 @@ class CGFRiskEffect(RiskEffect):
         self.sub_exposure_names = {risk: f"{risk.name}.exposure" for risk in self.cgf_models}
         self.sub_risk_rr_tables = {}
         super().setup(builder)
+
+    def get_calibration_constant_data(self, builder: Builder) -> pd.DataFrame:
+        """Fill subnational rows of the CGF PAF so it aligns with LBWSG.
+
+        Adds 0-valued neonatal age bins to the subnational, post-neonatal CGF
+        PAF so vph's ``raw_union`` can combine it with the neonatal-only LBWSG
+        PAF on shared targets (diarrheal/LRI excess mortality).
+        """
+        paf = super().get_calibration_constant_data(builder)
+        return fill_subnational_paf_rows(builder, paf)
 
     def build_rr_lookup_table(self, builder) -> None:
         for risk in self.cgf_models:

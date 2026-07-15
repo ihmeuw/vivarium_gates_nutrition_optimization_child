@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from loguru import logger
 from scipy import stats
-from vivarium.framework.randomness import get_hash
+from vivarium.engine.framework.randomness import get_hash
 
 from vivarium_gates_nutrition_optimization_child.constants import metadata
 
