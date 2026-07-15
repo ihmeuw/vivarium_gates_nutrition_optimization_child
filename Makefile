@@ -19,6 +19,14 @@ endif
 # Set the package name as the last part of this file's parent directory path
 PACKAGE_NAME = $(notdir $(CURDIR))
 
+# TODO: remove after monorepo migration
+# Explicit PyPI distribution name. Without this, vivarium_build_utils' base.mk
+# falls back to PACKAGE_NAME for `--config-settings-package` (vbu>=3.3.0), which
+# in a Jenkins PR workspace is the dir basename (e.g. "..._PR-207-head@2") and is
+# rejected by uv as an invalid package name. Remove once pyproject.toml declares
+# a [project] table with `name = "vivarium_gates_nutrition_optimization_child"`.
+DIST_NAME := vivarium_gates_nutrition_optimization_child
+
 # Helper function for validating enum arguments
 validate_arg = $(if $(filter-out $(2),$(1)),$(error Error: '$(3)' must be one of: $(2), got '$(1)'))
 
