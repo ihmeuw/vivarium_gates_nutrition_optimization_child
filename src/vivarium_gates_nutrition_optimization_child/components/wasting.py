@@ -6,11 +6,9 @@ from vivarium.framework.artifact.artifact import ArtifactException
 from vivarium.framework.engine import Builder
 from vivarium.framework.event import Event
 from vivarium.framework.population import SimulantData
+from vivarium_public_health.causal_factor.utilities import get_exposure_post_processor
 from vivarium_public_health.disease import DiseaseModel, DiseaseState, SusceptibleState
-from vivarium_public_health.risks import Risk
-from vivarium_public_health.risks.data_transformations import (
-    get_exposure_post_processor,
-)
+from vivarium_public_health.treatment import Intervention, InterventionEffect
 from vivarium_public_health.utilities import EntityString
 
 from vivarium_gates_nutrition_optimization_child.constants import (
@@ -22,11 +20,19 @@ from vivarium_gates_nutrition_optimization_child.constants import (
 )
 
 
-class WastingTreatment(Risk):
+class WastingTreatment(Intervention):
     @property
     def configuration_defaults(self) -> Dict[str, Any]:
-        base_risk_config = super().configuration_defaults
-        return {self.name: base_risk_config[self.name]}
+        config = super().configuration_defaults
+        # The treatment exposure and distribution data live under the legacy
+        # ``risk_factor.*`` artifact keys, so source them from there rather than
+        # the default ``intervention.*`` keys this component would otherwise use.
+        treatment_name = self.intervention.name
+        config[self.name]["data_sources"][
+            "exposure"
+        ] = f"risk_factor.{treatment_name}.exposure"
+        config[self.name]["distribution_type"] = f"risk_factor.{treatment_name}.distribution"
+        return config
 
     @property
     def time_step_prepare_priority(self) -> int:
@@ -46,7 +52,7 @@ class WastingTreatment(Risk):
     ##########################
 
     def _get_treated_state(self) -> str:
-        return self.risk.name.split("_treatment")[0]
+        return self.intervention.name.split("_treatment")[0]
 
     #################
     # Setup methods #
@@ -116,7 +122,7 @@ class WastingTreatment(Risk):
         if isinstance(index, pd.RangeIndex):
             index = pd.Index(index.to_list())
 
-        is_mam_component = self.risk.name == "moderate_acute_malnutrition_treatment"
+        is_mam_component = self.intervention.name == "moderate_acute_malnutrition_treatment"
         coverage_to_exposure_map = {"none": "cat1", "full": "cat2"}
 
         if is_mam_component:
@@ -169,6 +175,27 @@ class WastingTreatment(Risk):
                 return pd.Series(exposure, index=index)
 
 
+class WastingTreatmentEffect(InterventionEffect):
+    """Effect of a wasting treatment intervention on a wasting transition rate.
+
+    The treatment's relative-risk and PAF data live under the legacy
+    ``risk_factor.*`` artifact keys, so override the default ``intervention.*``
+    data sources to point at them.
+    """
+
+    @property
+    def configuration_defaults(self) -> Dict[str, Any]:
+        config = super().configuration_defaults
+        treatment_name = self.intervention.name
+        config[self.name]["data_sources"][
+            "relative_risk"
+        ] = f"risk_factor.{treatment_name}.relative_risk"
+        config[self.name]["data_sources"][
+            "population_attributable_fraction"
+        ] = f"risk_factor.{treatment_name}.population_attributable_fraction"
+        return config
+
+
 class ChildWastingModel(DiseaseModel):
     @property
     def configuration_defaults(self) -> Dict[str, Any]:
@@ -219,6 +246,7 @@ class ChildWastingModel(DiseaseModel):
             ],
             required_resources=[
                 self.randomness,
+                "birth_weight_status",
                 *self.initialization_weights_pipelines,
             ],
         )
