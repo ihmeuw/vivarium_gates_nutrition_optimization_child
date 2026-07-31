@@ -65,7 +65,7 @@ where = ["src"]
 # Data files loaded at runtime from inside the installed package (see
 # ``constants/paths.py``, which resolves them relative to ``__file__``).
 [tool.setuptools.package-data]
-"*" = ["**/*.csv", "**/*.yaml", "**/*.ipynb"]
+"vivarium_gates_nutrition_optimization_child" = ["**/*.csv", "**/*.yaml", "**/*.ipynb"]
 
 [tool.black]
 line_length = 94
