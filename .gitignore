@@ -126,5 +126,5 @@ dmypy.json
 # Pycharm project settings
 .idea/
 .vscode/
-# setuptools_scm-generated version file
+
 src/*/_version.py
