@@ -1,8 +1,6 @@
-===============================
+============================================
 vivarium_gates_nutrition_optimization_child
-===============================
-
-Research repository for the vivarium_gates_nutrition_optimization_child project.
+============================================
 
 .. contents::
    :depth: 1
@@ -26,8 +24,7 @@ all necessary requirements as follows::
   :~$ conda create --name=vivarium_gates_nutrition_optimization_child python=3.10
   ...conda will download python and base dependencies...
   :~$ conda activate vivarium_gates_nutrition_optimization_child
-  (vivarium_gates_nutrition_optimization_child) :~$ git clone https://github.com/ihmeuw/vivarium_gates_nutrition_optimization_child.git
-  ...git will copy the repository from github and place it in your current directory...
+  ...navigate to directory downloaded from zenodo...
   (vivarium_gates_nutrition_optimization_child) :~$ cd vivarium_gates_nutrition_optimization_child
   (vivarium_gates_nutrition_optimization_child) :~$ pip install -e .
   ...pip will install vivarium and other requirements...
