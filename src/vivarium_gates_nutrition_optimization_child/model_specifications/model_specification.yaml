@@ -61,7 +61,7 @@ configuration:
         input_draw_number: 457
         # Artifact can also be defined at runtime using -i flag
         artifact_path: '../artifacts/ethiopia.hdf'
-        fertility_input_data_path: '/mnt/team/simulation_science/pub/models/vivarium_gates_nutrition_optimization/results/model13.0/ethiopia/2026_07_05_16_56_57/results' # TODO: update to path for births parquet file generated from pregnancy simulation archive model
+        fertility_input_data_path: # TODO: update to path for births parquet file generated from pregnancy simulation archive model
     interpolation:
         order: 0
         extrapolate: True
