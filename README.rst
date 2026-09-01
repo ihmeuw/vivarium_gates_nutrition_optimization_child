@@ -8,37 +8,25 @@ vivarium_gates_nutrition_optimization_child
 Installation
 ------------
 
-You will need ``git``, ``git-lfs`` and ``conda`` to get this repository
-and install all of its requirements.  You should follow the instructions for
-your operating system at the following places:
+You will need ``conda`` installed in order to install the requirements from this repository. 
+You should follow these instructions for
+your operating system:
 
-- `git <https://git-scm.com/downloads>`_
-- `git-lfs <https://git-lfs.github.com/>`_
-- `conda <https://docs.conda.io/en/latest/miniconda.html>`_
+- `conda <https://docs.conda.io/en/latest/miniconda.html>`_   
 
-Once you have all three installed, you should open up your normal shell
+Once you have this installed, you should open up your normal shell
 (if you're on linux or OSX) or the ``git bash`` shell if you're on windows.
-You'll then make an environment, clone this repository, then install
+Within this shell, navigate to the simulation directory. 
+You will then then make an environment and install
 all necessary requirements as follows::
 
-  :~$ conda create --name=vivarium_gates_nutrition_optimization_child python=3.10
-  ...conda will download python and base dependencies...
-  :~$ conda activate vivarium_gates_nutrition_optimization_child
-  ...navigate to directory downloaded from zenodo...
-  (vivarium_gates_nutrition_optimization_child) :~$ cd vivarium_gates_nutrition_optimization_child
-  (vivarium_gates_nutrition_optimization_child) :~$ pip install -e .
-  ...pip will install vivarium and other requirements...
-
+   conda create --name vivarium_gates_nutrition_optimization_child --file vivarium_gates_nutrition_optimization_child_lock_conda.txt
+   conda activate vivarium_gates_nutrition_optimization_child
+   pip install -r vivarium_gates_nutrition_optimization_child_lock_pip.txt
+   pip install -e . 
 
 Note the ``-e`` flag that follows pip install. This will install the python
 package in-place, which is important for making the model specifications later.
-
-Cloning the repository should take a fair bit of time as git must fetch
-the data artifact associated with the demo (several GB of data) from the
-large file system storage (``git-lfs``). **If your clone works quickly,
-you are likely only retrieving the checksum file that github holds onto,
-and your simulations will fail.** If you are only retrieving checksum
-files you can explicitly pull the data by executing ``git-lfs pull``.
 
 Vivarium uses the Hierarchical Data Format (HDF) as the backing storage
 for the data artifacts that supply data to the simulation. You may not have
@@ -100,7 +88,7 @@ With your conda environment active, you can run with, e.g.::
    (vivarium_gates_nutrition_optimization_child) :~$ simulate run -vvv /<REPO_INSTALLATION_DIRECTORY>/vivarium_gates_nutrition_optimization_child/src/vivarium_gates_nutrition_optimization_child/model_specifications/model_spec.yaml -o /FILE/PATH/TO/SAVE/RESULTS -i src/vivarium_gates_nutrition_optimization_child/artifacts/<COUNTRY_TO_RUN_IN>.hdf
 
 The simulation will run in one location at a time, enter the country you wish to 
-run the simulation for in your call. Currently only Ethiopia is supported. 
+run the simulation for in your call. Ethiopia, Nigeria, and Pakistan are supported. 
 The country name should be in lower case, for example 'ethiopia'.
 
 The ``-vvv`` flag will log verbosely, so you will get log messages every time
