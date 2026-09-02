@@ -16,10 +16,13 @@ your operating system:
 
 Once you have this installed, you should open up your normal shell
 (if you're on linux or OSX) or the ``git bash`` shell if you're on windows.
-Within this shell, navigate to the simulation directory. 
+Within this shell, navigate to the simulation directory. The simulation directory
+is where this README file is located and will be titled something
+like `ihmeuw-vivarium_gates_nutrition_optimization_child-{hash}`. 
 You will then then make an environment and install
 all necessary requirements as follows::
 
+   cd <PATH/TO/SIMULATION/DIRECTORY>
    conda create --name vivarium_gates_nutrition_optimization_child --file vivarium_gates_nutrition_optimization_child_lock_conda.txt
    conda activate vivarium_gates_nutrition_optimization_child
    pip install -r vivarium_gates_nutrition_optimization_child_lock_pip.txt
@@ -27,6 +30,11 @@ all necessary requirements as follows::
 
 Note the ``-e`` flag that follows pip install. This will install the python
 package in-place, which is important for making the model specifications later.
+
+You will now need to copy over the .hdf files downloaded from zenodo to the
+expected location within the simulation directory:
+
+   src/vivarium_gates_nutrition_optimization_child/artifacts
 
 Vivarium uses the Hierarchical Data Format (HDF) as the backing storage
 for the data artifacts that supply data to the simulation. You may not have
@@ -85,7 +93,8 @@ Running Simulations
 You can run your simulation from the command line. 
 With your conda environment active, you can run with, e.g.::
 
-   (vivarium_gates_nutrition_optimization_child) :~$ simulate run -vvv /<REPO_INSTALLATION_DIRECTORY>/vivarium_gates_nutrition_optimization_child/src/vivarium_gates_nutrition_optimization_child/model_specifications/model_spec.yaml -o /FILE/PATH/TO/SAVE/RESULTS -i src/vivarium_gates_nutrition_optimization_child/artifacts/<COUNTRY_TO_RUN_IN>.hdf
+   (vivarium_gates_nutrition_optimization_child) :~$ cd /FILE/PATH/TO/SIMULATION/DIRECTORY
+   (vivarium_gates_nutrition_optimization_child) :~$ simulate run -vvv src/vivarium_gates_nutrition_optimization_child/model_specifications/model_spec.yaml -o /FILE/PATH/TO/SAVE/RESULTS -i src/vivarium_gates_nutrition_optimization_child/artifacts/<COUNTRY_TO_RUN_IN>.hdf
 
 The simulation will run in one location at a time, enter the country you wish to 
 run the simulation for in your call. Ethiopia, Nigeria, and Pakistan are supported. 
