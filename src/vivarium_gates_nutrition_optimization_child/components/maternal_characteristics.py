@@ -48,16 +48,28 @@ class MaternalCharacteristics(Component):
             self.bep_exposure_name,
             source=self._get_bep_exposure,
             required_resources=[self.supplementation_exposure_name],
+            description=(
+                "The BEP supplementation exposure category, cat2 when the mother received "
+                "BEP"
+            ),
         )
         builder.value.register_attribute_producer(
             self.ifa_exposure_name,
             source=self._get_ifa_exposure,
             required_resources=[self.supplementation_exposure_name],
+            description=(
+                "The IFA supplementation exposure category, cat2 when the mother received "
+                "IFA, MMS or BEP"
+            ),
         )
         builder.value.register_attribute_producer(
             self.mmn_exposure_name,
             source=self._get_mmn_exposure,
             required_resources=[self.supplementation_exposure_name],
+            description=(
+                "The MMN supplementation exposure category, cat2 when the mother received "
+                "MMS or BEP"
+            ),
         )
         builder.population.register_initializer(
             self.initialize_from_line_list,
@@ -150,11 +162,18 @@ class LBWSGAdditiveRiskEffect(Component):
             self.effect_name,
             source=self.get_effect,
             required_resources=[self.exposure_name],
+            description=(
+                "This risk's additive shift to the target birth exposure, net of the "
+                "risk-specific shift"
+            ),
         )
         builder.value.register_attribute_modifier(
             "low_birth_weight_and_short_gestation.birth_exposure",
             modifier=self.adjust_target,
             required_resources=[self.effect_name],
+            description=(
+                "Add this risk's shift to the target axis of the LBWSG birth exposure"
+            ),
         )
 
     def get_excess_shift_lookup_table(self, builder: Builder) -> LookupTable:
@@ -268,6 +287,10 @@ class MMSEffectOnGestationalAge(LBWSGAdditiveRiskEffect):
             self.excess_shift_pipeline_name,
             source=self.get_excess_shift_source,
             required_resources=[self.raw_gestational_age_exposure_column_name],
+            description=(
+                "The MMS excess gestational age shift, chosen by subpopulation from the "
+                "IFA-shifted gestational age"
+            ),
         )
 
     def _get_mms_excess_shift_data(
@@ -383,12 +406,20 @@ class BirthWeightShiftEffect(Component):
             self.stunting_exposure_parameters_name,
             modifier=self._modify_stunting_exposure_parameters,
             required_resources=self.effect_pipeline_names,
+            description=(
+                "Move stunting probability from cat1 and cat2 to cat3 in proportion to the "
+                "total birth weight shift"
+            ),
         )
 
         builder.value.register_attribute_modifier(
             self.wasting_exposure_parameters_name,
             modifier=self._modify_wasting_exposure_parameters,
             required_resources=self.effect_pipeline_names,
+            description=(
+                "Move wasting probability from cat1 and cat2 to cat3 in proportion to the "
+                "total birth weight shift"
+            ),
         )
 
     ##################################

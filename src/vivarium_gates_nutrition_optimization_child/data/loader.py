@@ -1510,6 +1510,8 @@ def load_lbwsg_interpolated_rr(
 def load_lbwsg_paf(
     key: str, location: str, years: Optional[Union[int, str, List[int]]] = None
 ) -> pd.DataFrame:
+    # Reads stored outputs of the lbwsg_paf.yaml simulation, last run in June 2024
+    # against older exposure data; regenerating them is tracked in MIC-7608.
     if key != data_keys.LBWSG.PAF:
         raise ValueError(f"Unrecognized key {key}")
 

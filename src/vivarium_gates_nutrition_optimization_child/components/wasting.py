@@ -112,6 +112,10 @@ class WastingTreatment(Intervention):
             self.exposure_name,
             source=self.get_current_exposure,
             preferred_post_processor=get_exposure_post_processor(builder, self.name),
+            description=(
+                "This treatment's coverage category, drawn from the exposure distribution at "
+                "baseline and set by scenario and targeting rules otherwise"
+            ),
         )
 
     def get_current_exposure(self, index: pd.Index) -> pd.Series:
@@ -229,6 +233,10 @@ class ChildWastingModel(DiseaseModel):
             preferred_post_processor=get_exposure_post_processor(
                 builder, EntityString(f"risk_factor.{self.state_column}")
             ),
+            description=(
+                "The child wasting exposure category mapped from the simulant's wasting "
+                "disease state"
+            ),
         )
 
         self.csmr_table = self.build_lookup_table(builder, "cause_specific_mortality_rate")
@@ -236,6 +244,10 @@ class ChildWastingModel(DiseaseModel):
             "cause_specific_mortality_rate",
             self.adjust_cause_specific_mortality_rate,
             required_resources=["age", "sex"],
+            description=(
+                "Add child wasting's cause-specific mortality rate to the modeled "
+                "cause-specific total"
+            ),
         )
 
         builder.population.register_initializer(

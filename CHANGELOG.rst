@@ -1,3 +1,10 @@
+**v0.13.0 - 10/05/26**
+
+ - Raise the floors to vivarium-engine 5.11.0 and vivarium-public-health 6.6.4
+ - Add a ``description`` to every registered pipeline producer and modifier
+ - Delete the dead ``get_population_attributable_fraction_source`` and ``get_birth_exposure_pipelines`` overrides in components/lbwsg.py, which overrode hook names that no longer exist in vivarium-public-health; the remaining PAF-calculation components now raise on setup with a pointer to MIC-7608, which tracks porting that simulation
+ - Add a Slurm-only end-to-end test that runs a two-step simulation from the Ethiopia model spec
+
 **v0.12.1 - 02/05/25**
 
  - Add python versions file
