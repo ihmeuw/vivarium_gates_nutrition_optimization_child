@@ -3,6 +3,10 @@
  - Pin vivarium_inputs 9.x and vivarium_gbd_access 7.x in the data extra; add the ``[tool.uv]`` override block
  - Import from vivarium.gbd_mapping instead of the removed gbd_mapping shim
  - Delete the unused GBD 2021 data-processing helpers from data/utilities.py and ``_load_em_from_meid`` from the loader
+ - Select subnational locations with ``gbd.get_most_detailed_locations`` instead of a substring match on ``path_to_top_parent``
+ - Let ``get_national_location_id`` accept a location name, id, or list of ids and walk parents with ``utility_data.get_location_id_parents``; fixes ``--national`` artifact builds
+ - Replace the deprecated ``utility_data.get_location_id`` with ``resolve_location`` / ``resolve_locations``
+ - Add unit tests for ``fetch_subnational_ids`` and ``get_national_location_id``
 
 **v0.12.1 - 02/05/25**
 
