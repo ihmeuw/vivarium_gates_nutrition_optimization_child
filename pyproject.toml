@@ -40,8 +40,8 @@ lint = [
     "isort==5.13.2",
 ]
 data = [
-    "vivarium_inputs>=5.0.0,<7.0.0",
-    "vivarium_gbd_access>=4.0.0,<5.0.0",
+    "vivarium_inputs>=9.0.0,<10.0.0",
+    "vivarium_gbd_access>=7.0.0,<8.0.0",
     "vivarium_gates_nutrition_optimization_child[cluster]",
 ]
 dev = ["vivarium_gates_nutrition_optimization_child[test,cluster,lint]"]
@@ -73,3 +73,6 @@ show_missing = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests/"]
+
+[tool.uv]
+override-dependencies = ["pandas<3.0.0", "sqlalchemy>=2.0.0,<3.0.0", "numpy<2.0.0"]

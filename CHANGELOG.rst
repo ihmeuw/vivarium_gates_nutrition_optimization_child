@@ -1,3 +1,9 @@
+**v0.13.0 - 10/05/26**
+
+ - Pin vivarium_inputs 9.x and vivarium_gbd_access 7.x in the data extra; add the ``[tool.uv]`` override block
+ - Import from vivarium.gbd_mapping instead of the removed gbd_mapping shim
+ - Delete the unused GBD 2021 data-processing helpers from data/utilities.py and ``_load_em_from_meid`` from the loader
+
 **v0.12.1 - 02/05/25**
 
  - Add python versions file
