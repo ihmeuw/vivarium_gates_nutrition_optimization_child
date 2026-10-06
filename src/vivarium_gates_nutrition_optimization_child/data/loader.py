@@ -437,7 +437,7 @@ def load_categorical_paf(
     exp = get_data(risk.EXPOSURE, location)
 
     if key == data_keys.STUNTING.PAF or key == data_keys.WASTING.PAF:
-        national_location_id = get_national_location_id(location[0])
+        national_location_id = get_national_location_id(location)
         rr = get_data(risk.RELATIVE_RISK, national_location_id)
         location_names = exp.reset_index().location.unique()
         index_names = rr.index.names
@@ -468,7 +468,7 @@ def load_wasting_transition_rates(
     years: Optional[Union[int, str, List[int]]] = None,
 ) -> pd.DataFrame:
     """Read in wasting transition rates from flat file and expand to include all years."""
-    national_location_id = get_national_location_id(location[0])
+    national_location_id = get_national_location_id(location)
     demography = get_data(data_keys.POPULATION.DEMOGRAPHY, national_location_id)
     rates = pd.read_csv(paths.WASTING_TRANSITIONS_DATA_DIR / f"{national_location_id}.csv")
     rates = rates.rename({"parameter": "transition"}, axis=1)
@@ -562,7 +562,7 @@ def load_wasting_birth_prevalence(
 
     # Returns something national
     # read and process prevalence of low birth weight amongst infants who survive to 30 days
-    national_location_id = get_national_location_id(location[0])
+    national_location_id = get_national_location_id(location)
     lbwsg_exposure = get_data(data_keys.LBWSG.EXPOSURE, national_location_id)
 
     # Convert the LBWSG into subnational so I can use it with the wasting prevalence data
@@ -870,7 +870,7 @@ def load_underweight_exposure(
     and wasting) from file and transform. This data looks like standard
     categorical exposure distribution data but with stunting and wasting
     parameter values in the index."""
-    national_location_id = get_national_location_id(location[0])
+    national_location_id = get_national_location_id(location)
     df = pd.read_csv(
         paths.UNDERWEIGHT_CONDITIONAL_DISTRIBUTIONS_DIR / f"{national_location_id}.csv"
     )
@@ -956,7 +956,7 @@ def load_gbd_2023_exposure(
 ) -> pd.DataFrame:
     # Get national location id to use national data probabilities
     entity_key = EntityKey(key)
-    national_location_id = get_national_location_id(location[0])
+    national_location_id = get_national_location_id(location)
 
     data = load_standard_data(key, location)
     location_names = data.reset_index().location.unique()
@@ -1039,10 +1039,7 @@ def load_wasting_rr(
     location: Union[str, List[int]],
     years: Optional[Union[int, str, List[int]]] = None,
 ) -> pd.DataFrame:
-    if type(location) != int:
-        location_id = utility_data.get_location_id(location)
-    else:
-        location_id = location
+    location_id = utility_data.resolve_locations(location)[0]
     data = pd.read_csv(paths.WASTING_RELATIVE_RISKS)
     data = data.query("location_id==@location_id").drop(
         ["Unnamed: 0", "index", "location_id"], axis=1
@@ -1139,7 +1136,7 @@ def load_cgf_paf(
     location: Union[str, List[int]],
     years: Optional[Union[int, str, List[int]]] = None,
 ) -> pd.DataFrame:
-    national_location_id = get_national_location_id(location[0])
+    national_location_id = get_national_location_id(location)
     data = pd.read_csv(
         paths.CGF_PAFS / f"{national_location_id}.csv"
     )  # .query("location_id==@location_id")
@@ -1818,7 +1815,7 @@ def load_baseline_ifa_supplementation_coverage(
     location: str, years: Optional[Union[int, str, List[int]]] = None
 ) -> pd.DataFrame:
     index = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index
-    location_id = utility_data.get_location_id(location)
+    location_id = utility_data.resolve_location(location)
     data = pd.read_csv(paths.BASELINE_IFA_COVERAGE_CSV).drop("Unnamed: 0", axis=1)
     data = (
         data.query("location_id==@location_id")
@@ -1866,7 +1863,7 @@ def load_maternal_bmi_anemia_exposure(
     if key != data_keys.MATERNAL_BMI_ANEMIA.EXPOSURE:
         raise ValueError(f"Unrecognized key {key}")
 
-    location_id = utility_data.get_location_id(location)
+    location_id = utility_data.resolve_location(location)
     index = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index
 
     def _read_hgb_data(filename: str) -> pd.Series:
@@ -1962,7 +1959,7 @@ def load_sqlns_risk_ratios(
 
     # generate draws using distribution parameters for each row
     risk_ratios = pd.read_csv(paths.SQLNS_RISK_RATIOS)
-    national_location_id = get_national_location_id(location[0])
+    national_location_id = get_national_location_id(location)
     risk_ratios = (
         risk_ratios.query("national_id==@national_location_id")
         .drop(["national_id", "location_id", "Unnamed: 0"], axis=1)
@@ -1997,20 +1994,15 @@ def reshape_to_vivarium_format(
 
 
 def fetch_subnational_ids(location: str) -> List[int]:
-    location_id = utility_data.get_location_id(location)
-    location_metadata = gbd.get_location_path_to_global()
-    subnational_location_metadata = location_metadata.loc[
-        (location_metadata["path_to_top_parent"].apply(lambda x: str(location_id) in x))
-        & (location_metadata["location_id"] != location_id)
-    ]
-    subnational_location_ids = subnational_location_metadata["location_id"].tolist()
-    return subnational_location_ids
+    """Return the sorted most-detailed GBD location ids below a location name."""
+    location_id = utility_data.resolve_location(location)
+    subnational_ids = gbd.get_most_detailed_locations(location_id) - {location_id}
+    return sorted(int(loc_id) for loc_id in subnational_ids)
 
 
-def get_national_location_id(location_id: int) -> int:
-    location_metadata = gbd.get_location_path_to_global()
-    path_to_parent = location_metadata.loc[location_metadata.location_id == location_id][
-        "path_to_top_parent"
-    ].to_list()
-    national_location_id = int([loc_id.split(",")[3] for loc_id in path_to_parent][0])
-    return national_location_id
+def get_national_location_id(location: Union[str, int, List[int]]) -> int:
+    """Return the national GBD location id for a location name, id, or list of ids."""
+    if isinstance(location, str):
+        return utility_data.resolve_location(location)
+    location_id = location[0] if isinstance(location, list) else location
+    return utility_data.get_location_id_parents(location_id)[location_id][3]
