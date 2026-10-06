@@ -1,4 +1,4 @@
-**v0.12.2 - 10/01/26**
+**v0.12.2 - 10/06/26**
 
  - Fix ``--national`` artifact builds: accept a location name in ``get_national_location_id``
 
