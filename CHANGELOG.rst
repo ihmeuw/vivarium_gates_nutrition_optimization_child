@@ -1,10 +1,6 @@
 **vX.X.X - 10/XX/26**
 
  - Replace environment.sh and the Makefile with the shared-environment tooling from vivarium_gates_mncnh (``source environment.sh -s``, ``make build-shared-env``, ``make print-dist-name``)
- - Remove requirements.txt, artifact_requirements.txt, and the stale .flake8
- - Install the ``[cluster]`` extra of vivarium_cluster_tools; data extra now includes lint and test
- - Remove the stray tracked files subnational_ethiopia.hdf and a cluster-tools launcher script
- - Rewrite the README installation section for the new environment tooling
 
 **v0.12.1 - 02/05/25**
 
