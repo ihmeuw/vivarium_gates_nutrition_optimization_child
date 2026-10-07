@@ -1,3 +1,7 @@
+**vX.X.X - 10/XX/26**
+
+ - Replace environment.sh and the Makefile with the shared-environment tooling from vivarium_gates_mncnh (``source environment.sh -s``, ``make build-shared-env``, ``make print-dist-name``)
+
 **v0.12.1 - 02/05/25**
 
  - Add python versions file
