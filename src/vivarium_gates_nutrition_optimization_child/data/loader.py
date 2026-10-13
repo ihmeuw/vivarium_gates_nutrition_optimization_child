@@ -26,10 +26,8 @@ from vivarium_gbd_access import constants as gbd_constants
 from vivarium_gbd_access import gbd
 from vivarium_inputs import extract
 from vivarium_inputs import globals as vi_globals
-from vivarium_inputs import interface
-from vivarium_inputs import utilities as vi_utils
-from vivarium_inputs import utility_data
-from vivarium_inputs.globals import DEMOGRAPHIC_COLUMNS, DRAW_COLUMNS
+from vivarium_inputs import interface, utility_data
+from vivarium_inputs.globals import DEMOGRAPHIC_COLUMNS
 from vivarium_inputs.mapping_extension import AlternativeRiskFactor
 
 from vivarium_gates_nutrition_optimization_child.constants import (
@@ -1414,7 +1412,6 @@ def load_lbwsg_exposure(
         .set_index(metadata.ARTIFACT_INDEX_COLUMNS + ["parameter"])
         .sort_index()
     )
-    exposure = reshape_to_vivarium_format(exposure, location)
     return exposure
 
 
@@ -1981,18 +1978,6 @@ def load_sqlns_risk_ratios(
     data = pd.concat([risk_ratios[index_cols], draw_columns], axis=1).set_index(index_cols)
 
     return data
-
-
-def reshape_to_vivarium_format(
-    df, location, years: Optional[Union[int, str, List[int]]] = None
-):
-    df = vi_utils.reshape(df, value_cols=DRAW_COLUMNS)
-    df = vi_utils.scrub_gbd_conventions(df, location)
-    df = vi_utils.split_interval(df, interval_column="age", split_column_prefix="age")
-    df = vi_utils.split_interval(df, interval_column="year", split_column_prefix="year")
-    df = vi_utils.sort_hierarchical_data(df)
-
-    return df
 
 
 def fetch_subnational_ids(location: str) -> List[int]:
