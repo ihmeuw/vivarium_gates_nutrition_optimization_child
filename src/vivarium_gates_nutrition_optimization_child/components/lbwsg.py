@@ -16,7 +16,6 @@ import numpy as np
 import pandas as pd
 from vivarium.engine.component import Component
 from vivarium.engine.framework.engine import Builder
-from vivarium.engine.framework.lookup import LookupTable
 from vivarium.engine.framework.population import SimulantData
 from vivarium.engine.framework.time import get_time_stamp
 from vivarium.engine.framework.values import Pipeline
@@ -77,6 +76,10 @@ class LBWSGLineList(LBWSGRisk):
             self.birth_exposure_pipeline,
             source=lambda index: self.get_birth_exposure(index),
             preferred_post_processor=get_exposure_post_processor(builder, self.risk),
+            description=(
+                "The simulant's LBWSG exposure at birth, read from the maternal model's "
+                "birth line list"
+            ),
         )
 
     ########################
@@ -120,11 +123,23 @@ class LBWSGLineList(LBWSGRisk):
         return self.new_births.loc[index, AXES]
 
 
-class LBWSGPAFCalculationRiskEffect(LBWSGRiskEffect):
-    """Risk effect component for calculating PAFs for LBWSG."""
+_PAF_SIMULATION_BROKEN = (
+    "The LBWSG PAF-calculation components target public-health hooks removed in VPH 6 "
+    "and have not run since the June 2024 PAF outputs. Porting them to the MNCNH "
+    "workflow is tracked in MIC-7608."
+)
 
-    def get_population_attributable_fraction_source(self, builder: Builder) -> LookupTable:
-        return 0, []
+
+class LBWSGPAFCalculationRiskEffect(LBWSGRiskEffect):
+    """Risk effect component for calculating PAFs for LBWSG.
+
+    WARNING: broken since the VPH 6 upgrade. It used to override a hook that forced
+    a zero PAF; that hook no longer exists, so this now behaves as a plain
+    LBWSGRiskEffect. See MIC-7608 before using it.
+    """
+
+    def setup(self, builder: Builder) -> None:
+        raise NotImplementedError(_PAF_SIMULATION_BROKEN)
 
 
 class SubnationalLBWSGRiskEffect(LBWSGRiskEffect):
@@ -142,7 +157,14 @@ class SubnationalLBWSGRiskEffect(LBWSGRiskEffect):
 
 
 class LBWSGPAFCalculationExposure(LBWSGRisk):
+    """Exposure component for calculating PAFs for LBWSG.
+
+    WARNING: broken since the VPH 6 upgrade. It references attributes LBWSGRisk no
+    longer has and fails on setup. See MIC-7608 before using it.
+    """
+
     def setup(self, builder: Builder) -> None:
+        raise NotImplementedError(_PAF_SIMULATION_BROKEN)
         super().setup(builder)
         self.lbwsg_categories = builder.data.load(data_keys.LBWSG.CATEGORIES)
         self.age_bins = builder.data.load(data_keys.POPULATION.AGE_BINS)
@@ -153,17 +175,6 @@ class LBWSGPAFCalculationExposure(LBWSGRisk):
             + ["lbwsg_category", "age_bin"],
             required_resources=["age", "sex"],
         )
-
-    def get_birth_exposure_pipelines(self, builder: Builder) -> Dict[str, Pipeline]:
-        def get_pipeline(axis_: str):
-            return builder.value.register_value_producer(
-                self.birth_exposure_pipeline_name(axis_),
-                source=lambda index: self.get_birth_exposure(axis_, index),
-                required_resources=["age", "sex"],
-                preferred_post_processor=get_exposure_post_processor(builder, self.risk),
-            )
-
-        return {self.birth_exposure_pipeline_name(axis): get_pipeline(axis) for axis in AXES}
 
     ########################
     # Event-driven methods #
