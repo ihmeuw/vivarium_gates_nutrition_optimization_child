@@ -1,6 +1,8 @@
 **vX.X.X - 10/XX/26**
 
  - Replace environment.sh and the Makefile with the shared-environment tooling from vivarium_gates_mncnh (``source environment.sh -s``, ``make build-shared-env``, ``make print-dist-name``)
+ - Raise the floors to vivarium-engine 5.11.0 and vivarium-public-health 6.6.4
+ - Add a ``description`` to every registered pipeline producer and modifier
 
 **v0.12.1 - 02/05/25**
 

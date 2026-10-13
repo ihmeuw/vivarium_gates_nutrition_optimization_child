@@ -1,3 +1,7 @@
+# WARNING: this PAF-calculation simulation has not run since the VPH 6 upgrade.
+# Its components target removed public-health hooks, so it crashes on setup;
+# the artifact's LBWSG PAF key still comes from its June 2024 outputs.
+# Porting it to the MNCNH workflow is tracked in MIC-7608.
 components:
     vivarium.public_health:
         metrics:

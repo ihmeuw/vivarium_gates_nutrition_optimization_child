@@ -40,42 +40,70 @@ class SQLNSTreatment(Component):
             self.coverage_name,
             source=self.get_current_coverage,
             required_resources=[self.propensity_name, "age", "subnational"],
+            description=(
+                "Each simulant's SQ-LNS coverage status (uncovered, covered or received) "
+                "from propensity, age and subnational targeting"
+            ),
         )
 
         builder.value.register_attribute_modifier(
             f"{models.WASTING.MILD_STATE_NAME}.incidence_rate",
             modifier=self.apply_tmrel_to_mild_wasting_treatment,
             required_resources=[self.coverage_name],
+            description=(
+                "Scale the mild wasting incidence rate by the SQ-LNS risk ratio for covered "
+                "simulants"
+            ),
         )
 
         builder.value.register_attribute_modifier(
             f"{models.WASTING.MILD_STATE_NAME}_to_{models.WASTING.BETTER_MODERATE_STATE_NAME}.transition_rate",
             modifier=self.apply_mild_to_mam_wasting_treatment,
             required_resources=[self.coverage_name],
+            description=(
+                "Scale the mild to better MAM transition rate by the SQ-LNS risk ratio for "
+                "covered simulants"
+            ),
         )
 
         builder.value.register_attribute_modifier(
             f"{models.WASTING.MILD_STATE_NAME}_to_{models.WASTING.WORSE_MODERATE_STATE_NAME}.transition_rate",
             modifier=self.apply_mild_to_mam_wasting_treatment,
             required_resources=[self.coverage_name],
+            description=(
+                "Scale the mild to worse MAM transition rate by the SQ-LNS risk ratio for "
+                "covered simulants"
+            ),
         )
 
         builder.value.register_attribute_modifier(
             f"{models.WASTING.BETTER_MODERATE_STATE_NAME}_to_{models.WASTING.SEVERE_STATE_NAME}.transition_rate",
             modifier=self.apply_mam_to_sam_wasting_treatment,
             required_resources=[self.coverage_name],
+            description=(
+                "Scale the better MAM to SAM transition rate by the SQ-LNS risk ratio for "
+                "covered simulants"
+            ),
         )
 
         builder.value.register_attribute_modifier(
             f"{models.WASTING.WORSE_MODERATE_STATE_NAME}_to_{models.WASTING.SEVERE_STATE_NAME}.transition_rate",
             modifier=self.apply_mam_to_sam_wasting_treatment,
             required_resources=[self.coverage_name],
+            description=(
+                "Scale the worse MAM to SAM transition rate by the SQ-LNS risk ratio for "
+                "covered simulants"
+            ),
         )
 
         builder.value.register_attribute_modifier(
             "risk_factor.child_stunting.exposure_parameters",
             modifier=self.apply_stunting_treatment,
             required_resources=[self.coverage_name],
+            description=(
+                "Move stunting probability from cat1 and cat2 to cat4 for simulants covered "
+                "by or who received SQ-LNS"
+            ),
         )
 
         self.tmrel_to_mild_wasting_risk_ratio_table = self.get_risk_ratios(
