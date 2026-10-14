@@ -40,7 +40,7 @@ lint = [
     "isort==5.13.2",
 ]
 data = [
-    "vivarium_inputs>=9.0.0,<10.0.0",
+    "vivarium_inputs>=9.1.1,<10.0.0",
     "vivarium_gbd_access>=7.0.0,<8.0.0",
     "vivarium_gates_nutrition_optimization_child[cluster,lint,test]",
 ]
