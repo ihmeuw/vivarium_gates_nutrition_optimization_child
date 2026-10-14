@@ -1,4 +1,4 @@
-**vX.X.X - 10/XX/26**
+**v0.13.0 - 10/14/26**
 
  - Fix the LBWSG exposure key: ``interface.get_measure`` already returns vivarium-format data, so a second scrub added a duplicate ``location`` index level and the key had not built since #208
  - Restrict the LBWSG exposure key to the early and late neonatal age groups.
