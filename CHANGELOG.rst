@@ -1,16 +1,13 @@
 **vX.X.X - 10/XX/26**
 
  - Fix the LBWSG exposure key: ``interface.get_measure`` already returns vivarium-format data, so a second scrub added a duplicate ``location`` index level and the key had not built since #208
- - Restrict the LBWSG exposure key to the early and late neonatal age groups, the only ones that carry data; the GBD 2023 mapping's wider age restriction otherwise fills 23 age groups with synthetic unexposed rows
+ - Restrict the LBWSG exposure key to the early and late neonatal age groups.
  - Replace environment.sh and the Makefile with the shared-environment tooling from vivarium_gates_mncnh (``source environment.sh -s``, ``make build-shared-env``, ``make print-dist-name``)
  - Raise the floors to vivarium-engine 5.11.0 and vivarium-public-health 6.6.4
  - Add a ``description`` to every registered pipeline producer and modifier
  - Pin vivarium_inputs 9.x and vivarium_gbd_access 7.x in the data extra; add the ``[tool.uv]`` override block
  - Delete the unused GBD 2021 data-processing helpers from data/utilities.py and ``_load_em_from_meid`` from the loader
- - Select subnational locations with ``gbd.get_most_detailed_locations`` instead of a substring match on ``path_to_top_parent``
- - Let ``get_national_location_id`` accept a location name, id, or list of ids and walk parents with ``utility_data.get_location_id_parents``; fixes ``--national`` artifact builds
- - Replace the deprecated ``utility_data.get_location_id`` with ``resolve_location`` / ``resolve_locations``
- - Add unit tests for ``fetch_subnational_ids`` and ``get_national_location_id``
+ - Minor fixes to subnational location resolving
 
 **v0.12.1 - 02/05/25**
 
