@@ -1400,6 +1400,18 @@ def load_lbwsg_exposure(
     # Get exposure for all age groups except birth age group
     exposure = interface.get_measure(entity, key.measure, location, 2021)
     exposure = exposure.query("year_start == 2021")
+    # Only the neonatal age groups carry LBWSG exposure. The GBD 2023 mapping
+    # restricts the risk to age 95+, so inputs fills every other age group with a
+    # synthetic all-unexposed row, which the clip and renormalization below would
+    # turn into a uniform-looking distribution.
+    age_bins = utility_data.get_age_bins()
+    neonatal_age_starts = age_bins.loc[
+        age_bins["age_group_id"].isin(metadata.AGE_GROUP.LBWSG_EXPOSURE_AGE_GROUP_IDS),
+        "age_start",
+    ]
+    exposure = exposure[
+        exposure.index.get_level_values("age_start").isin(neonatal_age_starts)
+    ]
     # Sometimes there are data values on the order of 10e-300 that cause
     # floating point headaches, so clip everything to reasonable values
     exposure = exposure.clip(lower=vi_globals.MINIMUM_EXPOSURE_VALUE)
