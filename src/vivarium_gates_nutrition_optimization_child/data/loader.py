@@ -18,9 +18,9 @@ from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
-from gbd_mapping import Cause, RiskFactor, sequelae
 from scipy.interpolate import RectBivariateSpline, griddata
 from vivarium.artifact import EntityKey
+from vivarium.gbd_mapping import Cause, RiskFactor, sequelae
 from vivarium.public_health.utilities import TargetString
 from vivarium_gbd_access import constants as gbd_constants
 from vivarium_gbd_access import gbd
@@ -693,21 +693,6 @@ def load_wasting_birth_prevalence(
     birth_prevalence = pd.concat([birth_prevalence, cat25_rows]).sort_index()
 
     return birth_prevalence
-
-
-def _load_em_from_meid(
-    location, meid, measure, years: Optional[Union[int, str, List[int]]] = None
-):
-    location_id = utility_data.get_location_id(location)
-    data = gbd.get_modelable_entity_draws(meid, location_id)
-    data = data[data.measure_id == vi_globals.MEASURES[measure]]
-    data = vi_utils.normalize(data, fill_value=0)
-    data = data.filter(vi_globals.DEMOGRAPHIC_COLUMNS + vi_globals.DRAW_COLUMNS)
-    data = vi_utils.reshape(data)
-    data = vi_utils.scrub_gbd_conventions(data, location)
-    data = vi_utils.split_interval(data, interval_column="age", split_column_prefix="age")
-    data = vi_utils.split_interval(data, interval_column="year", split_column_prefix="year")
-    return vi_utils.sort_hierarchical_data(data)
 
 
 def load_duration(
