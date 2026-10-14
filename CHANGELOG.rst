@@ -1,10 +1,12 @@
 **vX.X.X - 10/XX/26**
 
+ - Fix the LBWSG exposure key: ``interface.get_measure`` already returns vivarium-format data, so a second scrub added a duplicate ``location`` index level and the key had not built since #208
  - Replace environment.sh and the Makefile with the shared-environment tooling from vivarium_gates_mncnh (``source environment.sh -s``, ``make build-shared-env``, ``make print-dist-name``)
  - Raise the floors to vivarium-engine 5.11.0 and vivarium-public-health 6.6.4
  - Add a ``description`` to every registered pipeline producer and modifier
  - Pin vivarium_inputs 9.x and vivarium_gbd_access 7.x in the data extra; add the ``[tool.uv]`` override block
  - Delete the unused GBD 2021 data-processing helpers from data/utilities.py and ``_load_em_from_meid`` from the loader
+ - Minor fixes to subnational location resolving
 
 **v0.12.1 - 02/05/25**
 
