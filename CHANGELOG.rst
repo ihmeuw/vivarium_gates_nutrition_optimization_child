@@ -4,11 +4,12 @@
  - Drop the duplicated late-neonatal rows from the wasting relative-risk CSV before the neonatal RR-1 fill (MIC-7638)
  - Adopt the shared environment tooling; raise the floors to vivarium-engine 5.11.0 and vivarium-public-health 6.6.4; describe every pipeline producer and modifier
  - Delete the unused GBD 2021 data helpers and fix subnational location resolving
+ - Guard the LBWSG relative-risk interpolator against category-order mismatches between the RR columns and the category midpoints (MIC-7504)
+ - Align the LBWSG relative-risk interpolator's category midpoints to the RR columns instead of relying on a numeric category order, and raise if the category sets differ (MIC-7504)
 
 **v0.12.2 - 10/06/26**
 
  - Fix ``--national`` artifact builds: accept a location name in ``get_national_location_id``
- - Guard the LBWSG relative-risk interpolator against category-order mismatches between the RR columns and the category midpoints (MIC-7504)
 
 **v0.12.1 - 02/05/25**
 
