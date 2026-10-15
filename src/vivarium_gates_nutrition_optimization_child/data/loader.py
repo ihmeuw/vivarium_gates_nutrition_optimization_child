@@ -1337,19 +1337,12 @@ def load_sam_treatment_rr(
     return rr.sort_index()
 
 
-def load_mam_treatment_rr(
-    key: str, location: str, years: Optional[Union[int, str, List[int]]] = None
-) -> pd.DataFrame:
-    # tmrel is defined as baseline treatment (cat_2)
-    if key != data_keys.MAM_TREATMENT.RELATIVE_RISK:
-        raise ValueError(f"Unrecognized key {key}")
-
-    demography = get_data(data_keys.POPULATION.DEMOGRAPHY, location).reset_index()
-    mam_tx_efficacy, mam_tx_efficacy_tmrel = utilities.get_treatment_efficacy(
-        demography, data_keys.WASTING.CAT2, location
-    )
-    index = mam_tx_efficacy.index
-
+def get_mam_remission_rates(
+    index: pd.Index, location: str
+) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """Return the treated and untreated MAM remission rates per day over ``index``."""
+    # `location` is unused until the rates come from the per-location calibration file
+    # (MIC-7264); this helper is the one place to repoint.
     mam_ux_duration = data_values.WASTING.MAM_UX_RECOVERY_TIME_OVER_6MO
     mam_tx_duration = pd.Series(index=index)
     mam_tx_duration[
@@ -1363,15 +1356,38 @@ def load_mam_treatment_rr(
         {f"draw_{i}": 1 for i in range(0, metadata.DRAW_COUNT)}, index=index
     ).multiply(mam_tx_duration, axis="index")
 
-    # rr_r3 = r3 / r3_tmrel
-    #       = (mam_tx_efficacy / mam_tx_duration) + (1 - mam_tx_efficacy / mam_ux_duration)
-    #           / (mam_tx_efficacy_tmrel / mam_tx_duration) + (1 - mam_tx_efficacy_tmrel / mam_ux_duration)
-    #       = (mam_tx_efficacy * mam_ux_duration + (1 - mam_tx_efficacy) * mam_tx_duration)
-    #           / (mam_tx_efficacy_tmrel * mam_ux_duration + (1 - mam_tx_efficacy_tmrel) * mam_tx_duration)
-    rr = (mam_tx_efficacy * mam_ux_duration + (1 - mam_tx_efficacy) * mam_tx_duration) / (
-        mam_tx_efficacy_tmrel * mam_ux_duration
-        + (1 - mam_tx_efficacy_tmrel) * mam_tx_duration
+    tx_rate = 1 / mam_tx_duration
+    ux_rate = pd.DataFrame(
+        1 / mam_ux_duration, columns=metadata.ARTIFACT_COLUMNS, index=index
     )
+    return tx_rate, ux_rate
+
+
+def load_mam_treatment_rr(
+    key: str, location: str, years: Optional[Union[int, str, List[int]]] = None
+) -> pd.DataFrame:
+    # tmrel is defined as baseline treatment (cat_2)
+    if key != data_keys.MAM_TREATMENT.RELATIVE_RISK:
+        raise ValueError(f"Unrecognized key {key}")
+
+    demography = get_data(data_keys.POPULATION.DEMOGRAPHY, location).reset_index()
+    mam_tx_efficacy, mam_tx_efficacy_tmrel = utilities.get_treatment_efficacy(
+        demography, data_keys.WASTING.CAT2, location
+    )
+    index = mam_tx_efficacy.index
+    tx_rate, ux_rate = get_mam_remission_rates(index, location)
+
+    # rr_r3 = r3 / r3_tmrel with r3 = mam_tx_efficacy * tx_rate + (1 - mam_tx_efficacy) * ux_rate.
+    # For the uncovered category (efficacy 0) this reduces to the research table's
+    #       ux_rate / (tx_rate * mam_tx_efficacy_tmrel + ux_rate * (1 - mam_tx_efficacy_tmrel))
+    numerator = mam_tx_efficacy * tx_rate + (1 - mam_tx_efficacy) * ux_rate
+    denominator = mam_tx_efficacy_tmrel * tx_rate + (1 - mam_tx_efficacy_tmrel) * ux_rate
+    # A transition with both rates zero has no effect; any other non-finite value is a data error.
+    rr = (numerator / denominator).where(denominator != 0, 1.0)
+    # The efficacy file carries more draws than the artifact keeps; only check the kept ones.
+    rr = rr[metadata.ARTIFACT_COLUMNS]
+    if not np.isfinite(rr.to_numpy()).all():
+        raise ValueError("MAM treatment relative risk has non-finite values")
 
     better_mam_rows = rr.copy()
     worse_mam_rows = rr.copy()
