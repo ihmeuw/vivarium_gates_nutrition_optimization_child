@@ -1336,26 +1336,45 @@ def get_mam_remission_rates(
     index: pd.Index, location: str
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """Return the treated and untreated MAM remission rates per day over ``index``."""
-    # `location` is unused until the rates come from the per-location calibration file
-    # (MIC-7264); this helper is the one place to repoint.
-    mam_ux_duration = data_values.WASTING.MAM_UX_RECOVERY_TIME_OVER_6MO
-    mam_tx_duration = pd.Series(index=index)
-    mam_tx_duration[
-        index.get_level_values("age_start") < 0.5
-    ] = data_values.WASTING.MAM_TX_RECOVERY_TIME_UNDER_6MO
-    mam_tx_duration[0.5 <= index.get_level_values("age_start")] = get_random_variable_draws(
-        mam_tx_duration[0.5 <= index.get_level_values("age_start")].index,
-        *data_values.WASTING.MAM_TX_RECOVERY_TIME_OVER_6MO,
-    )
-    mam_tx_duration = pd.DataFrame(
-        {f"draw_{i}": 1 for i in range(0, metadata.DRAW_COUNT)}, index=index
-    ).multiply(mam_tx_duration, axis="index")
+    # These are the calibration outputs that produced `rem_rate_mam` in the same file, so
+    # the treated and untreated rates reproduce the transition data.
+    path = paths.WASTING_TRANSITIONS_NATIONAL_DATA_DIR / f"{location.lower()}.csv"
+    rates = pd.read_csv(path)
+    join_columns = ["sex", "age_start", "age_end"]
+    target = index.to_frame(index=False)[join_columns]
 
-    tx_rate = 1 / mam_tx_duration
-    ux_rate = pd.DataFrame(
-        1 / mam_ux_duration, columns=metadata.ARTIFACT_COLUMNS, index=index
-    )
-    return tx_rate, ux_rate
+    def describe(rows: pd.DataFrame) -> str:
+        return str(rows[join_columns].drop_duplicates().to_records(index=False).tolist())
+
+    def broadcast(parameter: str) -> pd.DataFrame:
+        values = rates[rates["parameter"] == parameter]
+        if values.empty:
+            raise ValueError(f"{path} has no {parameter} rows")
+        if values.duplicated(join_columns).any():
+            raise ValueError(f"{path} has more than one {parameter} row per age and sex")
+        values = values[join_columns + list(metadata.ARTIFACT_COLUMNS)]
+        values = target.merge(values, how="left", on=join_columns, indicator=True)
+        absent = values["_merge"] == "left_only"
+        # A blank draw in a present row is a data error at any age; never zero-fill it.
+        blank = ~absent & values[metadata.ARTIFACT_COLUMNS].isna().any(axis=1)
+        if blank.any():
+            raise ValueError(
+                f"{path} has {parameter} rows with missing draws for "
+                f"(sex, age_start, age_end) in {describe(values[blank])}"
+            )
+        # Only the neonatal bins may be absent from the file; they get a zero rate, which
+        # the caller turns into a relative risk of 1 (no treatment effect under six months).
+        missing = absent & (values["age_start"] >= 0.5)
+        if missing.any():
+            raise ValueError(
+                f"{path} has no {parameter} rows for (sex, age_start, age_end) in "
+                f"{describe(values[missing])}"
+            )
+        values = values[metadata.ARTIFACT_COLUMNS].fillna(0.0)
+        values.index = index
+        return values
+
+    return broadcast("tx_rem_rate_mam"), broadcast("ux_rem_rate_mam")
 
 
 def load_mam_treatment_rr(
