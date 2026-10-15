@@ -1,5 +1,6 @@
 **v0.13.0 - 10/14/26**
 
+ - Drop neonatal rows from the wasting relative-risk CSV before adding the neonatal RR-1 fill: the subcategory notebook had broadcast the MAM relative risks onto the late neonatal age group, producing duplicated rows that the simulation averaged (MIC-7638)
  - Fix the LBWSG exposure key: ``interface.get_measure`` already returns vivarium-format data, so a second scrub added a duplicate ``location`` index level and the key had not built since #208
  - Restrict the LBWSG exposure key to the early and late neonatal age groups.
  - Replace environment.sh and the Makefile with the shared-environment tooling from vivarium_gates_mncnh (``source environment.sh -s``, ``make build-shared-env``, ``make print-dist-name``)

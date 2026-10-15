@@ -1042,6 +1042,11 @@ def load_wasting_rr(
     data = data.query("location_id==@location_id").drop(
         ["Unnamed: 0", "index", "location_id"], axis=1
     )
+    # Wasting has no effect in the neonatal period (GBD's wasting, stunting and
+    # underweight relative risks are 1 there). The subcategory notebook broadcasts
+    # the MAM relative risks over an age list that includes the late neonatal group,
+    # which then collided with the neonatal fill below; see MIC-7638.
+    data = data[~data["age_group_id"].isin(metadata.AGE_GROUP.NEONATAL_AGE_GROUP_IDS)]
 
     # get age start and end from age group ID
     age_bins = get_data(data_keys.POPULATION.AGE_BINS, location).reset_index()
@@ -1406,7 +1411,7 @@ def load_lbwsg_exposure(
     # turn into a uniform-looking distribution.
     age_bins = utility_data.get_age_bins()
     neonatal_age_starts = age_bins.loc[
-        age_bins["age_group_id"].isin(metadata.AGE_GROUP.LBWSG_EXPOSURE_AGE_GROUP_IDS),
+        age_bins["age_group_id"].isin(metadata.AGE_GROUP.NEONATAL_AGE_GROUP_IDS),
         "age_start",
     ]
     exposure = exposure[
