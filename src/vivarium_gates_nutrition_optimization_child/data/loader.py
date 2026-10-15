@@ -1411,7 +1411,7 @@ def load_lbwsg_exposure(
     # turn into a uniform-looking distribution.
     age_bins = utility_data.get_age_bins()
     neonatal_age_starts = age_bins.loc[
-        age_bins["age_group_id"].isin(metadata.AGE_GROUP.LBWSG_EXPOSURE_AGE_GROUP_IDS),
+        age_bins["age_group_id"].isin(metadata.AGE_GROUP.NEONATAL_AGE_GROUP_IDS),
         "age_start",
     ]
     exposure = exposure[
