@@ -470,6 +470,7 @@ def load_wasting_transition_rates(
     demography = get_data(data_keys.POPULATION.DEMOGRAPHY, national_location_id)
     rates = pd.read_csv(paths.WASTING_TRANSITIONS_DATA_DIR / f"{national_location_id}.csv")
     rates = rates.rename({"parameter": "transition"}, axis=1)
+    worse_mam_fraction = get_worse_mam_fraction(national_location_id)
 
     # explicitly add the youngest ages data with values of 0
     min_age = rates.reset_index()["age_start"].min()
@@ -499,12 +500,8 @@ def load_wasting_transition_rates(
     rates = rates.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ["transition"]).sort_index()
     worse_mam_idx = rates.query("transition == 'inc_rate_worse_mam'").index
     better_mam_idx = rates.query("transition == 'inc_rate_better_mam'").index
-    rates.loc[worse_mam_idx] = (
-        rates.loc[worse_mam_idx] * data_values.WASTING.PROBABILITY_OF_CAT2
-    )
-    rates.loc[better_mam_idx] = rates.loc[better_mam_idx] * (
-        1 - data_values.WASTING.PROBABILITY_OF_CAT2
-    )
+    rates.loc[worse_mam_idx] = rates.loc[worse_mam_idx] * worse_mam_fraction
+    rates.loc[better_mam_idx] = rates.loc[better_mam_idx] * (1 - worse_mam_fraction)
 
     # update remission transition names
     rates = rates.reset_index()
@@ -518,12 +515,8 @@ def load_wasting_transition_rates(
     rates = rates.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ["transition"]).sort_index()
     worse_mam_idx = rates.query("transition == 'sam_to_worse_mam'").index
     better_mam_idx = rates.query("transition == 'sam_to_better_mam'").index
-    rates.loc[worse_mam_idx] = (
-        rates.loc[worse_mam_idx] * data_values.WASTING.PROBABILITY_OF_CAT2
-    )
-    rates.loc[better_mam_idx] = rates.loc[better_mam_idx] * (
-        1 - data_values.WASTING.PROBABILITY_OF_CAT2
-    )
+    rates.loc[worse_mam_idx] = rates.loc[worse_mam_idx] * worse_mam_fraction
+    rates.loc[better_mam_idx] = rates.loc[better_mam_idx] * (1 - worse_mam_fraction)
 
     return rates
 
@@ -675,13 +668,14 @@ def load_wasting_birth_prevalence(
 
     # distribute probability of being initialized in MAM state
     # amongst worse MAM (cat2) and better MAM (cat2.5)
+    worse_mam_fraction = get_worse_mam_fraction(national_location_id)
     cat2_rows = birth_prevalence.query("parameter=='cat2'").copy()
     # update cat2 rows
     birth_prevalence.loc[birth_prevalence.query("parameter=='cat2'").index] = (
-        cat2_rows * data_values.WASTING.PROBABILITY_OF_CAT2
+        cat2_rows * worse_mam_fraction
     )
     # create cat2.5 rows
-    cat25_rows = cat2_rows * (1 - data_values.WASTING.PROBABILITY_OF_CAT2)
+    cat25_rows = cat2_rows * (1 - worse_mam_fraction)
     cat25_rows = (
         cat25_rows.reset_index()
         .replace({"parameter": {"cat2": "cat2.5"}})
@@ -945,6 +939,21 @@ def load_underweight_exposure(
     )
     df = pd.concat([df, missing_rows]).sort_index()
     return df.fillna(0)
+
+
+def get_worse_mam_fraction(location_id: int) -> pd.Series:
+    """Return the per-draw probability that a transition into MAM enters worse MAM (cat2)."""
+    # The research exposure page defines this value as the probability of entering worse
+    # MAM upon transitioning into MAM, so it applies to incidence, SAM remission and birth
+    # prevalence as well as the exposure split.
+    probabilities = pd.read_csv(paths.PROBABILITIES_OF_WORSE_MAM_EXPOSURE)
+    probabilities = probabilities.query("location_id == @location_id")
+    if probabilities.empty:
+        raise ValueError(
+            f"No worse-MAM fraction for location id {location_id} in "
+            f"{paths.PROBABILITIES_OF_WORSE_MAM_EXPOSURE}"
+        )
+    return probabilities.set_index("draw")["exposure"].loc[metadata.ARTIFACT_COLUMNS]
 
 
 def load_gbd_2023_exposure(
