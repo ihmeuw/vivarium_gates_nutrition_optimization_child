@@ -8,6 +8,7 @@
  - Pin vivarium_inputs 9.1.1+ (the first release that fills in the TMREL residual exposure category under vivarium_gbd_access 7) and vivarium_gbd_access 7.x in the data extra; add the ``[tool.uv]`` override block
  - Delete the unused GBD 2021 data-processing helpers from data/utilities.py and ``_load_em_from_meid`` from the loader
  - Minor fixes to subnational location resolving
+ - Derive the MAM treatment relative risk from treated and untreated remission rates instead of recovery durations; values are unchanged, and the rates now come from one helper that MIC-7264 will point at the calibration file (MIC-7265)
 
 **v0.12.1 - 02/05/25**
 
