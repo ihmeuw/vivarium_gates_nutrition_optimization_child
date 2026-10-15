@@ -4,6 +4,7 @@
  - Drop the duplicated late-neonatal rows from the wasting relative-risk CSV before the neonatal RR-1 fill (MIC-7638)
  - Adopt the shared environment tooling; raise the floors to vivarium-engine 5.11.0 and vivarium-public-health 6.6.4; describe every pipeline producer and modifier
  - Delete the unused GBD 2021 data helpers and fix subnational location resolving
+ - Split incidence into MAM, SAM remission into MAM, and MAM birth prevalence between worse and better MAM with the per-location worse-MAM fraction from the data instead of a 0.33 constant (MIC-7263)
 
 **v0.12.2 - 10/06/26**
 
