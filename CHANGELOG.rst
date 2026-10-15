@@ -8,6 +8,7 @@
  - Pin vivarium_inputs 9.1.1+ (the first release that fills in the TMREL residual exposure category under vivarium_gbd_access 7) and vivarium_gbd_access 7.x in the data extra; add the ``[tool.uv]`` override block
  - Delete the unused GBD 2021 data-processing helpers from data/utilities.py and ``_load_em_from_meid`` from the loader
  - Minor fixes to subnational location resolving
+ - Split incidence into MAM, SAM remission into MAM, and MAM birth prevalence between worse and better MAM with the per-location worse-MAM fraction from the data instead of a 0.33 constant (MIC-7263)
 
 **v0.12.1 - 02/05/25**
 
