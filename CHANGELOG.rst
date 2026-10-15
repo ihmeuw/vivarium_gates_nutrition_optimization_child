@@ -9,6 +9,7 @@
  - Delete the unused GBD 2021 data-processing helpers from data/utilities.py and ``_load_em_from_meid`` from the loader
  - Minor fixes to subnational location resolving
  - Derive the MAM treatment relative risk from treated and untreated remission rates instead of recovery durations; values are unchanged, and the rates now come from one helper that MIC-7264 will point at the calibration file (MIC-7265)
+ - Read the treated and untreated MAM remission rates from the national wasting transition file instead of recovery-time constants, and set the alternative treatment efficacies to 1, which changes the cat3 rows of the SAM and MAM treatment relative risks (MIC-7264)
 
 **v0.12.1 - 02/05/25**
 
