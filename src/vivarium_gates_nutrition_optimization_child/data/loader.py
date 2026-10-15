@@ -1472,6 +1472,20 @@ def load_lbwsg_interpolated_rr(
     gestational_age_midpoints = get_category_midpoints("short_gestation")
     birth_weight_midpoints = get_category_midpoints("low_birth_weight")
 
+    # griddata pairs the RR columns with the midpoint Series by position, so reindex
+    # the midpoints to the column order instead of trusting two orderings to agree.
+    # Raise first because reindex would silently fill a missing category with NaN.
+    rr_categories = set(rr.columns)
+    metadata_categories = set(gestational_age_midpoints.index)
+    if rr_categories != metadata_categories:
+        raise ValueError(
+            "LBWSG relative risk categories do not match the category metadata: "
+            f"missing from metadata {sorted(rr_categories - metadata_categories)}, "
+            f"missing from relative risk {sorted(metadata_categories - rr_categories)}"
+        )
+    gestational_age_midpoints = gestational_age_midpoints.reindex(rr.columns)
+    birth_weight_midpoints = birth_weight_midpoints.reindex(rr.columns)
+
     # build grid of gestational age and birth weight
     def get_grid(midpoints: pd.Series, endpoints: Tuple[float, float]) -> np.array:
         grid = np.append(np.unique(midpoints), endpoints)

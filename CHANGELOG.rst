@@ -8,6 +8,7 @@
 **v0.12.2 - 10/06/26**
 
  - Fix ``--national`` artifact builds: accept a location name in ``get_national_location_id``
+ - Guard the LBWSG relative-risk interpolator against category-order mismatches between the RR columns and the category midpoints (MIC-7504)
 
 **v0.12.1 - 02/05/25**
 
