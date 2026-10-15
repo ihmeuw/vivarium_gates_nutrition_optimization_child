@@ -1446,12 +1446,8 @@ def load_lbwsg_interpolated_rr(
         raise ValueError(f"Unrecognized key {key}")
 
     rr = get_data(data_keys.LBWSG.RELATIVE_RISK, location).reset_index()
-    rr["parameter"] = pd.Categorical(
-        rr["parameter"], [f"cat{i}" for i in range(metadata.DRAW_COUNT)]
-    )
     rr = (
-        rr.sort_values("parameter")
-        .set_index(metadata.ARTIFACT_INDEX_COLUMNS + ["parameter"])
+        rr.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ["parameter"])
         .stack()
         .unstack("parameter")
         .apply(np.log)
@@ -1467,9 +1463,9 @@ def load_lbwsg_interpolated_rr(
     gestational_age_midpoints = get_category_midpoints("short_gestation")
     birth_weight_midpoints = get_category_midpoints("low_birth_weight")
 
-    # griddata pairs the RR columns with the midpoint Series by position, so reindex
-    # the midpoints to the column order instead of trusting two orderings to agree.
-    # Raise first because reindex would silently fill a missing category with NaN.
+    # The midpoints are aligned to the RR columns, so the pivot above needs no
+    # particular category order. Raise before reindexing because reindex would
+    # silently insert NaN for a category missing from the metadata.
     rr_categories = set(rr.columns)
     metadata_categories = set(gestational_age_midpoints.index)
     if rr_categories != metadata_categories:

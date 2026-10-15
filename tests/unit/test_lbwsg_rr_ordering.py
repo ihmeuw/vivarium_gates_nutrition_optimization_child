@@ -2,8 +2,9 @@
 
 ``load_lbwsg_interpolated_rr`` pivots the RR ``parameter`` column into wide columns, aligns
 the birth-weight and gestational-age midpoints from the artifact ``categories`` dict to
-those columns, and raises when the two category sets differ. A lexicographic column order
-(``cat10`` before ``cat2``) would otherwise pair categories with the wrong midpoint.
+those columns, and raises when the two category sets differ. Because the midpoints are
+aligned to the columns, the result does not depend on the row or column order of the RR
+frame or on the order of the categories dict.
 """
 import pickle
 from types import ModuleType
@@ -17,7 +18,6 @@ gbd_mapping = pytest.importorskip("vivarium.gbd_mapping")
 
 from vivarium_gates_nutrition_optimization_child.constants import data_keys, metadata
 
-LOADER_CATEGORY_ORDER = [f"cat{i}" for i in range(metadata.DRAW_COUNT)]
 GUARD_MESSAGE = "LBWSG relative risk categories do not match the category metadata"
 
 
@@ -64,40 +64,17 @@ def _synthetic_rr(categories: List[str], draw_count: int = 1) -> pd.DataFrame:
     return pd.DataFrame(rows)[metadata.ARTIFACT_INDEX_COLUMNS + ["parameter"] + draw_columns]
 
 
-def _build_rr_columns(
-    categories: List[str], category_order: Optional[List[str]]
-) -> List[str]:
-    """Reproduce the loader's long-to-wide pivot and return the resulting column order."""
-    rr = _synthetic_rr(categories)
-    if category_order is None:
-        rr["parameter"] = pd.Categorical(rr["parameter"])
+def _permute_rows(rr: pd.DataFrame, row_order: str) -> pd.DataFrame:
+    """Return the frame with its rows reversed or with odd rows placed before even rows."""
+    if row_order == "reversed":
+        positions = list(range(len(rr)))[::-1]
+    elif row_order == "interleaved":
+        positions = list(range(1, len(rr), 2)) + list(range(0, len(rr), 2))
     else:
-        rr["parameter"] = pd.Categorical(rr["parameter"], category_order)
-    rr = (
-        rr.sort_values("parameter")
-        .set_index(metadata.ARTIFACT_INDEX_COLUMNS + ["parameter"])
-        .stack()
-        .unstack("parameter")
-        .apply(np.log)
-    )
-    return [str(column) for column in rr.columns]
-
-
-def test_draw_count_spans_every_lbwsg_category() -> None:
-    categories = _lbwsg_categories()
-    assert max(_category_number(category) for category in categories) < metadata.DRAW_COUNT
-
-
-def test_loader_ordering_matches_gbd_mapping_order() -> None:
-    categories = _lbwsg_categories()
-    assert _build_rr_columns(categories, LOADER_CATEGORY_ORDER) == categories
-
-
-def test_bare_categorical_would_scramble_order() -> None:
-    categories = _lbwsg_categories()
-    scrambled = _build_rr_columns(categories, None)
-    assert scrambled != categories
-    assert scrambled == sorted(categories)
+        raise ValueError(row_order)
+    permuted = rr.iloc[positions]
+    assert not permuted.index.equals(rr.index)
+    return permuted
 
 
 @pytest.fixture
@@ -112,16 +89,20 @@ def loader() -> ModuleType:
 @pytest.fixture
 def install_get_data(
     monkeypatch: pytest.MonkeyPatch, loader: ModuleType
-) -> Callable[[Dict[str, str]], None]:
+) -> Callable[[Dict[str, str], Optional[str]], None]:
     """Patch loader.get_data to serve a synthetic RR frame and a chosen categories dict."""
     rr = _synthetic_rr(_lbwsg_categories(), metadata.DRAW_COUNT).set_index(
         metadata.ARTIFACT_INDEX_COLUMNS + ["parameter"]
     )
 
-    def _install(category_descriptions: Dict[str, str]) -> None:
+    def _install(
+        category_descriptions: Dict[str, str], row_order: Optional[str] = None
+    ) -> None:
+        served = rr if row_order is None else _permute_rows(rr, row_order)
+
         def _get_data(key: Any, *args: Any, **kwargs: Any) -> Any:
             if str(key) == str(data_keys.LBWSG.RELATIVE_RISK):
-                return rr.copy()
+                return served.copy()
             if str(key) == f"risk_factor.{data_keys.LBWSG.name}.categories":
                 return dict(category_descriptions)
             raise KeyError(key)
@@ -165,10 +146,10 @@ def _probe_categories() -> List[str]:
 
 
 def test_load_lbwsg_interpolated_rr_accepts_consistent_categories(
-    loader: ModuleType, install_get_data: Callable[[Dict[str, str]], None]
+    loader: ModuleType, install_get_data: Callable[[Dict[str, str], Optional[str]], None]
 ) -> None:
     descriptions = _lbwsg_category_descriptions()
-    install_get_data(descriptions)
+    install_get_data(descriptions, None)
 
     interpolator = _load_interpolator(loader)
 
@@ -177,7 +158,9 @@ def test_load_lbwsg_interpolated_rr_accepts_consistent_categories(
 
 @pytest.mark.parametrize("ordering", ["sorted", "reversed"])
 def test_load_lbwsg_interpolated_rr_aligns_reordered_categories(
-    ordering: str, loader: ModuleType, install_get_data: Callable[[Dict[str, str]], None]
+    ordering: str,
+    loader: ModuleType,
+    install_get_data: Callable[[Dict[str, str], Optional[str]], None],
 ) -> None:
     descriptions = _lbwsg_category_descriptions()
     if ordering == "sorted":
@@ -185,23 +168,39 @@ def test_load_lbwsg_interpolated_rr_aligns_reordered_categories(
     else:
         reordered = dict(reversed(list(descriptions.items())))
     assert list(reordered) != list(descriptions)
-    install_get_data(reordered)
+    install_get_data(reordered, None)
 
     interpolator = _load_interpolator(loader)
 
     _assert_interpolator_matches_categories(interpolator, descriptions, _probe_categories())
 
 
+@pytest.mark.parametrize("row_order", ["reversed", "interleaved"])
+def test_load_lbwsg_interpolated_rr_ignores_rr_row_order(
+    row_order: str,
+    loader: ModuleType,
+    install_get_data: Callable[[Dict[str, str], Optional[str]], None],
+) -> None:
+    descriptions = _lbwsg_category_descriptions()
+    install_get_data(descriptions, row_order)
+
+    interpolator = _load_interpolator(loader)
+
+    _assert_interpolator_matches_categories(interpolator, descriptions, list(descriptions))
+
+
 @pytest.mark.parametrize("mismatch", ["missing", "extra"])
 def test_load_lbwsg_interpolated_rr_rejects_mismatched_categories(
-    mismatch: str, loader: ModuleType, install_get_data: Callable[[Dict[str, str]], None]
+    mismatch: str,
+    loader: ModuleType,
+    install_get_data: Callable[[Dict[str, str], Optional[str]], None],
 ) -> None:
     descriptions = _lbwsg_category_descriptions()
     if mismatch == "missing":
         descriptions.pop(next(iter(descriptions)))
     else:
         descriptions["cat999"] = "Birth prevalence - [0, 24) wks, [0, 500) g"
-    install_get_data(descriptions)
+    install_get_data(descriptions, None)
 
     with pytest.raises(ValueError, match=f"^{GUARD_MESSAGE}"):
         loader.load_lbwsg_interpolated_rr(
