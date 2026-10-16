@@ -54,6 +54,10 @@ class ChildUnderweight(Risk):
                 data_values.PIPELINES.WASTING_EXPOSURE,
             ],
             preferred_post_processor=get_exposure_post_processor(builder, self.risk),
+            description=(
+                "The underweight exposure category drawn from the distribution for the "
+                "simulant's joint stunting and wasting state"
+            ),
         )
 
     def _get_distributions(self, builder: Builder) -> Dict[str, CGFPolytomousDistribution]:
@@ -230,4 +234,8 @@ class CGFRiskEffect(RiskEffect):
             self.relative_risk_name,
             source=self._relative_risk_source,
             required_resources=list(self.sub_exposure_names.values()),
+            description=(
+                "The combined CGF relative risk on this target, the product of the wasting, "
+                "underweight and stunting relative risks"
+            ),
         )

@@ -18,18 +18,16 @@ from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
-from gbd_mapping import Cause, RiskFactor, sequelae
 from scipy.interpolate import RectBivariateSpline, griddata
 from vivarium.artifact import EntityKey
+from vivarium.gbd_mapping import Cause, RiskFactor, sequelae
 from vivarium.public_health.utilities import TargetString
 from vivarium_gbd_access import constants as gbd_constants
 from vivarium_gbd_access import gbd
 from vivarium_inputs import extract
 from vivarium_inputs import globals as vi_globals
-from vivarium_inputs import interface
-from vivarium_inputs import utilities as vi_utils
-from vivarium_inputs import utility_data
-from vivarium_inputs.globals import DEMOGRAPHIC_COLUMNS, DRAW_COLUMNS
+from vivarium_inputs import interface, utility_data
+from vivarium_inputs.globals import DEMOGRAPHIC_COLUMNS
 from vivarium_inputs.mapping_extension import AlternativeRiskFactor
 
 from vivarium_gates_nutrition_optimization_child.constants import (
@@ -695,21 +693,6 @@ def load_wasting_birth_prevalence(
     return birth_prevalence
 
 
-def _load_em_from_meid(
-    location, meid, measure, years: Optional[Union[int, str, List[int]]] = None
-):
-    location_id = utility_data.get_location_id(location)
-    data = gbd.get_modelable_entity_draws(meid, location_id)
-    data = data[data.measure_id == vi_globals.MEASURES[measure]]
-    data = vi_utils.normalize(data, fill_value=0)
-    data = data.filter(vi_globals.DEMOGRAPHIC_COLUMNS + vi_globals.DRAW_COLUMNS)
-    data = vi_utils.reshape(data)
-    data = vi_utils.scrub_gbd_conventions(data, location)
-    data = vi_utils.split_interval(data, interval_column="age", split_column_prefix="age")
-    data = vi_utils.split_interval(data, interval_column="year", split_column_prefix="year")
-    return vi_utils.sort_hierarchical_data(data)
-
-
 def load_duration(
     key: str, location: str, years: Optional[Union[int, str, List[int]]] = None
 ) -> pd.DataFrame:
@@ -1054,14 +1037,16 @@ def load_wasting_rr(
     location: Union[str, List[int]],
     years: Optional[Union[int, str, List[int]]] = None,
 ) -> pd.DataFrame:
-    if type(location) != int:
-        location_id = utility_data.get_location_id(location)
-    else:
-        location_id = location
+    location_id = utility_data.resolve_locations(location)[0]
     data = pd.read_csv(paths.WASTING_RELATIVE_RISKS)
     data = data.query("location_id==@location_id").drop(
         ["Unnamed: 0", "index", "location_id"], axis=1
     )
+    # Wasting has no effect in the neonatal period (GBD's wasting, stunting and
+    # underweight relative risks are 1 there). The subcategory notebook broadcasts
+    # the MAM relative risks over an age list that includes the late neonatal group,
+    # which then collided with the neonatal fill below; see MIC-7638.
+    data = data[~data["age_group_id"].isin(metadata.AGE_GROUP.NEONATAL_AGE_GROUP_IDS)]
 
     # get age start and end from age group ID
     age_bins = get_data(data_keys.POPULATION.AGE_BINS, location).reset_index()
@@ -1420,6 +1405,18 @@ def load_lbwsg_exposure(
     # Get exposure for all age groups except birth age group
     exposure = interface.get_measure(entity, key.measure, location, 2021)
     exposure = exposure.query("year_start == 2021")
+    # Only the neonatal age groups carry LBWSG exposure. The GBD 2023 mapping
+    # restricts the risk to age 95+, so inputs fills every other age group with a
+    # synthetic all-unexposed row, which the clip and renormalization below would
+    # turn into a uniform-looking distribution.
+    age_bins = utility_data.get_age_bins()
+    neonatal_age_starts = age_bins.loc[
+        age_bins["age_group_id"].isin(metadata.AGE_GROUP.NEONATAL_AGE_GROUP_IDS),
+        "age_start",
+    ]
+    exposure = exposure[
+        exposure.index.get_level_values("age_start").isin(neonatal_age_starts)
+    ]
     # Sometimes there are data values on the order of 10e-300 that cause
     # floating point headaches, so clip everything to reasonable values
     exposure = exposure.clip(lower=vi_globals.MINIMUM_EXPOSURE_VALUE)
@@ -1432,7 +1429,6 @@ def load_lbwsg_exposure(
         .set_index(metadata.ARTIFACT_INDEX_COLUMNS + ["parameter"])
         .sort_index()
     )
-    exposure = reshape_to_vivarium_format(exposure, location)
     return exposure
 
 
@@ -1510,6 +1506,8 @@ def load_lbwsg_interpolated_rr(
 def load_lbwsg_paf(
     key: str, location: str, years: Optional[Union[int, str, List[int]]] = None
 ) -> pd.DataFrame:
+    # Reads stored outputs of the lbwsg_paf.yaml simulation, last run in June 2024
+    # against older exposure data; regenerating them is tracked in MIC-7608.
     if key != data_keys.LBWSG.PAF:
         raise ValueError(f"Unrecognized key {key}")
 
@@ -1833,7 +1831,7 @@ def load_baseline_ifa_supplementation_coverage(
     location: str, years: Optional[Union[int, str, List[int]]] = None
 ) -> pd.DataFrame:
     index = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index
-    location_id = utility_data.get_location_id(location)
+    location_id = utility_data.resolve_location(location)
     data = pd.read_csv(paths.BASELINE_IFA_COVERAGE_CSV).drop("Unnamed: 0", axis=1)
     data = (
         data.query("location_id==@location_id")
@@ -1881,7 +1879,7 @@ def load_maternal_bmi_anemia_exposure(
     if key != data_keys.MATERNAL_BMI_ANEMIA.EXPOSURE:
         raise ValueError(f"Unrecognized key {key}")
 
-    location_id = utility_data.get_location_id(location)
+    location_id = utility_data.resolve_location(location)
     index = get_data(data_keys.POPULATION.DEMOGRAPHY, location).index
 
     def _read_hgb_data(filename: str) -> pd.Series:
@@ -1999,42 +1997,16 @@ def load_sqlns_risk_ratios(
     return data
 
 
-def reshape_to_vivarium_format(
-    df, location, years: Optional[Union[int, str, List[int]]] = None
-):
-    df = vi_utils.reshape(df, value_cols=DRAW_COLUMNS)
-    df = vi_utils.scrub_gbd_conventions(df, location)
-    df = vi_utils.split_interval(df, interval_column="age", split_column_prefix="age")
-    df = vi_utils.split_interval(df, interval_column="year", split_column_prefix="year")
-    df = vi_utils.sort_hierarchical_data(df)
-
-    return df
-
-
 def fetch_subnational_ids(location: str) -> List[int]:
-    location_id = utility_data.get_location_id(location)
-    location_metadata = gbd.get_location_path_to_global()
-    subnational_location_metadata = location_metadata.loc[
-        (location_metadata["path_to_top_parent"].apply(lambda x: str(location_id) in x))
-        & (location_metadata["location_id"] != location_id)
-    ]
-    subnational_location_ids = subnational_location_metadata["location_id"].tolist()
-    return subnational_location_ids
+    """Return the sorted most-detailed GBD location ids below a location name."""
+    location_id = utility_data.resolve_location(location)
+    subnational_ids = gbd.get_most_detailed_locations(location_id) - {location_id}
+    return sorted(int(loc_id) for loc_id in subnational_ids)
 
 
 def get_national_location_id(location: Union[str, int, List[int]]) -> int:
-    """Return the national GBD location id for a location name, id, or list of subnational ids.
-
-    ``get_data`` hands loaders a location name when building national artifacts
-    and a list of subnational location ids otherwise; accept both here so the
-    loaders do not have to know which mode they are in.
-    """
+    """Return the national GBD location id for a location name, id, or list of ids."""
     if isinstance(location, str):
-        return utility_data.get_location_id(location)
+        return utility_data.resolve_location(location)
     location_id = location[0] if isinstance(location, list) else location
-    location_metadata = gbd.get_location_path_to_global()
-    path_to_parent = location_metadata.loc[location_metadata.location_id == location_id][
-        "path_to_top_parent"
-    ].to_list()
-    national_location_id = int([loc_id.split(",")[3] for loc_id in path_to_parent][0])
-    return national_location_id
+    return utility_data.get_location_id_parents(location_id)[location_id][3]
