@@ -9,6 +9,10 @@
  - Pin vivarium_inputs 9.1.1+ (the first release that fills in the TMREL residual exposure category under vivarium_gbd_access 7) and vivarium_gbd_access 7.x in the data extra; add the ``[tool.uv]`` override block
  - Delete the unused GBD 2021 data-processing helpers from data/utilities.py and ``_load_em_from_meid`` from the loader
  - Minor fixes to subnational location resolving
+ 
+**v0.12.2 - 10/06/26**
+
+ - Fix ``--national`` artifact builds: accept a location name in ``get_national_location_id``
 
 **v0.12.1 - 02/05/25**
 
