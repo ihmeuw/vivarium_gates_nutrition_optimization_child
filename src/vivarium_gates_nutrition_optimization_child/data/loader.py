@@ -1351,10 +1351,7 @@ def get_mam_remission_rates(
         rates.loc[parameter].reindex(rows) for parameter in MAM_RATE_PARAMETERS
     ]
 
-    # The file carries no neonatal rows; those get a zero rate, which the caller's
-    # under-six-month override turns into a relative risk of 1. Any other absent row is a
-    # data error. Blank draws were rejected on read, so an all-NaN row here means absent.
-    # Each parameter is checked because the file need not cover the same ages for both.
+    # Fill neonatal rates to zero, raise on any other missing data.
     older = rows.get_level_values("age_start") >= 0.5
     for parameter, rate in zip(MAM_RATE_PARAMETERS, (tx_rate, ux_rate)):
         missing = rate.isna().any(axis=1) & older
