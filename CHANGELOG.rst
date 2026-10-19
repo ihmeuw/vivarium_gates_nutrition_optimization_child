@@ -1,7 +1,3 @@
-**v0.13.1 - 10/19/26**
-
- - Align the LBWSG relative-risk interpolator's category midpoints to the RR columns instead of relying on a numeric category order, and raise if the category sets differ (MIC-7504)
-
 **v0.12.2 - 10/16/26**
 
  - Migrate artifact building off ``get_draws`` to vivarium_gbd_access 7 and vivarium_inputs 9.1.1 (the first release that fills in the TMREL residual exposure category); fix the LBWSG exposure key and restrict it to the neonatal age groups
