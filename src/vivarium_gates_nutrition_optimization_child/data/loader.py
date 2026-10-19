@@ -943,9 +943,6 @@ def load_underweight_exposure(
 
 def get_worse_mam_fraction(location_id: int) -> pd.Series:
     """Return the per-draw probability that a transition into MAM enters worse MAM (cat2)."""
-    # The research exposure page defines this value as the probability of entering worse
-    # MAM upon transitioning into MAM, so it applies to incidence, SAM remission and birth
-    # prevalence as well as the exposure split.
     probabilities = pd.read_csv(paths.PROBABILITIES_OF_WORSE_MAM_EXPOSURE)
     probabilities = probabilities.query("location_id == @location_id")
     if probabilities.empty:
