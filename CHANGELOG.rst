@@ -4,7 +4,6 @@
  - Drop the duplicated late-neonatal rows from the wasting relative-risk CSV before the neonatal RR-1 fill (MIC-7638)
  - Adopt the shared environment tooling; raise the floors to vivarium-engine 5.11.0 and vivarium-public-health 6.6.4; describe every pipeline producer and modifier
  - Delete the unused GBD 2021 data helpers and fix subnational location resolving
- - Derive the MAM treatment relative risk from treated and untreated remission rates instead of recovery durations; values are unchanged, and the rates now come from one helper that MIC-7264 will point at the calibration file (MIC-7265)
 
 **v0.12.2 - 10/06/26**
 
