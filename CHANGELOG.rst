@@ -1,4 +1,4 @@
-**v0.14.0 - 10/20/26**
+**v0.12.3 - 10/20/26**
 
  - Compute the proportion of pregnant women with hemoglobin below 100 g/L from a GBD pull instead of a stored CSV: moderate and severe anemia (REI 432) among pregnant women aged 15-54 from release 33, averaged over age groups with the pregnant population as weights, and its 100 draws repeated to fill 250 (MIC-7649)
 
@@ -8,9 +8,6 @@
  - Drop the duplicated late-neonatal rows from the wasting relative-risk CSV before the neonatal RR-1 fill (MIC-7638)
  - Adopt the shared environment tooling; raise the floors to vivarium-engine 5.11.0 and vivarium-public-health 6.6.4; describe every pipeline producer and modifier
  - Delete the unused GBD 2021 data helpers and fix subnational location resolving
-
-**v0.12.2 - 10/06/26**
-
  - Fix ``--national`` artifact builds: accept a location name in ``get_national_location_id``
 
 **v0.12.1 - 02/05/25**
