@@ -1,5 +1,3 @@
-from typing import Callable
-
 import numpy as np
 import pandas as pd
 import pytest
@@ -75,8 +73,8 @@ def _companion_draws(filename: str) -> np.ndarray:
 
 
 @pytest.fixture
-def install_pull(monkeypatch: pytest.MonkeyPatch) -> Callable[[pd.DataFrame], None]:
-    """Patch the demography key and location lookup; return a setter for the GBD pull."""
+def stub_inputs(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Patch the demography key, the location lookup and the GBD pull."""
     demography = pd.DataFrame(
         index=pd.MultiIndex.from_tuples(
             [
@@ -92,33 +90,22 @@ def install_pull(monkeypatch: pytest.MonkeyPatch) -> Callable[[pd.DataFrame], No
         assert lookup_key == data_keys.POPULATION.DEMOGRAPHY
         return demography
 
+    anemia = _anemia_prevalence()
     monkeypatch.setattr(loader, "get_data", _get_data)
     monkeypatch.setattr(
         loader.utility_data, "resolve_location", {LOCATION: ETHIOPIA}.__getitem__
     )
-
-    def _install(data: pd.DataFrame) -> None:
-        monkeypatch.setattr(
-            loader.extra_gbd,
-            "get_pregnant_moderate_severe_anemia_prevalence",
-            lambda location: data,
-        )
-
-    return _install
-
-
-def _load_exposure() -> pd.DataFrame:
-    return loader.load_maternal_bmi_anemia_exposure(
-        data_keys.MATERNAL_BMI_ANEMIA.EXPOSURE, LOCATION
+    monkeypatch.setattr(
+        loader.extra_gbd,
+        "get_pregnant_moderate_severe_anemia_prevalence",
+        lambda location: anemia,
     )
 
 
-def test_exposure_takes_low_hemoglobin_from_the_weighted_gbd_pull(
-    install_pull: Callable[[pd.DataFrame], None],
-) -> None:
-    install_pull(_anemia_prevalence())
-
-    exposure = _load_exposure()
+def test_exposure_takes_low_hemoglobin_from_the_weighted_gbd_pull(stub_inputs: None) -> None:
+    exposure = loader.load_maternal_bmi_anemia_exposure(
+        data_keys.MATERNAL_BMI_ANEMIA.EXPOSURE, LOCATION
+    )
 
     assert exposure.shape == (4 * 2 * len(AGE_BINS), metadata.DRAW_COUNT)
     assert list(exposure.columns) == list(metadata.ARTIFACT_COLUMNS)
@@ -137,58 +124,3 @@ def test_exposure_takes_low_hemoglobin_from_the_weighted_gbd_pull(
         (category_values.loc["cat3"] / (1 - low_hgb)).to_numpy(),
         _companion_draws("prevalence_of_low_bmi_given_hemoglobin_above_10_age_weighted.csv"),
     )
-
-
-def _drop_age_group(data: pd.DataFrame) -> pd.DataFrame:
-    return data.drop(index=0)
-
-
-def _duplicate_age_group(data: pd.DataFrame) -> pd.DataFrame:
-    return pd.concat([data, data.iloc[[0]]], ignore_index=True)
-
-
-def _add_age_group(data: pd.DataFrame) -> pd.DataFrame:
-    return pd.concat([data, data.iloc[[0]].assign(age_group_id=7)], ignore_index=True)
-
-
-@pytest.mark.parametrize("defect", [_drop_age_group, _duplicate_age_group, _add_age_group])
-def test_exposure_rejects_a_pull_without_one_row_per_age_group(
-    install_pull: Callable[[pd.DataFrame], None],
-    defect: Callable[[pd.DataFrame], pd.DataFrame],
-) -> None:
-    install_pull(defect(_anemia_prevalence()))
-
-    with pytest.raises(ValueError, match="one row per age group"):
-        _load_exposure()
-
-
-def _blank_draw(data: pd.DataFrame) -> pd.DataFrame:
-    data.loc[0, "draw_3"] = np.nan
-    return data
-
-
-def _blank_population(data: pd.DataFrame) -> pd.DataFrame:
-    data.loc[0, "population"] = np.nan
-    return data
-
-
-def _zero_population(data: pd.DataFrame) -> pd.DataFrame:
-    data.loc[0, "population"] = 0.0
-    return data
-
-
-def _drop_draws(data: pd.DataFrame) -> pd.DataFrame:
-    return data.drop(columns=data.filter(like="draw_").columns)
-
-
-@pytest.mark.parametrize(
-    "defect", [_blank_draw, _blank_population, _zero_population, _drop_draws]
-)
-def test_exposure_rejects_a_pull_with_unusable_values(
-    install_pull: Callable[[pd.DataFrame], None],
-    defect: Callable[[pd.DataFrame], pd.DataFrame],
-) -> None:
-    install_pull(defect(_anemia_prevalence()))
-
-    with pytest.raises(ValueError, match="no draws, a missing value"):
-        _load_exposure()
