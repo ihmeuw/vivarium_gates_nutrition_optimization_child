@@ -9,7 +9,7 @@ readme = "README.rst"
 requires-python = ">=3.11"
 license = {text = "BSD-3-Clause"}
 authors = [{name = "The vivarium developers", email = "vivarium.dev@gmail.com"}]
-version = "0.13.0"
+version = "0.14.0"
 dependencies = [
     "vivarium-gbd-mapping>=6.0.0,<7.0.0",
     "vivarium-engine>=5.11.0,<6.0.0",
@@ -42,6 +42,7 @@ lint = [
 data = [
     "vivarium_inputs>=9.1.1,<10.0.0",
     "vivarium_gbd_access>=7.0.0,<8.0.0",
+    "ihme_cc_get_estimates[library]>=2.39.0,<3.0.0",
     "vivarium_gates_nutrition_optimization_child[cluster,lint,test]",
 ]
 dev = ["vivarium_gates_nutrition_optimization_child[test,cluster,lint]"]

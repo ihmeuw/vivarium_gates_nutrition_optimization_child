@@ -39,8 +39,9 @@ from vivarium_gates_nutrition_optimization_child.constants import (
 from vivarium_gates_nutrition_optimization_child.constants.metadata import (
     ARTIFACT_INDEX_COLUMNS,
 )
-from vivarium_gates_nutrition_optimization_child.data import utilities
+from vivarium_gates_nutrition_optimization_child.data import extra_gbd, utilities
 from vivarium_gates_nutrition_optimization_child.utilities import (
+    expand_draws,
     get_lognorm_from_quantiles,
     get_random_variable_draws,
 )
@@ -1892,7 +1893,22 @@ def load_maternal_bmi_anemia_exposure(
         data.index.name = None
         return data
 
-    p_low_hgb = _read_hgb_data("pregnant_proportion_with_hgb_below_100_age_aggregated.csv")
+    anemia = extra_gbd.get_pregnant_moderate_severe_anemia_prevalence(location)
+    if sorted(anemia["age_group_id"]) != extra_gbd.PREGNANCY_AGE_GROUP_IDS:
+        raise ValueError(
+            f"Expected one row per age group {extra_gbd.PREGNANCY_AGE_GROUP_IDS} of pregnant "
+            f"anemia prevalence for {location}, got {sorted(anemia['age_group_id'])}."
+        )
+    population = anemia["population"]
+    anemia_draws = anemia.filter(regex=r"^draw_\d+$")
+    if anemia_draws.empty or anemia_draws.isna().any().any() or not (population > 0).all():
+        raise ValueError(
+            f"Pregnant anemia prevalence for {location} has no draws, a missing value, or a "
+            "population that is not positive."
+        )
+    p_low_hgb = expand_draws(
+        anemia_draws.mul(population, axis=0).sum() / population.sum(), metadata.DRAW_COUNT
+    )
     p_low_bmi_given_low_hgb = _read_hgb_data(
         "prevalence_of_low_bmi_given_hemoglobin_below_10_age_weighted.csv"
     )
