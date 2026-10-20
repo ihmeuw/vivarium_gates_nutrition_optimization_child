@@ -1,8 +1,12 @@
-**v0.12.3 - 10/20/26**
+**v0.13.1 - 10/20/26**
 
  - Compute the proportion of pregnant women with hemoglobin below 100 g/L from a GBD pull instead of a stored CSV: moderate and severe anemia (REI 432) among pregnant women aged 15-54 from release 33, averaged over age groups with the pregnant population as weights, and its 100 draws repeated to fill 250 (MIC-7649)
 
-**v0.12.2 - 10/16/26**
+**v0.13.0 - 10/20/26**
+
+ - Use the pytest-vivarium plugin for the shared test options and markers
+
+**v0.12.3 - 10/16/26**
 
  - Migrate artifact building off ``get_draws`` to vivarium_gbd_access 7 and vivarium_inputs 9.1.1 (the first release that fills in the TMREL residual exposure category); fix the LBWSG exposure key and restrict it to the neonatal age groups
  - Drop the duplicated late-neonatal rows from the wasting relative-risk CSV before the neonatal RR-1 fill (MIC-7638)
