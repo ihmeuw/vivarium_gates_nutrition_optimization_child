@@ -29,10 +29,8 @@ dependencies = [
 
 [project.optional-dependencies]
 test = [
-    "pytest",
-    "pytest-cov",
-    "pytest-mock",
-    "pytest-xdist",
+    "vivarium-dependencies[pytest]",
+    "pytest-vivarium",
 ]
 cluster = ["vivarium_cluster_tools[cluster]>=4.0.0,<5.0.0"]
 lint = [
