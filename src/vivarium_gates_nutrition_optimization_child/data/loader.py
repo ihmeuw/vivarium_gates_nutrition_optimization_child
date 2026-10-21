@@ -1457,12 +1457,8 @@ def load_lbwsg_interpolated_rr(
         raise ValueError(f"Unrecognized key {key}")
 
     rr = get_data(data_keys.LBWSG.RELATIVE_RISK, location).reset_index()
-    rr["parameter"] = pd.Categorical(
-        rr["parameter"], [f"cat{i}" for i in range(metadata.DRAW_COUNT)]
-    )
     rr = (
-        rr.sort_values("parameter")
-        .set_index(metadata.ARTIFACT_INDEX_COLUMNS + ["parameter"])
+        rr.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ["parameter"])
         .stack()
         .unstack("parameter")
         .apply(np.log)
@@ -1477,6 +1473,20 @@ def load_lbwsg_interpolated_rr(
 
     gestational_age_midpoints = get_category_midpoints("short_gestation")
     birth_weight_midpoints = get_category_midpoints("low_birth_weight")
+
+    # The midpoints are aligned to the RR columns, so the pivot above needs no
+    # particular category order. Raise before reindexing because reindex would
+    # silently insert NaN for a category missing from the metadata.
+    rr_categories = set(rr.columns)
+    metadata_categories = set(gestational_age_midpoints.index)
+    if rr_categories != metadata_categories:
+        raise ValueError(
+            "LBWSG relative risk categories do not match the category metadata: "
+            f"missing from metadata {sorted(rr_categories - metadata_categories)}, "
+            f"missing from relative risk {sorted(metadata_categories - rr_categories)}"
+        )
+    gestational_age_midpoints = gestational_age_midpoints.reindex(rr.columns)
+    birth_weight_midpoints = birth_weight_midpoints.reindex(rr.columns)
 
     # build grid of gestational age and birth weight
     def get_grid(midpoints: pd.Series, endpoints: Tuple[float, float]) -> np.array:

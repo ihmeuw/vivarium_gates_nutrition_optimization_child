@@ -1,3 +1,8 @@
+**v0.13.1 - 10/21/26**
+
+ - Fix LBWSG Ordering
+ - Use real worse-MAM data instead of data values
+
 **v0.13.0 - 10/20/26**
 
  - Use the pytest-vivarium plugin for the shared test options and markers
