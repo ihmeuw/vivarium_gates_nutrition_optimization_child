@@ -245,7 +245,8 @@ class __Wasting(NamedTuple):
     EXPOSURE: TargetString = "risk_factor.child_wasting.exposure"
     RELATIVE_RISK: TargetString = "risk_factor.child_wasting.relative_risk"
     PAF: TargetString = "risk_factor.child_wasting.population_attributable_fraction"
-    TRANSITION_RATES: TargetString = "risk_factor.child_wasting.transition_rates"
+    # TODO: restore once Kenya wasting transition rates are available
+    # TRANSITION_RATES: TargetString = "risk_factor.child_wasting.transition_rates"
     BIRTH_PREVALENCE: TargetString = "risk_factor.child_wasting.birth_prevalence"
 
     # Useful keys not for the artifact - distinguished by not using the colon type declaration
@@ -387,9 +388,10 @@ class __LowBirthWeightShortGestation(NamedTuple):
     RELATIVE_RISK_INTERPOLATOR: TargetString = (
         "risk_factor.low_birth_weight_and_short_gestation.relative_risk_interpolator"
     )
-    PAF: TargetString = (
-        "risk_factor.low_birth_weight_and_short_gestation.population_attributable_fraction"
-    )
+    # TODO: restore once Kenya LBWSG PAF simulation outputs are available
+    # PAF: TargetString = (
+    #     "risk_factor.low_birth_weight_and_short_gestation.population_attributable_fraction"
+    # )
 
     # Useful keys not for the artifact - distinguished by not using the colon type declaration
     BIRTH_WEIGHT_EXPOSURE = TargetString("risk_factor.birth_weight.birth_exposure")
@@ -583,8 +585,9 @@ MAKE_ARTIFACT_KEY_GROUPS = [
     PEM,
     MODERATE_PEM,
     SEVERE_PEM,
-    SAM_TREATMENT,
-    MAM_TREATMENT,
+    # TODO: restore once Kenya wasting treatment parameters are available
+    # SAM_TREATMENT,
+    # MAM_TREATMENT,
     LBWSG,
     AFFECTED_UNMODELED_CAUSES,
     IFA_SUPPLEMENTATION,
@@ -592,5 +595,6 @@ MAKE_ARTIFACT_KEY_GROUPS = [
     BEP_SUPPLEMENTATION,
     IV_IRON,
     MATERNAL_BMI_ANEMIA,
-    SQLNS_TREATMENT,
+    # TODO: restore once Kenya SQ-LNS risk ratios are available
+    # SQLNS_TREATMENT,
 ]
