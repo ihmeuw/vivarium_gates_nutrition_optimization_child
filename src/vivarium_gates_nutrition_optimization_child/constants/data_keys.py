@@ -597,3 +597,11 @@ MAKE_ARTIFACT_KEY_GROUPS = [
     MATERNAL_BMI_ANEMIA,
     SQLNS_TREATMENT,
 ]
+
+# Everything the LBWSG PAF simulation loads, built nationally by
+# make_artifacts --for-lbwsg-pafs.
+LBWSG_PAF_KEY_GROUPS = [
+    POPULATION,
+    LBWSG,
+    AFFECTED_UNMODELED_CAUSES,
+]

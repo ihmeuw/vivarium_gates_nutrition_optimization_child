@@ -30,6 +30,14 @@ from vivarium_gates_nutrition_optimization_child.tools import (
     help="Build artifacts at national level data instead of at the default subnational level.",
 )
 @click.option(
+    "--for-lbwsg-pafs",
+    is_flag=True,
+    help=(
+        "Build only the national keys the LBWSG PAF simulation loads, without the LBWSG "
+        "PAF itself unless it is passed with -r. Implies --national."
+    ),
+)
+@click.option(
     "-o",
     "--output-dir",
     default=str(paths.ARTIFACT_ROOT),
@@ -56,9 +64,12 @@ def make_artifacts(
     verbose: int,
     with_debugger: bool,
     build_national: bool,
+    for_lbwsg_pafs: bool,
 ) -> None:
+    if for_lbwsg_pafs and location == "all":
+        raise click.UsageError("--for-lbwsg-pafs builds one location; pass it with -l.")
     # This is a flag for national level data but we want default to be to write subnational data
-    fetch_subnationals = not build_national
+    fetch_subnationals = not (build_national or for_lbwsg_pafs)
     configure_logging_to_terminal(verbose)
     main = handle_exceptions(
         build_artifacts,
@@ -72,4 +83,5 @@ def make_artifacts(
         replace_keys,
         verbose,
         fetch_subnationals,
+        for_lbwsg_pafs,
     )

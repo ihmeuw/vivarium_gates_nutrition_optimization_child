@@ -1,0 +1,93 @@
+workflow:
+  name: "nutrition_optimization_child_artifacts"
+  project: "proj_simscience"
+  queue: "all.q"
+  output_directory: INSERT_DAGGER_OUTPUT_DIRECTORY
+  # ==========================================================================
+  # Pre-simulation data generation, run with
+  #   dagger run -c src/vivarium_gates_nutrition_optimization_child/model_specifications/artifact_workflow.yaml
+  # after filling in the placeholders with absolute paths. Dagger runs steps
+  # strictly in order.
+  #
+  # For each location, the LBWSG PAF workflow writes the tracked PAF output
+  # under data/lbwsg_paf/outputs, and make_artifacts then builds the location's
+  # artifact, which reads that output. Commit the regenerated outputs.
+  #
+  # INSERT_PAF_ARTIFACT_DIRECTORY holds the PAF simulation's national artifacts
+  # and must not already hold one for these locations. INSERT_MODEL_ARTIFACT_DIRECTORY
+  # gets one subdirectory per location, because make_artifacts stops when its output
+  # directory already holds an artifact for any location.
+  # ==========================================================================
+  steps:
+    # Fill in the two environments below: conda environment names, or overlay
+    # paths such as .venv/vivarium_gates_nutrition_optimization_child_artifact.
+
+    # ---- LBWSG PAFs, one location per step ----------------------------------
+    # run_paf_sim.py enters the right environment for each of its phases, in the
+    # order given by constants.metadata.PAF_PHASES. output-dir holds the PAF
+    # simulation's national artifacts and must not already hold this location's.
+    - name: "lbwsg_pafs_ethiopia"
+      type: python
+      environment: &simulation_env INSERT_SIMULATION_ENV_PREFIX
+      resources:
+        memory_gb: 16
+        runtime: "12:00:00"
+      args:
+        path: src/vivarium_gates_nutrition_optimization_child/data/lbwsg_paf/code/run_paf_sim.py
+        keyword_args:
+          artifact-env: &artifact_env INSERT_ARTIFACT_ENV_PREFIX
+          simulation-env: *simulation_env
+          location: "Ethiopia"
+          output-dir: INSERT_PAF_ARTIFACT_DIRECTORY
+
+    - name: "lbwsg_pafs_nigeria"
+      type: python
+      environment: *simulation_env
+      resources:
+        memory_gb: 16
+        runtime: "12:00:00"
+      args:
+        path: src/vivarium_gates_nutrition_optimization_child/data/lbwsg_paf/code/run_paf_sim.py
+        keyword_args:
+          artifact-env: *artifact_env
+          simulation-env: *simulation_env
+          location: "Nigeria"
+          output-dir: INSERT_PAF_ARTIFACT_DIRECTORY
+
+    - name: "lbwsg_pafs_pakistan"
+      type: python
+      environment: *simulation_env
+      resources:
+        memory_gb: 16
+        runtime: "12:00:00"
+      args:
+        path: src/vivarium_gates_nutrition_optimization_child/data/lbwsg_paf/code/run_paf_sim.py
+        keyword_args:
+          artifact-env: *artifact_env
+          simulation-env: *simulation_env
+          location: "Pakistan"
+          output-dir: INSERT_PAF_ARTIFACT_DIRECTORY
+
+    # ---- Artifacts, one location per step -----------------------------------
+    # Not -l all: that path builds through DRMAA, which vivarium_cluster_tools
+    # 4.x removed.
+    - name: "make_artifact_ethiopia"
+      environment: *artifact_env
+      command: "make_artifacts -vvv -l Ethiopia -o INSERT_MODEL_ARTIFACT_DIRECTORY/ethiopia"
+      resources:
+        memory_gb: 16
+        runtime: "02:00:00"
+
+    - name: "make_artifact_nigeria"
+      environment: *artifact_env
+      command: "make_artifacts -vvv -l Nigeria -o INSERT_MODEL_ARTIFACT_DIRECTORY/nigeria"
+      resources:
+        memory_gb: 16
+        runtime: "02:00:00"
+
+    - name: "make_artifact_pakistan"
+      environment: *artifact_env
+      command: "make_artifacts -vvv -l Pakistan -o INSERT_MODEL_ARTIFACT_DIRECTORY/pakistan"
+      resources:
+        memory_gb: 16
+        runtime: "02:00:00"

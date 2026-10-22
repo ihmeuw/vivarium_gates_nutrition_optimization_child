@@ -74,10 +74,16 @@ def check_for_existing(
 
 
 def build_single(
-    location: str, output_dir: str, replace_keys: Tuple, fetch_subnationals: bool
+    location: str,
+    output_dir: str,
+    replace_keys: Tuple,
+    fetch_subnationals: bool,
+    for_lbwsg_pafs: bool = False,
 ) -> None:
     path = Path(output_dir) / f"{sanitize_location(location)}.hdf"
-    build_single_location_artifact(path, location, replace_keys, fetch_subnationals)
+    build_single_location_artifact(
+        path, location, replace_keys, fetch_subnationals, for_lbwsg_pafs=for_lbwsg_pafs
+    )
 
 
 def build_artifacts(
@@ -87,6 +93,7 @@ def build_artifacts(
     replace_keys: Tuple,
     verbose: int,
     fetch_subnationals: bool,
+    for_lbwsg_pafs: bool = False,
 ) -> None:
     """Main application function for building artifacts.
     Parameters
@@ -109,6 +116,8 @@ def build_artifacts(
         Whether to fetch subnational data.  If False, only national data.
     verbose
         How noisy the logger should be.
+    for_lbwsg_pafs
+        Whether to build only the keys the LBWSG PAF simulation loads.
     """
 
     import vivarium.cluster_tools as vct
@@ -119,7 +128,7 @@ def build_artifacts(
     check_for_existing(output_dir, location, append, replace_keys)
 
     if location in metadata.LOCATIONS:
-        build_single(location, output_dir, replace_keys, fetch_subnationals)
+        build_single(location, output_dir, replace_keys, fetch_subnationals, for_lbwsg_pafs)
     elif location == "all":
         if running_from_cluster():
             # parallel build when on cluster
@@ -212,6 +221,7 @@ def build_single_location_artifact(
     replace_keys: Tuple = (),
     fetch_subnationals: bool = True,
     log_to_file: bool = False,
+    for_lbwsg_pafs: bool = False,
 ) -> None:
     """Builds an artifact for a single location.
     Parameters
@@ -223,6 +233,10 @@ def build_single_location_artifact(
         specified in the project globals.
     log_to_file
         Whether we should write the application logs to a file.
+    for_lbwsg_pafs
+        Whether to build only the keys the LBWSG PAF simulation loads. The LBWSG
+        PAF itself is built only if it is in replace_keys, because the simulation
+        is what produces it.
     Note
     ----
         This function should not be called directly.  It is intended to be
@@ -243,9 +257,16 @@ def build_single_location_artifact(
     logger.info(f"Building artifact for {location} at {str(path)}.")
     artifact = builder.open_artifact(path, location)
 
-    for key_group in data_keys.MAKE_ARTIFACT_KEY_GROUPS:
+    key_groups = (
+        data_keys.LBWSG_PAF_KEY_GROUPS
+        if for_lbwsg_pafs
+        else data_keys.MAKE_ARTIFACT_KEY_GROUPS
+    )
+    for key_group in key_groups:
         logger.info(f"Loading and writing {key_group.log_name} data")
         for key in key_group:
+            if for_lbwsg_pafs and key == data_keys.LBWSG.PAF and key not in replace_keys:
+                continue
             logger.info(f"   - Loading and writing {key} data")
             builder.load_and_write_data(
                 artifact, key, location, key in replace_keys, fetch_subnationals

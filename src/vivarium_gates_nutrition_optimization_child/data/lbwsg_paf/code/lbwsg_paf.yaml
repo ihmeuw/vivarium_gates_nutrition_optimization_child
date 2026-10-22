@@ -1,0 +1,65 @@
+# LBWSG PAF simulation, late neonatal pass. Run through run_paf_sim.py.
+#
+# Three steps. The early neonatal PAF is observed at birth. The cohort then dies
+# for two steps at early neonatal rates, deflated by the early neonatal PAF the
+# previous pass wrote into the artifact, as in the main model. The late neonatal
+# PAF is observed at the start of the third step, on the survivors.
+components:
+    vivarium.public_health:
+        risks:
+            - LBWSGRiskEffect('cause.affected_unmodeled.cause_specific_mortality_rate')
+        results:
+            - ResultsStratifier()
+    vivarium_gates_nutrition_optimization_child:
+        components:
+            - EvenlyDistributedPopulation()
+            - LBWSGPAFCalculationExposure()
+            - LBWSGPAFObserver('cause.affected_unmodeled.cause_specific_mortality_rate')
+
+configuration:
+    input_data:
+        input_draw_number: 0
+        # No artifact_path: psimulate is always given the PAF artifact with -i.
+    interpolation:
+        order: 0
+        extrapolate: True
+    randomness:
+        map_size: 1_000_000
+        key_columns: ['entrance_time', 'age']
+        random_seed: 0
+    time:
+        start:
+            year: 2025
+            month: 1
+            day: 1
+        end:
+            year: 2025
+            month: 1
+            day: 10
+        step_size: 4 # Days, as in the main model specification
+    population:
+        population_size: 194_996 # 2 sexes * 58 LBWSG categories * 41**2
+        initialization_age_min: 0
+        initialization_age_max: 0.005
+        untracking_age: 0.03835616 # 14 days, so only neonatal strata are reported
+
+    # The main specification's mortality_line_list.unmodeled_causes, in the same order.
+    mortality:
+        unmodeled_causes:
+            - "upper_respiratory_infections"
+            - "otitis_media"
+            - "meningitis"
+            - "encephalitis"
+            - "neonatal_preterm_birth"
+            - "neonatal_encephalopathy_due_to_birth_asphyxia_and_trauma"
+            - "neonatal_sepsis_and_other_neonatal_infections"
+            - "hemolytic_disease_and_other_neonatal_jaundice"
+            - "other_neonatal_disorders"
+            - "sudden_infant_death_syndrome"
+            - "neonatal_lower_respiratory_infections"
+            - "neonatal_diarrheal_diseases"
+
+    stratification:
+        default:
+            - 'age_group'
+            - 'sex'
