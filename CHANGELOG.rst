@@ -1,3 +1,8 @@
+**v0.13.3 - 10/22/26**
+
+ - Cap pyarrow below 26 so the simulation environment can import it next to numpy 1.26 and psimulate can write results
+ - Require vivarium_cluster_tools 4.5.0 for the cluster extra
+
 **v0.13.2 - 10/22/26**
 
  - Compute the proportion of pregnant women with hemoglobin below 100 g/L from a GBD pull instead of a stored CSV
