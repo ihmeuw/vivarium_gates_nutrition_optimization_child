@@ -40,6 +40,7 @@ lint = [
 data = [
     "vivarium_inputs>=9.1.1,<10.0.0",
     "vivarium_gbd_access>=7.0.0,<8.0.0",
+    "ihme_cc_get_estimates[library]>=2.39.0,<3.0.0",
     "vivarium_gates_nutrition_optimization_child[cluster,lint,test]",
 ]
 dev = ["vivarium_gates_nutrition_optimization_child[test,cluster,lint]"]

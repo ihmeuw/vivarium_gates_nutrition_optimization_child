@@ -1,3 +1,7 @@
+**v0.13.2 - 10/22/26**
+
+ - Compute the proportion of pregnant women with hemoglobin below 100 g/L from a GBD pull instead of a stored CSV
+
 **v0.13.1 - 10/21/26**
 
  - Fix LBWSG Ordering
@@ -13,9 +17,6 @@
  - Drop the duplicated late-neonatal rows from the wasting relative-risk CSV before the neonatal RR-1 fill (MIC-7638)
  - Adopt the shared environment tooling; raise the floors to vivarium-engine 5.11.0 and vivarium-public-health 6.6.4; describe every pipeline producer and modifier
  - Delete the unused GBD 2021 data helpers and fix subnational location resolving
-
-**v0.12.2 - 10/06/26**
-
  - Fix ``--national`` artifact builds: accept a location name in ``get_national_location_id``
 
 **v0.12.1 - 02/05/25**
