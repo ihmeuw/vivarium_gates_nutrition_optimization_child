@@ -188,16 +188,21 @@ class EvenlyDistributedPopulation(BasePopulation):
     male and female.
     """
 
+    # 'is_alive' is created by the Mortality sub-component, not here.
+    COLUMNS_CREATED = ["age", "sex", "location", "entrance_time", "exit_time"]
+
+    @property
+    def time_step_priority(self) -> int:
+        """Age simulants after mortality has been applied, rather than before it."""
+        # BasePopulation ages at priority 0, before Mortality (priority 2), which
+        # would draw early neonatal deaths at late neonatal rates. The LBWSG PAF
+        # simulation's late neonatal weights are the early neonatal survivors.
+        return 3
+
     # noinspection PyAttributeOutsideInit
     def setup(self, builder: Builder) -> None:
         super().setup(builder)
         self.location = builder.data.load(data_keys.POPULATION.LOCATION)
-        self.subnational = builder.configuration.intervention.subnational
-
-        builder.population.register_initializer(
-            self.initialize_subnational,
-            columns=["subnational"],
-        )
 
     def initialize_population(self, pop_data: SimulantData) -> None:
         age_start = pop_data.user_data.get("age_start", self.config.initialization_age_min)
@@ -213,30 +218,4 @@ class EvenlyDistributedPopulation(BasePopulation):
         population["sex"] = "Female"
         population.loc[population.index % 2 == 1, "sex"] = "Male"
         self.register_simulants(population[list(self.key_columns)])
-        self.population_view.initialize(population)
-
-    def initialize_subnational(self, pop_data: SimulantData) -> None:
-        if self.subnational == "All":
-            subnational = self._distribute_subnational_locations(pop_data.index)
-        else:
-            subnational = pd.Series(
-                self.subnational, index=pop_data.index, name="subnational"
-            )
-        self.population_view.initialize(subnational)
-
-    def _distribute_subnational_locations(self, pop_index: pd.Index) -> pd.Series:
-        subnational_locations = pd.read_csv(SUBNATIONAL_PERCENTAGES)
-        subnational_locations = subnational_locations.loc[
-            subnational_locations["national_location"] == self.location
-        ]["location"].unique()
-
-        # Get repeating array of subnationals then fill remaining rows if necessary
-        filled_subnationals = np.repeat(
-            subnational_locations, repeats=len(pop_index) / len(subnational_locations)
-        )
-        remainder = len(pop_index) - len(filled_subnationals)
-        if remainder > 0:
-            extra_fill = subnational_locations[:remainder]
-            filled_subnationals = np.append(filled_subnationals, extra_fill)
-
-        return pd.Series(filled_subnationals, index=pop_index, name="subnational")
+        self.population_view.initialize(population[self.COLUMNS_CREATED])

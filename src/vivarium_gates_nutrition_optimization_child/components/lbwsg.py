@@ -8,20 +8,22 @@ simulants who are initialized from line list data.
 
 """
 
-import itertools
 import math
-from typing import Dict
+from typing import Dict, Tuple
 
 import numpy as np
 import pandas as pd
 from vivarium.engine.component import Component
 from vivarium.engine.framework.engine import Builder
+from vivarium.engine.framework.event import Event
 from vivarium.engine.framework.population import SimulantData
 from vivarium.engine.framework.time import get_time_stamp
 from vivarium.engine.framework.values import Pipeline
 from vivarium.public_health.causal_factor.utilities import get_exposure_post_processor
 from vivarium.public_health.risks.implementations.low_birth_weight_and_short_gestation import (
     AXES,
+    BIRTH_WEIGHT,
+    GESTATIONAL_AGE,
     LBWSGRisk,
     LBWSGRiskEffect,
     Risk,
@@ -123,25 +125,6 @@ class LBWSGLineList(LBWSGRisk):
         return self.new_births.loc[index, AXES]
 
 
-_PAF_SIMULATION_BROKEN = (
-    "The LBWSG PAF-calculation components target public-health hooks removed in VPH 6 "
-    "and have not run since the June 2024 PAF outputs. Porting them to the MNCNH "
-    "workflow is tracked in MIC-7608."
-)
-
-
-class LBWSGPAFCalculationRiskEffect(LBWSGRiskEffect):
-    """Risk effect component for calculating PAFs for LBWSG.
-
-    WARNING: broken since the VPH 6 upgrade. It used to override a hook that forced
-    a zero PAF; that hook no longer exists, so this now behaves as a plain
-    LBWSGRiskEffect. See MIC-7608 before using it.
-    """
-
-    def setup(self, builder: Builder) -> None:
-        raise NotImplementedError(_PAF_SIMULATION_BROKEN)
-
-
 class SubnationalLBWSGRiskEffect(LBWSGRiskEffect):
     """LBWSGRiskEffect whose calibration PAF is filled across subnational rows.
 
@@ -157,113 +140,105 @@ class SubnationalLBWSGRiskEffect(LBWSGRiskEffect):
 
 
 class LBWSGPAFCalculationExposure(LBWSGRisk):
-    """Exposure component for calculating PAFs for LBWSG.
+    """Exposure component that places the PAF simulation's cohort on a grid.
 
-    WARNING: broken since the VPH 6 upgrade. It references attributes LBWSGRisk no
-    longer has and fails on setup. See MIC-7608 before using it.
+    Each (sex, LBWSG category) holds k**2 simulants, placed at the cell midpoints
+    of a k by k grid over the category's gestational age and birth weight box.
     """
 
+    # The exposure columns are registered by LBWSGRisk's own initializer.
+    COLUMNS_CREATED = ["lbwsg_category", "age_bin"]
+
+    # noinspection PyAttributeOutsideInit
     def setup(self, builder: Builder) -> None:
-        raise NotImplementedError(_PAF_SIMULATION_BROKEN)
-        super().setup(builder)
         self.lbwsg_categories = builder.data.load(data_keys.LBWSG.CATEGORIES)
         self.age_bins = builder.data.load(data_keys.POPULATION.AGE_BINS)
-
         builder.population.register_initializer(
-            self.initialize_paf_exposure,
-            columns=[self.get_exposure_column_name(axis) for axis in AXES]
-            + ["lbwsg_category", "age_bin"],
+            initializer=self.initialize_category_assignments,
+            columns=self.COLUMNS_CREATED,
             required_resources=["age", "sex"],
+        )
+        super().setup(builder)
+
+    def register_birth_exposure_pipeline(self, builder: Builder) -> None:
+        """Register the birth exposure pipeline with the columns its source reads."""
+        # The base class requires only the exposure distribution, which this source
+        # never samples, so the initializer order would otherwise be left to chance.
+        builder.value.register_attribute_producer(
+            self.birth_exposure_pipeline,
+            source=self._get_birth_exposure_source,
+            required_resources=["sex", "lbwsg_category"],
+            preferred_post_processor=get_exposure_post_processor(builder, self.name),
+            description="The simulant's LBWSG exposure at birth, on the PAF grid",
         )
 
     ########################
     # Event-driven methods #
     ########################
 
-    def initialize_paf_exposure(self, pop_data: SimulantData) -> None:
+    def initialize_category_assignments(self, pop_data: SimulantData) -> None:
+        """Assign every (sex, category) the same square number of simulants."""
         pop = self.population_view.get(pop_data.index, ["age", "sex"])
         pop["age_bin"] = pd.cut(pop["age"], self.age_bins["age_start"])
+        if pop["age_bin"].nunique(dropna=False) != 1:
+            raise ValueError(
+                "The LBWSG PAF cohort must start in a single age bin, but its ages fall "
+                f"in {sorted(pop['age_bin'].astype(str).unique())}."
+            )
         pop = pop.sort_values(["sex", "age"])
 
-        lbwsg_categories = self.lbwsg_categories.keys()
+        lbwsg_categories = list(self.lbwsg_categories.keys())
         num_repeats, remainder = divmod(len(pop), 2 * len(lbwsg_categories))
-        if remainder != 0:
+        if remainder != 0 or math.isqrt(num_repeats) ** 2 != num_repeats:
             raise ValueError(
-                "Population size should be multiple of double the number of LBWSG categories."
-                f"Population size is {len(pop)}, but should be a multiple of "
-                f"{2*len(lbwsg_categories)}."
+                "Population size must be 2 * (number of LBWSG categories) * k**2 for an "
+                "integer k, so that each (sex, category) fills a square grid. Population "
+                f"size is {len(pop)} with {len(lbwsg_categories)} categories."
             )
 
-        assigned_categories = list(lbwsg_categories) * (2 * num_repeats)
-        pop["lbwsg_category"] = assigned_categories
-        self.population_view.initialize(pop[["age_bin", "lbwsg_category"]])
-
-        birth_exposures = {
-            self.get_exposure_column_name(axis): self.birth_exposures[
-                self.birth_exposure_pipeline_name(axis)
-            ](pop_data.index)
-            for axis in AXES
-        }
-        self.population_view.initialize(pd.DataFrame(birth_exposures))
+        pop["lbwsg_category"] = lbwsg_categories * (2 * num_repeats)
+        self.population_view.initialize(pop[self.COLUMNS_CREATED])
 
     ##################################
     # Pipeline sources and modifiers #
     ##################################
 
-    def get_birth_exposure(self, axis: str, index: pd.Index) -> pd.DataFrame:
-        pop = self.population_view.get(index, ["age_bin", "sex", "lbwsg_category"])
-        lbwsg_categories = self.lbwsg_categories.keys()
-        num_simulants_in_category = int(len(pop) / (len(lbwsg_categories) * 4))
-        num_points_in_interval = int(math.sqrt(num_simulants_in_category))
+    def _get_birth_exposure_source(self, index: pd.Index) -> pd.DataFrame:
+        """Spread each (sex, category) evenly over the category's box."""
+        pop = self.population_view.get(index, ["sex", "lbwsg_category"])
+        exposure = pd.DataFrame(index=pop.index, columns=AXES, dtype=float)
 
-        exposure_values = pd.Series(name=axis, index=pop.index, dtype=float)
-
-        for age_bin, sex, cat in itertools.product(
-            pop["age_bin"].unique(), ["Male", "Female"], lbwsg_categories
-        ):
-            description = self.lbwsg_categories[cat]
-
-            birthweight_endpoints = [
-                float(val)
-                for val in description.split(", [")[1].split(")")[0].split("]")[0].split(", ")
-            ]
-            birthweight_interval_values = np.linspace(
-                birthweight_endpoints[0],
-                birthweight_endpoints[1],
-                num=num_points_in_interval + 2,
-            )[1:-1]
-
-            gestational_age_endpoints = [
-                float(val)
-                for val in description.split("- [")[1].split(")")[0].split("+")[0].split(", ")
-            ]
-            gestational_age_interval_values = np.linspace(
-                gestational_age_endpoints[0],
-                gestational_age_endpoints[1],
-                num=num_points_in_interval + 2,
-            )[1:-1]
-
-            birthweight_points, gestational_age_points = np.meshgrid(
-                birthweight_interval_values, gestational_age_interval_values
+        for (_, category), group in pop.groupby(["sex", "lbwsg_category"]):
+            num_points = math.isqrt(len(group))
+            if num_points**2 != len(group):
+                raise ValueError(
+                    f"LBWSG category {category} holds {len(group)} simulants of one sex, "
+                    "which is not a square number."
+                )
+            gestational_age_endpoints, birth_weight_endpoints = _parse_category_box(
+                self.lbwsg_categories[category]
             )
-            lbwsg_exposures = pd.DataFrame(
-                {
-                    "birth_weight": birthweight_points.flatten(),
-                    "gestational_age": gestational_age_points.flatten(),
-                }
+            birth_weight_points, gestational_age_points = np.meshgrid(
+                _cell_midpoints(*birth_weight_endpoints, num_points),
+                _cell_midpoints(*gestational_age_endpoints, num_points),
             )
+            exposure.loc[group.index, BIRTH_WEIGHT] = birth_weight_points.ravel()
+            exposure.loc[group.index, GESTATIONAL_AGE] = gestational_age_points.ravel()
 
-            subset_index = pop[
-                (pop["lbwsg_category"] == cat)
-                & (pop["age_bin"] == age_bin)
-                & (pop["sex"] == sex)
-            ].index
-            exposure_values.loc[subset_index] = lbwsg_exposures[axis].values
-
-        return exposure_values
+        return exposure
 
 
 class LBWSGPAFObserver(Component):
+    """Observe the LBWSG PAF of a birth cohort in each neonatal age group.
+
+    The cohort is born together, so at each observation every living simulant is
+    in the same age group. The early neonatal PAF is observed at birth, before any
+    death, and weights the categories by GBD birth prevalence. The late neonatal
+    PAF is observed on entry to late neonatal and weights the categories by birth
+    prevalence times the share of each category this simulation left alive. Each
+    age group keeps its value from the first time step that observes it.
+    """
+
     CONFIGURATION_DEFAULTS = {
         "stratification": {
             "lbwsg_paf": {
@@ -279,32 +254,99 @@ class LBWSGPAFObserver(Component):
 
     # noinspection PyAttributeOutsideInit
     def setup(self, builder: Builder) -> None:
-        self.lbwsg_exposure = builder.data.load(data_keys.LBWSG.EXPOSURE)
+        self.birth_exposure = builder.data.load(data_keys.LBWSG.BIRTH_EXPOSURE)
+        # The weights are merged onto the per-category mean relative risks, so a
+        # category missing from either side would silently renormalize the rest.
+        categories = set(builder.data.load(data_keys.LBWSG.CATEGORIES))
+        birth_exposure_categories = set(self.birth_exposure["parameter"])
+        if birth_exposure_categories != categories:
+            raise ValueError(
+                "LBWSG birth exposure categories do not match the LBWSG categories. "
+                f"Only in birth exposure: {sorted(birth_exposure_categories - categories)}; "
+                f"only in categories: {sorted(categories - birth_exposure_categories)}."
+            )
+        age_bins = builder.data.load(data_keys.POPULATION.AGE_BINS)
+        self.age_bin_edges = sorted(age_bins["age_start"]) + [age_bins["age_end"].max()]
         self.risk_effect = builder.components.get_component(
             f"risk_effect.low_birth_weight_and_short_gestation_on_{self.target}"
         )
         self.config = builder.configuration.stratification.lbwsg_paf
+        self.pop_size = builder.configuration.population.population_size
 
-        builder.results.register_adding_observation(
+        builder.results.register_stratified_observation(
             name=f"calculated_lbwsg_paf_on_{self.target}",
             pop_filter="is_alive == True",
             aggregator=self.calculate_paf,
-            requires_attributes=["is_alive", "lbwsg_category"],
+            results_updater=self.results_updater,
+            # Everything the aggregator reads, so that it reads it off the frame the
+            # results system hands over rather than looking it up by index.
+            requires_attributes=[
+                "is_alive",
+                "sex",
+                "lbwsg_category",
+                self.risk_effect.relative_risk_name,
+            ],
             additional_stratifications=self.config.include,
             excluded_stratifications=self.config.exclude,
+            # Before mortality and aging, so the first step sees the cohort at birth.
             when="time_step__prepare",
         )
 
+    ########################
+    # Event-driven methods #
+    ########################
+
+    def on_time_step_prepare(self, event: Event) -> None:
+        """Raise if the living cohort spans more than one age group."""
+        pop = self.population_view.get(event.index, ["age", "is_alive"])
+        living_ages = pop.loc[pop["is_alive"], "age"]
+        age_groups = pd.cut(living_ages, self.age_bin_edges, right=False).unique()
+        if len(age_groups) > 1:
+            raise ValueError(
+                "The living LBWSG PAF cohort spans more than one age group "
+                f"({sorted(str(group) for group in age_groups)}), so the PAF observed "
+                "now would mix them. Check the initial ages and the step size."
+            )
+
+    ##################
+    # Helper methods #
+    ##################
+
+    def results_updater(self, old: pd.DataFrame, new: pd.DataFrame) -> pd.DataFrame:
+        """Keep each stratum's first non-zero PAF."""
+        return old.where(old != 0.0, new.reindex(old.index, fill_value=0.0))
+
     def calculate_paf(self, x: pd.DataFrame) -> float:
-        relative_risk = self.risk_effect.target_modifier(x.index, pd.Series(1, index=x.index))
-        relative_risk.name = "relative_risk"
-        lbwsg_category = self.population_view.get(x.index)["lbwsg_category"]
-        lbwsg_prevalence = self.lbwsg_exposure.rename(
+        """Return one stratum's PAF, weighting categories by birth prevalence still alive."""
+        if x.empty:
+            # The cohort occupies one age group at a time, so the other age group is
+            # handed over empty; the results updater ignores the zero.
+            return 0.0
+
+        relative_risk = x[self.risk_effect.relative_risk_name].rename("relative_risk")
+        lbwsg_category = x["lbwsg_category"]
+        sexes = x["sex"].unique()
+        if len(sexes) != 1:
+            raise ValueError(
+                f"Stratified data contains {sorted(sexes)}, but this observer "
+                "(LBWSGPAFObserver) needs sex-stratified data. Check that 'sex' is "
+                "among the simulation's stratifications."
+            )
+        sex = sexes[0]
+
+        lbwsg_prevalence = self.birth_exposure.rename(
             {"parameter": "lbwsg_category", "value": "prevalence"}, axis=1
         )
-        lbwsg_prevalence = lbwsg_prevalence.groupby("lbwsg_category", as_index=False)[
-            "prevalence"
-        ].sum()
+        lbwsg_prevalence = lbwsg_prevalence.loc[lbwsg_prevalence["sex"] == sex]
+
+        # The share alive is 1 at birth, so the early neonatal weights are birth
+        # prevalence and the late neonatal weights are depleted by this simulation.
+        weights = calculate_mortality_weights(self, sex)
+        lbwsg_prevalence = lbwsg_prevalence.merge(weights)
+        lbwsg_prevalence["prevalence"] = (
+            lbwsg_prevalence["prevalence"] * lbwsg_prevalence["proportion_alive"]
+        )
+        lbwsg_prevalence = lbwsg_prevalence.drop(columns=["proportion_alive"])
 
         mean_rrs = (
             pd.concat([lbwsg_category, relative_risk], axis=1)
@@ -317,3 +359,48 @@ class LBWSGPAFObserver(Component):
         paf = (mean_rr - 1) / mean_rr
 
         return paf
+
+
+#####################
+# Utility functions #
+#####################
+
+
+def calculate_mortality_weights(component: Component, sex: str) -> pd.DataFrame:
+    """Calculate the fraction of each LBWSG category still alive, for one sex.
+
+    The whole cohort is read, not just the simulants under observation, so the
+    denominator is everyone born into the category.
+    """
+    full_index = pd.Index(range(component.pop_size))
+    pop_data = component.population_view.get(
+        full_index, ["lbwsg_category", "is_alive", "sex"], include_untracked=True
+    )
+    pop_data = pop_data.loc[pop_data["sex"] == sex]
+    weights = (
+        pop_data.groupby(["lbwsg_category", "sex"])["is_alive"]
+        .agg(proportion_alive=lambda x: x.mean())
+        .reset_index()
+    )
+    return weights
+
+
+def _parse_category_box(
+    description: str,
+) -> Tuple[Tuple[float, float], Tuple[float, float]]:
+    """Return the (gestational age, birth weight) endpoints in a category description."""
+    # descriptions look like '... - [34, 36) wks, [2000, 2500) g' or '[40, 42+] wks'
+    gestational_age = tuple(
+        float(val)
+        for val in description.split("- [")[1].split(")")[0].split("+")[0].split(", ")
+    )
+    birth_weight = tuple(
+        float(val)
+        for val in description.split(", [")[1].split(")")[0].split("]")[0].split(", ")
+    )
+    return gestational_age, birth_weight
+
+
+def _cell_midpoints(lower: float, upper: float, num_points: int) -> np.ndarray:
+    """Return the midpoints of num_points equal cells spanning [lower, upper]."""
+    return lower + (np.arange(num_points) + 0.5) * (upper - lower) / num_points
