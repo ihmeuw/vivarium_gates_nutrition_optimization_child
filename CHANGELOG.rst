@@ -1,6 +1,7 @@
 **v0.13.2 - 10/22/26**
 
- - Compute the proportion of pregnant women with hemoglobin below 100 g/L from a GBD pull instead of a stored CSV: moderate and severe anemia (REI 432) among pregnant women aged 15-54 from release 33, averaged over age groups with the pregnant population as weights, and its 100 draws repeated to fill 250 (MIC-7649)
+ - Compute the proportion of pregnant women with hemoglobin below 100 g/L from a GBD pull instead of a stored CSV
+
 **v0.13.1 - 10/21/26**
 
  - Fix LBWSG Ordering
