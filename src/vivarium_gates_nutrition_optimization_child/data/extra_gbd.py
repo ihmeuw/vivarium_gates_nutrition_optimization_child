@@ -3,10 +3,12 @@ from typing import Tuple
 import pandas as pd
 from vivarium_gbd_access import constants as gbd_constants
 from vivarium_gbd_access import utilities as vi_utils
+from vivarium_gbd_access.gbd.measures import get_birth_exposure
 from vivarium_inputs import globals as vi_globals
 from vivarium_inputs import utility_data
 
-from vivarium_gates_nutrition_optimization_child.constants import metadata
+from vivarium_gates_nutrition_optimization_child.constants import data_keys, metadata
+from vivarium_gates_nutrition_optimization_child.data import utilities
 
 # Anemia estimates for the pregnant population exist only under release 33, not the
 # GBD 2023 compare release the other pulls use.
@@ -60,5 +62,20 @@ def get_pregnant_moderate_severe_anemia_prevalence(
         population_group_id=PREGNANT_POPULATION_GROUP_ID,
         age_group_id=list(age_group_ids),
         year_id=year_id,
+    )
+    return data
+
+
+@vi_utils.cache
+def load_2021_lbwsg_birth_exposure(location: str) -> pd.DataFrame:
+    """Pull the GBD 2021 LBWSG birth exposure draws for a location."""
+    entity = utilities.get_entity(data_keys.LBWSG.EXPOSURE)
+    location_id = utility_data.resolve_location(location)
+    data = get_birth_exposure(
+        entity.gbd_id,
+        location_id,
+        2022,
+        "draws",
+        release_id=gbd_constants.RELEASE_IDS.GBD_2021,
     )
     return data

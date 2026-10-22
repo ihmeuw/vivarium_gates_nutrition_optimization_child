@@ -26,7 +26,9 @@ from vivarium_gbd_access import constants as gbd_constants
 from vivarium_gbd_access import gbd
 from vivarium_inputs import extract
 from vivarium_inputs import globals as vi_globals
-from vivarium_inputs import interface, utility_data
+from vivarium_inputs import interface
+from vivarium_inputs import utilities as vi_utils
+from vivarium_inputs import utility_data
 from vivarium_inputs.globals import DEMOGRAPHIC_COLUMNS
 from vivarium_inputs.mapping_extension import AlternativeRiskFactor
 
@@ -89,6 +91,7 @@ NATIONAL_LEVEL_DATA_KEYS = [
     data_keys.LBWSG.DISTRIBUTION,
     data_keys.LBWSG.CATEGORIES,
     data_keys.LBWSG.EXPOSURE,
+    data_keys.LBWSG.BIRTH_EXPOSURE,
     data_keys.LBWSG.RELATIVE_RISK,
     data_keys.LBWSG.RELATIVE_RISK_INTERPOLATOR,
     data_keys.LBWSG.PAF,
@@ -238,6 +241,7 @@ def get_data(
         data_keys.LBWSG.DISTRIBUTION: load_metadata,
         data_keys.LBWSG.CATEGORIES: load_metadata,
         data_keys.LBWSG.EXPOSURE: load_lbwsg_exposure,
+        data_keys.LBWSG.BIRTH_EXPOSURE: load_lbwsg_birth_exposure,
         data_keys.LBWSG.RELATIVE_RISK: load_lbwsg_rr,
         data_keys.LBWSG.RELATIVE_RISK_INTERPOLATOR: load_lbwsg_interpolated_rr,
         data_keys.LBWSG.PAF: load_lbwsg_paf,
@@ -1439,6 +1443,33 @@ def load_lbwsg_exposure(
     return exposure
 
 
+def load_lbwsg_birth_exposure(
+    key: str, location: str, years: Optional[Union[int, str, List[int]]] = None
+) -> pd.DataFrame:
+    # The same pull the pregnancy model samples its births from, so the PAF
+    # simulation weights categories by the births the child simulation receives.
+    if key != data_keys.LBWSG.BIRTH_EXPOSURE:
+        raise ValueError(f"Unrecognized key {key}")
+
+    entity = utilities.get_entity(data_keys.LBWSG.EXPOSURE)
+    data = extra_gbd.load_2021_lbwsg_birth_exposure(location)
+
+    # This category was a mistake in GBD 2019, so drop.
+    extra_residual_category = vi_globals.EXTRA_RESIDUAL_CATEGORY[entity.name]
+    data = data.loc[data["parameter"] != extra_residual_category]
+    idx_cols = ["location_id", "sex_id", "parameter"]
+    data = data.set_index(idx_cols)[vi_globals.DRAW_COLUMNS]
+
+    # Sometimes there are data values on the order of 10e-300 that cause
+    # floating point headaches, so clip everything to reasonable values
+    data = data.clip(lower=vi_globals.MINIMUM_EXPOSURE_VALUE)
+
+    # normalize so all categories sum to 1
+    total_exposure = data.groupby(["location_id", "sex_id"]).transform("sum")
+    data = (data / total_exposure).reset_index()
+    return reshape_to_vivarium_format(data, location)
+
+
 def load_lbwsg_rr(
     key: str, location: str, years: Optional[Union[int, str, List[int]]] = None
 ) -> pd.DataFrame:
@@ -2027,6 +2058,17 @@ def load_sqlns_risk_ratios(
     data = pd.concat([risk_ratios[index_cols], draw_columns], axis=1).set_index(index_cols)
 
     return data
+
+
+def reshape_to_vivarium_format(df: pd.DataFrame, location: str) -> pd.DataFrame:
+    """Reshape GBD draws to the artifact's long format, without a location level."""
+    df = vi_utils.reshape(df, value_cols=vi_globals.DRAW_COLUMNS)
+    df = vi_utils.scrub_gbd_conventions(df, location)
+    df = vi_utils.split_interval(df, interval_column="age", split_column_prefix="age")
+    df = vi_utils.split_interval(df, interval_column="year", split_column_prefix="year")
+    df = vi_utils.sort_hierarchical_data(df)
+    df.index = df.index.droplevel("location")
+    return df
 
 
 def fetch_subnational_ids(location: str) -> List[int]:

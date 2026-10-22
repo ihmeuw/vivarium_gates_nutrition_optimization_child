@@ -377,6 +377,9 @@ MAM_TREATMENT = _get_wasting_treatment_keys("moderate_acute_malnutrition_treatme
 class __LowBirthWeightShortGestation(NamedTuple):
     # Keys that will be loaded into the artifact. must have a colon type declaration
     EXPOSURE: TargetString = "risk_factor.low_birth_weight_and_short_gestation.exposure"
+    BIRTH_EXPOSURE: TargetString = (
+        "risk_factor.low_birth_weight_and_short_gestation.birth_exposure"
+    )
     DISTRIBUTION: TargetString = (
         "risk_factor.low_birth_weight_and_short_gestation.distribution"
     )
