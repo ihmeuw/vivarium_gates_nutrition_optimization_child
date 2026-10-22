@@ -137,3 +137,30 @@ The ``-vvv`` flag will log verbosely, so you will get log messages every time
 step. For more ways to run simulations, see the tutorials at
 https://vivarium.readthedocs.io/en/latest/tutorials/running_a_simulation/index.html
 and https://vivarium.readthedocs.io/en/latest/tutorials/exploration.html
+
+Regenerating LBWSG PAFs
+-----------------------
+
+The LBWSG population attributable fractions do not come from GBD. A small
+simulation computes them, and its output is tracked in this repository under
+``data/lbwsg_paf/outputs/<location>/``. ``make_artifacts`` reads that output to
+build the LBWSG PAF key, so a location without it cannot be built. Regenerate the
+output when the LBWSG relative risks, the birth exposure or the affected causes'
+mortality change, and before building a new location.
+
+The workflow has five phases that alternate between the artifact and simulation
+environments (``constants.metadata.PAF_PHASES``). ``run_paf_sim.py`` runs them in
+order and enters the right environment for each. Run it on a cluster node from the
+simulation environment, naming both environments::
+
+  :~$ python src/vivarium_gates_nutrition_optimization_child/data/lbwsg_paf/code/run_paf_sim.py \
+        -l Ethiopia -o /path/to/a/new/directory \
+        --simulation-env /path/to/simulation/env --artifact-env /path/to/artifact/env
+
+``-o`` receives the PAF simulation's own national artifact and each pass's results,
+so use a new directory for each run. psimulate writes its run directories under
+``lbwsg_pafs/paf_sim_results`` in the model's team directory, and ``--queue`` picks
+the cluster queue. After fixing a failed phase, continue with ``--from <phase>``.
+The last phase checks the PAF against calculations made directly from the artifact;
+``check_paf_outputs.py`` runs the same checks against any artifact. Commit the
+regenerated output.

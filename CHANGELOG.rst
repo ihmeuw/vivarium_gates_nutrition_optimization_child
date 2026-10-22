@@ -1,3 +1,11 @@
+**v0.14.0 - 10/22/26**
+
+ - Port the LBWSG PAF simulation to the MNCNH workflow: sex-specific GBD 2021 birth exposure weights, late neonatal weights depleted by simulated early neonatal survival, and deaths on the affected unmodeled causes
+ - Add the LBWSG birth exposure artifact key and ``make_artifacts --for-lbwsg-pafs``
+ - Read LBWSG PAFs from tracked per-location outputs keyed by input draw
+ - Remove the PAF components that targeted hooks removed from vivarium-public-health
+ - Regenerate the Ethiopia LBWSG PAFs
+
 **v0.13.3 - 10/22/26**
 
  - Cap pyarrow below 26 so the simulation environment can import it next to numpy 1.26 and psimulate can write results
