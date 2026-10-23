@@ -594,7 +594,8 @@ MAKE_ARTIFACT_KEY_GROUPS = [
     MMN_SUPPLEMENTATION,
     BEP_SUPPLEMENTATION,
     IV_IRON,
-    MATERNAL_BMI_ANEMIA,
+    # TODO: restore once load_maternal_bmi_anemia_exposure works for Kenya
+    # MATERNAL_BMI_ANEMIA,
     # TODO: restore once Kenya SQ-LNS risk ratios are available
     # SQLNS_TREATMENT,
 ]

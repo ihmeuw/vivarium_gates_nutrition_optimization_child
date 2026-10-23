@@ -866,6 +866,7 @@ def load_underweight_exposure(
     df = pd.read_csv(
         paths.UNDERWEIGHT_CONDITIONAL_DISTRIBUTIONS_DIR / f"{national_location_id}.csv"
     )
+    df['location'] = location
     # Fix sex values
     df = df.replace({"female": "Female", "male": "Male"})
     df = df.drop(["Unnamed: 0", "location_id"], axis=1)
@@ -1149,6 +1150,7 @@ def load_cgf_paf(
     data = pd.read_csv(
         paths.CGF_PAFS / f"{national_location_id}.csv"
     )  # .query("location_id==@location_id")
+    data['location'] = location
 
     # add age start and age end data instead of age group name
     age_bins = get_data(data_keys.POPULATION.AGE_BINS, location).reset_index()
