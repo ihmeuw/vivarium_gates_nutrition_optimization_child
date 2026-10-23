@@ -9,8 +9,14 @@ from pathlib import Path
 from typing import Union
 
 import pandas as pd
+import yaml
+from vivarium.artifact import Artifact
 
-from vivarium_gates_nutrition_optimization_child.constants import metadata, paths
+from vivarium_gates_nutrition_optimization_child.constants import (
+    data_keys,
+    metadata,
+    paths,
+)
 from vivarium_gates_nutrition_optimization_child.utilities import sanitize_location
 
 LBWSG_PAF_MEASURE = "calculated_lbwsg_paf_on_cause.diarrheal_diseases.excess_mortality_rate"
@@ -137,16 +143,23 @@ def format_lbwsg_paf(results: pd.DataFrame) -> pd.DataFrame:
     return paf.set_index(PAF_INDEX_COLUMNS)[metadata.ARTIFACT_COLUMNS].sort_index()
 
 
+def get_run_location(results_dir: Union[str, Path]) -> str:
+    """Return the location of the artifact a psimulate run used."""
+    with open(Path(results_dir).parent / "model_specification.yaml") as file:
+        specification = yaml.safe_load(file)
+    artifact_path = specification["configuration"]["input_data"]["artifact_path"]
+    return Artifact(artifact_path).load(data_keys.POPULATION.LOCATION)
+
+
 def main() -> None:
-    """Write a psimulate run's PAF results to the location's tracked output file."""
+    """Write a psimulate run's PAF results to its location's tracked output file."""
     parser = argparse.ArgumentParser(description=main.__doc__)
     parser.add_argument("results_dir", help="the 'results' directory of the psimulate run")
-    parser.add_argument("location", help="the location the run's artifact was built for")
     args = parser.parse_args()
 
     results = collect_paf_results(args.results_dir)
     format_lbwsg_paf(results)
-    output_path = get_output_path(args.location)
+    output_path = get_output_path(get_run_location(args.results_dir))
     output_path.parent.mkdir(parents=True, exist_ok=True)
     results.to_parquet(output_path, index=False)
     print(f"Wrote {len(results)} rows to {output_path}")

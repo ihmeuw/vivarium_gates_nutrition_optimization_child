@@ -4,6 +4,8 @@ from typing import Iterable
 
 import pandas as pd
 import pytest
+import yaml
+from vivarium.artifact import Artifact
 
 from vivarium_gates_nutrition_optimization_child.constants import metadata, paths
 from vivarium_gates_nutrition_optimization_child.data.lbwsg_paf_results import (
@@ -11,6 +13,7 @@ from vivarium_gates_nutrition_optimization_child.data.lbwsg_paf_results import (
     collect_paf_results,
     format_lbwsg_paf,
     get_output_path,
+    get_run_location,
 )
 
 STRATA = list(itertools.product(["early_neonatal", "late_neonatal"], ["Female", "Male"]))
@@ -134,6 +137,17 @@ def test_collect_reads_every_shard_in_stratum_and_draw_order(tmp_path: Path) -> 
 def test_collect_raises_without_results(tmp_path: Path) -> None:
     with pytest.raises(FileNotFoundError, match=LBWSG_PAF_MEASURE):
         collect_paf_results(tmp_path)
+
+
+def test_run_location_comes_from_the_run_artifact(tmp_path: Path) -> None:
+    artifact_path = tmp_path / "some_copy.hdf"
+    Artifact(str(artifact_path)).write("population.location", "Ethiopia")
+    run_dir = tmp_path / "run"
+    (run_dir / "results").mkdir(parents=True)
+    specification = {"configuration": {"input_data": {"artifact_path": str(artifact_path)}}}
+    (run_dir / "model_specification.yaml").write_text(yaml.safe_dump(specification))
+
+    assert get_run_location(run_dir / "results") == "Ethiopia"
 
 
 def test_output_path_uses_the_sanitized_location() -> None:
