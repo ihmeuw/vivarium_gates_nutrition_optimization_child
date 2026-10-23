@@ -55,7 +55,7 @@ make_artifacts = "vivarium_gates_nutrition_optimization_child.tools.cli:make_art
 where = ["src"]
 
 [tool.setuptools.package-data]
-"vivarium_gates_nutrition_optimization_child" = ["**/*.csv", "**/*.yaml", "**/*.ipynb"]
+"vivarium_gates_nutrition_optimization_child" = ["**/*.csv", "**/*.yaml", "**/*.ipynb", "**/*.parquet"]
 
 [tool.black]
 line_length = 94
