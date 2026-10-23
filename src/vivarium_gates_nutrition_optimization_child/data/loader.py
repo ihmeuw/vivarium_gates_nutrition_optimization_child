@@ -91,7 +91,7 @@ NATIONAL_LEVEL_DATA_KEYS = [
     data_keys.LBWSG.EXPOSURE,
     data_keys.LBWSG.RELATIVE_RISK,
     data_keys.LBWSG.RELATIVE_RISK_INTERPOLATOR,
-    data_keys.LBWSG.PAF,
+    # data_keys.LBWSG.PAF,
     data_keys.AFFECTED_UNMODELED_CAUSES.URI_CSMR,
     data_keys.AFFECTED_UNMODELED_CAUSES.OTITIS_MEDIA_CSMR,
     data_keys.AFFECTED_UNMODELED_CAUSES.MENINGITIS_CSMR,
@@ -201,7 +201,7 @@ def get_data(
         data_keys.WASTING.EXPOSURE: load_gbd_2023_exposure,
         data_keys.WASTING.RELATIVE_RISK: load_wasting_rr,
         data_keys.WASTING.PAF: load_categorical_paf,
-        data_keys.WASTING.TRANSITION_RATES: load_wasting_transition_rates,
+        # data_keys.WASTING.TRANSITION_RATES: load_wasting_transition_rates,
         data_keys.WASTING.BIRTH_PREVALENCE: load_wasting_birth_prevalence,
         data_keys.STUNTING.DISTRIBUTION: load_metadata,
         data_keys.STUNTING.ALT_DISTRIBUTION: load_metadata,
@@ -240,7 +240,7 @@ def get_data(
         data_keys.LBWSG.EXPOSURE: load_lbwsg_exposure,
         data_keys.LBWSG.RELATIVE_RISK: load_lbwsg_rr,
         data_keys.LBWSG.RELATIVE_RISK_INTERPOLATOR: load_lbwsg_interpolated_rr,
-        data_keys.LBWSG.PAF: load_lbwsg_paf,
+        # data_keys.LBWSG.PAF: load_lbwsg_paf,
         data_keys.AFFECTED_UNMODELED_CAUSES.URI_CSMR: load_standard_data,
         data_keys.AFFECTED_UNMODELED_CAUSES.OTITIS_MEDIA_CSMR: load_standard_data,
         data_keys.AFFECTED_UNMODELED_CAUSES.MENINGITIS_CSMR: load_standard_data,
@@ -867,6 +867,7 @@ def load_underweight_exposure(
     df = pd.read_csv(
         paths.UNDERWEIGHT_CONDITIONAL_DISTRIBUTIONS_DIR / f"{national_location_id}.csv"
     )
+    df['location'] = location
     # Fix sex values
     df = df.replace({"female": "Female", "male": "Male"})
     df = df.drop(["Unnamed: 0", "location_id"], axis=1)
@@ -1150,6 +1151,7 @@ def load_cgf_paf(
     data = pd.read_csv(
         paths.CGF_PAFS / f"{national_location_id}.csv"
     )  # .query("location_id==@location_id")
+    data['location'] = location
 
     # add age start and age end data instead of age group name
     age_bins = get_data(data_keys.POPULATION.AGE_BINS, location).reset_index()
