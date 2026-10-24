@@ -1,3 +1,8 @@
+**v0.14.0 - 10/23/26**
+
+ - Port the LBWSG PAF simulation (``data/lbwsg_paf.yaml``) to vivarium-public-health 6 without changing its method
+ - Read the LBWSG PAF key from tracked simulation outputs, putting input draw k in artifact draw k, and regenerate Ethiopia's PAFs on the GBD 2023 artifact
+
 **v0.13.3 - 10/22/26**
 
  - Cap pyarrow below 26 so the simulation environment can import it next to numpy 1.26 and psimulate can write results

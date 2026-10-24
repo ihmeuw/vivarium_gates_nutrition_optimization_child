@@ -137,3 +137,39 @@ The ``-vvv`` flag will log verbosely, so you will get log messages every time
 step. For more ways to run simulations, see the tutorials at
 https://vivarium.readthedocs.io/en/latest/tutorials/running_a_simulation/index.html
 and https://vivarium.readthedocs.io/en/latest/tutorials/exploration.html
+
+
+Regenerating the LBWSG PAFs
+---------------------------
+
+The artifact's LBWSG PAF key is read from
+``src/vivarium_gates_nutrition_optimization_child/data/lbwsg_paf_outputs/<location>.parquet``.
+These files come from the ``data/lbwsg_paf.yaml`` simulation. It places a
+cohort aged 0 to 14 days on a fixed grid of birth weight and gestational age
+inside each LBWSG category and computes PAF = (E[RR] - 1) / E[RR] for each sex
+and neonatal age group, weighting the categories by the artifact's LBWSG
+exposure summed over sex and age group.
+
+To regenerate a location's PAFs, run the simulation on the location's artifact
+from the simulation environment on the cluster::
+
+   psimulate run -P proj_simscience -m 3 -r 00:15:00 -i <ARTIFACT> -o <OUTPUT_DIR> \
+       src/vivarium_gates_nutrition_optimization_child/data/lbwsg_paf.yaml \
+       src/vivarium_gates_nutrition_optimization_child/data/lbwsg_paf_branches.yaml
+
+The branches file runs input draws 0 to 249 with one seed. When psimulate
+finishes it prints the run's results directory. Write that run's PAFs to the
+location's tracked file, then commit the file. The location is read from the
+artifact the run used::
+
+   python -m vivarium_gates_nutrition_optimization_child.data.lbwsg_paf_results <RESULTS_DIR>
+
+Finally, rewrite the PAF key of the artifact from the artifact environment::
+
+   make_artifacts -l <LOCATION> -o <ARTIFACT_DIR> -r risk_factor.low_birth_weight_and_short_gestation.population_attributable_fraction
+
+For a location with no PAF file yet, the artifact build stops at the PAF key.
+The PAF key is built after every key the simulation reads, so run the
+simulation on that incomplete artifact and commit its PAF file. The
+``make_artifacts -r`` command above then writes the PAF key and builds the
+keys that are still missing.
