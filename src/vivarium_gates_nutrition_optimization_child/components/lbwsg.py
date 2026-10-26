@@ -277,6 +277,8 @@ class LBWSGPAFObserver(Component):
             aggregator=self.calculate_paf,
             requires_attributes=[
                 "is_alive",
+                "age",
+                "sex",
                 "lbwsg_category",
                 self.risk_effect.relative_risk_name,
             ],
@@ -292,12 +294,9 @@ class LBWSGPAFObserver(Component):
 
         relative_risk = x[self.risk_effect.relative_risk_name].rename("relative_risk")
         lbwsg_category = x["lbwsg_category"]
-        lbwsg_prevalence = self.lbwsg_exposure.rename(
+        lbwsg_prevalence = self._get_stratum_exposure(x).rename(
             {"parameter": "lbwsg_category", "value": "prevalence"}, axis=1
-        )
-        lbwsg_prevalence = lbwsg_prevalence.groupby("lbwsg_category", as_index=False)[
-            "prevalence"
-        ].sum()
+        )[["lbwsg_category", "prevalence"]]
 
         mean_rrs = (
             pd.concat([lbwsg_category, relative_risk], axis=1)
@@ -310,3 +309,25 @@ class LBWSGPAFObserver(Component):
         paf = (mean_rr - 1) / mean_rr
 
         return paf
+
+    def _get_stratum_exposure(self, x: pd.DataFrame) -> pd.DataFrame:
+        """Return the LBWSG exposure rows for the one sex and age group of the simulants in x."""
+        exposure = self.lbwsg_exposure
+        sexes = x["sex"].unique()
+        rows = exposure[
+            exposure["sex"].isin(sexes)
+            & (exposure["age_start"] <= x["age"].min())
+            & (x["age"].max() < exposure["age_end"])
+        ]
+        if (
+            len(sexes) != 1
+            or rows["age_start"].nunique() != 1
+            or not rows["parameter"].is_unique
+        ):
+            raise ValueError(
+                "LBWSGPAFObserver needs each stratum to hold one sex and one LBWSG exposure age "
+                f"group, but this stratum holds sexes {sorted(sexes)} and ages "
+                f"{x['age'].min()} to {x['age'].max()}. Check that 'sex' and 'age_group' are "
+                "among the simulation's stratifications."
+            )
+        return rows
