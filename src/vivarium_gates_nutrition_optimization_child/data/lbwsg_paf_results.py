@@ -49,13 +49,13 @@ def collect_paf_results(results_dir: Union[str, Path]) -> pd.DataFrame:
     -------
         The long-format results of all the run's jobs.
     """
-    shards = sorted((Path(results_dir) / LBWSG_PAF_MEASURE).glob("*.parquet"))
-    if not shards:
+    measure_dir = Path(results_dir) / LBWSG_PAF_MEASURE
+    if not measure_dir.is_dir():
         raise FileNotFoundError(
             f"No {LBWSG_PAF_MEASURE} results under {results_dir}. Pass the 'results' "
             "directory that psimulate reports when it finishes."
         )
-    results = pd.concat([pd.read_parquet(shard) for shard in shards], ignore_index=True)
+    results = pd.read_parquet(measure_dir)
     results = results.assign(
         age_group=results["age_group"].astype(str), sex=results["sex"].astype(str)
     )
