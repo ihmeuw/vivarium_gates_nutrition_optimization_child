@@ -312,22 +312,29 @@ class LBWSGPAFObserver(Component):
 
     def _get_stratum_exposure(self, x: pd.DataFrame) -> pd.DataFrame:
         """Return the LBWSG exposure rows for the one sex and age group of the simulants in x."""
-        exposure = self.lbwsg_exposure
         sexes = x["sex"].unique()
-        rows = exposure[
-            exposure["sex"].isin(sexes)
-            & (exposure["age_start"] <= x["age"].min())
-            & (x["age"].max() < exposure["age_end"])
-        ]
-        if (
-            len(sexes) != 1
-            or rows["age_start"].nunique() != 1
-            or not rows["parameter"].is_unique
-        ):
+        if len(sexes) != 1:
             raise ValueError(
-                "LBWSGPAFObserver needs each stratum to hold one sex and one LBWSG exposure age "
-                f"group, but this stratum holds sexes {sorted(sexes)} and ages "
-                f"{x['age'].min()} to {x['age'].max()}. Check that 'sex' and 'age_group' are "
-                "among the simulation's stratifications."
+                f"An LBWSG PAF stratum holds simulants of sexes {sorted(sexes)}, but "
+                "LBWSGPAFObserver needs one sex per stratum. Check that 'sex' is among the "
+                "simulation's stratifications."
+            )
+        sex, youngest, oldest = sexes[0], x["age"].min(), x["age"].max()
+        exposure = self.lbwsg_exposure
+        rows = exposure[
+            (exposure["sex"] == sex)
+            & (exposure["age_start"] <= youngest)
+            & (oldest < exposure["age_end"])
+        ]
+        if rows.empty:
+            raise ValueError(
+                f"No LBWSG exposure age group for sex {sex} holds all of an LBWSG PAF "
+                f"stratum's ages ({youngest} to {oldest}). Check that 'age_group' is among the "
+                "simulation's stratifications and that the simulated ages are neonatal."
+            )
+        if not rows["parameter"].is_unique:
+            raise ValueError(
+                f"The LBWSG exposure has more than one row per category for sex {sex} at "
+                f"ages {youngest} to {oldest}, for example from more than one year."
             )
         return rows

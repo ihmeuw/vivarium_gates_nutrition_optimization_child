@@ -124,18 +124,27 @@ def test_observer_weights_categories_by_the_strata_own_exposure(
 
 
 @pytest.mark.parametrize(
-    "sexes, ages",
+    "sexes, ages, message",
     [
-        (["Female", "Female", "Male", "Male"], [0.005] * 4),
-        (["Female"] * 4, [0.005, 0.005, 0.03, 0.03]),
+        (["Female", "Female", "Male", "Male"], [0.005] * 4, "one sex per stratum"),
+        (["Female"] * 4, [0.005, 0.005, 0.03, 0.03], "No LBWSG exposure age group"),
     ],
     ids=["two sexes", "two age groups"],
 )
 def test_observer_refuses_a_stratum_spanning_exposure_groups(
-    sexes: List[str], ages: List[float]
+    sexes: List[str], ages: List[float], message: str
 ) -> None:
-    with pytest.raises(ValueError, match="one sex and one LBWSG exposure age group"):
+    with pytest.raises(ValueError, match=message):
         _observer().calculate_paf(_simulants(sexes, ages))
+
+
+def test_observer_refuses_more_than_one_exposure_row_per_category() -> None:
+    observer = _observer()
+    exposure = observer.lbwsg_exposure.assign(year_start=2021)
+    observer.lbwsg_exposure = pd.concat([exposure, exposure.assign(year_start=2022)])
+
+    with pytest.raises(ValueError, match="more than one row per category"):
+        observer.calculate_paf(_simulants(["Female"] * 4, [0.005] * 4))
 
 
 def test_observer_returns_zero_for_an_empty_stratum() -> None:
