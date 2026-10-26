@@ -39,8 +39,9 @@ from vivarium_gates_nutrition_optimization_child.constants import (
 from vivarium_gates_nutrition_optimization_child.constants.metadata import (
     ARTIFACT_INDEX_COLUMNS,
 )
-from vivarium_gates_nutrition_optimization_child.data import utilities
+from vivarium_gates_nutrition_optimization_child.data import extra_gbd, utilities
 from vivarium_gates_nutrition_optimization_child.utilities import (
+    expand_draws,
     get_lognorm_from_quantiles,
     get_random_variable_draws,
 )
@@ -470,6 +471,7 @@ def load_wasting_transition_rates(
     demography = get_data(data_keys.POPULATION.DEMOGRAPHY, national_location_id)
     rates = pd.read_csv(paths.WASTING_TRANSITIONS_DATA_DIR / f"{national_location_id}.csv")
     rates = rates.rename({"parameter": "transition"}, axis=1)
+    worse_mam_fraction = get_worse_mam_fraction(national_location_id)
 
     # explicitly add the youngest ages data with values of 0
     min_age = rates.reset_index()["age_start"].min()
@@ -499,12 +501,8 @@ def load_wasting_transition_rates(
     rates = rates.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ["transition"]).sort_index()
     worse_mam_idx = rates.query("transition == 'inc_rate_worse_mam'").index
     better_mam_idx = rates.query("transition == 'inc_rate_better_mam'").index
-    rates.loc[worse_mam_idx] = (
-        rates.loc[worse_mam_idx] * data_values.WASTING.PROBABILITY_OF_CAT2
-    )
-    rates.loc[better_mam_idx] = rates.loc[better_mam_idx] * (
-        1 - data_values.WASTING.PROBABILITY_OF_CAT2
-    )
+    rates.loc[worse_mam_idx] = rates.loc[worse_mam_idx] * worse_mam_fraction
+    rates.loc[better_mam_idx] = rates.loc[better_mam_idx] * (1 - worse_mam_fraction)
 
     # update remission transition names
     rates = rates.reset_index()
@@ -518,12 +516,8 @@ def load_wasting_transition_rates(
     rates = rates.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ["transition"]).sort_index()
     worse_mam_idx = rates.query("transition == 'sam_to_worse_mam'").index
     better_mam_idx = rates.query("transition == 'sam_to_better_mam'").index
-    rates.loc[worse_mam_idx] = (
-        rates.loc[worse_mam_idx] * data_values.WASTING.PROBABILITY_OF_CAT2
-    )
-    rates.loc[better_mam_idx] = rates.loc[better_mam_idx] * (
-        1 - data_values.WASTING.PROBABILITY_OF_CAT2
-    )
+    rates.loc[worse_mam_idx] = rates.loc[worse_mam_idx] * worse_mam_fraction
+    rates.loc[better_mam_idx] = rates.loc[better_mam_idx] * (1 - worse_mam_fraction)
 
     return rates
 
@@ -675,13 +669,14 @@ def load_wasting_birth_prevalence(
 
     # distribute probability of being initialized in MAM state
     # amongst worse MAM (cat2) and better MAM (cat2.5)
+    worse_mam_fraction = get_worse_mam_fraction(national_location_id)
     cat2_rows = birth_prevalence.query("parameter=='cat2'").copy()
     # update cat2 rows
     birth_prevalence.loc[birth_prevalence.query("parameter=='cat2'").index] = (
-        cat2_rows * data_values.WASTING.PROBABILITY_OF_CAT2
+        cat2_rows * worse_mam_fraction
     )
     # create cat2.5 rows
-    cat25_rows = cat2_rows * (1 - data_values.WASTING.PROBABILITY_OF_CAT2)
+    cat25_rows = cat2_rows * (1 - worse_mam_fraction)
     cat25_rows = (
         cat25_rows.reset_index()
         .replace({"parameter": {"cat2": "cat2.5"}})
@@ -945,6 +940,18 @@ def load_underweight_exposure(
     )
     df = pd.concat([df, missing_rows]).sort_index()
     return df.fillna(0)
+
+
+def get_worse_mam_fraction(location_id: int) -> pd.Series:
+    """Return the per-draw probability that a transition into MAM enters worse MAM (cat2)."""
+    probabilities = pd.read_csv(paths.PROBABILITIES_OF_WORSE_MAM_EXPOSURE)
+    probabilities = probabilities.query("location_id == @location_id")
+    if probabilities.empty:
+        raise ValueError(
+            f"No worse-MAM fraction for location id {location_id} in "
+            f"{paths.PROBABILITIES_OF_WORSE_MAM_EXPOSURE}"
+        )
+    return probabilities.set_index("draw")["exposure"].loc[metadata.ARTIFACT_COLUMNS]
 
 
 def load_gbd_2023_exposure(
@@ -1493,12 +1500,8 @@ def load_lbwsg_interpolated_rr(
         raise ValueError(f"Unrecognized key {key}")
 
     rr = get_data(data_keys.LBWSG.RELATIVE_RISK, location).reset_index()
-    rr["parameter"] = pd.Categorical(
-        rr["parameter"], [f"cat{i}" for i in range(metadata.DRAW_COUNT)]
-    )
     rr = (
-        rr.sort_values("parameter")
-        .set_index(metadata.ARTIFACT_INDEX_COLUMNS + ["parameter"])
+        rr.set_index(metadata.ARTIFACT_INDEX_COLUMNS + ["parameter"])
         .stack()
         .unstack("parameter")
         .apply(np.log)
@@ -1513,6 +1516,20 @@ def load_lbwsg_interpolated_rr(
 
     gestational_age_midpoints = get_category_midpoints("short_gestation")
     birth_weight_midpoints = get_category_midpoints("low_birth_weight")
+
+    # The midpoints are aligned to the RR columns, so the pivot above needs no
+    # particular category order. Raise before reindexing because reindex would
+    # silently insert NaN for a category missing from the metadata.
+    rr_categories = set(rr.columns)
+    metadata_categories = set(gestational_age_midpoints.index)
+    if rr_categories != metadata_categories:
+        raise ValueError(
+            "LBWSG relative risk categories do not match the category metadata: "
+            f"missing from metadata {sorted(rr_categories - metadata_categories)}, "
+            f"missing from relative risk {sorted(metadata_categories - rr_categories)}"
+        )
+    gestational_age_midpoints = gestational_age_midpoints.reindex(rr.columns)
+    birth_weight_midpoints = birth_weight_midpoints.reindex(rr.columns)
 
     # build grid of gestational age and birth weight
     def get_grid(midpoints: pd.Series, endpoints: Tuple[float, float]) -> np.array:
@@ -1934,7 +1951,22 @@ def load_maternal_bmi_anemia_exposure(
         data.index.name = None
         return data
 
-    p_low_hgb = _read_hgb_data("pregnant_proportion_with_hgb_below_100_age_aggregated.csv")
+    anemia = extra_gbd.get_pregnant_moderate_severe_anemia_prevalence(location)
+    if sorted(anemia["age_group_id"]) != extra_gbd.PREGNANCY_AGE_GROUP_IDS:
+        raise ValueError(
+            f"Expected one row per age group {extra_gbd.PREGNANCY_AGE_GROUP_IDS} of pregnant "
+            f"anemia prevalence for {location}, got {sorted(anemia['age_group_id'])}."
+        )
+    population = anemia["population"]
+    anemia_draws = anemia.filter(regex=r"^draw_\d+$")
+    if anemia_draws.empty or anemia_draws.isna().any().any() or not (population > 0).all():
+        raise ValueError(
+            f"Pregnant anemia prevalence for {location} has no draws, a missing value, or a "
+            "population that is not positive."
+        )
+    p_low_hgb = expand_draws(
+        anemia_draws.mul(population, axis=0).sum() / population.sum(), metadata.DRAW_COUNT
+    )
     p_low_bmi_given_low_hgb = _read_hgb_data(
         "prevalence_of_low_bmi_given_hemoglobin_below_10_age_weighted.csv"
     )

@@ -123,9 +123,6 @@ class __Wasting(NamedTuple):
     # Treated time to recovery in days
     SAM_TX_RECOVERY_TIME_OVER_6MO: float = 62.3  # 48.3 + 14
 
-    # Probably of entering "worse" MAM aka cat2 when transitioning to MAM
-    PROBABILITY_OF_CAT2 = 0.33
-
 
 WASTING = __Wasting()
 

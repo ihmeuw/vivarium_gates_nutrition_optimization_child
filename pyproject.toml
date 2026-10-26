@@ -9,7 +9,7 @@ readme = "README.rst"
 requires-python = ">=3.11"
 license = {text = "BSD-3-Clause"}
 authors = [{name = "The vivarium developers", email = "vivarium.dev@gmail.com"}]
-version = "0.13.0"
+version = "0.13.3"
 dependencies = [
     "vivarium-gbd-mapping>=6.0.0,<7.0.0",
     "vivarium-engine>=5.11.0,<6.0.0",
@@ -29,12 +29,10 @@ dependencies = [
 
 [project.optional-dependencies]
 test = [
-    "pytest",
-    "pytest-cov",
-    "pytest-mock",
-    "pytest-xdist",
+    "vivarium-dependencies[pytest]",
+    "pytest-vivarium",
 ]
-cluster = ["vivarium_cluster_tools[cluster]>=4.0.0,<5.0.0"]
+cluster = ["vivarium_cluster_tools[cluster]>=4.5.0,<5.0.0"]
 lint = [
     "black==22.3.0",
     "isort==5.13.2",
@@ -42,6 +40,7 @@ lint = [
 data = [
     "vivarium_inputs>=9.1.1,<10.0.0",
     "vivarium_gbd_access>=7.0.0,<8.0.0",
+    "ihme_cc_get_estimates[library]>=2.39.0,<3.0.0",
     "vivarium_gates_nutrition_optimization_child[cluster,lint,test]",
 ]
 dev = ["vivarium_gates_nutrition_optimization_child[test,cluster,lint]"]
@@ -75,4 +74,6 @@ show_missing = true
 testpaths = ["tests/"]
 
 [tool.uv]
-override-dependencies = ["pandas<3.0.0", "sqlalchemy>=2.0.0,<3.0.0", "numpy<2.0.0"]
+# pyarrow 26 needs numpy 2 but does not declare it, so cap it while numpy<2 is here.
+# TODO: remove the pyarrow cap with numpy<2 once GBD siloing (MIC-7613) is merged.
+override-dependencies = ["pandas<3.0.0", "sqlalchemy>=2.0.0,<3.0.0", "numpy<2.0.0", "pyarrow<26.0.0"]

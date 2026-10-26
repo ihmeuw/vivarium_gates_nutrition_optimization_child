@@ -150,6 +150,28 @@ def get_random_variable_draws(columns: pd.Index, seed: str, distribution) -> pd.
     )
 
 
+def expand_draws(draws: pd.Series, draw_count: int) -> pd.Series:
+    """Repeat a set of draws in order until there are draw_count of them.
+
+    Draw ``draw_i`` of the result is ``draw_{i mod n}`` of the input, where n is the
+    number of input draws.
+
+    Parameters
+    ----------
+    draws
+        Values indexed by draw name, ``draw_0`` through ``draw_{n-1}``.
+    draw_count
+        The number of draws to return.
+
+    Returns
+    -------
+        Values indexed by draw name, ``draw_0`` through ``draw_{draw_count-1}``.
+    """
+    expanded = draws[[f"draw_{i % draws.size}" for i in range(draw_count)]]
+    expanded.index = [f"draw_{i}" for i in range(draw_count)]
+    return expanded
+
+
 def get_random_variable(draw: int, seed: str, distribution) -> pd.Series:
     np.random.seed(get_hash(f"{seed}_draw_{draw}"))
     return distribution.rvs()
