@@ -1,6 +1,7 @@
 **v0.14.0 - 10/23/26**
 
- - Port the LBWSG PAF simulation (``data/lbwsg_paf.yaml``) to vivarium-public-health 6 without changing its method
+ - Port the LBWSG PAF simulation (``data/lbwsg_paf.yaml``) to vivarium-public-health 6
+ - Weight each sex and neonatal age group's LBWSG PAF by that group's own exposure instead of exposure summed over both sexes and both neonatal age groups
  - Read the LBWSG PAF key from tracked simulation outputs, putting input draw k in artifact draw k, and regenerate Ethiopia's PAFs on the GBD 2023 artifact
 
 **v0.13.3 - 10/22/26**
