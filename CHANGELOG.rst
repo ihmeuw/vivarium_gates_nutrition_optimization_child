@@ -1,3 +1,10 @@
+**v0.13.4 - 10/29/26**
+
+ - Port the LBWSG PAF simulation (``data/lbwsg_paf.yaml``) to vivarium-public-health 6
+ - Weight each sex and neonatal age group's LBWSG PAF by that group's own exposure instead of exposure summed over both sexes and both neonatal age groups
+ - Read the LBWSG PAF key from tracked simulation outputs, putting input draw k in artifact draw k, and regenerate Ethiopia's PAFs on the GBD 2023 artifact
+ - Delete ``data/lbwsg_paf_calculator.py`` and its ``LBWSG_PAF_calculator-checkpoint.ipynb`` driver, the 2023 per-draw PAF path that psimulate and ``lbwsg_paf_results`` replace
+
 **v0.13.3 - 10/22/26**
 
  - Cap pyarrow below 26 so the simulation environment can import it next to numpy 1.26 and psimulate can write results

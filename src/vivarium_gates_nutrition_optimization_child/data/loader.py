@@ -39,7 +39,11 @@ from vivarium_gates_nutrition_optimization_child.constants import (
 from vivarium_gates_nutrition_optimization_child.constants.metadata import (
     ARTIFACT_INDEX_COLUMNS,
 )
-from vivarium_gates_nutrition_optimization_child.data import extra_gbd, utilities
+from vivarium_gates_nutrition_optimization_child.data import (
+    extra_gbd,
+    lbwsg_paf_results,
+    utilities,
+)
 from vivarium_gates_nutrition_optimization_child.utilities import (
     expand_draws,
     get_lognorm_from_quantiles,
@@ -1565,61 +1569,16 @@ def load_lbwsg_interpolated_rr(
 def load_lbwsg_paf(
     key: str, location: str, years: Optional[Union[int, str, List[int]]] = None
 ) -> pd.DataFrame:
-    # Reads stored outputs of the lbwsg_paf.yaml simulation, last run in June 2024
-    # against older exposure data; regenerating them is tracked in MIC-7608.
     if key != data_keys.LBWSG.PAF:
         raise ValueError(f"Unrecognized key {key}")
 
-    location_mapper = {
-        "Sub-Saharan Africa": "sub-saharan_africa",
-        "South Asia": "south_asia",
-        "LMICs": "lmics",
-        "Ethiopia": "ethiopia",
-        "Nigeria": "nigeria",
-        "India": "india",
-        "Pakistan": "pakistan",
-    }
-
-    output_dir = paths.TEMPORARY_PAF_DIR / location_mapper[location]
-
-    def get_age_and_sex(measure_str):
-        age = measure_str.split("AGE_GROUP_")[1].split("SEX")[0][:-1]
-        sex = measure_str.split("AGE_GROUP_")[1].split("SEX")[1][1:]
-
-        return age + "," + sex
-
-    df = pd.read_hdf(output_dir / "output.hdf")  # this is 4096_simulants.hdf for example
-    df = df[[col for col in df.columns if "MEASURE" in col]].T
-
-    # This line should be able to be deleted later once the file is updated to only have 250 draws
-    df = df.iloc[:, : metadata.DRAW_COUNT]
-    df.columns = [f"draw_{i}" for i in range(metadata.DRAW_COUNT)]
-    df = df.reset_index()
-    df["demographics"] = df["index"].apply(get_age_and_sex)
-    df = df.drop("index", axis=1)
-    df[["age", "sex"]] = df["demographics"].str.split(",", expand=True)
-    df = df.drop("demographics", axis=1)
-
-    age_start_dict = {"early_neonatal": 0.0, "late_neonatal": 0.01917808}
-    age_end_dict = {"early_neonatal": 0.01917808, "late_neonatal": 0.07671233}
-    df["age_start"] = df["age"].replace(age_start_dict)
-    df["age_end"] = df["age"].replace(age_end_dict)
-    df["year_start"] = 2023
-    df["year_end"] = 2024
-    df = df.drop("age", axis=1)
-
-    new_row_1 = [0] * metadata.DRAW_COUNT + ["Female", 0.07671233, 1.0, 2023, 2024]
-    new_row_2 = [0] * metadata.DRAW_COUNT + ["Male", 0.07671233, 1.0, 2023, 2024]
-    new_row_3 = [0] * metadata.DRAW_COUNT + ["Female", 1.0, 5.0, 2023, 2024]
-    new_row_4 = [0] * metadata.DRAW_COUNT + ["Male", 1.0, 5.0, 2023, 2024]
-
-    df.loc[len(df)] = new_row_1
-    df.loc[len(df)] = new_row_2
-    df.loc[len(df)] = new_row_3
-    df.loc[len(df)] = new_row_4
-
-    df = df.set_index(["sex", "age_start", "age_end", "year_start", "year_end"]).sort_index()
-    return df
+    output_path = lbwsg_paf_results.get_output_path(location)
+    if not output_path.exists():
+        raise FileNotFoundError(
+            f"No LBWSG PAF simulation output for {location} at {output_path}. Run "
+            "data/lbwsg_paf.yaml for this location as described in the README."
+        )
+    return lbwsg_paf_results.format_lbwsg_paf(pd.read_parquet(output_path))
 
 
 def load_sids_csmr(
