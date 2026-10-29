@@ -148,7 +148,7 @@ These files come from the ``data/lbwsg_paf.yaml`` simulation. It places a
 cohort aged 0 to 14 days on a fixed grid of birth weight and gestational age
 inside each LBWSG category and computes PAF = (E[RR] - 1) / E[RR] for each sex
 and neonatal age group, weighting the categories by the artifact's LBWSG
-exposure summed over sex and age group.
+exposure for that sex and age group.
 
 To regenerate a location's PAFs, run the simulation on the location's artifact
 from the simulation environment on the cluster::

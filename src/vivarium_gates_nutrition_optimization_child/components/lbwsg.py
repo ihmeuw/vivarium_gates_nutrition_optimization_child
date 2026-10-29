@@ -277,6 +277,8 @@ class LBWSGPAFObserver(Component):
             aggregator=self.calculate_paf,
             requires_attributes=[
                 "is_alive",
+                "age",
+                "sex",
                 "lbwsg_category",
                 self.risk_effect.relative_risk_name,
             ],
@@ -292,12 +294,9 @@ class LBWSGPAFObserver(Component):
 
         relative_risk = x[self.risk_effect.relative_risk_name].rename("relative_risk")
         lbwsg_category = x["lbwsg_category"]
-        lbwsg_prevalence = self.lbwsg_exposure.rename(
+        lbwsg_prevalence = self._get_stratum_exposure(x).rename(
             {"parameter": "lbwsg_category", "value": "prevalence"}, axis=1
-        )
-        lbwsg_prevalence = lbwsg_prevalence.groupby("lbwsg_category", as_index=False)[
-            "prevalence"
-        ].sum()
+        )[["lbwsg_category", "prevalence"]]
 
         mean_rrs = (
             pd.concat([lbwsg_category, relative_risk], axis=1)
@@ -310,3 +309,32 @@ class LBWSGPAFObserver(Component):
         paf = (mean_rr - 1) / mean_rr
 
         return paf
+
+    def _get_stratum_exposure(self, x: pd.DataFrame) -> pd.DataFrame:
+        """Return the LBWSG exposure rows for the one sex and age group of the simulants in x."""
+        sexes = x["sex"].unique()
+        if len(sexes) != 1:
+            raise ValueError(
+                f"An LBWSG PAF stratum holds simulants of sexes {sorted(sexes)}, but "
+                "LBWSGPAFObserver needs one sex per stratum. Check that 'sex' is among the "
+                "simulation's stratifications."
+            )
+        sex, youngest, oldest = sexes[0], x["age"].min(), x["age"].max()
+        exposure = self.lbwsg_exposure
+        rows = exposure[
+            (exposure["sex"] == sex)
+            & (exposure["age_start"] <= youngest)
+            & (oldest < exposure["age_end"])
+        ]
+        if rows.empty:
+            raise ValueError(
+                f"No LBWSG exposure age group for sex {sex} holds all of an LBWSG PAF "
+                f"stratum's ages ({youngest} to {oldest}). Check that 'age_group' is among the "
+                "simulation's stratifications and that the simulated ages are neonatal."
+            )
+        if not rows["parameter"].is_unique:
+            raise ValueError(
+                f"The LBWSG exposure has more than one row per category for sex {sex} at "
+                f"ages {youngest} to {oldest}, for example from more than one year."
+            )
+        return rows
