@@ -117,12 +117,6 @@ class __Wasting(NamedTuple):
     SAM_TX_ALTERNATIVE_EFFICACY: float = 1.0
     MAM_TX_ALTERNATIVE_EFFICACY: float = 1.0
 
-    # Untreated time to recovery in days
-    DEFAULT_MILD_WASTING_UX_RECOVERY_TIME: float = 1_000.0
-
-    # Treated time to recovery in days
-    SAM_TX_RECOVERY_TIME_OVER_6MO: float = 62.3  # 48.3 + 14
-
 
 WASTING = __Wasting()
 
