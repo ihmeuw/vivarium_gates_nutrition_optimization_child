@@ -1,3 +1,7 @@
+**v0.13.5 - 10/29/26**
+
+ - Require vivarium-engine 6 and vivarium_cluster_tools 4.8.0 for the cluster extra
+
 **v0.13.4 - 10/29/26**
 
  - Port the LBWSG PAF simulation (``data/lbwsg_paf.yaml``) to vivarium-public-health 6
