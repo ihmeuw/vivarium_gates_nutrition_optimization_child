@@ -123,23 +123,12 @@ class LBWSGLineList(LBWSGRisk):
         return self.new_births.loc[index, AXES]
 
 
-_PAF_SIMULATION_BROKEN = (
-    "The LBWSG PAF-calculation components target public-health hooks removed in VPH 6 "
-    "and have not run since the June 2024 PAF outputs. Porting them to the MNCNH "
-    "workflow is tracked in MIC-7608."
-)
-
-
 class LBWSGPAFCalculationRiskEffect(LBWSGRiskEffect):
-    """Risk effect component for calculating PAFs for LBWSG.
+    """Risk effect component for calculating PAFs for LBWSG."""
 
-    WARNING: broken since the VPH 6 upgrade. It used to override a hook that forced
-    a zero PAF; that hook no longer exists, so this now behaves as a plain
-    LBWSGRiskEffect. See MIC-7608 before using it.
-    """
-
-    def setup(self, builder: Builder) -> None:
-        raise NotImplementedError(_PAF_SIMULATION_BROKEN)
+    def get_calibration_constant_data(self, builder: Builder) -> float:
+        """Return a zero PAF, so the simulation does not depend on a stored one."""
+        return 0.0
 
 
 class SubnationalLBWSGRiskEffect(LBWSGRiskEffect):
@@ -157,30 +146,34 @@ class SubnationalLBWSGRiskEffect(LBWSGRiskEffect):
 
 
 class LBWSGPAFCalculationExposure(LBWSGRisk):
-    """Exposure component for calculating PAFs for LBWSG.
+    """Exposure component for calculating PAFs for LBWSG."""
 
-    WARNING: broken since the VPH 6 upgrade. It references attributes LBWSGRisk no
-    longer has and fails on setup. See MIC-7608 before using it.
-    """
-
+    # noinspection PyAttributeOutsideInit
     def setup(self, builder: Builder) -> None:
-        raise NotImplementedError(_PAF_SIMULATION_BROKEN)
-        super().setup(builder)
         self.lbwsg_categories = builder.data.load(data_keys.LBWSG.CATEGORIES)
         self.age_bins = builder.data.load(data_keys.POPULATION.AGE_BINS)
 
         builder.population.register_initializer(
-            self.initialize_paf_exposure,
-            columns=[self.get_exposure_column_name(axis) for axis in AXES]
-            + ["lbwsg_category", "age_bin"],
+            self.initialize_paf_categories,
+            columns=["lbwsg_category", "age_bin"],
             required_resources=["age", "sex"],
+        )
+        super().setup(builder)
+
+    def register_birth_exposure_pipeline(self, builder: Builder) -> None:
+        builder.value.register_attribute_producer(
+            self.birth_exposure_pipeline,
+            source=self._get_birth_exposure_source,
+            required_resources=["age_bin", "sex", "lbwsg_category"],
+            preferred_post_processor=get_exposure_post_processor(builder, self.name),
+            description="The simulant's LBWSG exposure at birth, on the PAF grid",
         )
 
     ########################
     # Event-driven methods #
     ########################
 
-    def initialize_paf_exposure(self, pop_data: SimulantData) -> None:
+    def initialize_paf_categories(self, pop_data: SimulantData) -> None:
         pop = self.population_view.get(pop_data.index, ["age", "sex"])
         pop["age_bin"] = pd.cut(pop["age"], self.age_bins["age_start"])
         pop = pop.sort_values(["sex", "age"])
@@ -198,25 +191,17 @@ class LBWSGPAFCalculationExposure(LBWSGRisk):
         pop["lbwsg_category"] = assigned_categories
         self.population_view.initialize(pop[["age_bin", "lbwsg_category"]])
 
-        birth_exposures = {
-            self.get_exposure_column_name(axis): self.birth_exposures[
-                self.birth_exposure_pipeline_name(axis)
-            ](pop_data.index)
-            for axis in AXES
-        }
-        self.population_view.initialize(pd.DataFrame(birth_exposures))
-
     ##################################
     # Pipeline sources and modifiers #
     ##################################
 
-    def get_birth_exposure(self, axis: str, index: pd.Index) -> pd.DataFrame:
+    def _get_birth_exposure_source(self, index: pd.Index) -> pd.DataFrame:
         pop = self.population_view.get(index, ["age_bin", "sex", "lbwsg_category"])
         lbwsg_categories = self.lbwsg_categories.keys()
         num_simulants_in_category = int(len(pop) / (len(lbwsg_categories) * 4))
         num_points_in_interval = int(math.sqrt(num_simulants_in_category))
 
-        exposure_values = pd.Series(name=axis, index=pop.index, dtype=float)
+        exposure_values = pd.DataFrame(index=pop.index, columns=AXES, dtype=float)
 
         for age_bin, sex, cat in itertools.product(
             pop["age_bin"].unique(), ["Male", "Female"], lbwsg_categories
@@ -258,7 +243,8 @@ class LBWSGPAFCalculationExposure(LBWSGRisk):
                 & (pop["age_bin"] == age_bin)
                 & (pop["sex"] == sex)
             ].index
-            exposure_values.loc[subset_index] = lbwsg_exposures[axis].values
+            for axis in AXES:
+                exposure_values.loc[subset_index, axis] = lbwsg_exposures[axis].values
 
         return exposure_values
 
@@ -289,22 +275,28 @@ class LBWSGPAFObserver(Component):
             name=f"calculated_lbwsg_paf_on_{self.target}",
             pop_filter="is_alive == True",
             aggregator=self.calculate_paf,
-            requires_attributes=["is_alive", "lbwsg_category"],
+            requires_attributes=[
+                "is_alive",
+                "age",
+                "sex",
+                "lbwsg_category",
+                self.risk_effect.relative_risk_name,
+            ],
             additional_stratifications=self.config.include,
             excluded_stratifications=self.config.exclude,
             when="time_step__prepare",
         )
 
     def calculate_paf(self, x: pd.DataFrame) -> float:
-        relative_risk = self.risk_effect.target_modifier(x.index, pd.Series(1, index=x.index))
-        relative_risk.name = "relative_risk"
-        lbwsg_category = self.population_view.get(x.index)["lbwsg_category"]
-        lbwsg_prevalence = self.lbwsg_exposure.rename(
+        if x.empty:
+            # Strata with no living simulants are handed over empty.
+            return 0.0
+
+        relative_risk = x[self.risk_effect.relative_risk_name].rename("relative_risk")
+        lbwsg_category = x["lbwsg_category"]
+        lbwsg_prevalence = self._get_stratum_exposure(x).rename(
             {"parameter": "lbwsg_category", "value": "prevalence"}, axis=1
-        )
-        lbwsg_prevalence = lbwsg_prevalence.groupby("lbwsg_category", as_index=False)[
-            "prevalence"
-        ].sum()
+        )[["lbwsg_category", "prevalence"]]
 
         mean_rrs = (
             pd.concat([lbwsg_category, relative_risk], axis=1)
@@ -317,3 +309,32 @@ class LBWSGPAFObserver(Component):
         paf = (mean_rr - 1) / mean_rr
 
         return paf
+
+    def _get_stratum_exposure(self, x: pd.DataFrame) -> pd.DataFrame:
+        """Return the LBWSG exposure rows for the one sex and age group of the simulants in x."""
+        sexes = x["sex"].unique()
+        if len(sexes) != 1:
+            raise ValueError(
+                f"An LBWSG PAF stratum holds simulants of sexes {sorted(sexes)}, but "
+                "LBWSGPAFObserver needs one sex per stratum. Check that 'sex' is among the "
+                "simulation's stratifications."
+            )
+        sex, youngest, oldest = sexes[0], x["age"].min(), x["age"].max()
+        exposure = self.lbwsg_exposure
+        rows = exposure[
+            (exposure["sex"] == sex)
+            & (exposure["age_start"] <= youngest)
+            & (oldest < exposure["age_end"])
+        ]
+        if rows.empty:
+            raise ValueError(
+                f"No LBWSG exposure age group for sex {sex} holds all of an LBWSG PAF "
+                f"stratum's ages ({youngest} to {oldest}). Check that 'age_group' is among the "
+                "simulation's stratifications and that the simulated ages are neonatal."
+            )
+        if not rows["parameter"].is_unique:
+            raise ValueError(
+                f"The LBWSG exposure has more than one row per category for sex {sex} at "
+                f"ages {youngest} to {oldest}, for example from more than one year."
+            )
+        return rows
