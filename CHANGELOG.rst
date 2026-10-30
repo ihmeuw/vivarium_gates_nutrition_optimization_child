@@ -1,3 +1,7 @@
+**v0.13.6 - 10/30/26**
+
+ - Pull MAM transition rates from calibrated data
+
 **v0.13.5 - 10/29/26**
 
  - Require vivarium-engine 6 and vivarium_cluster_tools 4.8.0 for the cluster extra
