@@ -23,6 +23,7 @@ LOCATIONS = [
     "LMICs",
     "Ethiopia",
     "India",
+    "Kenya",
     "Nigeria",
     "Pakistan",
 ]
