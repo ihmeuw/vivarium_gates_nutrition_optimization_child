@@ -39,8 +39,13 @@ from vivarium_gates_nutrition_optimization_child.constants import (
 from vivarium_gates_nutrition_optimization_child.constants.metadata import (
     ARTIFACT_INDEX_COLUMNS,
 )
-from vivarium_gates_nutrition_optimization_child.data import utilities
+from vivarium_gates_nutrition_optimization_child.data import (
+    extra_gbd,
+    lbwsg_paf_results,
+    utilities,
+)
 from vivarium_gates_nutrition_optimization_child.utilities import (
+    expand_draws,
     get_lognorm_from_quantiles,
     get_random_variable_draws,
 )
@@ -1345,6 +1350,58 @@ def load_sam_treatment_rr(
     return rr.sort_index()
 
 
+MAM_RATE_KEY = ["sex", "age_start", "age_end"]
+MAM_RATE_PARAMETERS = ["tx_rem_rate_mam", "ux_rem_rate_mam"]
+
+
+def get_mam_remission_rates(
+    index: pd.Index, location: str
+) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """Return the treated and untreated MAM remission rates per day over ``index``."""
+    rates = _read_national_transition_rates(location)
+    rows = pd.MultiIndex.from_frame(index.to_frame(index=False)[MAM_RATE_KEY])
+    tx_rate, ux_rate = [
+        rates.loc[parameter].reindex(rows) for parameter in MAM_RATE_PARAMETERS
+    ]
+
+    # Fill neonatal rates to zero, raise on any other missing data.
+    older = rows.get_level_values("age_start") >= 0.5
+    for parameter, rate in zip(MAM_RATE_PARAMETERS, (tx_rate, ux_rate)):
+        missing = rate.isna().any(axis=1) & older
+        if missing.any():
+            raise ValueError(
+                f"{location} has no MAM remission rates for {parameter} at "
+                f"(sex, age_start, age_end) in {rows[missing].unique().tolist()}"
+            )
+    return tx_rate.fillna(0.0).set_axis(index), ux_rate.fillna(0.0).set_axis(index)
+
+
+def _read_national_transition_rates(location: str) -> pd.DataFrame:
+    """Read the national wasting transition file indexed by parameter, sex and age bin."""
+    path = paths.WASTING_TRANSITIONS_NATIONAL_DATA_DIR / f"{location.lower()}.csv"
+    rates = pd.read_csv(path).set_index(["parameter"] + MAM_RATE_KEY)[
+        metadata.ARTIFACT_COLUMNS
+    ]
+    parameters = rates.index.get_level_values("parameter")
+    absent = [parameter for parameter in MAM_RATE_PARAMETERS if parameter not in parameters]
+    if absent:
+        raise ValueError(f"{path} has no {' or '.join(absent)} rows")
+    rates = rates[parameters.isin(MAM_RATE_PARAMETERS)]
+    duplicated = rates.index[rates.index.duplicated()]
+    if not duplicated.empty:
+        raise ValueError(
+            f"{path} has more than one row for (parameter, sex, age_start, age_end) in "
+            f"{duplicated.unique().tolist()}"
+        )
+    blank = rates.index[rates.isna().any(axis=1)]
+    if not blank.empty:
+        raise ValueError(
+            f"{path} has rows with missing draws for (parameter, sex, age_start, age_end) in "
+            f"{blank.tolist()}"
+        )
+    return rates
+
+
 def load_mam_treatment_rr(
     key: str, location: str, years: Optional[Union[int, str, List[int]]] = None
 ) -> pd.DataFrame:
@@ -1357,29 +1414,19 @@ def load_mam_treatment_rr(
         demography, data_keys.WASTING.CAT2, location
     )
     index = mam_tx_efficacy.index
+    tx_rate, ux_rate = get_mam_remission_rates(index, location)
 
-    mam_ux_duration = data_values.WASTING.MAM_UX_RECOVERY_TIME_OVER_6MO
-    mam_tx_duration = pd.Series(index=index)
-    mam_tx_duration[
-        index.get_level_values("age_start") < 0.5
-    ] = data_values.WASTING.MAM_TX_RECOVERY_TIME_UNDER_6MO
-    mam_tx_duration[0.5 <= index.get_level_values("age_start")] = get_random_variable_draws(
-        mam_tx_duration[0.5 <= index.get_level_values("age_start")].index,
-        *data_values.WASTING.MAM_TX_RECOVERY_TIME_OVER_6MO,
-    )
-    mam_tx_duration = pd.DataFrame(
-        {f"draw_{i}": 1 for i in range(0, metadata.DRAW_COUNT)}, index=index
-    ).multiply(mam_tx_duration, axis="index")
-
-    # rr_r3 = r3 / r3_tmrel
-    #       = (mam_tx_efficacy / mam_tx_duration) + (1 - mam_tx_efficacy / mam_ux_duration)
-    #           / (mam_tx_efficacy_tmrel / mam_tx_duration) + (1 - mam_tx_efficacy_tmrel / mam_ux_duration)
-    #       = (mam_tx_efficacy * mam_ux_duration + (1 - mam_tx_efficacy) * mam_tx_duration)
-    #           / (mam_tx_efficacy_tmrel * mam_ux_duration + (1 - mam_tx_efficacy_tmrel) * mam_tx_duration)
-    rr = (mam_tx_efficacy * mam_ux_duration + (1 - mam_tx_efficacy) * mam_tx_duration) / (
-        mam_tx_efficacy_tmrel * mam_ux_duration
-        + (1 - mam_tx_efficacy_tmrel) * mam_tx_duration
-    )
+    # rr_r3 = r3 / r3_tmrel with r3 = mam_tx_efficacy * tx_rate + (1 - mam_tx_efficacy) * ux_rate.
+    # For the uncovered category (efficacy 0) this reduces to the research table's
+    #       ux_rate / (tx_rate * mam_tx_efficacy_tmrel + ux_rate * (1 - mam_tx_efficacy_tmrel))
+    numerator = mam_tx_efficacy * tx_rate + (1 - mam_tx_efficacy) * ux_rate
+    denominator = mam_tx_efficacy_tmrel * tx_rate + (1 - mam_tx_efficacy_tmrel) * ux_rate
+    # A transition with both rates zero has no effect; any other non-finite value is a data error.
+    rr = (numerator / denominator).where(denominator != 0, 1.0)
+    # The efficacy file carries more draws than the artifact keeps; only check the kept ones.
+    rr = rr[metadata.ARTIFACT_COLUMNS]
+    if not np.isfinite(rr.to_numpy()).all():
+        raise ValueError("MAM treatment relative risk has non-finite values")
 
     better_mam_rows = rr.copy()
     worse_mam_rows = rr.copy()
@@ -1524,61 +1571,16 @@ def load_lbwsg_interpolated_rr(
 def load_lbwsg_paf(
     key: str, location: str, years: Optional[Union[int, str, List[int]]] = None
 ) -> pd.DataFrame:
-    # Reads stored outputs of the lbwsg_paf.yaml simulation, last run in June 2024
-    # against older exposure data; regenerating them is tracked in MIC-7608.
     if key != data_keys.LBWSG.PAF:
         raise ValueError(f"Unrecognized key {key}")
 
-    location_mapper = {
-        "Sub-Saharan Africa": "sub-saharan_africa",
-        "South Asia": "south_asia",
-        "LMICs": "lmics",
-        "Ethiopia": "ethiopia",
-        "Nigeria": "nigeria",
-        "India": "india",
-        "Pakistan": "pakistan",
-    }
-
-    output_dir = paths.TEMPORARY_PAF_DIR / location_mapper[location]
-
-    def get_age_and_sex(measure_str):
-        age = measure_str.split("AGE_GROUP_")[1].split("SEX")[0][:-1]
-        sex = measure_str.split("AGE_GROUP_")[1].split("SEX")[1][1:]
-
-        return age + "," + sex
-
-    df = pd.read_hdf(output_dir / "output.hdf")  # this is 4096_simulants.hdf for example
-    df = df[[col for col in df.columns if "MEASURE" in col]].T
-
-    # This line should be able to be deleted later once the file is updated to only have 250 draws
-    df = df.iloc[:, : metadata.DRAW_COUNT]
-    df.columns = [f"draw_{i}" for i in range(metadata.DRAW_COUNT)]
-    df = df.reset_index()
-    df["demographics"] = df["index"].apply(get_age_and_sex)
-    df = df.drop("index", axis=1)
-    df[["age", "sex"]] = df["demographics"].str.split(",", expand=True)
-    df = df.drop("demographics", axis=1)
-
-    age_start_dict = {"early_neonatal": 0.0, "late_neonatal": 0.01917808}
-    age_end_dict = {"early_neonatal": 0.01917808, "late_neonatal": 0.07671233}
-    df["age_start"] = df["age"].replace(age_start_dict)
-    df["age_end"] = df["age"].replace(age_end_dict)
-    df["year_start"] = 2023
-    df["year_end"] = 2024
-    df = df.drop("age", axis=1)
-
-    new_row_1 = [0] * metadata.DRAW_COUNT + ["Female", 0.07671233, 1.0, 2023, 2024]
-    new_row_2 = [0] * metadata.DRAW_COUNT + ["Male", 0.07671233, 1.0, 2023, 2024]
-    new_row_3 = [0] * metadata.DRAW_COUNT + ["Female", 1.0, 5.0, 2023, 2024]
-    new_row_4 = [0] * metadata.DRAW_COUNT + ["Male", 1.0, 5.0, 2023, 2024]
-
-    df.loc[len(df)] = new_row_1
-    df.loc[len(df)] = new_row_2
-    df.loc[len(df)] = new_row_3
-    df.loc[len(df)] = new_row_4
-
-    df = df.set_index(["sex", "age_start", "age_end", "year_start", "year_end"]).sort_index()
-    return df
+    output_path = lbwsg_paf_results.get_output_path(location)
+    if not output_path.exists():
+        raise FileNotFoundError(
+            f"No LBWSG PAF simulation output for {location} at {output_path}. Run "
+            "data/lbwsg_paf.yaml for this location as described in the README."
+        )
+    return lbwsg_paf_results.format_lbwsg_paf(pd.read_parquet(output_path))
 
 
 def load_sids_csmr(
@@ -1910,7 +1912,22 @@ def load_maternal_bmi_anemia_exposure(
         data.index.name = None
         return data
 
-    p_low_hgb = _read_hgb_data("pregnant_proportion_with_hgb_below_100_age_aggregated.csv")
+    anemia = extra_gbd.get_pregnant_moderate_severe_anemia_prevalence(location)
+    if sorted(anemia["age_group_id"]) != extra_gbd.PREGNANCY_AGE_GROUP_IDS:
+        raise ValueError(
+            f"Expected one row per age group {extra_gbd.PREGNANCY_AGE_GROUP_IDS} of pregnant "
+            f"anemia prevalence for {location}, got {sorted(anemia['age_group_id'])}."
+        )
+    population = anemia["population"]
+    anemia_draws = anemia.filter(regex=r"^draw_\d+$")
+    if anemia_draws.empty or anemia_draws.isna().any().any() or not (population > 0).all():
+        raise ValueError(
+            f"Pregnant anemia prevalence for {location} has no draws, a missing value, or a "
+            "population that is not positive."
+        )
+    p_low_hgb = expand_draws(
+        anemia_draws.mul(population, axis=0).sum() / population.sum(), metadata.DRAW_COUNT
+    )
     p_low_bmi_given_low_hgb = _read_hgb_data(
         "prevalence_of_low_bmi_given_hemoglobin_below_10_age_weighted.csv"
     )

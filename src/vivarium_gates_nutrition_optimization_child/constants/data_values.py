@@ -112,21 +112,10 @@ class __Wasting(NamedTuple):
     COVERAGE_START_AGE: float = 28 / YEAR_DURATION  # ~0.0767
     ALTERNATIVE_TX_COVERAGE: float = 0.7
 
-    # Wasting treatment efficacy
-    SAM_TX_ALTERNATIVE_EFFICACY: float = 0.75
-    MAM_TX_ALTERNATIVE_EFFICACY: float = 0.75
-
-    # Untreated time to recovery in days
-    MAM_UX_RECOVERY_TIME_OVER_6MO: float = 147.0
-    DEFAULT_MILD_WASTING_UX_RECOVERY_TIME: float = 1_000.0
-
-    # Treated time to recovery in days
-    SAM_TX_RECOVERY_TIME_OVER_6MO: float = 62.3  # 48.3 + 14
-    MAM_TX_RECOVERY_TIME_OVER_6MO: Tuple = (
-        "mam_tx_recovery_time_over_6mo",
-        get_norm_from_quantiles(mean=55.3, lower=48.4, upper=63.0),
-    )
-    MAM_TX_RECOVERY_TIME_UNDER_6MO: float = 13.3
+    # Wasting treatment efficacy. The alternative (cat3) treatment category has zero
+    # exposure in every scenario; an efficacy of 1 keeps its artifact RR and PAF interpretable.
+    SAM_TX_ALTERNATIVE_EFFICACY: float = 1.0
+    MAM_TX_ALTERNATIVE_EFFICACY: float = 1.0
 
 
 WASTING = __Wasting()

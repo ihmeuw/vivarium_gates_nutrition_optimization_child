@@ -18,6 +18,7 @@ IFA_GA_SHIFT_DATA_DIR = RAW_DATA_DIR / "ifa_gestational_age_shifts"
 MMS_GA_SHIFT_1_DATA_DIR = RAW_DATA_DIR / "mms_gestational_age_shifts/shift1"
 MMS_GA_SHIFT_2_DATA_DIR = RAW_DATA_DIR / "mms_gestational_age_shifts/shift2"
 SQLNS_RISK_RATIOS = RAW_DATA_DIR / "modified_and_standard_subnational_sqlns_effects_v1.csv"
+WASTING_TRANSITIONS_NATIONAL_DATA_DIR = RAW_DATA_DIR / "wasting_transition_rates"
 WASTING_TRANSITIONS_DATA_DIR = RAW_DATA_DIR / "wasting_transition_rates/subnational"
 WASTING_TREATMENT_PARAMETERS_DIR = RAW_DATA_DIR / "wasting_treatment_parameters"
 WASTING_RELATIVE_RISKS = (
@@ -27,6 +28,6 @@ PROBABILITIES_OF_WORSE_MAM_EXPOSURE = RAW_DATA_DIR / "worse_exp_frac_only_loc.cs
 UNDERWEIGHT_CONDITIONAL_DISTRIBUTIONS_DIR = CLUSTER_BASE_DIR / "raw_data/underweight_exp/"
 CGF_PAFS = CLUSTER_BASE_DIR / "raw_data/cgf_pafs/"
 
-TEMPORARY_PAF_DIR = CLUSTER_BASE_DIR / "lbwsg_pafs/outputs/"
+LBWSG_PAF_OUTPUT_DIR = BASE_DIR / "data/lbwsg_paf_outputs"
 SUBNATIONAL_PERCENTAGES = RAW_DATA_DIR / "subnational_percentages.csv"
 SQLNS_TARGETING_GHI = RAW_DATA_DIR / "sqlns_targeting_ghi.csv"
