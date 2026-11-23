@@ -41,6 +41,14 @@ from vivarium_gates_nutrition_optimization_child.tools import (
     "-a", "--append", is_flag=True, help="Append to the artifact instead of overwriting."
 )
 @click.option("-r", "--replace-keys", multiple=True, help="Specify keys to overwrite")
+@click.option(
+    "--resume",
+    is_flag=True,
+    help=(
+        "Resume the previous '-l all' build in the output directory, rerunning only "
+        "the locations that did not finish. Applies to on-cluster '-l all' builds only."
+    ),
+)
 @click.option("-v", "verbose", count=True, help="Configure logging verbosity.")
 @click.option(
     "--pdb",
@@ -53,6 +61,7 @@ def make_artifacts(
     output_dir: str,
     append: bool,
     replace_keys: Tuple[str, ...],
+    resume: bool,
     verbose: int,
     with_debugger: bool,
     build_national: bool,
@@ -72,4 +81,5 @@ def make_artifacts(
         replace_keys,
         verbose,
         fetch_subnationals,
+        resume,
     )
