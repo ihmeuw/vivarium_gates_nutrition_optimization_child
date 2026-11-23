@@ -1,8 +1,7 @@
-from typing import Tuple
-
 import click
 from loguru import logger
 from vivarium.engine.framework.utilities import handle_exceptions
+from vivarium.engine.interface.cli_tools import verbose_option
 
 from vivarium_gates_nutrition_optimization_child.constants import metadata, paths
 from vivarium_gates_nutrition_optimization_child.tools import (
@@ -49,7 +48,7 @@ from vivarium_gates_nutrition_optimization_child.tools import (
         "the locations that did not finish. Applies to on-cluster '-l all' builds only."
     ),
 )
-@click.option("-v", "verbose", count=True, help="Configure logging verbosity.")
+@verbose_option(help="Configure logging verbosity.")
 @click.option(
     "--pdb",
     "with_debugger",
@@ -60,7 +59,7 @@ def make_artifacts(
     location: str,
     output_dir: str,
     append: bool,
-    replace_keys: Tuple[str, ...],
+    replace_keys: tuple[str, ...],
     resume: bool,
     verbose: int,
     with_debugger: bool,
@@ -69,11 +68,7 @@ def make_artifacts(
     # This is a flag for national level data but we want default to be to write subnational data
     fetch_subnationals = not build_national
     configure_logging_to_terminal(verbose)
-    main = handle_exceptions(
-        build_artifacts,
-        logger,
-        with_debugger=with_debugger,
-    )
+    main = handle_exceptions(build_artifacts, logger, with_debugger=with_debugger)
     main(
         location,
         output_dir,
