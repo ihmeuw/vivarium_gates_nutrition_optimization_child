@@ -5,7 +5,13 @@ import pandas as pd
 import pytest
 import yaml
 
-pytestmark = pytest.mark.cluster
+pytestmark = [pytest.mark.cluster, pytest.mark.slow]
+
+# The run keeps the model spec's step size and is shortened to this many steps. The wasting
+# exit rates from SAM are high enough that steps much longer than a week give exit
+# probabilities that sum to more than 1, so the run cannot be shortened by lengthening the
+# step. With 4-day steps, 50 steps (200 days) gives non-zero values in every result.
+N_TIME_STEPS = 50
 
 
 @pytest.fixture
@@ -20,21 +26,20 @@ def model_spec(tmp_path: Path) -> Path:
     with open(model_spec_path, "r") as file:
         ms = yaml.safe_load(file)
 
-    # Shorten the run to two steps by setting the step size to half the run length.
-    end_date = pd.to_datetime(
-        f'{ms["configuration"]["time"]["end"]["year"]}-'
-        f'{ms["configuration"]["time"]["end"]["month"]}-'
-        f'{ms["configuration"]["time"]["end"]["day"]}',
-        format="%Y-%m-%d",
-    )
+    # Shorten the run by moving the end date to N_TIME_STEPS steps after the start.
     start_date = pd.to_datetime(
         f'{ms["configuration"]["time"]["start"]["year"]}-'
         f'{ms["configuration"]["time"]["start"]["month"]}-'
         f'{ms["configuration"]["time"]["start"]["day"]}',
         format="%Y-%m-%d",
     )
-    time_step_size = int((end_date - start_date).days / 2)
-    ms["configuration"]["time"]["step_size"] = time_step_size
+    step_size = ms["configuration"]["time"]["step_size"]
+    end_date = start_date + pd.Timedelta(days=N_TIME_STEPS * step_size)
+    ms["configuration"]["time"]["end"] = {
+        "year": end_date.year,
+        "month": end_date.month,
+        "day": end_date.day,
+    }
 
     model_spec = tmp_path / "test_model_spec.yaml"
     with open(model_spec, "w") as file:

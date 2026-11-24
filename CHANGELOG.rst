@@ -2,6 +2,7 @@
 
  - Add the neonatal zero wasting transition rates for each subnational instead of once for the nation,
    so every subnational has the same age bins
+ - Run the e2e test with the model spec's step size for 50 steps, mark it slow, and run tests on the slurm agent
 
 **v0.13.6 - 10/30/26**
 
