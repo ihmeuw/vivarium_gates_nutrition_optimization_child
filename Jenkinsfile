@@ -36,4 +36,5 @@ reusable_pipeline(
     ],
     skip_doc_build: true,
     run_mypy: false,
+    requires_slurm: true,
 )
