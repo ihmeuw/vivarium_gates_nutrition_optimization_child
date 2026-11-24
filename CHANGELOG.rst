@@ -1,4 +1,4 @@
-**v0.13.7 - 11/23/26**
+**v0.13.7 - 11/24/26**
 
  - Add the neonatal zero wasting transition rates for each subnational instead of once for the nation,
    so every subnational has the same age bins
@@ -6,6 +6,7 @@
  - Build all locations in parallel through jobmon in ``make_artifacts -l all``
  - Add ``--resume`` to rerun only the locations that did not finish
  - Build artifacts only for Ethiopia, Nigeria, and Pakistan, the locations the model supports
+ - Skip the e2e test until a new artifact can be built
 
 **v0.13.6 - 10/30/26**
 
