@@ -5,7 +5,15 @@ import pandas as pd
 import pytest
 import yaml
 
-pytestmark = [pytest.mark.cluster, pytest.mark.slow]
+pytestmark = [
+    pytest.mark.cluster,
+    pytest.mark.slow,
+    # TODO: remove this skip when main can build a new artifact (MIC-7861).
+    pytest.mark.skip(
+        reason="The model spec's artifact predates the neonatal wasting transition rate fix, "
+        "and main cannot build a new artifact until the GBD 2023 data update."
+    ),
+]
 
 # The run keeps the model spec's step size and is shortened to this many steps. The wasting
 # exit rates from SAM are high enough that steps much longer than a week give exit
