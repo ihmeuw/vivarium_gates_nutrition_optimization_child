@@ -17,11 +17,7 @@ MAKE_ARTIFACT_RUNTIME = "3:00:00"
 YEAR_DURATION: float = 365.25
 
 LOCATIONS = [
-    "Sub-Saharan Africa",
-    "South Asia",
-    "LMICs",
     "Ethiopia",
-    "India",
     "Nigeria",
     "Pakistan",
 ]
