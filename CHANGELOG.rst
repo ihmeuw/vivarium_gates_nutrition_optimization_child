@@ -1,3 +1,8 @@
+**v0.13.7 - 11/23/26**
+
+ - Add the neonatal zero wasting transition rates for each subnational instead of once for the nation,
+   so every subnational has the same age bins
+
 **v0.13.6 - 10/30/26**
 
  - Pull MAM transition rates from calibrated data

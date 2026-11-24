@@ -477,11 +477,18 @@ def load_wasting_transition_rates(
     rates = rates.rename({"parameter": "transition"}, axis=1)
     worse_mam_fraction = get_worse_mam_fraction(national_location_id)
 
-    # explicitly add the youngest ages data with values of 0
+    # Explicitly add the youngest ages data with values of 0
     min_age = rates.reset_index()["age_start"].min()
-    demography = demography.query("age_start < @min_age")
+    youngest_ages = (
+        demography.query("age_start < @min_age")
+        .index.to_frame(index=False)
+        .drop(columns="location")
+        .merge(pd.DataFrame({"location": rates["location"].unique()}), how="cross")
+    )
     youngest_ages_data = pd.DataFrame(
-        0, columns=metadata.ARTIFACT_COLUMNS, index=demography.index
+        0.0,
+        columns=metadata.ARTIFACT_COLUMNS,
+        index=pd.MultiIndex.from_frame(youngest_ages[metadata.ARTIFACT_INDEX_COLUMNS]),
     )
     # add all transitions
     transitions = rates.reset_index()["transition"].unique()
